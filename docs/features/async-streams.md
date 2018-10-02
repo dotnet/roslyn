@@ -59,6 +59,9 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 ### Detailed design for async `foreach` statement
 PROTOTYPE(async-streams): TODO
 
+Async foreach is disallowed on collections of type dynamic, as there is no async equivalent of the non-generic `IEnumerable` interface.
+
+
 ```C#
 E e = ((C)(x)).GetAsyncEnumerator()
 try
@@ -81,12 +84,17 @@ finally { await e.DisposeAsync(); }
 
 ### Detailed design for async-iterator methods
 
+An async-iterator method is replaced by a kick-off method, which initializes a state machine. It does not start running the state machine (unlike kick-off methods for regular async method).
+The kick-off method method is marked with both `AsyncStateMachineAttribute` and `IteratorStateMachineAttribute`.
+
 The state machine for an async-iterator method primarily implements `IAsyncEnumerable<T>` and `IAsyncEnumerator<T>`.
-It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator).
+It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator). It also captures parameter values (if any) or `this` (if needed).
 But it contains additional state:
 - a promise of a value-or-end,
 - a `bool` flag indicating whether the promise is active or not,
 - a current yielded value of type `T`.
+
+The central method of the state machine is `MoveNext()`. It gets run by `WaitForNextAsync()` and `TryGetNext()`, or as a background continuation initiated from these from an `await` in the method.
 
 The promise of a value-or-end is returned from `WaitForNextAsync`. It can be fulfilled with either:
 - `true` (when a value becomes available following background execution of the state machine),

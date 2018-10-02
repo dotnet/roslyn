@@ -18,8 +18,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsyncForEachMissingMemberWrongAsync">
-        <source>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</source>
-        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</target>
+        <source>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</source>
+        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadDynamicAsyncForEach">
+        <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
+        <target state="new">Cannot use a collection of dynamic type in an asynchronous foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -8800,8 +8805,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_AsyncForEachMissingMember">
-        <source>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</target>
+        <source>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

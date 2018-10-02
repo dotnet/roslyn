@@ -262,10 +262,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IsDirectlyInIterator)
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
+                                hasErrors = true;
                             }
                             else if (IsInAsyncMethod())
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
+                                hasErrors = true;
                             }
                         }
 
@@ -369,8 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundForEachStatement(
                     _syntax,
-                    null, // can't be sure that it's complete
-                    default(Conversion),
+                    enumeratorInfoOpt: null, // can't be sure that it's complete
+                    elementConversion: default,
                     boundIterationVariableType,
                     iterationVariables,
                     iterationErrorExpression,
@@ -680,6 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Short-circuiting to prevent strange behavior in the case where the collection
                 // expression is a type expression and the type is enumerable.
                 Debug.Assert(collectionExpr.HasAnyErrors); // should already have been reported
+                return EnumeratorResult.FailedAndReported;
+            }
+
+            if (collectionExprType.Kind == SymbolKind.DynamicType && IsAsync)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadDynamicAsyncForEach, _syntax.Expression.Location);
                 return EnumeratorResult.FailedAndReported;
             }
 

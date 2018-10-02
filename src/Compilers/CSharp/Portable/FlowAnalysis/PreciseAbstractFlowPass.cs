@@ -2157,7 +2157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _pendingBranches.Add(new PendingBranch(node, this.State));
             }
-            //if (_trackExceptions) NotePossibleException(node); // PROTOTYPE(async-streams)
 
             return null;
         }

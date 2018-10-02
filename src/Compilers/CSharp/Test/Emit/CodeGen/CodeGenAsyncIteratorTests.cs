@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    using Roslyn.Test.Utilities;
     using static Instruction;
     internal enum Instruction
     {
@@ -21,23 +22,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
-        // PROTOTYPE(async-streams)
-        // Test missing remaining types/members once BCL APIs are finalized (MRVTSL, IStrongBox, IValueTaskSource)
-        // test missing AsyncTaskMethodBuilder<T> or missing members Create(), Task, ...
+        // PROTOTYPE(async-streams) Add more tests:
         // Test with yield or await in try/catch/finally
         // More tests with exception thrown
         // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
         // yield break disallowed in finally and top-level script (see BindYieldBreakStatement); same for yield return (see BindYieldReturnStatement)
         // binding for yield return (BindYieldReturnStatement) validates escape rules, needs testing
         // test yield in async lambda (still error)
-        // test exception handling (should capture and return the exception via the promise)
-        // test IAsyncEnumerable<U> M<U>() ...
         // test with IAsyncEnumerable<dynamic>
         // other tests with dynamic?
         // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
         // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
         // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
+        // Test with one or both or the threadID APIs missing.
+        // Enable remaining windows/desktop-only to run on Core
 
         private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
@@ -51,9 +50,9 @@ class C
     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
 }
 ";
-                var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
-                comp.MakeMemberMissing(member);
-                comp.VerifyEmitDiagnostics(expected);
+            var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
+            comp.MakeMemberMissing(member);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         private void VerifyMissingType(WellKnownType type, params DiagnosticDescription[] expected)
@@ -68,9 +67,60 @@ class C
     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
 }
 ";
-                var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
-                comp.MakeTypeMissing(type);
-                comp.VerifyEmitDiagnostics(expected);
+            var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib_ref });
+            comp.MakeTypeMissing(type);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void RefStructElementType()
+        {
+            string source = @"
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<S> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return new S();
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var s in M())
+        {
+        }
+    }
+}
+ref struct S
+{
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (4,65): error CS0306: The type 'S' may not be used as a type argument
+                //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("S").WithLocation(4, 65)
+                );
+        }
+
+        [Fact]
+        public void AttributesSynthesized()
+        {
+            string source = @"
+public class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 4;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "IteratorStateMachineAttribute" },
+                    GetAttributeNames(method.GetAttributes()));
+            });
         }
 
         [Fact]
@@ -186,6 +236,16 @@ class C
                 // (5,64): error CS0656: Missing compiler required member 'System.Threading.Tasks.Sources.IValueTaskSource`1.OnCompleted'
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Threading.Tasks.Sources.IValueTaskSource`1", "OnCompleted").WithLocation(5, 64)
+                );
+        }
+
+        [Fact]
+        public void MissingMember_AsyncVoidMethodBuilder()
+        {
+            VerifyMissingMember(WellKnownMember.System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Create,
+                // (5,64): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create'
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Runtime.CompilerServices.AsyncVoidMethodBuilder", "Create").WithLocation(5, 64)
                 );
         }
 
@@ -1097,6 +1157,134 @@ class C
             }
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithGenericReturn()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<T> M<T>(T value)
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return value;
+        Write("" 4 "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M(3))
+        {
+            Write(i);
+        }
+        Write(""5"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithGenericReturnFromContainingType()
+        {
+            string source = @"
+using static System.Console;
+public class C<T>
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<T> M(T value)
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return value;
+        Write("" 4 "");
+    }
+}
+class D
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in C<int>.M(3))
+        {
+            Write(i);
+        }
+        Write(""5"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithParameter()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M(int parameter)
+    {
+        Write($""p:{parameter} "");
+        parameter++;
+        await System.Threading.Tasks.Task.Delay(10);
+        Write($""p:{parameter} "");
+        parameter++;
+        yield return 42;
+        Write($""p:{parameter} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""Start "");
+        foreach await (var i in M(10))
+        {
+            Write(""Value "");
+        }
+        Write(""End"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void AsyncIteratorWithThis()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    int field = 10;
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write($""f:{this.field} "");
+        this.field++;
+        await System.Threading.Tasks.Task.Delay(10);
+        Write($""f:{this.field} "");
+        this.field++;
+        yield return 42;
+        Write($""f:{this.field} "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""Start "");
+        foreach await (var i in new C().M())
+        {
+            Write(""Value "");
+        }
+        Write(""End"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "Start f:10 f:11 Value f:12 End");
+        }
+
         [Fact]
         public void AsyncIteratorWithReturn()
         {
@@ -1629,7 +1817,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            // PROTOTYPE(async-streams): need to implement the exception
+            // https://github.com/dotnet/roslyn/issues/30109 need to implement the guard/exception
             //CompileAndVerify(comp, expectedOutput: "Done");
         }
 
@@ -1730,7 +1918,6 @@ class C
             CompileAndVerify(comp, expectedOutput: "Done");
         }
 
-        // PROTOTYPE(async-streams): Consider moving this common test code to TestSources.cs
         private static readonly string s_common = @"
 namespace System.Collections.Generic
 {

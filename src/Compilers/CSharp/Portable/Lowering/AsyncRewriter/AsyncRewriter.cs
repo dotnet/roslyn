@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
         private readonly bool _constructedSuccessfully;
         private readonly int _methodOrdinal;
-        private readonly bool _ignoreAccessibility;
 
         private FieldSymbol _builderField;
 
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
             _methodOrdinal = methodOrdinal;
-            _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
         }
 
         /// <summary>

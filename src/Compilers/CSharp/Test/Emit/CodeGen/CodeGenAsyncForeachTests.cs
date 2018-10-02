@@ -54,7 +54,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
+                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -82,7 +82,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
+                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -702,6 +702,26 @@ class Element
         }
 
         [Fact]
+        public void TestWithDynamicCollection()
+        {
+            string source = @"
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var i in (dynamic)new C())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,33): error CS9006: Cannot use a collection of dynamic type in an asynchronous foreach
+                //         foreach await (var i in (dynamic)new C())
+                Diagnostic(ErrorCode.ERR_BadDynamicAsyncForEach, "(dynamic)new C()").WithLocation(6, 33));
+        }
+
+        [Fact]
         public void TestWithIncompleteInterface()
         {
             string source = @"
@@ -1079,7 +1099,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,33): error CS9005: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
+                // (7,33): error CS9005: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
                 // (7,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
@@ -1141,7 +1161,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9005: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
+                // (6,33): error CS9005: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -1197,6 +1217,327 @@ class C
             BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.False(internalInfo.NeedsDisposeMethod);
+        }
+
+        [Fact]
+        public void TestWithPattern_Ref()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (ref var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,32): error CS8177: Async methods cannot have by-reference locals
+                //         foreach await (ref var i in new C())
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(6, 32));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_PointerType()
+        {
+            string source = @"
+unsafe class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int* TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS4004: Cannot await in an unsafe context
+                //         foreach await (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(6, 17));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_InaccessibleGetAsyncEnumerator()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new D())
+        {
+        }
+    }
+}
+class D
+{
+    private Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'D' because 'D' does not contain a public definition for 'GetAsyncEnumerator'
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new D()").WithArguments("D", "GetAsyncEnumerator").WithLocation(6, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_InaccessibleWaitForNextAsync()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new D())
+        {
+        }
+    }
+}
+class D
+{
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        private System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0122: 'D.Enumerator.WaitForNextAsync()' is inaccessible due to its protection level
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.WaitForNextAsync()").WithLocation(6, 33),
+                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have suitable public WaitForNextAsync and TryGetNext methods
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_InaccessibleTryGetNext()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new D())
+        {
+        }
+    }
+}
+class D
+{
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        private int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0122: 'D.Enumerator.TryGetNext(out bool)' is inaccessible due to its protection level
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.TryGetNext(out bool)").WithLocation(6, 33),
+                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have suitable public WaitForNextAsync and TryGetNext methods
+                //         foreach await (var i in new D())
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Fact]
+        public void TestWithPattern_RefStruct()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var s in new C())
+        {
+            Write($""{s.ToString()} "");
+        }
+        Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public sealed class Enumerator
+    {
+        int i = -1;
+        public S TryGetNext(out bool success)
+        {
+            i++;
+            success = (i % 10 % 3 != 0);
+            return new S(i);
+        }
+        public async Task<bool> WaitForNextAsync()
+        {
+            i = i + 11;
+            bool more = await Task.FromResult(i < 20);
+            return more;
+        }
+    }
+}
+public ref struct S
+{
+    int i;
+    public S(int i)
+    {
+        this.i = i;
+    }
+    public override string ToString()
+        => i.ToString();
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11 12 Done");
+        }
+
+        [Fact]
+        public void TestWithPattern_RefReturningTryGetNext()
+        {
+            string source = @"
+using static System.Console;
+using System.Threading.Tasks;
+public class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        foreach await (var s in new C())
+        {
+            Write($""{s.ToString()} "");
+        }
+        Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public sealed class Enumerator
+    {
+        int i = -1;
+        S current;
+        public ref S TryGetNext(out bool success)
+        {
+            i++;
+            success = (i % 10 % 3 != 0);
+            current = new S(i);
+            return ref current;
+        }
+        public async Task<bool> WaitForNextAsync()
+        {
+            i = i + 11;
+            bool more = await Task.FromResult(i < 20);
+            return more;
+        }
+    }
+}
+public struct S
+{
+    int i;
+    public S(int i)
+    {
+        this.i = i;
+    }
+    public override string ToString()
+        => i.ToString();
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11 12 Done", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void TestWithPattern_IterationVariableIsReadOnly()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M()
+    {
+        foreach await (var i in new C())
+        {
+            i = 1;
+        }
+    }
+    public Enumerator GetAsyncEnumerator()
+            => throw null;
+    public sealed class Enumerator
+    {
+        public System.Threading.Tasks.Task<bool> WaitForNextAsync()
+            => throw null;
+        public int TryGetNext(out bool success)
+            => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1656: Cannot assign to 'i' because it is a 'foreach iteration variable'
+                //             i = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "i").WithArguments("i", "foreach iteration variable").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -3397,14 +3738,7 @@ class C
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
-        [Fact]
-        public void TestFoEachStatementInfo_IEquatable()
-        {
-            // PROTOTYPE(async-streams) test ForEachStatementInfo equality and such
-        }
-
         // PROTOTYPE(async-streams) More test ideas
-        // block dynamic
 
         // test with captures:
         //        int[] values = { 7, 9, 13 };
@@ -3415,10 +3749,7 @@ class C
         //}
         //    f();
 
-        // pointer element type
-        // verify that the foreach variables are readonly
         // nested deconstruction or tuple
-        // pattern with inaccessible methods
         // review instrumentation
         // test various things that could go wrong with binding the await for DisposeAsync
         // throwing exception from enumerator, or from inside the async-foreach
@@ -3428,15 +3759,10 @@ class C
         // IOperation
         // IDE
         // scripting?
-        // foreach on restricted type (like ref struct) in async or iterator method
-        // foreach on restricted type in a regular method
-
-        // Also try with ref-returning TryGetNext. With both ref iteration variable and ordinary one. Not sure what spec says here, but technically either could work. Especially the ordinary byval case - it could even do implicit conversions. Ref-returning methods can work as rvalues too.
-        // Also, if ref iteration variables are allowed, check readonliness mismatches. I.E. if method returns a readonly ref, but iterator var is an ordinary ref nd the other way around.
+        // expression trees
 
         // Misc other test ideas:
         // Verify that async-dispose doesn't have a similar bug with struct resource
-        // cleanup: use statement lists for async-using, instead of blocks
         // IAsyncEnumerable has an 'out' type parameter, any tests I need to do related to that?
         // spec: struct case should be blocked?
         // spec: extension methods don't contribute
