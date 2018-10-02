@@ -673,9 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
             Debug.Assert(!declarations.IsEmpty);
 
-            TypeSymbol declType = declarations[0].DeclaredType.Type;
+            BoundTypeExpression declTypeExpr = declarations[0].DeclaredType;
 
-            if (declType.IsDynamic())
+            if (declTypeExpr.Type.IsDynamic())
             {
                 iDisposableConversion = Conversion.ImplicitDynamic;
             }
@@ -683,38 +683,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
-                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
+                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declTypeExpr.Type, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
-                if (!iDisposableConversion.IsImplicit)
-                {
-                    disposeMethod = TryFindDisposePatternMethod(declType, declarationSyntax, diagnostics);
-                    if (disposeMethod is null)
-                    {
-                        if (!declType.IsErrorType())
-                        {
-                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
-                        }
-                        hasErrors = true;
-                    }
-                }
+              if (!iDisposableConversion.IsImplicit)
+              {
+                 disposeMethod = TryFindDisposePatternMethod(declTypeExpr, declarationSyntax, diagnostics);
+                 if (disposeMethod is null)
+                 {
+                     if (!declTypeExpr.Type.IsErrorType())
+                     {
+                         Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declTypeExpr.Type);
+                     }
+                     hasErrors = true;
+                 }
+              }
             }
             return declarations;
         }
 
         /// <summary>
-        /// Checks for a Dispose method on exprType and returns if found.
+        /// Checks for a Dispose method on typeExpr and returns if found.
         /// </summary>
-        /// <param name="exprType">Type of the expression over which to iterate</param>
+        /// <param name="typeExpr">Expression over which to iterate</param>
         /// <param name="syntaxNode">The syntax node for this expression or declaration.</param>
         /// <param name="diagnostics">Populated with warnings if there are near misses</param>
         /// <returns>The method symbol of the DisposeMethod if one is found, otherwise null.</returns>
-        internal MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression typeExpr, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
 
             DiagnosticBag initialDiagnostics = DiagnosticBag.GetInstance();
-            MethodSymbol disposeMethod = FindPatternMethodRelaxed(exprType,
+            MethodSymbol disposeMethod = FindPatternMethodRelaxed(typeExpr.Type,
                                                                   WellKnownMemberNames.DisposeMethodName,
                                                                   lookupResult,
                                                                   syntaxNode,
@@ -728,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (disposeMethod is null || !disposeMethod.ReturnsVoid)
             {
                 lookupResult.Clear();
-                var extDisposeMethod = FindPatternExtensionMethod(exprType,
+
+                var extDisposeMethod = FindPatternExtensionMethod(typeExpr,
                                                                   WellKnownMemberNames.DisposeMethodName,
                                                                   lookupResult,
                                                                   syntaxNode,
@@ -741,11 +742,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AddRange(initialDiagnostics);
                     if (disposeMethod?.ReturnsVoid == false)
                     {
-                        ReportPatternWarning(diagnostics, exprType, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                        ReportPatternWarning(diagnostics, typeExpr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
                     }
                     if (extDisposeMethod?.ReturnsVoid == false)
                     {
-                        ReportPatternWarning(diagnostics, exprType, extDisposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                        ReportPatternWarning(diagnostics, typeExpr.Type, extDisposeMethod, syntaxNode, MessageID.IDS_Disposable);
                     }
                     extDisposeMethod = null;
                 }
@@ -3377,53 +3378,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Finds a pattern method implemented as an extension method, stopping at the first matching method
         /// </summary>
-        /// <param name="patternType">Type to search.</param>
+        /// <param name="typeExpr">The expression on which to search.</param>
         /// <param name="methodName">Method to search for.</param>
         /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
         /// <param name="lookupResult">Passed in for reusability.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
         /// <returns>The desired method or null.</returns>
-        private MethodSymbol FindPatternExtensionMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult,
+        private MethodSymbol FindPatternExtensionMethod(BoundExpression typeExpr, string methodName, LookupResult lookupResult,
                                                         SyntaxNode syntaxExpr, DiagnosticBag diagnostics, MessageID messageID)
         {
             Debug.Assert(lookupResult.IsClear);
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+      
+            AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
+            ImmutableArray<TypeSymbol> typeArguments = default;
             MethodSymbol patternMethod = null;
 
-            foreach (var scope in new ExtensionMethodScopes(this))
+            var resolution = BindExtensionMethod(syntaxExpr, WellKnownMemberNames.DisposeMethodName, arguments, typeExpr, typeArguments, isMethodGroupConversion: false, returnRefKind: RefKind.None, returnType: null);
+            if (resolution.HasAnyApplicableMethod)
             {
-                this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, methodName, arity: 0, options: LookupOptions.Default, ref useSiteDiagnostics);
-
-                if (lookupResult.IsMultiViable)
+                if (resolution.OverloadResolutionResult.Succeeded)
                 {
-                    ArrayBuilder<MethodSymbol> candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-                    foreach (var symbol in lookupResult.Symbols)
-                    {
-                        //PROTOTYPE: for now, just check for the single this param. We probably want to also  allow e.g. dispose(this, int a = 4, params object[] args)
-                        if (symbol is MethodSymbol method && method.ParameterCount == 1 && !(method.ReduceExtensionMethod(patternType) is null))
-                        {
-                            candidateMethods.Add(method);
-                        }
-                    }
-
-                    if (candidateMethods.Count > 1)
-                    {
-                        // too many candidates
-                        diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpr.Location, patternType, messageID.Localize(), lookupResult.Symbols[0], lookupResult.Symbols[1]);
-                    }
-                    else if (candidateMethods.Count == 1)
-                    {
-                        patternMethod = candidateMethods.Single();
-                        candidateMethods.Free();
-                        break;
-                    }
-                    candidateMethods.Free();
+                    patternMethod = resolution.OverloadResolutionResult.ValidResult.Member;
                 }
-                lookupResult.Clear();
+                else
+                {
+                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpr.Location, typeExpr.Type, messageID.Localize(),
+                                           resolution.OverloadResolutionResult.Results[0].Member, resolution.OverloadResolutionResult.Results[1].Member);
+                }
             }
 
+            arguments.Free();
             return patternMethod;
         }
 
@@ -3437,7 +3422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
             AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
-            OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
+                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type

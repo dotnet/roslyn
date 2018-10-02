@@ -734,7 +734,7 @@ class C4
         }
 
         [Fact]
-        public void UsingPatternWithLessDerivedTarget()
+        public void UsingPatternExtensionMethodWithLessDerivedTarget()
         {
             var source = @"
 class C1
@@ -763,6 +763,201 @@ class C4
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternWithValidTargetAndLessDerivedTarget()
+        {
+            var source = @"
+class C1
+{
+}
+
+class C2 : C1
+{
+}
+
+static class C3 
+{
+    public static void Dispose(this C1 c1) { }
+
+    public static void Dispose(this C2 c2) { }
+}
+
+class C4
+{
+    static void Main()
+    {
+       C2 c2 = new C2();
+       c2.Dispose();
+       using (C2 c = new C2())
+       {
+       }
+       C2 c2b = new C2();
+       using (c2b) { }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodNonPublic()
+        {
+            var source = @"
+class C1
+{
+}
+
+static class C2 
+{
+   internal static void Dispose(this C1 c1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (C1 c = new C1())
+       {
+       }
+       C1 c1b = new C1();
+       using (c1b) { }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodGeneric()
+        {
+            var source = @"
+class C1
+{
+}
+
+static class C2 
+{
+   public static void Dispose<T>(this T c1) where T : C1 { }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (C1 c = new C1())
+       {
+       }
+       C1 c1b = new C1();
+       using (c1b) { }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+
+        [Fact]
+        public void UsingPatternExtensionMethodWithDefaultArguments()
+        {
+            var source = @"
+class C1
+{
+}
+
+static class C2 
+{
+   internal static void Dispose(this C1 c1, int a = 1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (C1 c = new C1())
+       {
+       }
+       C1 c1b = new C1();
+       using (c1b) { }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodMixOfGeneric()
+        {
+            var source = @"
+class C1
+{
+}
+
+static class C2 
+{
+   public static void Dispose(this C1 c1) { }
+
+   public static void Dispose<T>(this T c1) where T : C1 { }
+
+}
+
+class C3
+{
+    static void Main()
+    {
+       using (C1 c = new C1())
+       {
+       }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodOnInStruct()
+        {
+            var source = @"
+struct S1
+{
+}
+
+static class C1 
+{
+   public static void Dispose(in this S1 s1) { }
+}
+
+class C2
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodOnRefStruct()
+        {
+            var source = @"
+struct S1
+{
+}
+
+static class C1 
+{
+   public static void Dispose(ref this S1 s1) { }
+}
+
+class C2
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
