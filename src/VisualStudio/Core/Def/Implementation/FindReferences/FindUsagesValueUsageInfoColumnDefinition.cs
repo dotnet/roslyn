@@ -22,10 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of the below dictionaries are capped.
         // So, we store these as static dictionarys which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<MultiDictionary<string, string>.ValueSet, string> s_constituentValuesToDisplayValuesMap
-            = new ConcurrentDictionary<MultiDictionary<string, string>.ValueSet, string>();
-        private static readonly ConcurrentDictionary<string, IEnumerable<string>> s_displayValueToConstituentValuesMap
-            = new ConcurrentDictionary<string, IEnumerable<string>>();
+        private static readonly ConcurrentDictionary<ImmutableArray<string>, string> s_constituentValuesToDisplayValuesMap
+            = new ConcurrentDictionary<ImmutableArray<string>, string>();
+        private static readonly ConcurrentDictionary<string, ImmutableArray<string>> s_displayValueToConstituentValuesMap
+            = new ConcurrentDictionary<string, ImmutableArray<string>>();
 
         public const string ColumnName = nameof(ValueUsageInfo);
 
@@ -42,9 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public override string DisplayName => ServicesVSResources.Kind;
         public override double DefaultWidth => 100.0;
 
-        public override string GetDisplayStringForColumnValues(MultiDictionary<string, string>.ValueSet values)
+        public override string GetDisplayStringForColumnValues(ImmutableArray<string> values)
             => s_constituentValuesToDisplayValuesMap.GetOrAdd(values, JoinValues);
-        protected override IEnumerable<string> SplitColumnDisplayValue(string displayValue)
+        protected override ImmutableArray<string> SplitColumnDisplayValue(string displayValue)
             => s_displayValueToConstituentValuesMap.GetOrAdd(displayValue, SplitAndTrimValue);
     }
 }

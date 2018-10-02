@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Concurrent;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
+    using ReferenceInfoMap = ImmutableDictionary<string, ImmutableArray<string>>;
+
     /// <summary>
     /// Information about a symbol's reference that can be used for display and 
     /// navigation in an editor.
@@ -14,8 +16,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         // We can have only a handful of different values for ValueUsageInfo flags enum, so the maximum size of this dictionary is capped.
         // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<ValueUsageInfo, MultiDictionary<string, string>> s_valueUsageInfoToReferenceInfoMap
-            = new ConcurrentDictionary<ValueUsageInfo, MultiDictionary<string, string>>();
+        private static readonly ConcurrentDictionary<ValueUsageInfo, ReferenceInfoMap> s_valueUsageInfoToReferenceInfoMap
+            = new ConcurrentDictionary<ValueUsageInfo, ReferenceInfoMap>();
 
         /// <summary>
         /// The definition this reference corresponds to.
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// This entry indicates that the reference has additional value usage information which indicate
         /// it is a read/write reference, such as say 'a++'.
         /// </summary>
-        public MultiDictionary<string, string> ReferenceInfo { get; }
+        public ReferenceInfoMap ReferenceInfo { get; }
 
         [Obsolete]
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
@@ -47,14 +49,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Definition = definition;
             SourceSpan = sourceSpan;
             IsWrittenTo = isWrittenTo;
-            ReferenceInfo = GetOrCreateReferenceInfo(ValueUsageInfo.None);
+            ReferenceInfo = ReferenceInfoMap.Empty;
         }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, MultiDictionary<string, string> referenceInfo)
+        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ReferenceInfoMap referenceInfo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
-            ReferenceInfo = referenceInfo ?? throw new ArgumentNullException(nameof(referenceInfo));
+            ReferenceInfo = referenceInfo ?? ReferenceInfoMap.Empty;
         }
 
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ValueUsageInfo valueUsageInfo)
@@ -63,18 +65,18 @@ namespace Microsoft.CodeAnalysis.FindUsages
             IsWrittenTo = valueUsageInfo.IsWrittenTo();
         }
 
-        private static MultiDictionary<string, string> GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
+        private static ReferenceInfoMap GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
             => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(valueUsageInfo, CreateReferenceInfo);
 
-        private static MultiDictionary<string, string> CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
+        private static ReferenceInfoMap CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
         {
-            var referenceInfo = new MultiDictionary<string, string>();
-            foreach (var value in valueUsageInfo.ToLocalizableValues())
+            var referenceInfoMap = ReferenceInfoMap.Empty;
+            if (valueUsageInfo != ValueUsageInfo.None)
             {
-                referenceInfo.Add(nameof(ValueUsageInfo), value);
+                referenceInfoMap = referenceInfoMap.Add(nameof(ValueUsageInfo), valueUsageInfo.ToLocalizableValues());
             }
 
-            return referenceInfo;
+            return referenceInfoMap;
         }
     }
 }

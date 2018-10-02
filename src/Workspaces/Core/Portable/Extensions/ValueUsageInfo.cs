@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,10 +34,11 @@ namespace Microsoft.CodeAnalysis
         Reference = 0x0100,
 
         /// <summary>
-        /// Represents a name reference that neither reads nor writes the underlying value.
-        /// For example, 'nameof(x)' does not read or write the underlying value stored in 'x'.
+        /// Represents a name-only reference that neither reads nor writes the underlying value.
+        /// For example, 'nameof(x)' or reference to a symbol 'x' in a documentation comment
+        /// does not read or write the underlying value stored in 'x'.
         /// </summary>
-        NameReference = 0x1000,
+        NameOnly = 0x1000,
 
         /// <summary>
         /// Represents a value read and/or write.
@@ -71,8 +73,8 @@ namespace Microsoft.CodeAnalysis
         public static bool IsWrittenTo(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & ValueUsageInfo.Write) != 0;
 
-        public static bool IsNameReference(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & ValueUsageInfo.NameReference) != 0;
+        public static bool IsNameOnly(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.NameOnly) != 0;
 
         public static string ToLocalizableString(this ValueUsageInfo value)
         {
@@ -82,16 +84,16 @@ namespace Microsoft.CodeAnalysis
             switch (value)
             {
                 case ValueUsageInfo.Read:
-                    return WorkspacesResources.Read;
+                    return WorkspacesResources.ValueUsageInfo_Read;
 
                 case ValueUsageInfo.Write:
-                    return WorkspacesResources.Write;
+                    return WorkspacesResources.ValueUsageInfo_Write;
 
                 case ValueUsageInfo.Reference:
-                    return WorkspacesResources.Reference;
+                    return WorkspacesResources.ValueUsageInfo_Reference;
 
-                case ValueUsageInfo.NameReference:
-                    return WorkspacesResources.NameReference;
+                case ValueUsageInfo.NameOnly:
+                    return WorkspacesResources.ValueUsageInfo_NameOnly;
 
                 default:
                     Debug.Fail($"Unhandled value: '{value.ToString()}'");
@@ -102,18 +104,23 @@ namespace Microsoft.CodeAnalysis
         public static bool IsSingleBitSet(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & (valueUsageInfo - 1)) == 0;
 
-        public static IEnumerable<string> ToLocalizableValues(this ValueUsageInfo valueUsageInfo)
+        public static ImmutableArray<string> ToLocalizableValues(this ValueUsageInfo valueUsageInfo)
         {
-            if (valueUsageInfo != ValueUsageInfo.None)
+            if (valueUsageInfo == ValueUsageInfo.None)
             {
-                foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
+                return ImmutableArray<string>.Empty;
+            }
+
+            var builder = ArrayBuilder<string>.GetInstance();
+            foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
+            {
+                if (value.IsSingleBitSet() && (valueUsageInfo & value) != 0)
                 {
-                    if (value.IsSingleBitSet() && (valueUsageInfo & value) != 0)
-                    {
-                        yield return value.ToLocalizableString();
-                    }
+                    builder.Add(value.ToLocalizableString());
                 }
             }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }

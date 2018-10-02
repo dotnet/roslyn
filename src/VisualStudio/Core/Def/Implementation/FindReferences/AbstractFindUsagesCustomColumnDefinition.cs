@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -37,10 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             return base.TryGetFilterItems(entry, out filterItems);
         }
 
-        public abstract string GetDisplayStringForColumnValues(MultiDictionary<string, string>.ValueSet values);
-        protected abstract IEnumerable<string> SplitColumnDisplayValue(string displayValue);
+        public abstract string GetDisplayStringForColumnValues(ImmutableArray<string> values);
+        protected abstract ImmutableArray<string> SplitColumnDisplayValue(string displayValue);
 
-        protected static string JoinValues(MultiDictionary<string, string>.ValueSet values) => string.Join(", ", values.Order());
-        protected static IEnumerable<string> SplitAndTrimValue(string displayValue) => displayValue.Split(',').Select(v => v.Trim());
+        protected static string JoinValues(ImmutableArray<string> values) => string.Join(", ", values);
+        protected static ImmutableArray<string> SplitAndTrimValue(string displayValue) => displayValue.Split(',').Select(v => v.Trim()).ToImmutableArray();
     }
 }

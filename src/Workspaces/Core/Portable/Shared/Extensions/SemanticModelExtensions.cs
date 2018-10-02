@@ -327,12 +327,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case INameOfOperation _:
                     case ITypeOfOperation _:
                     case ISizeOfOperation _:
-                        return ValueUsageInfo.NameReference;
+                        return ValueUsageInfo.NameOnly;
                 }
 
                 if (node.IsPartOfStructuredTrivia())
                 {
-                    return ValueUsageInfo.NameReference;
+                    return ValueUsageInfo.NameOnly;
                 }
 
                 var usageInfo = ValueUsageInfo.Read;

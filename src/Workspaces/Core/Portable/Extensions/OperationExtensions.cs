@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NameReference;
+                return ValueUsageInfo.NameOnly;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {

@@ -1053,15 +1053,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NameReference.
-        /// </summary>
-        internal static string NameReference {
-            get {
-                return ResourceManager.GetString("NameReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Nested quantifier {0}.
         /// </summary>
         internal static string Nested_quantifier_0 {
@@ -1224,29 +1215,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Read.
-        /// </summary>
-        internal static string Read {
-            get {
-                return ResourceManager.GetString("Read", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Refactoring Only.
         /// </summary>
         internal static string Refactoring_Only {
             get {
                 return ResourceManager.GetString("Refactoring_Only", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reference.
-        /// </summary>
-        internal static string Reference {
-            get {
-                return ResourceManager.GetString("Reference", resourceCulture);
             }
         }
         
@@ -1792,6 +1765,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to NameOnly.
+        /// </summary>
+        internal static string ValueUsageInfo_NameOnly {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read.
+        /// </summary>
+        internal static string ValueUsageInfo_Read {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference.
+        /// </summary>
+        internal static string ValueUsageInfo_Reference {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write.
+        /// </summary>
+        internal static string ValueUsageInfo_Write {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variables captured:.
         /// </summary>
         internal static string Variables_captured_colon {
@@ -1815,15 +1824,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Workspace_is_not_empty {
             get {
                 return ResourceManager.GetString("Workspace_is_not_empty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Write.
-        /// </summary>
-        internal static string Write {
-            get {
-                return ResourceManager.GetString("Write", resourceCulture);
             }
         }
         

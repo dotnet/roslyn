@@ -7,24 +7,9 @@
         <target state="translated">指定した構成ファイルの読み取り中にエラーが発生しました: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="NameReference">
-        <source>NameReference</source>
-        <target state="new">NameReference</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Read">
-        <source>Read</source>
-        <target state="new">Read</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">リファクタリングのみ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reference">
-        <source>Reference</source>
-        <target state="new">Reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -102,14 +87,29 @@
         <target state="translated">プロジェクトの追加はサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ValueUsageInfo_NameOnly">
+        <source>NameOnly</source>
+        <target state="new">NameOnly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="new">Read</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="new">Reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="new">Write</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">ワークスペースが空ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Write">
-        <source>Write</source>
-        <target state="new">Write</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">

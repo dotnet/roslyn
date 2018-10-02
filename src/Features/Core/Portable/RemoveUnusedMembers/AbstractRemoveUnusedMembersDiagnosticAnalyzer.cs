@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             }
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
-                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameReference() && !symbolsReferencedInDocComments.Contains(member)
+                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
                                 ? s_removeUnusedMembersRule
                                 : s_removeUnreadMembersRule;
 
