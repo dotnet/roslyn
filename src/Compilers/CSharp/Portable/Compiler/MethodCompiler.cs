@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamespaceAsTask(symbol);
+                Task worker = CompileNamespaceAsAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -333,9 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task CompileNamespaceAsAsync(NamespaceSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamedTypeAsTask(symbol);
+                Task worker = CompileNamedTypeAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -381,9 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        private Task CompileNamedTypeAsync(NamedTypeSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {

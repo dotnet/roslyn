@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                var task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzerExecutor);
+                var task = analyzerExecutionContext.GetSessionAnalysisScopeAsync(analyzerExecutor);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)

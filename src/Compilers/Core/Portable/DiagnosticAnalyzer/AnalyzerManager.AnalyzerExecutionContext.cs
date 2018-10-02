@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private ImmutableArray<DiagnosticDescriptor> _lazyDescriptors = default(ImmutableArray<DiagnosticDescriptor>);
 
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(AnalyzerExecutor analyzerExecutor)
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(AnalyzerExecutor analyzerExecutor)
             {
                 lock (_gate)
                 {
