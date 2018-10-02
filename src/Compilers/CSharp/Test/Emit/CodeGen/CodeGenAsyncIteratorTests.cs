@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
         // Do some manual validation on debugging scenarios, including with exceptions (thrown after yield and after await).
         // Test with one or both or the threadID APIs missing.
-        // Enable remaining windows/desktop-only to run on Core
 
         private void VerifyMissingMember(WellKnownMember member, params DiagnosticDescription[] expected)
         {
@@ -72,7 +71,7 @@ class C
             comp.VerifyEmitDiagnostics(expected);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void RefStructElementType()
         {
             string source = @"
@@ -1157,7 +1156,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithGenericReturn()
         {
             string source = @"
@@ -1187,7 +1186,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithGenericReturnFromContainingType()
         {
             string source = @"
@@ -1220,7 +1219,7 @@ class D
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithParameter()
         {
             string source = @"
@@ -1252,7 +1251,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithThis()
         {
             string source = @"
