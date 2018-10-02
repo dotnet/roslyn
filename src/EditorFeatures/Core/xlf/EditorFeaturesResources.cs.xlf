@@ -37,6 +37,11 @@
         <target state="new">Extract method encountered the following issues:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Filter">
+        <source>Filter</source>
+        <target state="new">Filter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Operace Formátovat dokument provedla další čištění.</target>
@@ -105,6 +110,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Řetězec – Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">

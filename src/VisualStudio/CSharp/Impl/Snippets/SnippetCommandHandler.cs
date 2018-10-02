@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Name("CSharp Snippets")]
     [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.Completion)]
     [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.IntelliSense)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
         ICommandHandler<SurroundWithCommandArgs>

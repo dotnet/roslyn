@@ -28,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         private IMultiSelectionBroker _multiSelectionBroker;
 
+        public const string CompletionRoot = nameof(CompletionRoot);
+
         public DebuggerTextView(
             IWpfTextView innerTextView,
             IBufferGraph bufferGraph,
@@ -38,6 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _debuggerTextLinesOpt = debuggerTextLinesOpt;
             BufferGraph = bufferGraph;
             IsImmediateWindow = isImmediateWindow;
+
+            // The editor requires the current snapshot.
+            _innerTextView.Properties.AddProperty(CompletionRoot, bufferGraph.TopBuffer.CurrentSnapshot);
         }
 
         /// <summary>

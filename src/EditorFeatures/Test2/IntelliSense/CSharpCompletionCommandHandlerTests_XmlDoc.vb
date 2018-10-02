@@ -385,7 +385,6 @@ class c
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitCommentOnCloseAngle(completionImplementation As CompletionImplementation) As Task
-
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 class c
@@ -406,10 +405,10 @@ class c
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
+        <InlineData(CompletionImplementation.Legacy)>
+        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/27450")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitCdataNoOpenAngle(completionImplementation As CompletionImplementation) As Task
-
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 class c
@@ -431,10 +430,10 @@ class c
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
+        <InlineData(CompletionImplementation.Legacy)>
+        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/27450")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitCdataOnCloseAngle(completionImplementation As CompletionImplementation) As Task
-
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 class c
@@ -732,7 +731,7 @@ class c
                 Await state.AssertNoCompletionSession()
 
                 ' /// <see langword="keyword"/>$$
-                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "")
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "") ' TODO: What happened here with the \0? https://github.com/dotnet/roslyn/issues/27437
             End Using
         End Function
 

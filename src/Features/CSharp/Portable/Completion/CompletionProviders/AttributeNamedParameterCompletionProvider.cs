@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class AttributeNamedParameterCompletionProvider : CommonCompletionProvider
+    internal class AttributeNamedParameterCompletionProvider : CommonCompletionProvider, IFeaturesCustomCommitCompletionProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";

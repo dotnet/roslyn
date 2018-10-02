@@ -279,6 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to variable declaration.
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_variable_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to await expression.
         /// </summary>
         internal static string await_expression {

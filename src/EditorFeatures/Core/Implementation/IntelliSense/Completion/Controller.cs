@@ -14,6 +14,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using RoslynCompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool StartNewModelComputation(
             CompletionService completionService,
-            CompletionTrigger trigger)
+            RoslynCompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -229,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 : workspace.Options;
         }
 
-        private void CommitItem(CompletionItem item)
+        private void CommitItem(RoslynCompletionItem item)
         {
             AssertIsForeground();
 
@@ -250,36 +252,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private const int MaxMRUSize = 10;
-        private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
+        private ImmutableList<string> _recentItems = ImmutableList<string>.Empty;
 
         public string DisplayName => EditorFeaturesResources.Code_Completion;
 
         public void MakeMostRecentItem(string item)
         {
-            bool updated = false;
-
-            while (!updated)
-            {
-                var oldItems = _recentItems;
-
+            ImmutableInterlocked.Update(ref _recentItems, (ImmutableList<string> oldItems) => {
                 // We need to remove the item if it's already in the list.
                 var newItems = oldItems.Remove(item);
 
                 // If we're at capacity, we need to remove the least recent item.
-                if (newItems.Length == MaxMRUSize)
+                if (newItems.Count == MaxMRUSize)
                 {
                     newItems = newItems.RemoveAt(0);
                 }
 
                 newItems = newItems.Add(item);
-
-                updated = ImmutableInterlocked.InterlockedCompareExchange(ref _recentItems, newItems, oldItems) == oldItems;
-            }
+                return newItems;
+            });
         }
 
         public ImmutableArray<string> GetRecentItems()
         {
-            return _recentItems;
+            return _recentItems.ToImmutableArray();
         }
     }
 }

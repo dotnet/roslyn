@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.ErrorReporting
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class NamedParameterCompletionProvider
         Inherits CommonCompletionProvider
+        Implements IFeaturesCustomCommitCompletionProvider
 
         Friend Const s_colonEquals As String = ":="
 
@@ -218,6 +219,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 change = New TextChange(symbolItem.Span, insertionText)
             End If
             Return Task.FromResult(Of TextChange?)(change)
+        End Function
+
+        Private Async Function IFeaturesCustomCommitCompletionProvider_GetChangeAsync(
+                                                                               document As Document,
+                                                                               item As CompletionItem,
+                                                                               Optional commitKey As Char? = Nothing,
+                                                                               Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
+            Dim change = Await GetTextChangeAsync(item, commitKey, cancellationToken)
+            Return CompletionChange.Create(change.GetValueOrDefault())
         End Function
     End Class
 End Namespace

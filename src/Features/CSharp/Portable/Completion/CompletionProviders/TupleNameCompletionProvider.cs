@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class TupleNameCompletionProvider : CommonCompletionProvider
+    internal class TupleNameCompletionProvider : CommonCompletionProvider, IFeaturesCustomCommitCompletionProvider
     {
         private const string ColonString = ":";
 
