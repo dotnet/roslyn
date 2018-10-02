@@ -172,8 +172,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         {
                             hasFlagged = true;
                         }
-                        else if (locationAbstractValue == PropertySetAbstractValue.MaybeFlagged)
+                        else if (locationAbstractValue == PropertySetAbstractValue.MaybeFlagged
+                            || locationAbstractValue == PropertySetAbstractValue.NotApplicable)
                         {
+                            // NotApplicable also means we don't know.
                             hasMaybeFlagged = true;
                         }
                     }
