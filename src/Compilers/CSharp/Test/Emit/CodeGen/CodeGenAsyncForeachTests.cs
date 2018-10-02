@@ -695,7 +695,7 @@ class Element
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics( );
-            // PROTOTYPE(async-streams) Convert(0) is here because we're converting the result even if TryGetNext returned false
+            // https://github.com/dotnet/roslyn/issues/30258 Convert(0) is here because we're converting the result even if TryGetNext returned false
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Convert(11) Got(11) Next(12) Convert(12) Got(12) " +
                 "Next(13) Convert(0) NextAsync(13) Next(24) Convert(24) Got(24) Next(25) Convert(25) Got(25) " +
                 "Next(26) Convert(0) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
@@ -3041,7 +3041,7 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE(async-streams) The deconstruction should be after the check for success (ie. it should not occur if TryGetNext got no item)
+            // https://github.com/dotnet/roslyn/issues/30258 The deconstruction should be after the check for success (ie. it should not occur if TryGetNext got no item)
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Deconstruct(11) Got(11,-11) Next(12) Deconstruct(12) Got(12,-12) Next(13) Deconstruct(0) NextAsync(13) Dispose(24) Done", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();

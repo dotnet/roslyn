@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(loop.AwaitOpt != null && (object)loop.AwaitOpt.GetResult != null);
             Debug.Assert(enumeratorInfo.CurrentPropertyGetter is null);
-            // PROTOTYPE(async-streams) Is it possible for null GetResult for some kind of dynamic case?
 
             // E e
             TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType;
