@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
@@ -18,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         private class MoveFileCodeAction : CodeAction
         {
             private readonly State _state;
-            private readonly TService _service;
+            private readonly string _newPath;
 
             public override string Title => "Move file to new folder to match namespace declaration.";
 
-            public MoveFileCodeAction(TService service, State state)
+            public MoveFileCodeAction(State state, string newPath)
             {
-                _service = service;
                 _state = state;
+                _newPath = newPath;
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
@@ -33,21 +34,34 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private async Task<ImmutableArray<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
             {
-                // TODO: search and provide options to use existing folders
-
                 var oldDocument = _state.Document;
                 var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, oldDocument.Name);
 
                 var newSolution = oldDocument.Project.Solution.RemoveDocument(oldDocument.Id);
                 var newFolders = _state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToArray();
-                var newFilePath = Path.Combine(Path.GetDirectoryName(oldDocument.Project.FilePath), Path.Combine(newFolders.ToArray()), Path.GetFileName(oldDocument.FilePath));
 
                 var text = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                newSolution = newSolution.AddDocument(newDocumentId, oldDocument.Name, text, newFolders, newFilePath);
+                newSolution = newSolution.AddDocument(newDocumentId, oldDocument.Name, text, newFolders, _newPath);
 
                 return ImmutableArray.Create<CodeActionOperation>(
                     new ApplyChangesOperation(newSolution),
                     new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
+            }
+
+            // TODO: 
+            // 1. search and provide options to use existing folders
+            // 2. Handle MTFM project
+            public static ImmutableArray<MoveFileCodeAction> Create(State state)
+            {
+                var document = state.Document;
+                var newFolders = state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToArray();
+
+                var newRelativePath = Path.Combine(Path.Combine(newFolders.ToArray()), PathUtilities.GetFileName(document.FilePath));
+                var newFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetDirectoryName(document.Project.FilePath), newRelativePath);
+
+                return File.Exists(newFilePath) 
+                    ? ImmutableArray<MoveFileCodeAction>.Empty 
+                    : ImmutableArray.Create(new MoveFileCodeAction(state, newFilePath));
             }
         }
     }

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,23 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
     internal sealed class CSharpSyncNamespaceCodeRefactoringProvider :
         AbstractSyncNamespaceCodeRefactoringProvider<CSharpSyncNamespaceCodeRefactoringProvider, NamespaceDeclarationSyntax, CompilationUnitSyntax>
     {
-        protected override ImmutableArray<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        protected override ImmutableArray<ISymbol> GetDeclaredSymbolsInContainer(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
-            SyntaxList<MemberDeclarationSyntax> declarations;
-
-            if (node is NamespaceDeclarationSyntax namespaceDecl)
-            {
-                declarations = namespaceDecl.Members;
-            }
-            else if (node is CompilationUnitSyntax compilationUnit)
-            {
-                declarations = compilationUnit.Members;
-            }
-            else
-            {
-                return default;
-            }
-
+            var declarations = GetMemberDeclarationsInContainer(node);
             var builder = ArrayBuilder<ISymbol>.GetInstance();
             foreach (var declaration in declarations)
             {
@@ -42,6 +30,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 builder.AddIfNotNull(symbol);
             }
             return builder.ToImmutableAndFree();
+        }
+
+        private IReadOnlyList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode node)
+        {
+            if (node is NamespaceDeclarationSyntax namespaceDecl)
+            {
+                return namespaceDecl.Members;
+            }
+            else if (node is CompilationUnitSyntax compilationUnit)
+            {
+                return compilationUnit.Members;
+            }
+            else
+            {
+                return default;
+            }
         }
 
         private static NameSyntax GetQualifiedNameSyntax(NameSyntax node) 
@@ -117,9 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             }                                                                              
         }
 
-        protected override bool ShouldPositionTriggerRefactoring(SyntaxNode root, int position, out NamespaceDeclarationSyntax namespaceDeclaration)
+        protected override async Task<(bool, NamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            namespaceDeclaration = null;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            
             var namespaceDeclarationCount = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Count();
 
             if (namespaceDeclarationCount == 1)
@@ -130,8 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                     token = token.GetPreviousToken();
                 }
                 // Should trigger if cursor is on the name of only namespace declaration in this document.
-                namespaceDeclaration = token.GetAncestor<NamespaceDeclarationSyntax>();
-                return namespaceDeclaration != null && namespaceDeclaration.Name.Span.IntersectsWith(position);
+                var namespaceDeclaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+
+                var shouldTrigger = namespaceDeclaration != null 
+                    && namespaceDeclaration.Name.Span.IntersectsWith(position) 
+                    && !ContainsPartialDeclaration(document, namespaceDeclaration, cancellationToken);
+                return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
             }
 
             if (namespaceDeclarationCount == 0 && root is CompilationUnitSyntax compilationUnit)
@@ -139,9 +148,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 // Should trigger if cursor is on the name of first member declaration in the 
                 // compilation unit when there's no namespace decalration in the document.
                 var firstMemberDeclaration = compilationUnit.Members.FirstOrDefault();
-                return firstMemberDeclaration != null && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position);
+                return (firstMemberDeclaration != null 
+                    && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position) 
+                    && !ContainsPartialDeclaration(document, compilationUnit, cancellationToken), null);
             }
 
+            return (false, null);
+        }
+
+        private bool ContainsPartialDeclaration(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
+        {
+            //TODO: detect if there's any declaration in other documents.
+
+            var memberDeclarations = GetMemberDeclarationsInContainer(node);
+            foreach (TypeDeclarationSyntax declaration in memberDeclarations.Where(decl => decl is TypeDeclarationSyntax))
+            {
+                if (declaration.Modifiers.Any(token => token.IsKind(SyntaxKind.PartialKeyword)))
+                {
+                    return true;
+                }
+            }
             return false;
         }
 

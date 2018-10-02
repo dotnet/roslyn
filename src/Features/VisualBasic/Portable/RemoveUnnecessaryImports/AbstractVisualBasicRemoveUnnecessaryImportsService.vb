@@ -12,14 +12,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     Partial Friend MustInherit Class AbstractVisualBasicRemoveUnnecessaryImportsService
         Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
 
-        Public Overrides Async Function RemoveUnnecessaryImportsAsync(
+        Protected Overrides Async Function RemoveUnnecessaryImportsAsync(
                 document As Document,
                 predicate As Func(Of SyntaxNode, Boolean),
+                fromAllContexts As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
 
+                Dim x = If(fromAllContexts,
+                    Await GetCommonUnnecessaryImportsOfAllContextAsync(document, predicate, cancellationToken).ConfigureAwait(False),
+                    Await GetUnnecessaryImportsAsync(document, predicate, cancellationToken).ConfigureAwait(False))
                 Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(
                     document, predicate, cancellationToken).ConfigureAwait(False)
                 If unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             // No move file action if rootnamespace isn't a prefix of current declared namespace
             if (state.RelativeDeclaredNamespace != null)
             {
-                builder.Add(new MoveFileCodeAction(service, state));
+                builder.AddRange(MoveFileCodeAction.Create(state));
             }
 
             // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// <param name="new">The replacement node.</param>
         abstract protected bool TryGetReplacementSyntax(SyntaxNode reference, ImmutableArray<string> namespaceParts, out SyntaxNode old, out SyntaxNode @new);
 
-        abstract protected ImmutableArray<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        abstract protected ImmutableArray<ISymbol> GetDeclaredSymbolsInContainer(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         abstract protected string EscapeIdentifier(string identifier);
 
@@ -69,15 +69,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         abstract protected SyntaxNode ChangeNamespaceDeclaration(SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
 
         /// <summary>
-        /// Determine if this refactoring should be triggered based on current cursor position. 
+        /// Determine if this refactoring should be triggered based on current cursor position and if there's any partial type declarations. 
         /// It should only be triggered if the cursor is:
         /// (1) in the name of only namespace declaration
         /// (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
         /// </summary>
-        /// <param name="root">Root node of the syntax tree</param>
-        /// <param name="position">Current cursor position</param>
-        /// <param name="namespaceDeclaration">the namesapce declaration node if there's only one in the document, otherwise null</param>
-        abstract protected bool ShouldPositionTriggerRefactoring(SyntaxNode root, int position, out TNamespaceDeclarationSyntax namespaceDeclaration);
+        abstract protected Task<(bool, TNamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
 
         private static bool TryGetRelativeNamespace(string relativeTo, string @namespace, out string relativeNamespace)
         {

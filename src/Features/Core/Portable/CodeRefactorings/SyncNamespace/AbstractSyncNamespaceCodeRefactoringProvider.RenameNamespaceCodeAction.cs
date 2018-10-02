@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private readonly State _state;
             private readonly TService _service;
 
-            public override string Title => $"Change namespace to {_state.TargetNamespace} to match folder hierarchy.";
+            public override string Title => $"Change namespace name to {_state.TargetNamespace} to match folder hierarchy.";
 
             public RenameNamespaceCodeAction(TService service, State state)
             {
@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-                => await ChangeNamespaceToMatchFoldersAsync(cancellationToken).ConfigureAwait(false);
-
-            private string OldNamespaceName => _state.DeclaredNamespace;
-            private string NewNamespaceName => _state.TargetNamespace;
+                => await ChangeNamespaceToMatchFoldersAsync(cancellationToken).ConfigureAwait(false);            
 
             private ImmutableArray<string> _oldNamespaceParts;
             private ImmutableArray<string> OldNamespaceParts
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     if (_oldNamespaceParts.IsDefault)
                     {
-                        _oldNamespaceParts = OldNamespaceName.Split(new[] { '.' }).ToImmutableArray();
+                        _oldNamespaceParts = _state.DeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
                     }
                     return _oldNamespaceParts;
                 }
@@ -60,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 get
                 {
-                    Debug.Assert(NewNamespaceName != null);
+                    Debug.Assert(_state.TargetNamespace != null);
 
                     if (_newNamespaceParts.IsDefault)
                     {
-                        _newNamespaceParts = NewNamespaceName.Split(new[] { '.' }).ToImmutableArray();
+                        _newNamespaceParts = _state.TargetNamespace.Split(new[] { '.' }).ToImmutableArray();
                     }
                     Debug.Assert(_newNamespaceParts.Length > 0);
                     return _newNamespaceParts;
@@ -80,53 +77,56 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var container = declarationRoot.DescendantNodes().FirstOrDefault(node => node is TNamespaceDeclarationSyntax) ?? declarationRoot;
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var declaredSymbols = _service.GetDeclaredSymbols(semanticModel, container, cancellationToken);
+                var declaredSymbols = _service.GetDeclaredSymbolsInContainer(semanticModel, container, cancellationToken);
 
                 var documentSet = ImmutableHashSet.Create(document);
                 var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var refLocationsInCurrentDocument = SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
-                var refLocationsInOtherDocument = SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                var refLocationsInOtherFilePath = SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+
+                var solution = document.Project.Solution;
+
+                // TODO: 
+                // Need to figure out how to handle MTFM projects and linked files properly.
+                // 
+                // For the document triggered the refactoring, we try to change the namespace 
+                // declaration *only in current context*, the "find reference" is invoked only 
+                // on symbols from current context as well.
+                //
+                // And for documents referencing those symbols, they can be linked/MTFM documents themselves.
+                // In which case, we treat them as independent documents and fix them individually, and at the 
+                // end rely on existing conflict resolving mechanism to merge those fixes in the same file together.
 
                 foreach (var declaredSymbol in declaredSymbols)
                 {
                     var refSymbols = await SymbolFinder.FindReferencesAsync(
                       declaredSymbol,
-                      document.Project.Solution,
+                      solution,
                       cancellationToken).ConfigureAwait(false);
 
                     var refLocationsForSymbol = refSymbols.Where(refSymbol => refSymbol.Definition == declaredSymbol).SelectMany(refSymbol => refSymbol.Locations);
 
+                    // Ignore other documents with identical file path as triggering document (i.e. other TFM in a MTFM project)
                     refLocationsInCurrentDocument = refLocationsInCurrentDocument.Concat(refLocationsForSymbol.Where(loc => loc.Document.Id == document.Id));
-                    refLocationsInOtherDocument = refLocationsInOtherDocument.Concat(refLocationsForSymbol.Where(loc => loc.Document.Id != document.Id));
-                }
+                    refLocationsInOtherFilePath = refLocationsInOtherFilePath.Concat(refLocationsForSymbol.Where(loc => !PathUtilities.PathsEqual(loc.Document.FilePath, document.FilePath)));
+                }   
 
-                var refLocationGroups = refLocationsInOtherDocument.GroupBy(loc => loc.Document.Id);
-
-                // Transform current document first
-                var newSolution = (await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, cancellationToken).ConfigureAwait(false)).Project.Solution;
+                // Transform current document(s) first
+                solution = (await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, cancellationToken).ConfigureAwait(false)).Project.Solution;
 
                 // Then fix all referencing documents.
                 var oldImport = _service.CreateUsingDirective(OldNamespaceParts);
                 var newImport = _service.CreateUsingDirective(NewNamespaceParts);
-                var handledFile = new HashSet<string>();
+
+                var refLocationGroups = refLocationsInOtherFilePath.GroupBy(loc => loc.Document.Id);
                 foreach (var refInOneDocument in refLocationGroups)
                 {
-                    var refDocument = newSolution.GetDocument(refInOneDocument.Key);
-
-                    // The refactoring shouldn't be triggered on linked document.
-                    Debug.Assert(!string.Equals(document.FilePath, refDocument.FilePath));
-
-                    // TODO: Need to figure out howto handle linked file (e.g. MTFM project)
-                    // For now, just try to fix one of many documents linked to a file, hopefully 
-                    // that would cover most of the scenarios.
-                    if (handledFile.Add(refDocument.FilePath))
-                    {
-                        newSolution = (await FixReferencingDocumentAsync(refDocument, oldImport, newImport, refInOneDocument, cancellationToken).ConfigureAwait(false)).Project.Solution;
-                    }
+                    var refDocument = solution.GetDocument(refInOneDocument.Key);
+                    solution = (await FixReferencingDocumentAsync(refDocument, oldImport, newImport, refInOneDocument, cancellationToken).ConfigureAwait(false)).Project.Solution;
                 }
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solution));
             }            
 
             private async Task<Document> FixDeclarationDocumentAsync(Document document, IEnumerable<ReferenceLocation> refLocations, CancellationToken cancellationToken)
@@ -160,11 +160,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Change namespace declaration name to new namespace.
                 document = document.WithSyntaxRoot(_service.ChangeNamespaceDeclaration(root, OldNamespaceParts, NewNamespaceParts));
-
                 return await RemoveUnnecessaryImportsAsync(document, imports, optionSet, cancellationToken).ConfigureAwait(false);
             }
 
-            // TODO: deal with linked documents
             private async Task<Document> FixReferencingDocumentAsync(
                 Document document,
                 SyntaxNode oldImport,
@@ -194,17 +192,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     cancellationToken);
 
                 document = await Simplifier.ReduceAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
-
                 return await RemoveUnnecessaryImportsAsync(document, ImmutableArray.Create(oldImport, newImport), optionSet, cancellationToken).ConfigureAwait(false);
             }
+
 
             /// <summary>
             /// Fix each reference and return a collection of proper containers 
             /// that new import should be added to based on refrence locations.
-            /// Depends on whether <paramref name="namespaceParts"> is specified,
+            /// Depends on whether <paramref name="namespaceParts"/> is specified,
             /// the fix would be:
             ///     1. qualify the reference with new namespace and mark it for simplification, or
             ///     2. find and mark the qualified reference for simplification.
+            /// </summary>
             private async Task<(Document, ImmutableHashSet<SyntaxNode>)> FixReferences(
                 Document document, 
                 IAddImportsService addImportService, 
@@ -249,7 +248,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     var container = addImportService.GetImportContainer(root, refNode, _service.CreateUsingDirective(ImmutableArray.Create("Dummy")));
                     containers.Add(container);
                 }
-
                 return (editor.GetChangedDocument(), containers.Select(c => root.GetCurrentNode(c)).ToImmutableHashSet());
             }            
 
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 CancellationToken cancellationToken)
             {
                 var removeImportService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-                return await removeImportService.RemoveUnnecessaryImportsAsync(
+                return await removeImportService.RemoveUnnecessaryImportsFromCurrentContextAsync(
                     document,
                     import => importsToRemove.Any(importToRemove => importToRemove.IsEquivalentTo(import, topLevel: false)),
                     cancellationToken)

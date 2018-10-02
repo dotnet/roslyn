@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
@@ -60,20 +61,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private static bool IsLinkedDocument(Document document)
             {
-                // TODO: figure out how to properly determine if a document is linked.
-                if (document.GetLinkedDocumentIds().Any())
+                var solution = document.Project.Solution;
+
+                // TODO: figure out how to properly determine if a document is linked using project system.
+
+                // If we found a linked document which is part of a project with differenct project file,
+                // then it's an actual linked file (i.e. not a MTFM project).
+                if (document.GetLinkedDocumentIds()
+                    .Any(id => !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
                 {
                     return true;
                 }
-
-                var fileName = Path.GetFileName(document.FilePath);
-                var projectRoot = Path.GetDirectoryName(document.Project.FilePath);
+                
+                // Now determine if the file path match its logical path in workspace,
+                // only trigger the refactoring when they match.
+                var projectRoot = PathUtilities.GetDirectoryName(document.Project.FilePath);
                 var folderPath = Path.Combine(document.Folders.ToArray());
 
-                var expectFilePath = Path.Combine(projectRoot, folderPath, fileName);
-                var IdForDocumentsWithExpectedPath = document.Project.Solution.GetDocumentIdsWithFilePath(expectFilePath);
+                var absoluteDircetoryPath = PathUtilities.GetDirectoryName(document.FilePath);
+                var logicalDirectoryPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectRoot, folderPath);
 
-                return IdForDocumentsWithExpectedPath.Length != 1 || document.Id != IdForDocumentsWithExpectedPath[0];
+                return !PathUtilities.PathsEqual(absoluteDircetoryPath, logicalDirectoryPath);
             }
 
             public static async Task<State> CreateAsync(TService service, Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -101,10 +109,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     return null;
                 }
 
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                 // Bail if cursor is not at the proper location.
-                if (!service.ShouldPositionTriggerRefactoring(root, textSpan.Start, out var namespaceDeclaration))
+                (var shouldTriggerRefactoring, var namespaceDeclaration) = 
+                    await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken).ConfigureAwait(false);
+
+                if (!shouldTriggerRefactoring)
                 {
                     return null;
                 }
