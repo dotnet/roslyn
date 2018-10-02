@@ -37,6 +37,11 @@ namespace Roslyn.Test.Utilities
 
         public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
+
+        /// <summary>
+        /// Edit and continue is only supported on desktop at the moment.
+        /// </summary>
+        public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -203,6 +208,12 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !ExecutionConditionUtil.IsDesktop;
         public override string SkipReason => "Test not supported on CoreCLR";
+    }
+
+    public class DesktopClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => MonoHelpers.IsRunningOnMono() || !ExecutionConditionUtil.IsDesktop;
+        public override string SkipReason => "Test not supported on Mono or CoreCLR";
     }
 
     public class NoIOperationValidation : ExecutionCondition

@@ -365,6 +365,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private NamespaceDeclarationSyntax ParseNamespaceDeclaration()
         {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            var result = ParseNamespaceDeclarationCore();
+            _recursionDepth--;
+            return result;
+        }
+
+        private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore()
+        {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.NamespaceDeclaration)
             {
                 return (NamespaceDeclarationSyntax)this.EatNode();
@@ -2012,8 +2021,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        public MemberDeclarationSyntax ParseMemberDeclaration()
+        {
+            // Use a parent kind that causes inclusion of only member declarations that could appear in a struct
+            // e.g. including fixed member declarations, but not statements.
+            const SyntaxKind parentKind = SyntaxKind.StructDeclaration;
+            return ParseWithStackGuard(
+                () => this.ParseMemberDeclarationOrStatement(parentKind),
+                () => createEmptyNodeFunc());
+
+            // Creates a dummy declaration node to which we can attach a stack overflow message
+            MemberDeclarationSyntax createEmptyNodeFunc()
+            {
+                return _syntaxFactory.IncompleteMember(
+                    new SyntaxList<AttributeListSyntax>(),
+                    new SyntaxList<SyntaxToken>(),
+                    CreateMissingIdentifierName()
+                    );
+            }
+        }
+
         // Returns null if we can't parse anything (even partially).
-        private MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
+        internal MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
+        {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            var result = ParseMemberDeclarationOrStatementCore(parentKind);
+            _recursionDepth--;
+            return result;
+        }
+
+        // Returns null if we can't parse anything (even partially).
+        private MemberDeclarationSyntax ParseMemberDeclarationOrStatementCore(SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
