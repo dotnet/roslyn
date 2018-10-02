@@ -50,24 +50,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // Also note that if there's a missing token inside the expression, that's fine and we do offer 'when':
             // case (1 + ) |
 
-            // context.TargetToken does not include zero width so in case of a missing token, these will never be equal.
-            var lastToken = expressionOrPattern.GetLastToken(includeZeroWidth: true);
+            if (expressionOrPattern.GetLastToken(includeZeroWidth: true).IsMissing)
+            {
+                return false;
+            }
+
+            // There are zero width tokens that are not "missing" (inserted by the parser) because they are optional,
+            // such as the identifier in a recursive pattern. We want to ignore those now, so we exclude all zero width.
+
+            var lastToken = expressionOrPattern.GetLastToken(includeZeroWidth: false);
             if (lastToken == context.TargetToken)
             {
                 return true;
             }
 
-            if (lastToken == context.LeftToken && expressionOrPattern is DeclarationPatternSyntax declarationPattern)
+            if (lastToken == context.LeftToken)
             {
-                // case constant w|
+                // The user is typing a new word (might be a partially written 'when' keyword),
+                // which is part of the pattern as opposed to appearing outside of it. In a few special cases,
+                // this word can actually be replaced with 'when' and the resulting pattern would still be valid.
 
-                // The user is typing a new word (might be a partially written 'when' keyword), which causes this to be parsed
-                // as a declaration pattern. lastToken will be 'w' (LeftToken) as opposed to 'constant' (TargetToken).
-                // However we'd like to pretend that this is not the case and that we just a have single expression
-                // with 'constant' as if the new word didn't exist. Let's do that by adjusting our variable.
+                if (expressionOrPattern is DeclarationPatternSyntax declarationPattern)
+                {
+                    // The new token causes this to be parsed as a declaration pattern:
+                    // case constant w| ('w' = LeftToken, 'constant' = TargetToken)
 
-                expressionOrPattern = declarationPattern.Type;
-                return true;
+                    // However 'constant' itself might end up being a valid constant pattern.
+                    // We will pretend as if 'w' didn't exist so that the later check
+                    // for whether 'constant' is actually a type can still work properly.
+                    expressionOrPattern = declarationPattern.Type;
+                    return true;
+                }
+
+                if (expressionOrPattern is RecursivePatternSyntax recursivePattern)
+                {
+                    // The new token is consumed as the identifier in a recursive pattern:
+                    // case { } w| ('w' = LeftToken, '}' = TargetToken)
+
+                    // However the identifier is optional and can be replaced by 'when'.
+                    return true;
+                }
+
+                // In other cases, this would not be true because the pattern would be incomplete without this word:
+                // case 1 + w|
             }
 
             return false;
