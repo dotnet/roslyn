@@ -1,6 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
-
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         #endregion
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestUsings()
         {
             var text = @"
@@ -352,7 +350,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestExternAliases1()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
@@ -462,7 +460,8 @@ namespace X
 </symbols>");
         }
 
-        [Fact, WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases2()
         {
             string source1 = @"
@@ -513,7 +512,8 @@ class A { void M() {  } }
 ");
         }
 
-        [Fact, WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases3()
         {
             string source1 = @"
@@ -564,7 +564,7 @@ class A { void M() {  } }
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ExternAliases4()
         {
             var src1 = @"
@@ -971,7 +971,8 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithGlobalAndDuplicateAliases()
         {
             var source1 = @"
@@ -1394,7 +1395,7 @@ namespace X
 </symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestSynthesizedConstructors()
         {
             var text = @"
@@ -1455,7 +1456,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestFieldInitializerLambdas()
         {
             var text = @"
@@ -1535,7 +1536,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestAccessors()
         {
             var text = @"
@@ -1638,7 +1639,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestSynthesizedSealedAccessors()
         {
             var text = @"
@@ -1689,7 +1690,7 @@ class Derived : Base
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestSynthesizedExplicitImplementation()
         {
             var text = @"
@@ -1751,7 +1752,7 @@ class C : I1, I2
         }
 
         [WorkItem(692496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/692496")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void SequencePointOnUsingExpression()
         {
             var source = @"
@@ -1989,7 +1990,7 @@ class D
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UsingExpression()
         {
             TestSequencePoints(
@@ -2009,7 +2010,7 @@ public class Test : IDisposable
 }", TestOptions.ReleaseExe, methodName: "Test.Main");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UsingVariable()
         {
             TestSequencePoints(
@@ -2127,7 +2128,7 @@ namespace goo
         }
 
         [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void StaticType()
         {
             var source = @"
@@ -2166,7 +2167,7 @@ class D
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UnusedImports()
         {
             var source = @"
@@ -2212,7 +2213,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UnusedImports_Nonexisting()
         {
             var source = @"
@@ -2262,7 +2263,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void EmittingPdbVsNot()
         {
             string source = @"
@@ -2293,7 +2294,7 @@ class C
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ImportedNoPiaTypes()
         {
             var sourceLib = @"
@@ -2471,7 +2472,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ImportScopeEquality()
         {
             var sources = new[] { @"
@@ -2558,4 +2559,3 @@ ImportScope (index: 0x35, size: 36):
         }
     }
 }
-#endif

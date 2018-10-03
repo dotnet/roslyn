@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 else
                 {
-                    await InvokeBelowInputPriority(() =>
+                    await InvokeBelowInputPriorityAsync(() =>
                     {
                         // Make sure we were not disposed between kicking off this work and getting
                         // to this point.

@@ -111,6 +111,8 @@ phases:
         _name: Mono
   steps:
     - script: ./build/scripts/cibuild.sh $(_args)
+    - script: ./build/scripts/dockerstop.sh
+      condition: eq(variables['_name'], 'Mono')
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
