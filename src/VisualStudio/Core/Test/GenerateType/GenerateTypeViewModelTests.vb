@@ -2,7 +2,6 @@
 
 Imports System.IO
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -893,10 +892,6 @@ namespace A
 
         Public Function GetDefaultNamespace(project As Project, workspace As Microsoft.CodeAnalysis.Workspace) As String Implements IProjectManagementService.GetDefaultNamespace
             Return ""
-        End Function
-
-        Public Function GetDefaultNamespaceAsync(project As Project, workspace As Workspace) As Task(Of String) Implements IProjectManagementService.GetDefaultNamespaceAsync
-            Return Task.FromResult("")
         End Function
 
         Public Function GetFolders(projectId As ProjectId, workspace As Microsoft.CodeAnalysis.Workspace) As IList(Of String) Implements IProjectManagementService.GetFolders

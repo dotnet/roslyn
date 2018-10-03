@@ -107,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     return null;
                 }
 
+                // Bail if we can't get the root namespace for the project, the refactoring depends on it.
+                var rootNamespace = document.Project.DefaultNamespace;
+                if (rootNamespace == null)
+                {
+                    return null;
+                }
+
                 // Ignore linked documents
                 // TODO: this only detect documents linked multiple times, need to figure out how to detect a document is linked, e.g. using <Link>, or shared project, etc.
                 if (IsLinkedDocument(document))
@@ -119,13 +126,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken).ConfigureAwait(false);
 
                 if (!shouldTriggerRefactoring)
-                {
-                    return null;
-                }
-
-                // Bail if we can't get the root namespace for the project, the refactoring depends on it.
-                var rootNamespace = await GetRootNamespaceAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                if (rootNamespace == null)
                 {
                     return null;
                 }

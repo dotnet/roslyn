@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ProjectManagement
@@ -17,8 +15,5 @@ namespace Microsoft.CodeAnalysis.ProjectManagement
 
         // Returns the DefaultNamespace if present else returns an empty string
         string GetDefaultNamespace(Project project, Workspace workspace);
-
-        // Returns the DefaultNamespace asynchronously if present else returns an empty string
-        Task<string> GetDefaultNamespaceAsync(Project project, Workspace workspace, CancellationToken cancellationToken);
     }
 }
