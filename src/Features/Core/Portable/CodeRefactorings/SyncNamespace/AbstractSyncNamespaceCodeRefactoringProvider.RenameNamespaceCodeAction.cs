@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private readonly State _state;
             private readonly TService _service;
 
-            public override string Title => $"Change namespace name to {_state.TargetNamespace} to match folder hierarchy.";
+            public override string Title => $"Change namespace to \"{_state.TargetNamespace}\" to match folder hierarchy.";
 
             public RenameNamespaceCodeAction(TService service, State state)
             {

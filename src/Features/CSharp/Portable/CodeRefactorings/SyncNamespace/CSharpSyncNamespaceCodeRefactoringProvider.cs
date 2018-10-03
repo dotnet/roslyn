@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
                 var shouldTrigger = namespaceDeclaration != null 
                     && namespaceDeclaration.Name.Span.IntersectsWith(position) 
+                    && namespaceDeclaration.GetDiagnostics().All(diag => diag.Severity != DiagnosticSeverity.Error)
                     && !ContainsPartialDeclaration(document, namespaceDeclaration, cancellationToken);
                 return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
             }
@@ -158,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
         private bool ContainsPartialDeclaration(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
         {
-            //TODO: detect if there's any declaration in other documents.
-
+            // This is just a quick check for `partial` keyword.
             var memberDeclarations = GetMemberDeclarationsInContainer(node);
             foreach (TypeDeclarationSyntax declaration in memberDeclarations.Where(decl => decl is TypeDeclarationSyntax))
             {

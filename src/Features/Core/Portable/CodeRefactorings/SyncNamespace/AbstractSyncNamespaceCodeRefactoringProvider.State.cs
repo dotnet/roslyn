@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             public static async Task<State> CreateAsync(TService service, Document document, TextSpan textSpan, CancellationToken cancellationToken)
             {
+                if (document.Project.FilePath == null)
+                {
+                    return null;
+                }
+
                 if (!textSpan.IsEmpty)
                 {
                     return null;
@@ -129,14 +134,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // In this case, we might still be able to provide refactoring to move file to new location.
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var namespaceFromFolders = TryBuildNamespaceFromFolders(service, document.Folders, syntaxFacts);
-                var targetNamespace = namespaceFromFolders == null ? null : ConcatNamespace(rootNamespace, namespaceFromFolders);
+                var targetNamespace = namespaceFromFolders == null ? null : ConcatNamespace(rootNamespace, namespaceFromFolders);                
 
                 // namespaceDeclaration == null means the target namespace is global namespace.
                 var declaredNamespace = namespaceDeclaration == null
                     ? string.Empty
                     : SyntaxGenerator.GetGenerator(document).GetName(namespaceDeclaration);
-
-                //TODO: Handle partial definitions.
 
                 // No action required if namespace already matches folders.
                 if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
