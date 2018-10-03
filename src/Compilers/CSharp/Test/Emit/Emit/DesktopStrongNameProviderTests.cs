@@ -1,5 +1,4 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
 
 using System.Collections.Immutable;
 using System.IO;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class DesktopStrongNameProviderTests : CSharpTestBase
     {
         [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RespectCustomTempPath()
         {
             var tempDir = Temp.CreateDirectory();
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void RespectDefaultTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void EmitWithCustomTempPath()
         {
             string src = @"
@@ -53,7 +52,7 @@ class C
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void EmitWithDefaultTempPath()
         {
             string src = @"
@@ -71,4 +70,3 @@ class C
         }
     }
 }
-#endif

@@ -5129,7 +5129,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5190,7 +5190,7 @@ class Test
             return builder.ToString();
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
@@ -5277,7 +5277,7 @@ class Test
 5180801");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {

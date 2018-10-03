@@ -1731,6 +1731,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Parse a MemberDeclarationSyntax. This includes all of the kinds of members that could occur in a type declaration.
+        /// If nothing resembling a valid member declaration is found in the input, returns null.
+        /// </summary>
+        /// <param name="text">The text of the declaration.</param>
+        /// <param name="offset">Optional offset into text.</param>
+        /// <param name="options">The optional parse options to use. If no options are specified default options are
+        /// used.</param>
+        /// <param name="consumeFullText">True if extra tokens in the input following a declaration should be treated as an error</param>
+        public static MemberDeclarationSyntax ParseMemberDeclaration(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true)
+        {
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
+            using (var parser = MakeParser(lexer))
+            {
+                var node = parser.ParseMemberDeclaration();
+                if (node == null)
+                {
+                    return null;
+                }
+
+                return (MemberDeclarationSyntax)(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node).CreateRed();
+            }
+        }
+
+        /// <summary>
         /// Parse a CompilationUnitSyntax using the grammar rule for an entire compilation unit (file). To produce a
         /// SyntaxTree instance, use CSharpSyntaxTree.ParseText instead.
         /// </summary>
@@ -1746,7 +1770,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseCompilationUnit();
-                // if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (CompilationUnitSyntax)node.CreateRed();
             }
         }

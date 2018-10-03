@@ -289,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCultureForExe, @"""pt-BR""").WithLocation(1, 46));
         }
 
-        [Fact, WorkItem(1032718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032718")]
+        [WorkItem(1032718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032718")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10839")]
         public void MismatchedSurrogateInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
