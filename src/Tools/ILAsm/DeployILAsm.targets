@@ -26,7 +26,7 @@
 
   <PropertyGroup>
     <_IlasmDeployProj>$(MSBuildThisFileDirectory)ILAsmDeploy.csproj</_IlasmDeployProj>
-    <_IlasmIncrementalBuildMarker>$(IlasmPublishDir).timestamp</_IlasmIncrementalBuildMarker>
+    <_IlasmIncrementalBuildMarker>$(IlasmPublishDir).v$(MicrosoftNETCoreILAsmVersion)</_IlasmIncrementalBuildMarker>
   </PropertyGroup>
 
   <Target Name="_PublishILAsm"
