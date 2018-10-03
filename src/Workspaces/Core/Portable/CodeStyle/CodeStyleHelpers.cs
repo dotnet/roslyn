@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             // caller of this to determine what to do in this case.
             if (args.Length == 1)
             {
-                value = args[0];
+                value = args[0].Trim();
                 notificationOpt = null;
                 return true;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 // it isn't, then this isn't a valid code style option at all.
                 if (TryParseNotification(args[1], out var localNotification))
                 {
-                    value = args[0];
+                    value = args[0].Trim();
                     notificationOpt = localNotification;
                     return true;
                 }

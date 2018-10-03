@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -2325,6 +2326,30 @@ class C
                 // (7,9): error CS0019: Operator '??=' cannot be applied to operands of type 'C' and 'B'
                 //         c ??= new B();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "c ??= new B()").WithArguments("??=", "C", "B").WithLocation(7, 9));
+        }
+
+        [Fact]
+        [WorkItem(30024, "https://github.com/dotnet/roslyn/issues/30024")]
+        public void SpanNotAllowedLHS()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M()
+    {
+        Span<byte> s1 = new Span<byte>();
+        s1 ??= new Span<byte>();
+        Span<byte>? s2 = null;
+        s2 ??= new Span<byte>();
+    }
+}").VerifyDiagnostics(
+                // (8,9): error CS0019: Operator '??=' cannot be applied to operands of type 'Span<byte>' and 'Span<byte>'
+                //         s1 ??= new Span<byte>();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 ??= new Span<byte>()").WithArguments("??=", "System.Span<byte>", "System.Span<byte>").WithLocation(8, 9),
+                // (9,9): error CS0306: The type 'Span<byte>' may not be used as a type argument
+                //         Span<byte>? s2 = null;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<byte>?").WithArguments("System.Span<byte>").WithLocation(9, 9));
         }
     }
 }

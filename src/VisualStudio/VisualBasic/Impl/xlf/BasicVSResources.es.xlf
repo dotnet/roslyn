@@ -257,6 +257,11 @@
         <target state="translated">_Mostrar lista de finalización después de escribir un carácter</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="new">VB Coding Conventions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Comprobación de "nothing":</target>
