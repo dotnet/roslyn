@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool IsSingleBitSet(this ValueUsageInfo valueUsageInfo)
-            => (valueUsageInfo & (valueUsageInfo - 1)) == 0;
+            => valueUsageInfo != ValueUsageInfo.None && (valueUsageInfo & (valueUsageInfo - 1)) == 0;
 
         public static ImmutableArray<string> ToLocalizableValues(this ValueUsageInfo valueUsageInfo)
         {

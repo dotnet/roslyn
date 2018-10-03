@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return ImmutableDictionary<string, string>.Empty;
                 }
 
-                return customColumnsDataOpt.ToImmutableDictionary(
+                return customColumnsDataOpt.Where(kvp => _customColumnTitleToStatesMap.ContainsKey(kvp.Key)).ToImmutableDictionary(
                     keySelector: kvp => kvp.Key,
                     elementSelector: kvp => GetCustomColumn(kvp.Key).GetDisplayStringForColumnValues(kvp.Value));
 
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         // Also note that we will call it only once for each new custom column to add for
                         // each find references query - the lock above guarantees that newColumnStatesOpt is
                         // going to be non-null only for the first result that has a non-empty column value.
-                        TableControl.SetColumnStates(newColumnStates);
+                        TableControl.SetColumnStates(newColumnStates.ToImmutable());
                     }
                 }
                 finally

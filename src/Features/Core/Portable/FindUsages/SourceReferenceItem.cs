@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         private static ReferenceInfoMap GetOrCreateReferenceInfo(ValueUsageInfo valueUsageInfo)
-            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(valueUsageInfo, CreateReferenceInfo);
+            => s_valueUsageInfoToReferenceInfoMap.GetOrAdd(valueUsageInfo, v => CreateReferenceInfo(v));
 
         private static ReferenceInfoMap CreateReferenceInfo(ValueUsageInfo valueUsageInfo)
         {
