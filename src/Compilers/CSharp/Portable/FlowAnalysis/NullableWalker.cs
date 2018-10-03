@@ -4001,7 +4001,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Split();
                 this.StateWhenTrue[slot] = true;
-                this.StateWhenFalse[slot] = false;
             }
 
             SetResult(node);

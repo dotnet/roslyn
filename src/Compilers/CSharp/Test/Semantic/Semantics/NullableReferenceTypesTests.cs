@@ -49,6 +49,86 @@ class C
                 );
         }
 
+        [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
+        public void IsOperatorOnNonNullExpression()
+        {
+            var source = @"
+class C
+{
+    void M(object o)
+    {
+        if (o is string)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString();
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            c.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
+        public void IsOperatorOnMaybeNullExpression()
+        {
+            var source = @"
+class C
+{
+    static void Main(object? o)
+    {
+        if (o is string)
+        {
+            o.ToString();
+        }
+        else
+        {
+            o.ToString(); // 1
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(12, 13)
+                );
+        }
+
+        [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
+        public void IsOperatorOnUnconstrainedType()
+        {
+            var source = @"
+class C
+{
+    static void M<T>(T t)
+    {
+        if (t is string)
+        {
+            t.ToString();
+        }
+        else
+        {
+            t.ToString(); // 1
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(12, 13)
+                );
+        }
+
         [Fact]
         public void OmittedCall()
         {
