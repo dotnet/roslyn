@@ -981,6 +981,99 @@ class C3
         }
 
         [Fact]
+        public void UsingPatternExtensionMethodMixOfGenericAndMoreDerived()
+        {
+            var source = @"
+class C1
+{
+}
+
+class C2 : C1
+{
+}
+
+class C3 : C1
+{
+}
+
+static class C4
+{
+   public static void Dispose<T>(this T c1) where T : C1 { }
+
+   public static void Dispose(this C3 c3) { }
+
+}
+
+class C5
+{
+    static void Main()
+    {
+        using (C1 c = new C1()) { } // Dispose<T>
+
+        using (C2 c = new C2()) { } // Dispose<T>
+        
+        using (C3 c = new C3()) { } // Dispose(C3)
+    }
+}";
+            // ensure we bind without errors
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+
+            // check we call the correct overload
+            CompileAndVerify(compilation).VerifyIL("C5.Main", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  1
+  .locals init (C1 V_0, //c
+                C2 V_1, //c
+                C3 V_2) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  call       ""void C4.Dispose<C1>(C1)""
+    IL_0011:  endfinally
+  }
+  IL_0012:  newobj     ""C2..ctor()""
+  IL_0017:  stloc.1
+  .try
+  {
+    IL_0018:  leave.s    IL_0024
+  }
+  finally
+  {
+    IL_001a:  ldloc.1
+    IL_001b:  brfalse.s  IL_0023
+    IL_001d:  ldloc.1
+    IL_001e:  call       ""void C4.Dispose<C2>(C2)""
+    IL_0023:  endfinally
+  }
+  IL_0024:  newobj     ""C3..ctor()""
+  IL_0029:  stloc.2
+  .try
+  {
+    IL_002a:  leave.s    IL_0036
+  }
+  finally
+  {
+    IL_002c:  ldloc.2
+    IL_002d:  brfalse.s  IL_0035
+    IL_002f:  ldloc.2
+    IL_0030:  call       ""void C4.Dispose(C3)""
+    IL_0035:  endfinally
+  }
+  IL_0036:  ret
+}
+");
+        }
+
+        [Fact]
         public void UsingPatternExtensionMethodOnInStruct()
         {
             var source = @"
