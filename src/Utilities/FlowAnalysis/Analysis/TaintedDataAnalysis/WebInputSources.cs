@@ -15,16 +15,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Metadata for tainted data sources.
         /// </summary>
         /// <remarks>Keys are full type names (namespace + type name), values are the metadatas.</remarks>
-        private static Dictionary<string, SourceInfo> SourceInfos { get; set; }
+        public static ImmutableDictionary<string, SourceInfo> SourceInfos { get; }
 
         /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
-            SourceInfos = new Dictionary<string, SourceInfo>(StringComparer.Ordinal);
+            ImmutableDictionary<string, SourceInfo>.Builder sourceInfosBuilder =
+                ImmutableDictionary.CreateBuilder<string, SourceInfo>(StringComparer.Ordinal);
 
-            AddSourceMetadata(
+            AddSource(
+                sourceInfosBuilder,
                 WellKnownTypes.SystemWebHttpRequest,
                 taintedProperties: new string[] {
                     "AcceptTypes",
@@ -52,15 +54,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "GetBufferedInputStream",
                     "GetBufferlessInputStream",
                 });
+
+            SourceInfos = sourceInfosBuilder.ToImmutable();
         }
 
-        private static void AddSourceMetadata(string fullTypeName, string[] taintedProperties, string[] taintedMethods)
+        private static void AddSource(
+            ImmutableDictionary<string, SourceInfo>.Builder builder, 
+            string fullTypeName, 
+            string[] taintedProperties,
+            string[] taintedMethods)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
                 ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties),
                 ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods));
-            SourceInfos.Add(metadata.FullTypeName, metadata);
+            builder.Add(metadata.FullTypeName, metadata);
         }
 
         /// <summary>

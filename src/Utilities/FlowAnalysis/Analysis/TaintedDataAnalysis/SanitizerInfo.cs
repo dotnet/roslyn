@@ -31,5 +31,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Methods that untaint tainted data.
         /// </summary>
         public ImmutableHashSet<string> SanitizingMethods { get; }
+
+        public override int GetHashCode()
+        {
+            return HashUtilities.Combine(this.SanitizingMethods,
+                HashUtilities.Combine(this.FullTypeName.GetHashCode(),
+                this.IsConstructorSanitizing.GetHashCode()));
+        }
+
+        public override bool Equals(object obj)
+        {
+            SanitizerInfo other = obj as SanitizerInfo;
+            return other != null ? this.Equals(other) : false;
+        }
+
+        public bool Equals(SanitizerInfo other)
+        {
+            return other != null
+                && this.FullTypeName == other.FullTypeName
+                && this.IsConstructorSanitizing == other.IsConstructorSanitizing
+                && this.SanitizingMethods == other.SanitizingMethods;
+        }
     }
 }

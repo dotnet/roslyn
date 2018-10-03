@@ -53,7 +53,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public bool Equals(SourceInfo other)
         {
-            return this.FullTypeName == other.FullTypeName
+            return other != null
+                && this.FullTypeName == other.FullTypeName
                 && this.TaintedProperties == other.TaintedProperties
                 && this.TaintedMethods == other.TaintedMethods;
         }
