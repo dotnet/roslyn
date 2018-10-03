@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             if (!pastedTextSpan.IsEmpty)
             {
                 var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
-                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.GetTextView(), hostDocument.TextBuffer, pastedTextSpan);
             }
 
             return workspace;

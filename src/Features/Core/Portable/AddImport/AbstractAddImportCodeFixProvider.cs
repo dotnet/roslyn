@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         /// <summary>
         /// Values for these parameters can be provided (during testing) for mocking purposes.
-        /// </summary>
+        /// </summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
             ISymbolSearchService symbolSearchService = null)
