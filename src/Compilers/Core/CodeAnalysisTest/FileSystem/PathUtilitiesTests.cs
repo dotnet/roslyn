@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 ("data1//", false),
                 (null, false),
                 ("", false),
-                ("  ", ExecutionConditionUtil.IsCoreClr),
+                ("  ", ExecutionConditionUtil.IsCoreClrUnix),
                 ("path/?.txt", !ExecutionConditionUtil.IsWindowsDesktop),
                 ("path/*.txt", !ExecutionConditionUtil.IsWindowsDesktop),
                 ("path/:.txt", !ExecutionConditionUtil.IsWindowsDesktop),

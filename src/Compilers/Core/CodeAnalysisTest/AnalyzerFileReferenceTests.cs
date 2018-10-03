@@ -247,7 +247,6 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 // Test analyzer load failure.
                 var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
                 var exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
-                Console.WriteLine(exception);
                 Assert.NotNull(exception as TypeLoadException);
             }
             finally
