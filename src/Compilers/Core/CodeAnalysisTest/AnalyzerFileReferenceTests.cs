@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/mono/mono/issues/10960")]
         public void TestAnalyzerLoading_Error()
         {
             var analyzerSource = @"
@@ -247,6 +247,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 // Test analyzer load failure.
                 var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
                 var exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
+                Console.WriteLine(exception);
                 Assert.NotNull(exception as TypeLoadException);
             }
             finally

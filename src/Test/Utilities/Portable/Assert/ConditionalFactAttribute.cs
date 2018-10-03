@@ -39,6 +39,7 @@ namespace Roslyn.Test.Utilities
 
         public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
+        public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
 
         /// <summary>
         /// Edit and continue is only supported on desktop at the moment.
