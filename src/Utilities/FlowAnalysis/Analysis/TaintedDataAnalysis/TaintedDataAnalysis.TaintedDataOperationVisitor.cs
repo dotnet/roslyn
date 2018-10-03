@@ -52,7 +52,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
             {
                 if (operation is IPropertyReferenceOperation propertyReferenceOperation
-                    && WebInputSources.IsTaintedProperty(this.WellKnownTypeProvider, propertyReferenceOperation))
+                    && this.IsTaintedProperty(propertyReferenceOperation))
                 {
                     return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
@@ -207,7 +207,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
                 }
 
-                if (PrimitiveTypeConverterSanitizers.IsSanitizingMethod(this.WellKnownTypeProvider, method))
+                if (this.IsSanitizingMethod(method))
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
@@ -220,7 +220,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         returnValue = instanceAbstractValue;
                     }
-                    else if (WebInputSources.IsTaintedMethod(this.WellKnownTypeProvider, visitedInstance, method))
+                    else if (this.IsTaintedMethod(visitedInstance, method))
                     {
                         returnValue = TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                     }
@@ -329,7 +329,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="originalOperation">Original IOperation for the method/constructor invocation.</param>
             private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, IEnumerable<IArgumentOperation> taintedArguments, IOperation originalOperation)
             {
-                if (SqlSinks.IsMethodArgumentASink(this.WellKnownTypeProvider, targetMethod, taintedArguments))
+                if (this.IsMethodArgumentASink(targetMethod, taintedArguments))
                 {
                     foreach (IArgumentOperation taintedArgument in taintedArguments)
                     {
@@ -345,7 +345,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 if (assignmentOperation.Target != null
                     && assignmentValueAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted
                     && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && SqlSinks.IsPropertyASink(this.WellKnownTypeProvider, propertyReferenceOperation))
+                    && this.IsPropertyASink(propertyReferenceOperation))
                 {
                     this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, assignmentValueAbstractValue.SourceOrigins);
                 }
@@ -366,6 +366,167 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         }
                     }
                 }
+            }
+
+            /// <summary>
+            /// Determines if the instance method call returns tainted data.
+            /// </summary>
+            /// <param name="wellKnownTypeProvider">Well known types cache.</param>
+            /// <param name="method">Instance method being called.</param>
+            /// <returns>True if the method returns tainted data, false otherwise.</returns>
+            private bool IsSanitizingMethod(IMethodSymbol method)
+            {
+                foreach (SanitizerInfo sanitizerInfo in this.GetSanitizerInfosForType(method.ContainingType))
+                {
+                    if (method.MethodKind == MethodKind.Constructor
+                        && sanitizerInfo.IsConstructorSanitizing)
+                    {
+                        return true;
+                    }
+
+                    if (sanitizerInfo.SanitizingMethods.Contains(method.MetadataName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private IEnumerable<SanitizerInfo> GetSanitizerInfosForType(INamedTypeSymbol namedTypeSymbol)
+            {
+                if (namedTypeSymbol == null)
+                {
+                    yield break;
+                }
+
+                for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
+                {
+                    if (!this.WellKnownTypeProvider.TryGetFullTypeName(typeSymbol, out string typeFullName)
+                        || !this.DataFlowAnalysisContext.TaintedSanitizerInfos.TryGetValue(typeFullName, out SanitizerInfo sinkInfo))
+                    {
+                        continue;
+                    }
+
+                    yield return sinkInfo;
+                }
+            }
+
+            /// <summary>
+            /// Determines if tainted data passed as arguments to a method enters a tainted data sink.
+            /// </summary>
+            /// <param name="method">Method being invoked.</param>
+            /// <param name="taintedArguments">Arguments passed to the method invocation that are tainted.</param>
+            /// <returns>True if any of the tainted data arguments enters a sink,  false otherwise.</returns>
+            private bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<IArgumentOperation> taintedArguments)
+            {
+                if (method.ContainingType == null || !taintedArguments.Any())
+                {
+                    return false;
+                }
+
+                foreach (SinkInfo sinkInfo in this.GetSinkInfosForType(method.ContainingType))
+                {
+                    if (method.MethodKind == MethodKind.Constructor
+                        && sinkInfo.IsAnyStringParameterInConstructorASink
+                        && taintedArguments.Any(a => a.Parameter.Type.SpecialType == SpecialType.System_String))
+                    {
+                        return true;
+                    }
+
+                    if (sinkInfo.SinkMethodParameters.TryGetValue(method.MetadataName, out ImmutableHashSet<string> sinkParameters)
+                        && taintedArguments.Any(a => sinkParameters.Contains(a.Parameter.MetadataName)))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Determines if a property is a sink.
+            /// </summary>
+            /// <param name="propertyReferenceOperation">Property to check if it's a sink.</param>
+            /// <returns>True if the property is a sink, false otherwise.</returns>
+            private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation)
+            {
+                foreach (SinkInfo sinkInfo in this.GetSinkInfosForType(propertyReferenceOperation.Member.ContainingType))
+                {
+                    if (sinkInfo.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private IEnumerable<SinkInfo> GetSinkInfosForType(INamedTypeSymbol namedTypeSymbol)
+            {
+                if (namedTypeSymbol == null)
+                {
+                    yield break;
+                }
+
+                if (!this.DataFlowAnalysisContext.TaintedInterfaceSinkInfos.IsEmpty)
+                {
+                    foreach (INamedTypeSymbol interfaceSymbol in namedTypeSymbol.AllInterfaces)
+                    {
+                        if (!this.WellKnownTypeProvider.TryGetFullTypeName(interfaceSymbol, out string interfaceFullName)
+                            || !this.DataFlowAnalysisContext.TaintedInterfaceSinkInfos.TryGetValue(interfaceFullName, out SinkInfo sinkInfo))
+                        {
+                            continue;
+                        }
+
+                        yield return sinkInfo;
+                    }
+                }
+
+                if (!this.DataFlowAnalysisContext.TaintedConcreteSinkInfos.IsEmpty)
+                {
+                    for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
+                    {
+                        if (!this.WellKnownTypeProvider.TryGetFullTypeName(typeSymbol, out string typeFullName)
+                            || !this.DataFlowAnalysisContext.TaintedConcreteSinkInfos.TryGetValue(typeFullName, out SinkInfo sinkInfo))
+                        {
+                            continue;
+                        }
+
+                        yield return sinkInfo;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Determines if the instance property reference generates tainted data.
+            /// </summary>
+            /// <param name="propertyReferenceOperation">IOperation representing the property reference.</param>
+            /// <returns>True if the property returns tainted data, false otherwise.</returns>
+            private bool IsTaintedProperty(IPropertyReferenceOperation propertyReferenceOperation)
+            {
+                return propertyReferenceOperation != null
+                    && propertyReferenceOperation.Instance != null
+                    && propertyReferenceOperation.Member != null
+                    && this.WellKnownTypeProvider.TryGetFullTypeName(propertyReferenceOperation.Instance.Type, out string instanceType)
+                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
+                    && sourceMetadata.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
+            }
+
+            /// <summary>
+            /// Determines if the instance method call returns tainted data.
+            /// </summary>
+            /// <param name="instance">IOperation representing the instance.</param>
+            /// <param name="method">Instance method being called.</param>
+            /// <returns>True if the method returns tainted data, false otherwise.</returns>
+            private bool IsTaintedMethod(IOperation instance, IMethodSymbol method)
+            {
+                return instance != null
+                    && instance.Type != null
+                    && method != null
+                    && this.WellKnownTypeProvider.TryGetFullTypeName(instance.Type, out string instanceType)
+                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
+                    && sourceMetadata.TaintedMethods.Contains(method.MetadataName);
             }
         }
     }

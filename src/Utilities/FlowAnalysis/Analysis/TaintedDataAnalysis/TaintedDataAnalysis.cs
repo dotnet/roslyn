@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -21,7 +22,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         internal static TaintedDataAnalysisResult GetOrComputeResult(
             ControlFlowGraph cfg,
             Compilation compilation,
-            ISymbol containingMethod)
+            ISymbol containingMethod,
+            ImmutableDictionary<string, SourceInfo> taintedSourceInfos,
+            ImmutableDictionary<string, SanitizerInfo> taintedSanitizerInfos,
+            ImmutableDictionary<string, SinkInfo> taintedConcreteSinkInfos,
+            ImmutableDictionary<string, SinkInfo> taintedInterfaceSinkInfos)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
@@ -40,7 +45,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 InterproceduralAnalysisKind.ContextSensitive,
                 false /* pessimisticAnalysis */,
                 pointsToAnalysisResult,
-                GetOrComputeResultForAnalysisContext);
+                GetOrComputeResultForAnalysisContext,
+                taintedSourceInfos,
+                taintedSanitizerInfos,
+                taintedConcreteSinkInfos,
+                taintedInterfaceSinkInfos);
 
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }

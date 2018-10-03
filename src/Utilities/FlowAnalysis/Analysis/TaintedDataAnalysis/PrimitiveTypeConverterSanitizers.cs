@@ -10,57 +10,72 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
     internal static class PrimitiveTypeConverterSanitizers
     {
-        private static readonly Dictionary<string, SanitizerInfo> ConcreteSanitizers = new Dictionary<string, SanitizerInfo>();
+        public static ImmutableDictionary<string, SanitizerInfo> ConcreteSanitizers { get; }
 
         static PrimitiveTypeConverterSanitizers()
         {
+            ImmutableDictionary<string, SanitizerInfo>.Builder builder =
+                ImmutableDictionary.CreateBuilder<string, SanitizerInfo>(StringComparer.Ordinal);
+
             string[] parseMethods = new string[] { "Parse", "TryParse" };
 
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemBoolean,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemByte,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemChar,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemInt16,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemInt32,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemInt64,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemSingle,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemDouble,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemDecimal,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemDateTime,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemTimeSpan,
                 isConstructorSanitizing: false,
                 sanitizingMethods: parseMethods);
-            AddConcreteSanitizer(
+            AddSanitizer(
+                builder,
                 WellKnownTypes.SystemNumber,
                 isConstructorSanitizing: false,
                 sanitizingMethods: new string[] {
@@ -69,9 +84,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "TryParseInt32",
                     "TryParseInt64"
                 });
+
+            ConcreteSanitizers = builder.ToImmutable();
         }
 
-        private static void AddConcreteSanitizer(
+        private static void AddSanitizer(
+            ImmutableDictionary<string, SanitizerInfo>.Builder builder,
             string fullTypeName,
             bool isConstructorSanitizing,
             string[] sanitizingMethods)
@@ -80,53 +98,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 fullTypeName,
                 isConstructorSanitizing,
                 sanitizingMethods != null ? ImmutableHashSet.Create<string>(sanitizingMethods) : ImmutableHashSet<string>.Empty);
-            ConcreteSanitizers.Add(fullTypeName, info);
-        }
-
-        /// <summary>
-        /// Determines if the instance method call returns tainted data.
-        /// </summary>
-        /// <param name="wellKnownTypeProvider">Well known types cache.</param>
-        /// <param name="method">Instance method being called.</param>
-        /// <returns>True if the method returns tainted data, false otherwise.</returns>
-        public static bool IsSanitizingMethod(WellKnownTypeProvider wellKnownTypeProvider, IMethodSymbol method)
-        {
-            foreach (SanitizerInfo sanitizerInfo in GetSanitizerInfosForType(wellKnownTypeProvider, method.ContainingType))
-            {
-                if (method.MethodKind == MethodKind.Constructor
-                    && sanitizerInfo.IsConstructorSanitizing)
-                {
-                    return true;
-                }
-
-                if (sanitizerInfo.SanitizingMethods.Contains(method.MetadataName))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static IEnumerable<SanitizerInfo> GetSanitizerInfosForType(
-            WellKnownTypeProvider wellKnownTypeProvider,
-            INamedTypeSymbol namedTypeSymbol)
-        {
-            if (namedTypeSymbol == null)
-            {
-                yield break;
-            }
-
-            for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
-            {
-                if (!wellKnownTypeProvider.TryGetFullTypeName(typeSymbol, out string typeFullName)
-                    || !ConcreteSanitizers.TryGetValue(typeFullName, out SanitizerInfo sinkInfo))
-                {
-                    continue;
-                }
-
-                yield return sinkInfo;
-            }
+            builder.Add(fullTypeName, info);
         }
     }
 }
