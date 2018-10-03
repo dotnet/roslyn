@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"(static {FeaturesResources.field}) int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static int Foo.x")
         End Function
 
         <Fact>
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"(readonly {FeaturesResources.field}) int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) readonly int Foo.x")
         End Function
 
         <Fact>
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"(volatile {FeaturesResources.field}) int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) volatile int Foo.x")
         End Function
 
         <Fact>
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"(static readonly {FeaturesResources.field}) int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static readonly int Foo.x")
         End Function
 
         <Fact>
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"(static volatile {FeaturesResources.field}) int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static volatile int Foo.x")
         End Function
 
 #End Region
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"(Shared {FeaturesResources.field}) Goo.field As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Shared Goo.field As Integer")
         End Function
 
         <Fact>
@@ -551,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"(ReadOnly {FeaturesResources.field}) Goo.field As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) ReadOnly Goo.field As Integer")
         End Function
 
         <Fact>
@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, $"(Shared ReadOnly {FeaturesResources.field}) Goo.field As Integer")
+            Await TestBasicAsync(workspace, $"({FeaturesResources.field}) Shared ReadOnly Goo.field As Integer")
         End Function
 
         <Fact>

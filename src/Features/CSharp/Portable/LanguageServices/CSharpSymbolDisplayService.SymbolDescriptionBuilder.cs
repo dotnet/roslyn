@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue)
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue);
 
+            private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstantsAndModifiers = s_minimallyQualifiedFormatWithConstants
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
+
             public SymbolDescriptionBuilder(
                 ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
@@ -198,34 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
             }
 
-            protected override ImmutableArray<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol)
-            {
-                var modifiers = new ArrayBuilder<SymbolDisplayPart>();
-
-                if (symbol.IsStatic)
-                {
-                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.StaticKeyword)));
-                    modifiers.AddRange(Space());
-                }
-
-                if (symbol.IsVolatile)
-                {
-                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.VolatileKeyword)));
-                    modifiers.AddRange(Space());
-                }
-
-                if (symbol.IsReadOnly)
-                {
-                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword)));
-                    modifiers.AddRange(Space());
-                }
-
-                return modifiers.ToImmutableAndFree();
-            }
-
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
+
+            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers => s_minimallyQualifiedFormatWithConstantsAndModifiers;
         }
     }
 }

@@ -22,6 +22,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue) _
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue)
 
+            Private Shared ReadOnly s_minimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat = s_minimallyQualifiedFormatWithConstants _
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
+
             Public Sub New(displayService As ISymbolDisplayService,
                            semanticModel As SemanticModel,
                            position As Integer,
@@ -160,22 +163,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
             End Sub
 
-            Protected Overrides Function FieldDescriptionModifiers(symbol As IFieldSymbol) As ImmutableArray(Of SymbolDisplayPart)
-                Dim modifiers = New ArrayBuilder(Of SymbolDisplayPart)
-
-                If (symbol.IsStatic) Then
-                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.SharedKeyword)))
-                    modifiers.AddRange(Space())
-                End If
-
-                If (symbol.IsReadOnly) Then
-                    modifiers.AddRange(Keyword(SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword)))
-                    modifiers.AddRange(Space())
-                End If
-
-                Return modifiers.ToImmutableAndFree()
-            End Function
-
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat
                 Get
                     Return s_minimallyQualifiedFormat
@@ -185,6 +172,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstants As SymbolDisplayFormat
                 Get
                     Return s_minimallyQualifiedFormatWithConstants
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property MinimallyQualifiedFormatWithConstantsAndModifiers As SymbolDisplayFormat
+                Get
+                    Return s_minimallyQualifiedFormatWithConstantsAndModifiers
                 End Get
             End Property
         End Class

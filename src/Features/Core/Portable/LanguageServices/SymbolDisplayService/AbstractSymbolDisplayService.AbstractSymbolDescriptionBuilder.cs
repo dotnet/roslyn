@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
+            protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
 
             protected void AddPrefixTextForAwaitKeyword()
             {
@@ -464,7 +465,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
                         symbol.IsConst
                             ? Description(FeaturesResources.constant)
-                            : FieldDescription(symbol, FeaturesResources.field),
+                            : Description(FeaturesResources.field),
                         parts);
                 }
             }
@@ -487,7 +488,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                 }
 
-                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants);
+                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstantsAndModifiers);
             }
 
             private async Task AddDescriptionForLocalAsync(ILocalSymbol symbol)
@@ -692,17 +693,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     .Concat(Punctuation(")"))
                     .Concat(Space());
             }
-
-            private IEnumerable<SymbolDisplayPart> FieldDescription(IFieldSymbol symbol, string description)
-            {
-                return Punctuation("(")
-                    .Concat(FieldDescriptionModifiers(symbol))
-                    .Concat(PlainText(description))
-                    .Concat(Punctuation(")"))
-                    .Concat(Space());
-            }
-
-            protected abstract ImmutableArray<SymbolDisplayPart> FieldDescriptionModifiers(IFieldSymbol symbol);
 
             protected IEnumerable<SymbolDisplayPart> Keyword(string text)
             {
