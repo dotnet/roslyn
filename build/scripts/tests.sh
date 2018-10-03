@@ -71,7 +71,7 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         'VBCSCompiler.UnitTests.dll'
         # Mono serialization errors breaking tests that have traits
         # https://github.com/mono/mono/issues/10945
-        'Microsoft.CodeAnalysis.CSharp.Symbols.UnitTests.dll'
+        'Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll'
     )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
