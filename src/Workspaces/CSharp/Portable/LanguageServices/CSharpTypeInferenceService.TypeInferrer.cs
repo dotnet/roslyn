@@ -1869,7 +1869,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken);
                 }
 
-                return currentSemanticModel.GetDeclaredSymbol(declarationInCurrentTree, CancellationToken);
+                return declarationInCurrentTree != null
+                    ? currentSemanticModel.GetDeclaredSymbol(declarationInCurrentTree, CancellationToken)
+                    : null;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInSwitchLabel(

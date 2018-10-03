@@ -1097,6 +1097,13 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestYieldReturnAsGlobalStatement()
+        {
+            await TestAsync(
+@"yield return [|abc|]", "global::System.Object", sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestReturnInSimpleLambda()
         {
             await TestInMethodAsync(
@@ -1217,6 +1224,13 @@ class Program
 {
     return [|Goo()|];
 };", "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestReturnAsGlobalStatement()
+        {
+            await TestAsync(
+@"return [|Goo()|];", "global::System.Object", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
