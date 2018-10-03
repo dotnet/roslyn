@@ -69,6 +69,9 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         # Currently fails on CI against old versions of mono
         # See https://github.com/dotnet/roslyn/pull/30166#issuecomment-425571629
         'VBCSCompiler.UnitTests.dll'
+        # Mono serialization errors breaking tests that have traits
+        # https://github.com/mono/mono/issues/10945
+        'Microsoft.CodeAnalysis.CSharp.Symbols.UnitTests.dll'
     )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
