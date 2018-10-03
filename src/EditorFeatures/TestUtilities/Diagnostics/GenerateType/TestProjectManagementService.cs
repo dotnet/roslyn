@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
     [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Default), Shared]
     internal class TestProjectManagementService : IProjectManagementService
     {
-        private string _defaultNamespace = string.Empty;
+        private string _defaultNamespace;
 
         public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
         {

@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var language = GetLanguage(workspace, projectElement);
 
             var assemblyName = GetAssemblyName(workspace, projectElement, ref projectId);
+            var defaultNamespace = GetDefaultNamespace(workspace, projectElement);
 
             string filePath;
 
@@ -309,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documentElementToFilePath.Add(documentElement, document.FilePath);
             }
 
-            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers);
+            return new TestHostProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: defaultNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
@@ -443,6 +444,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return languageName;
+        }
+
+        private static string GetDefaultNamespace(TestWorkspace workspace, XElement projectElement)
+        {
+            var language = GetLanguage(workspace, projectElement);
+            if (language != LanguageNames.CSharp)
+            {
+                return null;
+            }
+
+            var defaultNamespaceAttribute = projectElement.Attribute(DefaultNamespaceAttributeName);
+            return defaultNamespaceAttribute?.Value ?? string.Empty;
         }
 
         private static CompilationOptions CreateCompilationOptions(

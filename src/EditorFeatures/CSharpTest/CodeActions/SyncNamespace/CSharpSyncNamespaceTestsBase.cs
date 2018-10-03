@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
 {
@@ -26,16 +28,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             return TestWorkspace.IsWorkspaceElement(initialMarkup)
                 ? TestWorkspace.Create(initialMarkup)
                 : TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-        }
+        } 
 
-        protected string RootNamespace { get; set; } = string.Empty; 
+        protected string ProjectRootPath
+            => PathUtilities.IsUnixLikePlatform 
+            ? @"/ProjectA/" 
+            : @"C:\ProjectA\";
 
-        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
-            TestWorkspace workspace, TestParameters parameters)
+        protected string ProjectFilePath
+            => PathUtilities.CombineAbsoluteAndRelativePaths(ProjectRootPath, "ProjectA.csproj");
+
+        protected (string folder, string filePath) CreateDocumentFilePath(string[] folder, string fileName = "DocumentA.cs")
         {
-            var testprojectManagementService = workspace.Services.GetService<IProjectManagementService>() as TestProjectManagementService;
-            testprojectManagementService.SetDefaultNamespace(RootNamespace);
-            return await base.GetCodeActionsWorkerAsync(workspace, parameters).ConfigureAwait(false);
-        }      
+            if (folder == null || folder.Length == 0)
+            {
+                return (string.Empty, PathUtilities.CombineAbsoluteAndRelativePaths(ProjectRootPath, fileName));
+            }
+            else
+            {
+                var folderPath = string.Join(PathUtilities.DirectorySeparatorStr, folder);
+                var relativePath = PathUtilities.CombinePossiblyRelativeAndRelativePaths(folderPath, fileName);
+                return (folderPath, PathUtilities.CombineAbsoluteAndRelativePaths(ProjectRootPath, relativePath));
+            }
+        }        
     }
 }
