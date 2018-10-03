@@ -10,7 +10,7 @@ dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 dockerfile="$dir"/docker/
 
 [ -z "$CONTAINER_TAG" ] && CONTAINER_TAG="roslyn-build"
-[ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container"
+[ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly"
 [ -z "$DOCKER_HOST_SHARE_dir" ] && DOCKER_HOST_SHARE_DIR="$dir"/../..
 
 # Make container names CI-specific if we're running in CI
