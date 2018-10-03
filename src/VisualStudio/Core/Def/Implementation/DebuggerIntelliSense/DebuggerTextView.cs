@@ -1,20 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
@@ -41,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             BufferGraph = bufferGraph;
             IsImmediateWindow = isImmediateWindow;
 
-            // The editor requires the current snapshot.
-            _innerTextView.Properties.AddProperty(CompletionRoot, bufferGraph.TopBuffer.CurrentSnapshot);
+            // The editor requires the current top buffer.
+            _innerTextView.Properties.AddProperty(CompletionRoot, bufferGraph.TopBuffer);
         }
 
         /// <summary>

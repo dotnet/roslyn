@@ -836,10 +836,10 @@ Do you want to proceed?</value>
   <data name="Invalid_characters_in_assembly_name" xml:space="preserve">
     <value>Invalid characters in assembly name</value>
   </data>
-  <data name="Filter" xml:space="preserve">
+  <data name="Filter_image_element_automation_name" xml:space="preserve">
     <value>Filter</value>
   </data>
-  <data name="Warning" xml:space="preserve">
+  <data name="Warning_image_element_automation_name" xml:space="preserve">
     <value>Warning</value>
   </data>
 </root>

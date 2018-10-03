@@ -7,12 +7,12 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
     [Export(typeof(IAsyncCompletionItemManagerProvider))]
     [Name("Roslyn Completion Service Provider")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class EditorAsyncCompletionItemManagerProvider : IAsyncCompletionItemManagerProvider
+    internal class ItemManagerProvider : IAsyncCompletionItemManagerProvider
     {
         private readonly IAsyncCompletionBroker _broker;
 
@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorAsyncCompletionItemManagerProvider(IAsyncCompletionBroker broker)
+        public ItemManagerProvider(IAsyncCompletionBroker broker)
         {
             _broker = broker;
-            _instance = new EditorAsyncCompletionItemManager(_broker);
+            _instance = new ItemManager(_broker);
         }
 
         public IAsyncCompletionItemManager GetOrCreate(ITextView textView) => _instance;

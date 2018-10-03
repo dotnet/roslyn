@@ -722,9 +722,9 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Filter.
         /// </summary>
-        internal static string Filter {
+        internal static string Filter_image_element_automation_name {
             get {
-                return ResourceManager.GetString("Filter", resourceCulture);
+                return ResourceManager.GetString("Filter_image_element_automation_name", resourceCulture);
             }
         }
         
@@ -2073,9 +2073,9 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Warning.
         /// </summary>
-        internal static string Warning {
+        internal static string Warning_image_element_automation_name {
             get {
-                return ResourceManager.GetString("Warning", resourceCulture);
+                return ResourceManager.GetString("Warning_image_element_automation_name", resourceCulture);
             }
         }
         

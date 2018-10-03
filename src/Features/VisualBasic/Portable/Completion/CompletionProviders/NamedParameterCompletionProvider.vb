@@ -222,10 +222,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Async Function IFeaturesCustomCommitCompletionProvider_GetChangeAsync(
-                                                                               document As Document,
-                                                                               item As CompletionItem,
-                                                                               Optional commitKey As Char? = Nothing,
-                                                                               Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
+                      document As Document,
+                      item As CompletionItem,
+                      Optional commitKey As Char? = Nothing,
+                      Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
             Dim change = Await GetTextChangeAsync(item, commitKey, cancellationToken)
             Return CompletionChange.Create(change.GetValueOrDefault())
         End Function

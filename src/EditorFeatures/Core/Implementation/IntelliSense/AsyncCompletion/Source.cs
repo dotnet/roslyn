@@ -18,13 +18,14 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
-using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
-    internal class CompletionItemSource : IAsyncCompletionSource
+    internal class Source : IAsyncCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
         internal const string TriggerBuffer = nameof(TriggerBuffer);
@@ -34,38 +35,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private static ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray;
 
-        public EditorCompletion.CompletionStartData InitializeCompletion(EditorCompletion.CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken cancellationToken)
+        public AsyncCompletionData.CompletionStartData InitializeCompletion(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken cancellationToken)
         {
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return EditorCompletion.CompletionStartData.DoesNotParticipateInCompletion;
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
             var service = document.GetLanguageService<CompletionService>();
             if (service == null)
             {
-                return EditorCompletion.CompletionStartData.DoesNotParticipateInCompletion;
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
             // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
-            if (!(trigger.Reason == EditorCompletion.CompletionTriggerReason.Invoke ||
-                trigger.Reason == EditorCompletion.CompletionTriggerReason.InvokeAndCommitIfUnique)
+            if (!(trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
+                trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
                 && !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, GetRoslynTrigger(trigger, triggerLocation)))
             {
-                return EditorCompletion.CompletionStartData.DoesNotParticipateInCompletion;
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            return new EditorCompletion.CompletionStartData(
-                participation: EditorCompletion.CompletionParticipation.ProvidesItems,
+            return new AsyncCompletionData.CompletionStartData(
+                participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                 applicableToSpan: new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()));
         }
 
-        public async Task<EditorCompletion.CompletionContext> GetCompletionContextAsync(
+        public async Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
             IAsyncCompletionSession session, 
-            EditorCompletion.CompletionTrigger trigger, 
+            AsyncCompletionData.CompletionTrigger trigger, 
             SnapshotPoint triggerLocation, 
             SnapshotSpan applicableToSpan, 
             CancellationToken cancellationToken)
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
+                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
@@ -85,12 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             if (completionList == null)
             {
-                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
+                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
             }
 
-            var filterCache = new Dictionary<string, EditorCompletion.CompletionFilter>();
+            var filterCache = new Dictionary<string, AsyncCompletionData.CompletionFilter>();
 
-            var itemsBuilder = ImmutableArray.CreateBuilder<EditorCompletion.CompletionItem>();
+            var itemsBuilder = new ArrayBuilder<VSCompletionItem>();
             foreach (var roslynItem in completionList.Items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -102,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
             }
 
-            var items = itemsBuilder.ToImmutable();
+            var items = itemsBuilder.ToImmutableAndFree();
 
             var suggestionItemOptions = completionList.SuggestionModeItem != null
-                    ? new EditorCompletion.SuggestionItemOptions(
+                    ? new AsyncCompletionData.SuggestionItemOptions(
                         completionList.SuggestionModeItem.DisplayText,
                         (completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description)
                             ? description
@@ -114,13 +115,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             session.Properties.AddProperty(MustSetSelection, suggestionItemOptions != null);
 
-            return new EditorCompletion.CompletionContext(
+            return new AsyncCompletionData.CompletionContext(
                 items,
                 suggestionItemOptions,
-                suggestionItemOptions == null ? EditorCompletion.InitialSelectionHint.RegularSelection : EditorCompletion.InitialSelectionHint.SoftSelection);
+                suggestionItemOptions == null ? AsyncCompletionData.InitialSelectionHint.RegularSelection : AsyncCompletionData.InitialSelectionHint.SoftSelection);
         }
 
-        public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, EditorCompletion.CompletionItem item, CancellationToken cancellationToken)
+        public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
                 !item.Properties.TryGetProperty<ITextBuffer>(TriggerBuffer, out var triggerBuffer))
@@ -140,18 +141,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
 
-        private static RoslynTrigger GetRoslynTrigger(EditorCompletion.CompletionTrigger trigger, SnapshotPoint triggerLocation)
+        private static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
             switch (trigger.Reason)
             {
-                case EditorCompletion.CompletionTriggerReason.Invoke:
-                case EditorCompletion.CompletionTriggerReason.InvokeAndCommitIfUnique:
+                case AsyncCompletionData.CompletionTriggerReason.Invoke:
+                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
                     return RoslynTrigger.Invoke;
-                case EditorCompletion.CompletionTriggerReason.Insertion:
+                case AsyncCompletionData.CompletionTriggerReason.Insertion:
                     return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
-                case EditorCompletion.CompletionTriggerReason.Deletion:
+                case AsyncCompletionData.CompletionTriggerReason.Deletion:
                     return RoslynTrigger.CreateDeletionTrigger(trigger.Character);
-                case EditorCompletion.CompletionTriggerReason.Backspace:
+                case AsyncCompletionData.CompletionTriggerReason.Backspace:
                     var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
                     char characterRemoved;
                     if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
@@ -166,18 +167,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     }
 
                     return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
-                case EditorCompletion.CompletionTriggerReason.SnippetsMode:
+                case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
                     return new RoslynTrigger(CompletionTriggerKind.Snippets);
             }
 
             throw ExceptionUtilities.UnexpectedValue(trigger.Reason);
         }
 
-        private EditorCompletion.CompletionItem Convert(
+        private VSCompletionItem Convert(
             Document document,
             RoslynCompletionItem roslynItem,
             CompletionService completionService,
-            Dictionary<string, EditorCompletion.CompletionFilter> filterCache)
+            Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
             var filters = GetFilters(roslynItem, filterCache);
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution.Workspace);
             var attributeImages = supportedPlatforms != null ? GetWarningImageAttributeImagesArray() : ImmutableArray<ImageElement>.Empty;
 
-            var item = new EditorCompletion.CompletionItem(
+            var item = new VSCompletionItem(
                 displayText: roslynItem.DisplayText,
                 source: this,
                 icon: new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
@@ -213,15 +214,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 s_WarningImageAttributeImagesArray = ImmutableArray.Create(
                     new ImageElement(
                         warningImage,
-                        EditorFeaturesResources.Warning));
+                        EditorFeaturesResources.Warning_image_element_automation_name));
             }
 
             return s_WarningImageAttributeImagesArray;
         }
 
-        private ImmutableArray<EditorCompletion.CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, EditorCompletion.CompletionFilter> filterCache)
+        private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
-            var listBuilder = new ArrayBuilder<EditorCompletion.CompletionFilter>();
+            var listBuilder = new ArrayBuilder<AsyncCompletionData.CompletionFilter>();
             foreach (var filter in CompletionItemFilter.AllFilters)
             {
                 if (filter.Matches(item))
@@ -233,10 +234,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     else
                     {
                         var imageId = filter.Tags.GetFirstGlyph().GetImageId();
-                        var itemFilter = new EditorCompletion.CompletionFilter(
+                        var itemFilter = new AsyncCompletionData.CompletionFilter(
                             filter.DisplayText,
                             filter.AccessKey.ToString(),
-                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter));
+                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element_automation_name));
                         filterCache[filter.DisplayText] = itemFilter;
                         listBuilder.Add(itemFilter);
                     }

@@ -13,26 +13,42 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
+using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
-    internal sealed class CompletionCommitManager : IAsyncCompletionCommitManager
+    internal sealed class CommitManager : IAsyncCompletionCommitManager
     {
         private static readonly IEnumerable<char> s_commitChars = ImmutableArray.Create(
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
             ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
             '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
 
-        private static readonly EditorCompletion.CommitResult CommitResultUnhandled = new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
+        private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
+            new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.None);
 
-        IEnumerable<char> IAsyncCompletionCommitManager.PotentialCommitCharacters => s_commitChars;
+        public IEnumerable<char> PotentialCommitCharacters => s_commitChars;
 
-        public bool ShouldCommitCompletion(IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken cancellationToken)
+        /// <summary>
+        /// The method performs a preliminarily filtering of commit availability.
+        /// In case of a doubt, it should respond with true.
+        /// We will be able to cancel later in TryCommit based on VSCompletionItem item, e.g. based on CompletionItemRules.
+        /// </summary>
+        public bool ShouldCommitCompletion(
+            IAsyncCompletionSession session, 
+            SnapshotPoint location, 
+            char typedChar, 
+            CancellationToken cancellationToken)
             => s_commitChars.Contains(typedChar);
 
-        public EditorCompletion.CommitResult TryCommit(IAsyncCompletionSession session, ITextBuffer subjectBuffer, EditorCompletion.CompletionItem item, char typeChar, CancellationToken cancellationToken)
+        public AsyncCompletionData.CommitResult TryCommit(
+            IAsyncCompletionSession session, 
+            ITextBuffer subjectBuffer,
+            VSCompletionItem item, 
+            char typeChar, 
+            CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -41,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var completionService = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
-            if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionItemSource.RoslynItem, out var roslynItem))
+            if (!item.Properties.TryGetProperty<RoslynCompletionItem>(Source.RoslynItem, out var roslynItem))
             {
                 // This isn't an item we provided (e.g. Razor). Let the editor handle it normally.
                 return CommitResultUnhandled;
@@ -51,23 +67,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
             if (!IsCommitCharacter(typeChar, roslynItem.Rules.CommitCharacterRules))
             {
-                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.CancelCommit);
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
             if (completionService.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider featuresCustomCommitCompletionProvider)
             {
-                var commitBehavior = CustomCommit(document, featuresCustomCommitCompletionProvider, session.TextView, subjectBuffer, roslynItem, session.ApplicableToSpan, typeChar, cancellationToken);
-                return new EditorCompletion.CommitResult(isHandled: true, commitBehavior);
+                var commitBehavior = CustomCommit(document, featuresCustomCommitCompletionProvider, session.TextView, 
+                    subjectBuffer, roslynItem, session.ApplicableToSpan, typeChar, cancellationToken);
+
+                return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
             }
 
+            // TODO Remove language specific code: https://github.com/dotnet/roslyn/issues/30276
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
             {
-                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
+                return new AsyncCompletionData.CommitResult(isHandled: false, 
+                    AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
             }
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+                return new AsyncCompletionData.CommitResult(
+                    isHandled: false, 
+                    AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             return CommitResultUnhandled;
@@ -112,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return s_commitChars.Contains(typeChar);
         }
 
-        private EditorCompletion.CommitBehavior CustomCommit(
+        private AsyncCompletionData.CommitBehavior CustomCommit(
             Document document,
             IFeaturesCustomCommitCompletionProvider provider,
             ITextView view,
@@ -126,12 +148,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             if (!subjectBuffer.CheckEditAccess())
             {
                 // We are on the wrong thread.
-                return EditorCompletion.CommitBehavior.None;
+                return AsyncCompletionData.CommitBehavior.None;
             }
 
             if (subjectBuffer.EditInProgress)
             {
-                return EditorCompletion.CommitBehavior.None;
+                return AsyncCompletionData.CommitBehavior.None;
             }
 
             using (var edit = subjectBuffer.CreateEdit())
@@ -153,6 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var change = provider.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // Note that we use here a snapshot created in GetCompletionContextAsync. Be sure it is up-to-date.
+                // TODO: add a telemetry event if delete and replace spans overloap: https://github.com/dotnet/roslyn/issues/30277
                 edit.Replace(change.TextChange.Span.ToSpan(), change.TextChange.NewText);
                 edit.Apply();
 
@@ -164,7 +187,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 includesCommitCharacter = change.IncludesCommitCharacter;
             }
 
-            return includesCommitCharacter ? EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers : EditorCompletion.CommitBehavior.None;
+            return includesCommitCharacter ? 
+                AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers : 
+                AsyncCompletionData.CommitBehavior.None;
         }
     }
 }

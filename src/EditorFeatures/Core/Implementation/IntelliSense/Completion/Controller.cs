@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         public void MakeMostRecentItem(string item)
         {
-            ImmutableInterlocked.Update(ref _recentItems, (ImmutableList<string> oldItems) => {
+            ImmutableInterlocked.Update(ref _recentItems, (oldItems) => {
                 // We need to remove the item if it's already in the list.
                 var newItems = oldItems.Remove(item);
 

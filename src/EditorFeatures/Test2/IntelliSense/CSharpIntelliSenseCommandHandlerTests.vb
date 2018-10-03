@@ -11,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
@@ -38,7 +39,7 @@ class C
         'No need to run in the modern completion because this Escape is supported on the VSSDK side.
         <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
         <InlineData(CompletionImplementation.Legacy)>
-        <WpfTheory>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEscapeDismissesCompletionFirst(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
@@ -68,7 +69,7 @@ class C
         'No need to run in the modern completion because this Escape is supported on the VSSDK side.
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <InlineData(CompletionImplementation.Legacy)>
-        <WpfTheory>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCutDismissesCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
@@ -93,7 +94,7 @@ class C
         'No need to run in the modern completion because this Escape is supported on the VSSDK side.
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
         <InlineData(CompletionImplementation.Legacy)>
-        <WpfTheory>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPasteDismissesCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
