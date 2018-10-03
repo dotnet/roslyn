@@ -788,16 +788,37 @@ class C4
 {
     static void Main()
     {
-       C2 c2 = new C2();
-       c2.Dispose();
        using (C2 c = new C2())
        {
        }
-       C2 c2b = new C2();
-       using (c2b) { }
     }
 }";
+            // ensure we bind without errors
             var compilation = CreateCompilation(source).VerifyDiagnostics();
+
+            // check we're calling the correct extension
+            CompileAndVerify(compilation).VerifyIL("C4.Main", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C2 V_0) //c
+  IL_0000:  newobj     ""C2..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  call       ""void C3.Dispose(C2)""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}
+");
         }
 
         [Fact]
@@ -824,7 +845,7 @@ class C3
        using (c1b) { }
     }
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -851,9 +872,8 @@ class C3
        using (c1b) { }
     }
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
-
 
         [Fact]
         public void UsingPatternExtensionMethodWithDefaultArguments()
@@ -879,7 +899,32 @@ class C3
        using (c1b) { }
     }
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodOnObject()
+        {
+            var source = @"
+class C1
+{
+}
+
+static class C2 
+{
+   internal static void Dispose(this object o) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1()) { }
+        using (System.Object o = new System.Object()) { }
+        using (System.Uri uri = new System.Uri(""http://example.com"")) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -907,7 +952,32 @@ class C3
        }
     }
 }";
+            // ensure we bind without errors
             var compilation = CreateCompilation(source).VerifyDiagnostics();
+
+            // check we call the correct overload
+            CompileAndVerify(compilation).VerifyIL("C3.Main",@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  call       ""void C2.Dispose(C1)""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}
+");
         }
 
         [Fact]

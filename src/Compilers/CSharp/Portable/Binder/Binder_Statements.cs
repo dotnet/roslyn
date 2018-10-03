@@ -731,7 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var extDisposeMethod = FindPatternExtensionMethod(typeExpr,
                                                                   WellKnownMemberNames.DisposeMethodName,
-                                                                  lookupResult,
                                                                   syntaxNode,
                                                                   diagnostics,
                                                                   MessageID.IDS_Disposable);
@@ -3381,15 +3380,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="typeExpr">The expression on which to search.</param>
         /// <param name="methodName">Method to search for.</param>
         /// <param name="syntaxExpr">The expression for which lookup is being performed</param>
-        /// <param name="lookupResult">Passed in for reusability.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <param name="messageID">The ID of the message to use when reporting diagnostics</param>
         /// <returns>The desired method or null.</returns>
-        private MethodSymbol FindPatternExtensionMethod(BoundExpression typeExpr, string methodName, LookupResult lookupResult,
-                                                        SyntaxNode syntaxExpr, DiagnosticBag diagnostics, MessageID messageID)
+        private MethodSymbol FindPatternExtensionMethod(BoundExpression typeExpr, string methodName, SyntaxNode syntaxExpr,
+                                                        DiagnosticBag diagnostics, MessageID messageID)
         {
-            Debug.Assert(lookupResult.IsClear);
-      
             AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
             ImmutableArray<TypeSymbol> typeArguments = default;
             MethodSymbol patternMethod = null;
