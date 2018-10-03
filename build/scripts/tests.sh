@@ -46,8 +46,6 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
     file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
     file_skiplist=(
         'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
-        # Missing mscoree.dll, other problems
-        'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
         # Omitted because we appear to be missing things necessary to compile vb.net.
         # See https://github.com/mono/mono/issues/10679
         'Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.dll'
@@ -63,8 +61,6 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         'Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.dll'
         # Multiple test failures
         'Microsoft.Build.Tasks.CodeAnalysis.UnitTests.dll'
-        # Various failures related to PDBs, along with a runtime crash
-        'Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll'
         # Disabling on assumption
         'Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.dll'
         # A zillion test failures + crash
@@ -73,6 +69,9 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         # Currently fails on CI against old versions of mono
         # See https://github.com/dotnet/roslyn/pull/30166#issuecomment-425571629
         'VBCSCompiler.UnitTests.dll'
+        # Mono serialization errors breaking tests that have traits
+        # https://github.com/mono/mono/issues/10945
+        'Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll'
     )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
