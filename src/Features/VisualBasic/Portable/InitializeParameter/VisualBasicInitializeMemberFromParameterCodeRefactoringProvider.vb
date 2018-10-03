@@ -25,16 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function CanOfferRefactoring(functionDeclaration As SyntaxNode, operation As IOperation) As Boolean
-            Return InitializeParameterHelpers.CanOfferRefactoring(functionDeclaration, operation)
-        End Function
-
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
-        End Function
-
-        Protected Overrides Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, operation As IOperation, cancellationToken As CancellationToken) As IBlockOperation
-            Return InitializeParameterHelpers.GetBlockOperation(functionDeclaration, semanticModel, operation, cancellationToken)
         End Function
 
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
@@ -44,5 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
+
+        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(functionDeclaration)
+        End Function
     End Class
 End Namespace
