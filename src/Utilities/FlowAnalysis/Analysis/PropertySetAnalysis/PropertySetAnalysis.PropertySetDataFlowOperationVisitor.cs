@@ -181,9 +181,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                     if (hasFlagged && !hasMaybeFlagged)
                     {
-                        this._hazardousUsageBuilderOpt.Add(originalOperation, PropertySetAbstractValue.Flagged);
+                        // Overwrite existing value, if any.
+                        this._hazardousUsageBuilderOpt[originalOperation] = PropertySetAbstractValue.Flagged;
                     }
-                    else if (hasFlagged || hasMaybeFlagged)
+                    else if ((hasFlagged || hasMaybeFlagged)
+                        && !this._hazardousUsageBuilderOpt.ContainsKey(originalOperation))   // Keep existing value, if there is one.
                     {
                         this._hazardousUsageBuilderOpt.Add(originalOperation, PropertySetAbstractValue.MaybeFlagged);
                     }
