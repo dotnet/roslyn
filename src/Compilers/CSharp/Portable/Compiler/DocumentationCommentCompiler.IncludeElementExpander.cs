@@ -220,12 +220,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (ElementNameIs(element, DocumentationCommentXmlNames.ParameterElementName) ||
                                 ElementNameIs(element, DocumentationCommentXmlNames.ParameterReferenceElementName))
                             {
-                                BindName(attribute, originatingSyntax, isParameter: true);
+                                BindName(attribute, originatingSyntax, isParameter: true, isTypeParameterRef: false);
                             }
-                            else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterElementName) ||
-                                ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterReferenceElementName))
+                            else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterElementName))
                             {
-                                BindName(attribute, originatingSyntax, isParameter: false);
+                                BindName(attribute, originatingSyntax, isParameter: false, isTypeParameterRef: false);
+                            }
+                            else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterReferenceElementName))
+                            {
+                                BindName(attribute, originatingSyntax, isParameter: false, isTypeParameterRef: true);
                             }
                         }
                     }
@@ -514,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 crefDiagnostics.Free();
             }
 
-            private void BindName(XAttribute attribute, CSharpSyntaxNode originatingSyntax, bool isParameter)
+            private void BindName(XAttribute attribute, CSharpSyntaxNode originatingSyntax, bool isParameter, bool isTypeParameterRef)
             {
                 XmlNameAttributeSyntax attrSyntax = ParseNameAttribute(attribute.ToString(), attribute.Parent.Name.LocalName);
 
@@ -529,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
                 DiagnosticBag nameDiagnostics = DiagnosticBag.GetInstance();
-                Binder binder = MakeNameBinder(isParameter, _memberSymbol, _compilation);
+                Binder binder = MakeNameBinder(isParameter, isTypeParameterRef, _memberSymbol, _compilation);
                 DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.
                 nameDiagnostics.Free();
@@ -538,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: We're not sharing code with the BinderFactory visitor, because we already have the
             // member symbol in hand, which makes things much easier.
-            private static Binder MakeNameBinder(bool isParameter, Symbol memberSymbol, CSharpCompilation compilation)
+            private static Binder MakeNameBinder(bool isParameter, bool isTypeParameterRef, Symbol memberSymbol, CSharpCompilation compilation)
             {
                 Binder binder = new BuckStopsHereBinder(compilation);
 
@@ -576,24 +579,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    switch (memberSymbol.Kind)
+                    Symbol currentSymbol = memberSymbol;
+                    do
                     {
-                        case SymbolKind.NamedType: // Includes delegates.
-                        case SymbolKind.ErrorType:
-                            NamedTypeSymbol typeSymbol = (NamedTypeSymbol)memberSymbol;
-                            if (typeSymbol.Arity > 0)
-                            {
-                                binder = new WithClassTypeParametersBinder(typeSymbol, binder);
-                            }
-                            break;
-                        case SymbolKind.Method:
-                            MethodSymbol methodSymbol = (MethodSymbol)memberSymbol;
-                            if (methodSymbol.Arity > 0)
-                            {
-                                binder = new WithMethodTypeParametersBinder(methodSymbol, binder);
-                            }
-                            break;
-                    }
+                        switch (currentSymbol.Kind)
+                        {
+                            case SymbolKind.NamedType: // Includes delegates.
+                            case SymbolKind.ErrorType:
+                                NamedTypeSymbol typeSymbol = (NamedTypeSymbol)currentSymbol;
+                                if (typeSymbol.Arity > 0)
+                                {
+                                    binder = new WithClassTypeParametersBinder(typeSymbol, binder);
+                                }
+                                break;
+                            case SymbolKind.Method:
+                                MethodSymbol methodSymbol = (MethodSymbol)currentSymbol;
+                                if (methodSymbol.Arity > 0)
+                                {
+                                    binder = new WithMethodTypeParametersBinder(methodSymbol, binder);
+                                }
+                                break;
+                        }
+                        currentSymbol = currentSymbol.ContainingSymbol;
+                    } while (isTypeParameterRef && !(currentSymbol is null));
                 }
 
                 return binder;

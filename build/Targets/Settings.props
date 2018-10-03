@@ -104,6 +104,23 @@
     <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
   </PropertyGroup>
 
+  <!-- 
+       Enable hard links for the build. This is not done by default due to fears about 
+       inadvertently corrupting the NuGet cache (hard links in the output directory will
+       point into the cache). The build itself will not due this but a developer directly
+       modifying this directory could cause it to happen.
+
+       Developers who do not modify the output directory directly can enable this safely 
+
+       Related discussion in https://github.com/dotnet/roslyn/issues/30005
+  -->
+  <PropertyGroup Condition="'$(ROSLYNUSEHARDLINKS)' != ''">
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible> 
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0' and '$(VisualStudioVersion)' != '16.0'">false</DeployExtension>

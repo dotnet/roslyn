@@ -13,6 +13,9 @@ dockerfile="$dir"/docker/
 [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container"
 [ -z "$DOCKER_HOST_SHARE_dir" ] && DOCKER_HOST_SHARE_DIR="$dir"/../..
 
+# Ensure the container isn't already running. Can happened for cancelled jobs in CI
+docker kill $CONTAINER_NAME || true
+
 # Make container names CI-specific if we're running in CI
 #  Jenkins
 [ ! -z "$BUILD_TAG" ] && CONTAINER_NAME="$BUILD_TAG"
