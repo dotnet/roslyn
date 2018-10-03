@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax> where TSimpleNameSyntax : SyntaxNode
     {
             private class InstallPackageAndAddImportCodeAction : AddImportCodeAction
             {
@@ -88,49 +88,49 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
             }
 
-            private class InstallPackageAndAddImportOperation : CodeActionOperation
+        private class InstallPackageAndAddImportOperation : CodeActionOperation
+        {
+            private readonly DocumentId _changedDocumentId;
+            private readonly SourceText _oldText;
+            private readonly SourceText _newText;
+            private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation;
+
+            public InstallPackageAndAddImportOperation(
+                DocumentId changedDocumentId,
+                SourceText oldText,
+                SourceText newText,
+                InstallPackageDirectlyCodeActionOperation item2)
             {
-                private readonly DocumentId _changedDocumentId;
-                private readonly SourceText _oldText;
-                private readonly SourceText _newText;
-                private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation;
+                _changedDocumentId = changedDocumentId;
+                _oldText = oldText;
+                _newText = newText;
+                _installPackageOperation = item2;
+            }
 
-                public InstallPackageAndAddImportOperation(
-                    DocumentId changedDocumentId,
-                    SourceText oldText,
-                    SourceText newText,
-                    InstallPackageDirectlyCodeActionOperation item2)
+            internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
+            public override string Title => _installPackageOperation.Title;
+
+            internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            {
+                var newSolution = workspace.CurrentSolution.WithDocumentText(
+                    _changedDocumentId, _newText);
+
+                // First make the changes to add the import to the document.
+                if (workspace.TryApplyChanges(newSolution, progressTracker))
                 {
-                    _changedDocumentId = changedDocumentId;
-                    _oldText = oldText;
-                    _newText = newText;
-                    _installPackageOperation = item2;
-                }
-
-                internal override bool ApplyDuringTests => _installPackageOperation.ApplyDuringTests;
-                public override string Title => _installPackageOperation.Title;
-
-                internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
-                {
-                    var newSolution = workspace.CurrentSolution.WithDocumentText(
-                        _changedDocumentId, _newText);
-
-                    // First make the changes to add the import to the document.
-                    if (workspace.TryApplyChanges(newSolution, progressTracker))
+                    if (_installPackageOperation.TryApply(workspace, progressTracker, cancellationToken))
                     {
-                        if (_installPackageOperation.TryApply(workspace, progressTracker, cancellationToken))
-                        {
-                            return true;
-                        }
-
-                        // Installing the nuget package failed.  Roll back the workspace.
-                        var rolledBackSolution = workspace.CurrentSolution.WithDocumentText(
-                            _changedDocumentId, _oldText);
-                        workspace.TryApplyChanges(rolledBackSolution, progressTracker);
+                        return true;
                     }
 
-                    return false;
+                    // Installing the nuget package failed.  Roll back the workspace.
+                    var rolledBackSolution = workspace.CurrentSolution.WithDocumentText(
+                        _changedDocumentId, _oldText);
+                    workspace.TryApplyChanges(rolledBackSolution, progressTracker);
                 }
+
+                return false;
             }
+        }
     }
 }

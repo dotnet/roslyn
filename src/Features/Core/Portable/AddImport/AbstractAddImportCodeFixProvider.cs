@@ -2,14 +2,10 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -17,14 +13,12 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
 #pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
-        private const int MaxResults = 3;
-
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
 
         /// <summary>
         /// Values for these parameters can be provided (during testing) for mocking purposes.
-        /// </summary> 
+        /// </summary>
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
             ISymbolSearchService symbolSearchService = null)
@@ -38,11 +32,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
-
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var diagnostics = context.Diagnostics;
 
             var solution = document.Project.Solution;
             var options = solution.Options;
+
+            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
             var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
@@ -55,34 +50,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ? GetPackageSources(document)
                 : ImmutableArray<PackageSource>.Empty;
 
-            // We might have multiple different diagnostics covering the same span.  Have to
-            // process them all as we might produce different fixes for each diagnostic.
+            var fixesForDiagnostic = await addImportService
+                .GetFixesForDiagnosticsAsync(document, span, diagnostics, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-
-            foreach (var diagnostic in context.Diagnostics)
+            foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {
-                var fixes = await addImportService.GetFixesAsync(
-                    document, span, diagnostic.Id, placeSystemNamespaceFirst,
-                    symbolSearchService, searchReferenceAssemblies, 
-                    packageSources, cancellationToken).ConfigureAwait(false);
-
-                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-
-                foreach (var fix in fixes)
-                {
-                    var codeAction = TryCreateCodeAction(document, fix);
-                    codeActions.AddIfNotNull(codeAction);
-
-                    if (codeActions.Count >= MaxResults)
-                    {
-                        break;
-                    }
-                }
-
+                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, GetPackageInstallerService(document));
                 context.RegisterFixes(codeActions, diagnostic);
-                codeActions.Free();
             }
         }
 
@@ -91,33 +65,5 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private ImmutableArray<PackageSource> GetPackageSources(Document document)
             => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
-
-        private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData)
-        {
-            if (fixData == null)
-            {
-                return null;
-            }
-
-            switch (fixData.Kind)
-            {
-                case AddImportFixKind.ProjectSymbol:
-                    return new ProjectSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.MetadataSymbol:
-                    return new MetadataSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.ReferenceAssemblySymbol:
-                    return new AssemblyReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.PackageSymbol:
-                    var packageInstaller = GetPackageInstallerService(document);
-                    return !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
-                        ? new ParentInstallPackageCodeAction(document, fixData, GetPackageInstallerService(document))
-                        : null;
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
     }
 }

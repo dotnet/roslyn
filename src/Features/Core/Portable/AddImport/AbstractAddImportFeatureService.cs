@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -25,13 +27,6 @@ namespace Microsoft.CodeAnalysis.AddImport
         where TSimpleNameSyntax : SyntaxNode
     {
         private const int MaxResults = 3;
-
-        /// <summary>
-        /// Values for these parameters can be provided (during testing) for mocking purposes.
-        /// </summary> 
-        protected AbstractAddImportFeatureService()
-        {
-        }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -475,5 +470,111 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             return reference.SymbolResult.Symbol != null;
         }
+
+        public Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
+            Document document, Text.TextSpan span, ImmutableArray<Diagnostic> diagnostics,
+            bool searchReferenceAssemblies, bool searchNuGetPackages, CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
+            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
+                ? solution.Workspace.Services.GetService<ISymbolSearchService>()
+                : null;
+
+            var packageSources = symbolSearchService != null && searchNuGetPackages
+                ? GetPackageSources(document)
+                : ImmutableArray<PackageSource>.Empty;
+
+            return GetFixesForDiagnosticsAsync(document, span, diagnostics, symbolSearchService, searchNuGetPackages, packageSources, cancellationToken);
+        }
+
+        public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
+            Document document, Text.TextSpan span, ImmutableArray<Diagnostic> diagnostics,
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+        {
+            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+
+            // We might have multiple different diagnostics covering the same span.  Have to
+            // process them all as we might produce different fixes for each diagnostic.
+
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+
+            var fixesForDiagnosticBuilder = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance();
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var fixes = await addImportService.GetFixesAsync(
+                    document, span, diagnostic.Id, placeSystemNamespaceFirst,
+                    symbolSearchService, searchReferenceAssemblies,
+                    packageSources, cancellationToken).ConfigureAwait(false);
+
+                fixesForDiagnosticBuilder.Add((diagnostic, fixes));
+            }
+
+            return fixesForDiagnosticBuilder.ToImmutableAndFree();
+        }
+
+        public ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes, IPackageInstallerService installerService = null)
+        {
+            var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
+
+            foreach (var fix in fixes)
+            {
+                if (TryCreateCodeAction(document, fix, out var codeAction, installerService))
+                {
+                    codeActionsBuilder.AddIfNotNull(codeAction);
+
+                    if (codeActionsBuilder.Count >= MaxResults)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return codeActionsBuilder.ToImmutableAndFree();
+        }
+
+        public bool TryCreateCodeAction(Document document, AddImportFixData fixData, out CodeAction codeAction, IPackageInstallerService installerService = null)
+        {
+            if (fixData == null)
+            {
+                codeAction = null;
+                return false;
+            }
+
+            switch (fixData.Kind)
+            {
+                case AddImportFixKind.ProjectSymbol:
+                    codeAction = new ProjectSymbolReferenceCodeAction(document, fixData);
+                    break;
+
+                case AddImportFixKind.MetadataSymbol:
+                    codeAction = new MetadataSymbolReferenceCodeAction(document, fixData);
+                    break;
+
+                case AddImportFixKind.ReferenceAssemblySymbol:
+                    codeAction = new AssemblyReferenceCodeAction(document, fixData);
+                    break;
+
+                case AddImportFixKind.PackageSymbol:
+                    var packageInstaller = installerService ?? GetPackageInstallerService(document);
+                    codeAction = !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                        ? new ParentInstallPackageCodeAction(document, fixData, packageInstaller)
+                        : null;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+
+            return !(codeAction is null);
+        }
+
+        private IPackageInstallerService GetPackageInstallerService(Document document)
+            => document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
+
+        private ImmutableArray<PackageSource> GetPackageSources(Document document)
+            => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
     }
 }
