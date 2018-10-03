@@ -137,6 +137,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var displayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
             this.DisplayName = displayName;
 
+            this.DefaultNamespace = GetDefaultNamespace(hierarchy);
+
             this.ProjectTracker = projectTracker;
 
             ProjectSystemName = projectSystemName;
@@ -280,6 +282,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public string ProjectSystemName { get; }
 
+        public string DefaultNamespace { get; }
+
         protected DocumentProvider DocumentProvider => this.ProjectTracker.DocumentProvider;
 
         protected VisualStudioMetadataReferenceManager MetadataReferenceProvider => this.ProjectTracker.MetadataReferenceProvider;
@@ -306,6 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.Language,
                     filePath: this.ProjectFilePath,
                     outputFilePath: this.ObjOutputPath,
+                    defaultNamespace: this.DefaultNamespace,
                     compilationOptions: this.CurrentCompilationOptions,
                     parseOptions: this.CurrentParseOptions,
                     documents: _documents.Values.Select(d => d.GetInitialState()),
@@ -1621,5 +1626,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
         #endregion
+
+        private string GetDefaultNamespace(IVsHierarchy hierarchy)
+        {
+            this.AssertIsForeground();
+
+            if (hierarchy == null)
+            {
+                return null;
+            }
+            if (Language == LanguageNames.VisualBasic)
+            {
+                return "";
+            }
+
+            var defaultNamespace = "";
+            if (hierarchy.TryGetProject(out var dteProject))
+            {
+                try
+                {
+                    defaultNamespace = (string)dteProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
+                }
+                catch (ArgumentException)
+                {
+                    // DefaultNamespace does not exist for this project.
+                }
+            }
+            return defaultNamespace;
+        }
     }
 }

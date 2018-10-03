@@ -119,6 +119,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
             }
 
+            var defaultNamespace = project.ReadPropertyString(PropertyNames.RootNamespace);
+            if (string.IsNullOrWhiteSpace(defaultNamespace))
+            {
+                defaultNamespace = string.Empty;
+            }
+
             var targetFramework = project.ReadPropertyString(PropertyNames.TargetFramework);
             if (string.IsNullOrWhiteSpace(targetFramework))
             {
@@ -139,6 +145,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.FullPath,
                 outputFilePath,
                 outputRefFilePath,
+                defaultNamespace,
                 targetFramework,
                 commandLineArgs,
                 docs,

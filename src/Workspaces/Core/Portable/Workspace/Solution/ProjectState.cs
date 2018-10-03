@@ -269,6 +269,9 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string DefaultNamespace => this.ProjectInfo.DefaultNamespace;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]

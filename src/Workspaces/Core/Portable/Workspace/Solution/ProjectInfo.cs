@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => Attributes.OutputRefFilePath;
 
         /// <summary>
+        /// The default namespace of the project.
+        /// </summary>
+        internal string DefaultNamespace => Attributes.DefaultNamespace;
+
+        /// <summary>
         /// True if this is a submission project for interactive sessions.
         /// </summary>
         public bool IsSubmission => Attributes.IsSubmission;
@@ -144,6 +149,7 @@ namespace Microsoft.CodeAnalysis
             string filePath,
             string outputFilePath,
             string outputRefFilePath,
+            string defaultNamespace,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             IEnumerable<DocumentInfo> documents,
@@ -165,6 +171,7 @@ namespace Microsoft.CodeAnalysis
                     filePath,
                     outputFilePath,
                     outputRefFilePath,
+                    defaultNamespace,
                     isSubmission,
                     hasAllInformation),
                 compilationOptions,
@@ -201,7 +208,37 @@ namespace Microsoft.CodeAnalysis
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, outputRefFilePath: null, compilationOptions, parseOptions,
+                filePath, outputFilePath, outputRefFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, hasAllInformation: true);
+        }
+
+        // 2.8.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        public static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string filePath,
+            string outputFilePath,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            IEnumerable<DocumentInfo> documents,
+            IEnumerable<ProjectReference> projectReferences,
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
+            bool isSubmission,
+            Type hostObjectType,
+            string outputRefFilePath)
+        {
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
@@ -226,11 +263,12 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
             Type hostObjectType = null,
-            string outputRefFilePath = null)
+            string outputRefFilePath = null,
+            string defaultNamespace = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, outputRefFilePath, compilationOptions, parseOptions,
+                filePath, outputFilePath, outputRefFilePath, defaultNamespace, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
@@ -403,6 +441,11 @@ namespace Microsoft.CodeAnalysis
             public string OutputRefFilePath { get; }
 
             /// <summary>
+            /// The default namespace of the project.
+            /// </summary>
+            public string DefaultNamespace { get; }
+
+            /// <summary>
             /// True if this is a submission project for interactive sessions.
             /// </summary>
             public bool IsSubmission { get; }
@@ -423,6 +466,7 @@ namespace Microsoft.CodeAnalysis
                 string filePath,
                 string outputFilePath,
                 string outputRefFilePath,
+                string defaultNamespace,
                 bool isSubmission,
                 bool hasAllInformation)
             {
@@ -435,6 +479,7 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
                 OutputFilePath = outputFilePath;
                 OutputRefFilePath = outputRefFilePath;
+                DefaultNamespace = defaultNamespace;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
             }
@@ -447,6 +492,7 @@ namespace Microsoft.CodeAnalysis
                 Optional<string> filePath = default,
                 Optional<string> outputPath = default,
                 Optional<string> outputRefPath = default,
+                Optional<string> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
                 Optional<bool> hasAllInformation = default)
             {
@@ -457,6 +503,7 @@ namespace Microsoft.CodeAnalysis
                 var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
                 var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
+                var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
 
@@ -467,6 +514,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath == FilePath &&
                     newOutputPath == OutputFilePath &&
                     newOutputRefPath == OutputRefFilePath &&
+                    newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation)
                 {
@@ -482,6 +530,7 @@ namespace Microsoft.CodeAnalysis
                     newFilepath,
                     newOutputPath,
                     newOutputRefPath,
+                    newDefaultNamespace,
                     newIsSubmission,
                     newHasAllInformation);
             }
@@ -501,6 +550,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
                 writer.WriteString(OutputRefFilePath);
+                writer.WriteString(DefaultNamespace);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
 
@@ -519,10 +569,11 @@ namespace Microsoft.CodeAnalysis
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
                 var outputRefFilePath = reader.ReadString();
+                var defaultNamespace = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, isSubmission, hasAllInformation);
+                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, defaultNamespace, isSubmission, hasAllInformation);
             }
 
             private Checksum _lazyChecksum;

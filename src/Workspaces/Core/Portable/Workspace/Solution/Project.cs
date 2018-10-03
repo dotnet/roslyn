@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
+        /// The default namespace of the project, or null if it is not know.
+        /// </summary>
+        internal string DefaultNamespace => _projectState.DefaultNamespace;
+
+        /// <summary>
         /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 

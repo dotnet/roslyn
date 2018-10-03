@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string OutputRefFilePath { get; }
 
         /// <summary>
+        /// The default namespace for this project.
+        /// </summary>
+        public string DefaultNamespace { get; }
+
+        /// <summary>
         /// The target framework of this project.
         /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
@@ -78,6 +83,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string filePath,
             string outputFilePath,
             string outputRefFilePath,
+            string defaultNamespace,
             string targetFramework,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
@@ -92,6 +98,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
             this.OutputRefFilePath = outputRefFilePath;
+            this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
@@ -105,6 +112,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string filePath,
             string outputFilePath,
             string outputRefFilePath,
+            string defaultNamespace,
             string targetFramework,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
@@ -117,6 +125,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 filePath,
                 outputFilePath,
                 outputRefFilePath,
+                defaultNamespace,
                 targetFramework,
                 commandLineArgs,
                 documents,
@@ -131,6 +140,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 filePath,
                 outputFilePath: null,
                 outputRefFilePath: null,
+                defaultNamespace: null,
                 targetFramework: null,
                 commandLineArgs: ImmutableArray<string>.Empty,
                 documents: ImmutableArray<DocumentFileInfo>.Empty,

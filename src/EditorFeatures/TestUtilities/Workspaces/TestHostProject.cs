@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly VersionStamp _version;
         private readonly string _filePath;
         private readonly string _outputFilePath;
+        private readonly string _defaultNamespace;
 
         public IEnumerable<TestHostDocument> Documents;
         public IEnumerable<TestHostDocument> AdditionalDocuments;
@@ -135,6 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _outputFilePath; }
         }
 
+        public string DefaultNamespace
+        {
+            get { return _defaultNamespace; }
+        }
+
         internal TestHostProject(
             HostLanguageServices languageServices,
             CompilationOptions compilationOptions,
@@ -171,7 +177,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Type hostObjectType = null,
             bool isSubmission = false,
             string filePath = null,
-            IList<AnalyzerReference> analyzerReferences = null)
+            IList<AnalyzerReference> analyzerReferences = null,
+            string defaultNamespace = null)
         {
             _assemblyName = assemblyName;
             _name = projectName;
@@ -189,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _version = VersionStamp.Create();
             _filePath = filePath;
             _outputFilePath = GetTestOutputFilePath(filePath);
+            _defaultNamespace = defaultNamespace;
         }
 
         public TestHostProject(
@@ -201,8 +209,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IEnumerable<TestHostProject> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
-            string assemblyName = null)
-            : this(workspace, name, language, compilationOptions, parseOptions, SpecializedCollections.SingletonEnumerable(document), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), projectReferences, metadataReferences, analyzerReferences, assemblyName)
+            string assemblyName = null,
+            string defaultNamespace = null)
+            : this(workspace, name, language, compilationOptions, parseOptions, SpecializedCollections.SingletonEnumerable(document), SpecializedCollections.EmptyEnumerable<TestHostDocument>(), projectReferences, metadataReferences, analyzerReferences, assemblyName, defaultNamespace)
         {
         }
 
@@ -217,7 +226,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IEnumerable<TestHostProject> projectReferences = null,
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
-            string assemblyName = null)
+            string assemblyName = null,
+            string defaultNamespace = null)
         {
             _name = name ?? "TestProject";
 
@@ -236,6 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _assemblyName = assemblyName ?? "TestProject";
             _version = VersionStamp.Create();
             _outputFilePath = GetTestOutputFilePath(_filePath);
+            _defaultNamespace = defaultNamespace;
 
             if (documents != null)
             {
@@ -327,7 +338,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnalyzerReferences,
                 this.AdditionalDocuments.Select(d => d.ToDocumentInfo()),
                 this.IsSubmission,
-                this.HostObjectType);
+                this.HostObjectType,
+                defaultNamespace: this.DefaultNamespace);
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.

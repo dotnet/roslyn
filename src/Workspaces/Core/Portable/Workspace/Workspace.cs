@@ -1446,7 +1446,8 @@ namespace Microsoft.CodeAnalysis
                 project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
                 project.IsSubmission,
                 project.State.HostObjectType,
-                project.OutputRefFilePath);
+                project.OutputRefFilePath,
+                project.DefaultNamespace);
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)

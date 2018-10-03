@@ -516,7 +516,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
-                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission).WithHasAllInformation(projectInfo.HasAllInformation);
+                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission, 
+                defaultNamespace: projectInfo.DefaultNamespace).WithHasAllInformation(projectInfo.HasAllInformation);
         }
 
         private async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection collections)
