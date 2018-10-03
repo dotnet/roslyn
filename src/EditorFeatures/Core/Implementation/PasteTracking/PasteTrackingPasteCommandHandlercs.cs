@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 return;
             }
 
-            // Create a tracking span from the pre-post caret position that will grow as text is inserted.
+            // Create a tracking span from the pre-paste caret position that will grow as text is inserted.
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
 
             // Applying the post-paste snapshot to the tracking span gives us the span of pasted text.
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
 
-            _pasteTrackingService.RegisterPastedTextSpan(args.SubjectBuffer, textSpan);
+            _pasteTrackingService.RegisterPastedTextSpan(args.TextView, args.SubjectBuffer, textSpan);
         }
     }
 }

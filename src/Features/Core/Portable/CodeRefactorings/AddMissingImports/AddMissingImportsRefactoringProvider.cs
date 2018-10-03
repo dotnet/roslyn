@@ -23,14 +23,17 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             var document = context.Document;
 
+            // Currently this refactoring requires the document to have a pasted text span.
             if (!_pasteTrackingService.TryGetPastedTextSpan(document, out var textSpan))
             {
                 return;
             }
 
+            // Add missing imports for the pasted text span.
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
             var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, context.CancellationToken).ConfigureAwait(false);
 
+            // If the project is unchanged, then do not offer the refactoring.
             if (document.Project == newProject)
             {
                 return;

@@ -29,18 +29,21 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         public async Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
+            // Get the diagnostics that indicate a missing import.
             var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (diagnostics.IsEmpty)
             {
                 return document.Project;
             }
 
+            // Find fixes for the diagnostic where there is only a single fix.
             var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             if (usableFixes.IsEmpty)
             {
                 return document.Project;
             }
 
+            // Apply those fixes to the document.
             var newDocument = await ApplyFixesAsync(document, usableFixes, cancellationToken).ConfigureAwait(false);
             return newDocument.Project;
         }
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
                 foreach (var fixForSpan in fixesForSpan)
                 {
-                    // If there is more than one fix then we will leave it for the user to manually apply
+                    // If there is more than one fix, then we will leave it for the user to manually apply.
                     if (fixForSpan.Fixes.Length == 1)
                     {
                         fixes.Add(fixForSpan.Fixes[0]);
@@ -118,7 +121,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             await Task.WhenAll(getChangesTasks).ConfigureAwait(false);
 
+            // Using Sets allows us to accumulate only the distict changes.
             var allTextChanges = new HashSet<TextChange>();
+            // Some fixes require adding missing references.
             var allAddedProjectReferences = new HashSet<ProjectReference>();
             var allAddedMetaDataReferences = new HashSet<MetadataReference>();
 
@@ -131,6 +136,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 allAddedMetaDataReferences.UnionWith(projectChanges.GetAddedMetadataReferences());
             }
 
+            // Apply changes to both the project and document.
             var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences);
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
