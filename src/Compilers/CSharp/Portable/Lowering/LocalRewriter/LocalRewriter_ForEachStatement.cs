@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   RewriteSingleDimensionalArrayForEachStatement
         ///   RewriteMultiDimensionalArrayForEachStatement
         ///   CanRewriteForEachAsFor
-        ///   RewriteAsyncForEachStatement
         /// </summary>
         /// <remarks>
         /// We are diverging from the C# 4 spec (and Dev10) to follow the C# 5 spec.
@@ -30,11 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.HasErrors)
             {
                 return node;
-            }
-
-            if (node.EnumeratorInfoOpt.IsAsync)
-            {
-                return RewriteAsyncForEachStatement(node);
             }
 
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node);
@@ -88,185 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lower an async foreach loop.
-        ///
-        /// <![CDATA[
-        /// E e = ((C)(x)).GetAsyncEnumerator()
-        /// try
-        /// {
-        ///     while (await e.WaitForNextAsync()) /* outer loop */
-        ///     {
-        ///         while (true) /* inner loop */
-        ///         {
-        ///             V v = (V)e.TryGetNext(out bool success);
-        ///             if (!success) goto outer_loop_continue;
-        ///             /* loop.Body */
-        ///             /* loop.ContinueLabel: */
-        ///         }
-        ///         outer_loop_continue:
-        ///     }
-        ///     /* loop.BreakLabel: */
-        /// }
-        /// finally { await e.DisposeAsync(); }
-        /// ]]>
-        /// </summary>
-        private BoundStatement RewriteAsyncForEachStatement(BoundForEachStatement loop)
-        {
-            _sawAwait = true;
-            var forEachSyntax = (CommonForEachStatementSyntax)loop.Syntax;
-            ForEachEnumeratorInfo enumeratorInfo = loop.EnumeratorInfoOpt;
-
-            Debug.Assert(loop.AwaitOpt != null && (object)loop.AwaitOpt.GetResult != null);
-            Debug.Assert(enumeratorInfo.CurrentPropertyGetter is null);
-
-            // E e
-            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType;
-            LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
-
-            // Reference to e
-            BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorVar.Type).MakeCompilerGenerated();
-
-            // ((C)(x)).GetAsyncEnumerator() or (x).GetAsyncEnumerator();
-            BoundExpression collectionExpression = GetUnconvertedCollectionExpression(loop);
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(forEachSyntax, collectionExpression, enumeratorInfo.GetEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
-
-            // E e = ((C)(x)).GetAsyncEnumerator();
-            BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
-
-            // e.WaitForNextAsync()
-            BoundExpression waitForNext = BoundCall.Synthesized(forEachSyntax, boundEnumeratorVar, enumeratorInfo.WaitForNextAsyncMethod);
-
-            // await e.WaitForNextAsync()
-            BoundAwaitExpression awaitWaitForNext = new BoundAwaitExpression(forEachSyntax, waitForNext, loop.AwaitOpt, loop.AwaitOpt.GetResult.ReturnType).MakeCompilerGenerated();
-
-            // bool success
-            LocalSymbol successVar = _factory.SynthesizedLocal(enumeratorInfo.TryGetNextMethod.ParameterTypes[0], syntax: forEachSyntax, kind: SynthesizedLocalKind.LoweringTemp);
-
-            // Reference to success
-            BoundLocal boundSuccessVar = MakeBoundLocal(forEachSyntax, successVar, successVar.Type).MakeCompilerGenerated();
-
-            // /* loop.Body */
-            BoundStatement rewrittenBody = (BoundStatement)Visit(loop.Body);
-
-            // e.TryGetNext(out bool success)
-            BoundCall tryGetNext = new BoundCall(forEachSyntax,
-                  receiverOpt: boundEnumeratorVar,
-                  method: enumeratorInfo.TryGetNextMethod,
-                  arguments: ImmutableArray.Create<BoundExpression>(boundSuccessVar),
-                  argumentNamesOpt: default,
-                  argumentRefKindsOpt: ImmutableArray.Create(RefKind.Out),
-                  isDelegateCall: false,
-                  expanded: false,
-                  invokedAsExtensionMethod: false,
-                  argsToParamsOpt: default,
-                  resultKind: LookupResultKind.Viable,
-                  binderOpt: null,
-                  type: enumeratorInfo.TryGetNextMethod.ReturnType,
-                  hasErrors: false).MakeCompilerGenerated();
-
-            // (V)(T)e.TryGetNext(out bool success)
-            TypeSymbol elementType = enumeratorInfo.ElementType;
-            BoundExpression iterationVarAssignValue = MakeConversionNode(
-                syntax: forEachSyntax,
-                rewrittenOperand: MakeConversionNode(
-                    syntax: forEachSyntax,
-                    rewrittenOperand: tryGetNext,
-                    conversion: enumeratorInfo.CurrentConversion,
-                    rewrittenType: elementType,
-                    @checked: loop.Checked),
-                conversion: loop.ElementConversion,
-                rewrittenType: loop.IterationVariableType.Type,
-                @checked: loop.Checked);
-
-            // V v = (V)(T)e.TryGetNext(out bool success); or (D1 d1, ...) = (V)(T)e.TryGetNext(out bool success);
-            ImmutableArray<LocalSymbol> iterationVariables = loop.IterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(loop, iterationVariables, iterationVarAssignValue);
-
-            InstrumentForEachStatementIterationVarDeclaration(loop, ref iterationVarDecl);
-
-            // outer_loop_continue:
-            GeneratedLabelSymbol outerLoopContinueLabel = new GeneratedLabelSymbol("outer_loop_continue");
-            BoundLabelStatement outerLoopContinueStatement = new BoundLabelStatement(forEachSyntax, outerLoopContinueLabel, hasErrors: false).MakeCompilerGenerated();
-
-            // goto outer_loop_continue;
-            BoundStatement continueOuterLoop = new BoundGotoStatement(forEachSyntax, outerLoopContinueLabel, loop.HasErrors).MakeCompilerGenerated();
-
-            // !success
-            BoundExpression notSuccess = MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, forEachSyntax, method: null, boundSuccessVar, boundSuccessVar.Type);
-
-            // if (!success) goto outer_loop_continue;
-            BoundStatement checkAndBreak = RewriteIfStatement(forEachSyntax, notSuccess, continueOuterLoop, rewrittenAlternativeOpt: null, hasErrors: false).MakeCompilerGenerated();
-
-            //     V v = (V)(T)e.TryGetNext(out bool success);
-            //     if (!success) goto outer_loop_continue;
-            //     /* loop.Body */
-            //     /* loop.ContinueLabel: */
-            var innerLoopBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables.Concat(successVar),
-                iterationVarDecl, checkAndBreak, rewrittenBody, loop.ContinueLabel, forEachSyntax);
-
-            // while (true)
-            // {
-            //     V v = (V)(T)e.TryGetNext(out bool success);
-            //     if (!success) goto outer_loop_continue;
-            //     /* loop.Body */
-            //     /* loop.ContinueLabel: */
-            // }
-            BoundStatement innerLoop = MakeWhileTrueLoop(loop, innerLoopBodyBlock);
-
-            // while (await e.WaitForNextAsync())
-            // {
-            //     /* inner loop */
-            //     outer_loop_continue:
-            // }
-            // /* loop.BreakLabel: */
-            BoundStatement outerLoopWithBreakLabel = RewriteWhileStatement(
-                loop: loop,
-                rewrittenCondition: awaitWaitForNext,
-                rewrittenBody: innerLoop,
-                breakLabel: loop.BreakLabel,
-                continueLabel: outerLoopContinueLabel,
-                hasErrors: false);
-
-            // try
-            // {
-            //     /* outer loop */
-            //     /* loop.BreakLabel: */
-            // }
-            // finally { await e.DisposeAsync(); }
-            // - OR variant without disposal: -
-            // /* outer loop */
-            // /* loop.BreakLabel: */
-            BoundStatement outerLoopOrTryFinally = outerLoopWithBreakLabel;
-            if (loop.EnumeratorInfoOpt.NeedsDisposeMethod && TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync,
-                out MethodSymbol disposeAsyncMethod, location: forEachSyntax.AwaitKeyword.GetLocation()))
-            {
-                outerLoopOrTryFinally = WrapWithTryFinallyDispose(forEachSyntax, loop.EnumeratorInfoOpt, enumeratorType, boundEnumeratorVar, outerLoopWithBreakLabel, disposeAsyncMethod, loop.EnumeratorInfoOpt.DisposeAwaitableInfo);
-            }
-
-            // E e = ((C)(x)).GetAsyncEnumerator()
-            // try
-            // {
-            //     /* outer loop */
-            //     /* loop.BreakLabel: */
-            // }
-            // finally { await e.DisposeAsync(); }
-            BoundStatement result = new BoundBlock(
-                syntax: forEachSyntax,
-                locals: ImmutableArray.Create(enumeratorVar),
-                statements: ImmutableArray.Create(enumeratorVarDecl, outerLoopOrTryFinally));
-
-            InstrumentForEachStatement(loop, ref result);
-
-            return result;
-        }
-
-        /// <summary>
         /// Lower a foreach loop that will enumerate a collection using an enumerator.
         ///
         /// <![CDATA[
-        /// E e = ((C)(x)).GetEnumerator()
+        /// E e = ((C)(x)).GetEnumerator()  OR  ((C)(x)).GetAsyncEnumerator()
         /// try {
-        ///     while (e.MoveNext()) {
+        ///     while (e.MoveNext())  OR  while (await e.MoveNextAsync())
+        ///     {
         ///         V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
         ///         // body
         ///     }
@@ -296,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Reference to e.
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
-            // ((C)(x)).GetEnumerator() or (x).GetEnumerator();
+            // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants
             BoundExpression enumeratorVarInitValue = SynthesizeCall(forEachSyntax, rewrittenExpression, enumeratorInfo.GetEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
 
             // E e = ((C)(x)).GetEnumerator();
@@ -304,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref enumeratorVarDecl);
 
-            //(V)(T)e.Current
+            // (V)(T)e.Current
             BoundExpression iterationVarAssignValue = MakeConversionNode(
                 syntax: forEachSyntax,
                 rewrittenOperand: MakeConversionNode(
@@ -327,19 +149,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
-            // while (e.MoveNext()) {
+            // while (e.MoveNext())  -OR-  while (await e.MoveNextAsync())
+            // {
             //     V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
             //     /* node.Body */
             // }
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
 
-            BoundStatement whileLoop = RewriteWhileStatement(
-                loop: node,
-                rewrittenCondition: BoundCall.Synthesized(
+            BoundExpression rewrittenCondition = BoundCall.Synthesized(
                     syntax: forEachSyntax,
                     receiverOpt: boundEnumeratorVar,
-                    method: enumeratorInfo.MoveNextMethod),
+                    method: enumeratorInfo.MoveNextMethod);
+            if (node.AwaitOpt != null)
+            {
+                rewrittenCondition = new BoundAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt, node.AwaitOpt.GetResult.ReturnType).MakeCompilerGenerated();
+            }
+
+            BoundStatement whileLoop = RewriteWhileStatement(
+                loop: node,
+                rewrittenCondition,
                 rewrittenBody: rewrittenBodyBlock,
                 breakLabel: node.BreakLabel,
                 continueLabel: node.ContinueLabel,
@@ -347,10 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result;
 
-            MethodSymbol disposeMethod;
-            if (enumeratorInfo.NeedsDisposeMethod && Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod))
+            if (enumeratorInfo.NeedsDisposeMethod && TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out MethodSymbol disposeMethod))
             {
-                BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop, disposeMethod, disposeAwaitableInfoOpt: null);
+                BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop, disposeMethod);
 
                 // E e = ((C)(x)).GetEnumerator();
                 // try {
@@ -378,8 +206,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private bool TryGetDisposeMethod(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
+        {
+            if (enumeratorInfo.IsAsync)
+            {
+                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
+                return disposeMethod != null;
+            }
+
+            return Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod);
+        }
+
         private BoundStatement WrapWithTryFinallyDispose(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, 
-            TypeSymbol enumeratorType, BoundLocal boundEnumeratorVar, BoundStatement rewrittenBody, MethodSymbol disposeMethod, AwaitableInfo disposeAwaitableInfoOpt)
+            TypeSymbol enumeratorType, BoundLocal boundEnumeratorVar, BoundStatement rewrittenBody, MethodSymbol disposeMethod)
         {
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
                                                hasBaseReceiver: false,
@@ -390,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock finallyBlockOpt;
             var idisposableTypeSymbol = disposeMethod.ContainingType;
             var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
+            var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;

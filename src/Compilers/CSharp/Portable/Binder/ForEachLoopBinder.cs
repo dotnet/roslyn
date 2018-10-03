@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string MoveNextMethodName = WellKnownMemberNames.MoveNextMethodName;
 
         private const string GetAsyncEnumeratorMethodName = WellKnownMemberNames.GetAsyncEnumeratorMethodName;
-        private const string WaitForNextAsyncMethodName = WellKnownMemberNames.WaitForNextAsyncMethodName;
-        private const string TryGetNextMethodName = WellKnownMemberNames.TryGetNextMethodName;
+        private const string MoveNextAsyncMethodName = WellKnownMemberNames.MoveNextAsyncMethodName;
 
         private readonly CommonForEachStatementSyntax _syntax;
         private SourceLocalSymbol IterationVariable
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AwaitableInfo awaitInfo = null;
             if (IsAsync)
             {
-                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.WaitForNextAsyncMethod?.ReturnType ?? CreateErrorType());
+                BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
@@ -390,17 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, builder.GetEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
-            if (IsAsync)
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, builder.WaitForNextAsyncMethod, foreachKeyword, hasBaseReceiver: false);
-                ReportDiagnosticsIfObsolete(diagnostics, builder.TryGetNextMethod, foreachKeyword, hasBaseReceiver: false);
-            }
-            else
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextMethod, foreachKeyword, hasBaseReceiver: false);
-                ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
-                ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
-            }
+            ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextMethod, foreachKeyword, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter.AssociatedSymbol, foreachKeyword, hasBaseReceiver: false);
 
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
@@ -431,8 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type X of expression is dynamic then there is an implicit conversion from >>expression<< (not the type of the expression) 
             // to the System.Collections.IEnumerable interface (§6.1.8). 
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
-            TypeSymbol currentType = IsAsync ? builder.TryGetNextMethod.ReturnType : builder.CurrentPropertyGetter.ReturnType;
-            builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(currentType, builder.ElementType, ref useSiteDiagnostics);
+            builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
 
             TypeSymbol getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
             // we never convert struct enumerators to object - it is done only for null-checks.
@@ -707,9 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (SatisfiesForEachPattern(ref builder, isAsync, diagnostics))
                 {
-                    builder.ElementType = isAsync
-                        ? builder.TryGetNextMethod.ReturnType
-                        : ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).Type;
+                    builder.ElementType = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).Type;
 
                     // NOTE: if IDisposable is not available at all, no diagnostics will be reported - we will just assume that
                     // the enumerator is not disposable.  If it has IDisposable in its interface list, there will be a diagnostic there.
@@ -742,13 +730,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isAsync && IsIEnumerable(collectionExprType))
             {
                 // This indicates a problem with the special IEnumerable type - it should have satisfied the GetEnumerator pattern.
-                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType, isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName);
                 return EnumeratorResult.FailedAndReported;
             }
             if (isAsync && IsIAsyncEnumerable(collectionExprType))
             {
                 // This indicates a problem with the well-known IAsyncEnumerable type - it should have satisfied the GetAsyncEnumerator pattern.
-                diagnostics.Add(ErrorCode.ERR_AsyncForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_AsyncForEachMissingMember, _syntax.Expression.Location, collectionExprType, isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName);
                 return EnumeratorResult.FailedAndReported;
             }
 
@@ -785,36 +773,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(enumeratorType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)));
 
-                            MethodSymbol tryGetNextMethod = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext,
+                            MethodSymbol moveNextAsync = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
                                 diagnostics, errorLocationSyntax.Location, isOptional: false);
 
-                            if ((object)tryGetNextMethod != null)
+                            if ((object)moveNextAsync != null)
                             {
-                                builder.TryGetNextMethod = tryGetNextMethod.AsMember((NamedTypeSymbol)enumeratorType);
-                            }
-
-                            MethodSymbol waitForNextAsyncMethod = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync,
-                                diagnostics, errorLocationSyntax.Location, isOptional: false);
-
-                            if ((object)waitForNextAsyncMethod != null)
-                            {
-                                builder.WaitForNextAsyncMethod = waitForNextAsyncMethod.AsMember((NamedTypeSymbol)enumeratorType);
+                                builder.MoveNextMethod = moveNextAsync.AsMember((NamedTypeSymbol)enumeratorType);
                             }
                         }
-                        else
+
+                        MethodSymbol currentPropertyGetter = isAsync ?
+                            (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, diagnostics, errorLocationSyntax.Location, isOptional: false) :
+                            (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__get_Current, diagnostics, errorLocationSyntax);
+
+                        if ((object)currentPropertyGetter != null)
                         {
-                            Debug.Assert(enumeratorType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T);
-                            MethodSymbol currentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerator_T__get_Current, diagnostics, errorLocationSyntax);
-                            if ((object)currentPropertyGetter != null)
-                            {
-                                builder.CurrentPropertyGetter = currentPropertyGetter.AsMember((NamedTypeSymbol)enumeratorType);
-                            }
+                            builder.CurrentPropertyGetter = currentPropertyGetter.AsMember((NamedTypeSymbol)enumeratorType);
                         }
                     }
-
-                    if (!isAsync)
+                    else if (!isAsync)
                     {
-                        builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, errorLocationSyntax); // NOTE: MoveNext is actually inherited from System.Collections.IEnumerator
+                        // NOTE: MoveNext is actually inherited from System.Collections.IEnumerator
+                        builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, errorLocationSyntax);
                     }
                 }
                 else
@@ -1067,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Called after it is determined that the expression being enumerated is of a type that
         /// has a GetEnumerator (or GetAsyncEnumerator) method.  Checks to see if the return type of the GetEnumerator
         /// method is suitable (i.e. has Current and MoveNext for regular case, 
-        /// or WaitForNextAsync and TryGetNext for async case).
+        /// or Current and WaitForNextAsync for async case).
         /// </summary>
         /// <param name="builder">Must be non-null and contain a non-null GetEnumeratorMethod.</param>
         /// <param name="diagnostics">Will be populated with pattern diagnostics.</param>
@@ -1103,10 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult lookupResult = LookupResult.GetInstance();
             try
             {
-                if (isAsync)
-                {
-                    return SatisfiesAsyncForEachPattern(ref builder, diagnostics, enumeratorType, lookupResult);
-                }
+                // PROTOTYPE Test the subtelties in the rest of this method in async case
 
                 // If we searched for the accessor directly, we could reuse FindForEachPatternMethod and we
                 // wouldn't have to mangle CurrentPropertyName.  However, Dev10 searches for the property and
@@ -1165,13 +1142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 lookupResult.Clear(); // Reuse the same LookupResult
 
-                MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType, MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics, isAsync);
-
-                // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
+                MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType, isAsync ? MoveNextAsyncMethodName : MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics, isAsync);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
-                    ((MethodSymbol)moveNextMethodCandidate.OriginalDefinition).ReturnType.SpecialType != SpecialType.System_Boolean)
+                    BadMoveNextMethod(moveNextMethodCandidate, isAsync))
                 {
                     return false;
                 }
@@ -1186,50 +1161,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool SatisfiesAsyncForEachPattern(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol enumeratorType, LookupResult lookupResult)
+        private bool BadMoveNextMethod(MethodSymbol moveNextMethodCandidate, bool isAsync)
         {
-            MethodSymbol waitForNextAsyncMethodCandidate = FindForEachPatternMethod(enumeratorType, WaitForNextAsyncMethodName, lookupResult, warningsOnly: false, diagnostics, isAsync: true);
-
-            if (waitForNextAsyncMethodCandidate is null ||
-                waitForNextAsyncMethodCandidate.IsStatic ||
-                waitForNextAsyncMethodCandidate.DeclaredAccessibility != Accessibility.Public)
+            if (isAsync)
             {
-                return false;
+                TypeSymbol returnType = moveNextMethodCandidate.ReturnType;
+                return !returnType.IsGenericTaskType(Compilation) ||
+                    ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType != SpecialType.System_Boolean;
             }
 
-            var returnType = waitForNextAsyncMethodCandidate.OriginalDefinition.ReturnType;
-            if (!returnType.IsGenericTaskType(Compilation))
-            {
-                return false;
-            }
-
-            var returnTypeArguments = ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics;
-            if (returnTypeArguments.Length != 1 || returnTypeArguments[0].SpecialType != SpecialType.System_Boolean)
-            {
-                return false;
-            }
-
-            builder.WaitForNextAsyncMethod = waitForNextAsyncMethodCandidate;
-            lookupResult.Clear(); // Reuse the same LookupResult
-
-            AnalyzedArguments tryGetNextArguments = AnalyzedArguments.GetInstance();
-            tryGetNextArguments.RefKinds.Add(RefKind.Out);
-            tryGetNextArguments.Arguments.Add(new BoundTryGetNextArgumentPlaceholder(_syntax, GetSpecialType(SpecialType.System_Boolean, diagnostics, _syntax)));
-
-            MethodSymbol tryGetNextMethodCandidate = FindForEachPatternMethod(enumeratorType, TryGetNextMethodName, lookupResult, warningsOnly: false, diagnostics, isAsync: true, tryGetNextArguments);
-            tryGetNextArguments.Free();
-
-            if (tryGetNextMethodCandidate is null ||
-                tryGetNextMethodCandidate.IsStatic ||
-                tryGetNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
-                tryGetNextMethodCandidate.ReturnType.SpecialType == SpecialType.System_Void)
-            {
-                return false;
-            }
-
-            builder.TryGetNextMethod = tryGetNextMethodCandidate;
-
-            return true;
+            // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
+            return moveNextMethodCandidate.OriginalDefinition.ReturnType.SpecialType != SpecialType.System_Boolean;
         }
 
         private void ReportEnumerableWarning(DiagnosticBag diagnostics, TypeSymbol enumeratorType, Symbol patternMemberCandidate)

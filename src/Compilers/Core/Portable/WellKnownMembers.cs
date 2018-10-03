@@ -3048,7 +3048,7 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
-                // System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
+                // System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                               // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),               // DeclaringTypeId
                 0,                                                                                                                                              // Arity
@@ -3058,13 +3058,19 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
 
-                // System_Collections_Generic_IAsyncEnumerator_T__TryGetNext
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                               // Flags
+                // System_Collections_Generic_IAsyncEnumerator_T__Current
+                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                                                             // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),               // DeclaringTypeId
                 0,                                                                                                                                              // Arity
-                    1,                                                                                                                                          // Method Signature
+                    0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type: T
-                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Argument: out bool
+
+                // System_Collections_Generic_IAsyncEnumerator_T__get_Current
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                0,                                                                                                                                              // Arity
+                    0,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type: T
 
                 // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
                 (byte)MemberFlags.Constructor,                                                                                                                  // Flags
@@ -3577,8 +3583,9 @@ namespace Microsoft.CodeAnalysis
 
                 "DisposeAsync",                             // System_IAsyncDisposable__DisposeAsync
                 "GetAsyncEnumerator",                       // System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator
-                "WaitForNextAsync",                         // System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
-                "TryGetNext",                               // System_Collections_Generic_IAsyncEnumerator_T__TryGetNext
+                "MoveNextAsync",                            // System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync
+                "Current",                                  // System_Collections_Generic_IAsyncEnumerator_T__Current
+                "get_Current",                              // System_Collections_Generic_IAsyncEnumerator_T__get_Current
 
                 ".ctor",                                    // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor
                 "GetResult",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult

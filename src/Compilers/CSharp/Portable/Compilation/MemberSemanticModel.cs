@@ -867,9 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 disposeMethod,
                 enumeratorInfoOpt.ElementType,
                 boundForEach.ElementConversion,
-                enumeratorInfoOpt.CurrentConversion,
-                enumeratorInfoOpt.WaitForNextAsyncMethod,
-                enumeratorInfoOpt.TryGetNextMethod);
+                enumeratorInfoOpt.CurrentConversion);
         }
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)

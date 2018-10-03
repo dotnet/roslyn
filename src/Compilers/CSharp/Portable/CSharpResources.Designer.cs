@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have suitable public WaitForNextAsync and TryGetNext methods.
+        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public MoveNextAsync method and public Current property.
         /// </summary>
         internal static string ERR_BadGetAsyncEnumerator {
             get {

@@ -186,14 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 bodyBuilder.Add(
-                    // if (!this.promiseIsActive)
-                    // {
-                    //    this.promiseIsActive = true;
-                    //    this.promiseOfValueOrEnd.Reset();
-                    // }
-                    GenerateResetPromiseIfInactive());
-
-                bodyBuilder.Add(
                     // this.promiseOfValueOrEnd.SetResult(false);
                     GenerateSetResultOnPromise(false));
             }
@@ -226,63 +218,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
         {
-            // For regular async method, produce:
             // catch (Exception ex)
             // {
-            //     this.state = finishedState
-            //     builder.SetException(ex)
-            // }
-
-            // For an async-iterator method, produce:
-            // catch (Exception ex) when { this.state = finishedState; promiseIsActive }
-            // {
-            //     this.promiseOfValueOrEnd.SetException(ex);
+            //     _state = finishedState;
+            //     builder.SetException(ex);  OR   _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
             //     return;
             // }
 
-            // this.state = finishedState
-            BoundExpression assignFinishedState =
-                F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+            // _state = finishedState;
+            BoundStatement assignFinishedState =
+                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)));
 
+            BoundStatement callSetException;
             if (!IsAsyncIterator)
             {
-                return new BoundCatchBlock(
-                    F.Syntax,
-                    ImmutableArray.Create(exceptionLocal),
-                    F.Local(exceptionLocal),
-                    exceptionLocal.Type,
-                    exceptionFilterOpt: null,
-                    body: F.Block(
-                        // this.state = finishedState
-                        F.ExpressionStatement(assignFinishedState),
-                        // builder.SetException(ex)
-                        F.ExpressionStatement(
-                            F.Call(
-                                F.Field(F.This(), _asyncMethodBuilderField),
-                                _asyncMethodBuilderMemberCollection.SetException,
-                                F.Local(exceptionLocal))),
-                        GenerateReturn(false)),
-                    isSynthesizedAsyncCatchAll: true);
+                // builder.SetException(ex);
+                callSetException = F.ExpressionStatement(
+                    F.Call(
+                        F.Field(F.This(), _asyncMethodBuilderField),
+                        _asyncMethodBuilderMemberCollection.SetException,
+                        F.Local(exceptionLocal)));
             }
             else
             {
-                // this.promiseOfValueOrEnd.SetException(ex);
-                var callSetException = F.ExpressionStatement(F.Call(
+                // _promiseOfValueOrEnd.SetException(ex);
+                callSetException = F.ExpressionStatement(F.Call(
                     F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField),
                     _asyncIteratorInfo.SetExceptionMethod,
                     F.Local(exceptionLocal)));
-
-                return new BoundCatchBlock(
-                    F.Syntax,
-                    ImmutableArray.Create(exceptionLocal),
-                    F.Local(exceptionLocal),
-                    exceptionLocal.Type,
-                    // when { this.state = finishedState; promiseIsActive }
-                    exceptionFilterOpt: F.Sequence(new BoundExpression[] { assignFinishedState }, F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField)),
-                    // this.promiseOfValueOrEnd.SetException(ex); return;
-                    body: F.Block(callSetException, GenerateReturn(true)),
-                    isSynthesizedAsyncCatchAll: true);
             }
+
+            return new BoundCatchBlock(
+                F.Syntax,
+                ImmutableArray.Create(exceptionLocal),
+                F.Local(exceptionLocal),
+                exceptionLocal.Type,
+                exceptionFilterOpt: null,
+                body: F.Block(
+                    // _state = finishedState;
+                    assignFinishedState,
+                    // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
+                    callSetException,
+                    // return;
+                    GenerateReturn(false)),
+                isSynthesizedAsyncCatchAll: true);
         }
 
         protected override BoundStatement GenerateReturn(bool finished)
@@ -454,12 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? F.Local(awaiterTemp)
                         : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
 
-            if (IsAsyncIterator)
-            {
-                blockBuilder.Add(
-                    GenerateResetPromiseIfInactive());
-            }
-
             blockBuilder.Add(awaiterTemp.Type.IsDynamic()
                 ? GenerateAwaitOnCompletedDynamic(awaiterTemp)
                 : GenerateAwaitOnCompleted(awaiterTemp.Type, awaiterTemp));
@@ -612,29 +585,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.ExpressionStatement(result);
         }
 
-        private BoundStatement GenerateResetPromiseIfInactive()
-        {
-            Debug.Assert(IsAsyncIterator);
-
-            // this.promiseIsActive = true;
-            BoundFieldAccess promiseIsActiveField = F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField);
-            var assignTrue = F.Assignment(promiseIsActiveField, F.Literal(true));
-
-            // this.promiseOfValueOrEnd.Reset();
-            BoundFieldAccess promiseField = F.Field(F.This(), _asyncIteratorInfo.PromiseOfValueOrEndField);
-            var callReset = F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.ResetMethod));
-
-            // Produce:
-            // if (!this.promiseIsActive)
-            // {
-            //    this.promiseIsActive = true;
-            //    this.promiseOfValueOrEnd.Reset();
-            // }
-            return F.If(
-                F.Not(promiseIsActiveField),
-                thenClause: F.Block(assignTrue, callReset));
-        }
-
         private BoundExpressionStatement GenerateSetResultOnPromise(bool result)
         {
             // Produce:
@@ -665,14 +615,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_asyncIteratorInfo != null);
 
-            //     yield return expression;
-            // is translated to:
-            //     this.current = expression;
-            //     this.state = <next_state>;
-            //     if (this._promiseIsActive)
-            //     {
-            //         this._valueOrEndPromise.SetResult(true);
-            //     }
+            // Produce:
+            //     _current = expression;
+            //     _state = <next_state>;
+            //     _valueOrEndPromise.SetResult(true);
             //     goto <exit_label>;
             //     <next_state_label>: ;
             //     this.state = finalizeState;
@@ -687,21 +633,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
             blockBuilder.Add(
-                // this.current = expression;
+                // _current = expression;
                 F.Assignment(F.Field(F.This(), _asyncIteratorInfo.CurrentField), rewrittenExpression));
 
             blockBuilder.Add(
-                // this.state = <next_state>;
+                // _state = <next_state>;
                 F.Assignment(F.Field(F.This(), stateField), F.Literal(stateNumber)));
 
             blockBuilder.Add(
-                // if (this.promiseIsActive)
-                // {
-                //    this.promiseOfValueOrEnd.SetResult(true);
-                // }
-                F.If(
-                    F.Field(F.This(), _asyncIteratorInfo.PromiseIsActiveField),
-                    thenClause: F.Block(GenerateSetResultOnPromise(true))));
+                // _promiseOfValueOrEnd.SetResult(true);
+                GenerateSetResultOnPromise(true));
 
             blockBuilder.Add(
                 // goto <exit_label>;
@@ -727,26 +668,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_asyncIteratorInfo != null);
 
             // Produce:
-            // if (!this.promiseIsActive)
-            // {
-            //    this.promiseIsActive = true;
-            //    this.promiseOfValueOrEnd.Reset();
-            // }
-            // this.promiseOfValueOrEnd.SetResult(false);
-            // return;
+            //  _promiseOfValueOrEnd.SetResult(false);
+            //  return;
 
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            blockBuilder.Add(
-               // if (!this.promiseIsActive)
-               // {
-               //    this.promiseIsActive = true;
-               //    this.promiseOfValueOrEnd.Reset();
-               // }
-               GenerateResetPromiseIfInactive());
 
             blockBuilder.Add(
-                // this.promiseOfValueOrEnd.SetResult(false);
+                // _promiseOfValueOrEnd.SetResult(false);
                 GenerateSetResultOnPromise(false));
 
             // return;
