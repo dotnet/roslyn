@@ -4449,6 +4449,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureIsExperimental" xml:space="preserve">
+    <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
+  </data>
   <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
     <value>Feature '{0}' is not implemented in this compiler.</value>
   </data>
@@ -4746,6 +4749,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
+  </data>
+  <data name="IDS_FeatureAltInterpolatedVerbatimStrings" xml:space="preserve">
+    <value>alternative interpolated verbatim strings</value>
   </data>
   <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
     <value>await in catch blocks and finally blocks</value>
@@ -5171,6 +5177,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_3" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion8" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5191,6 +5200,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
+  </data>
+  <data name="ERR_AltInterpolatedVerbatimStringsNotAvailable" xml:space="preserve">
+    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</value>
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
@@ -5339,10 +5351,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
   </data>
+  <data name="IDS_FeatureCoalesceAssignmentExpression" xml:space="preserve">
+    <value>coalescing assignment</value>
+  </data>
   <data name="CannotCreateConstructedFromConstructed" xml:space="preserve">
     <value>Cannot create constructed generic type from another constructed generic type.</value>
   </data>
   <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
     <value>Cannot create constructed generic type from non-generic type.</value>
+  </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended" xml:space="preserve">
+    <value>'default' is converted to 'null', not 'default({0})'</value>
+  </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title" xml:space="preserve">
+    <value>'default' is converted to 'null'</value>
+  </data>
+  <data name="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator" xml:space="preserve">
+    <value>unconstrained type parameters in null coalescing operator</value>
   </data>
 </root>
