@@ -7,6 +7,11 @@
         <target state="new">Add await and ConfigureAwait(false)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_NonNullTypes_attribute">
+        <source>Add NonNullTypes attribute</source>
+        <target state="new">Add NonNullTypes attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="new">Add accessibility modifiers</target>
