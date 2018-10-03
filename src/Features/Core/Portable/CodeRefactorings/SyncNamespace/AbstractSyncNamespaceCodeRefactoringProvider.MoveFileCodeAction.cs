@@ -23,8 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private readonly Document _document;
             private readonly ImmutableArray<string> _newfolders;
 
-            public override string Title 
-                => $"Move file to \"{string.Join(".", _newfolders)}\" folder";
+            public override string Title
+                => _newfolders.Length > 0 
+                ? string.Format(FeaturesResources.Move_file_to_0_folder, string.Join(".", _newfolders)) 
+                : FeaturesResources.Move_file_to_project_root_folder;
+
 
             public MoveFileCodeAction(Document document, ImmutableArray<string> newFolders)
             {
@@ -60,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     return ImmutableArray<MoveFileCodeAction>.Empty;
                 }
+
+                //TODO: We can construct logic folder hierarchy from Document.Folders instead, to avoid file system access.
 
                 var projectRootPath = PathUtilities.GetDirectoryName(document.Project.FilePath);
                 FindCandidateFolders(new DirectoryInfo(projectRootPath), parts, ImmutableArray<string>.Empty, builder);

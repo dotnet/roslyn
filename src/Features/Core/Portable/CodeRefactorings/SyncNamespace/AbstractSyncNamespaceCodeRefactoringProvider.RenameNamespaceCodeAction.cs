@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {
-        private class RenameNamespaceCodeAction : CodeAction
+        private class ChangeNamespaceCodeAction : CodeAction
         {
             private readonly State _state;
             private readonly TService _service;
 
-            public override string Title => $"Change namespace to \"{_state.TargetNamespace}\" to match folder hierarchy.";
+            public override string Title => $"Change namespace to \"{_state.TargetNamespace}\"";
 
-            public RenameNamespaceCodeAction(TService service, State state)
+            public ChangeNamespaceCodeAction(TService service, State state)
             {
                 _service = service;
                 _state = state;

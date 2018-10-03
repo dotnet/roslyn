@@ -27,6 +27,11 @@
         <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="new">Change namespace to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="new">Code Quality</target>
@@ -70,6 +75,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Formatando documento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0_folder">
+        <source>Move file to '{0}' folder</source>
+        <target state="new">Move file to '{0}' folder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="new">Move file to project root folder</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">

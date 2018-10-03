@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
             if (state.TargetNamespace != null)
             {
-                builder.Add(new RenameNamespaceCodeAction(service, state));
+                builder.Add(new ChangeNamespaceCodeAction(service, state));
             }
 
             return builder.ToImmutableAndFree();

@@ -154,16 +154,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 return new State(document, rootNamespace, namespaceFromFolders, targetNamespace, declaredNamespace, relativeNamespace);
             }
 
-            private static async Task<string> GetRootNamespaceAsync(Project project, CancellationToken cancellationToken)
-            {                                                                               
-                var projectManagementService = project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-                if (projectManagementService == null)
-                {
-                    return null;
-                }
-                return await projectManagementService.GetDefaultNamespaceAsync(project, project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
-            }
-
             /// <summary>
             /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
             /// </summary>
