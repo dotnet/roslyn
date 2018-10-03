@@ -136,7 +136,7 @@ namespace Roslyn.Test.Utilities
     public static class ExecutionConditionUtil
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
-        public static bool IsUnix => Path.DirectorySeparatorChar == '/';
+        public static bool IsUnix => !IsWindows;
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;

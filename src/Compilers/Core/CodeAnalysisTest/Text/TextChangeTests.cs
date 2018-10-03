@@ -742,7 +742,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10961")]
         public void TestMergeChanges_NoMiddleMan()
         {
-            try {
             var original = SourceText.From("Hell");
 
             var final = GetChangesWithoutMiddle(
@@ -756,7 +755,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
-            } catch (Exception e) { Console.WriteLine(e.StackTrace);}
         }
 
         private SourceText GetChangesWithoutMiddle(
