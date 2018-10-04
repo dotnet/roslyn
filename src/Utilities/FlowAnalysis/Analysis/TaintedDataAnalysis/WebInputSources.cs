@@ -27,6 +27,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             AddSource(
                 sourceInfosBuilder,
+                WellKnownTypes.SystemWebHttpCookie,
+                taintedProperties: new string[] {
+                    "Domain",
+                    "Name",
+                    "Item",
+                    "Path",
+                    "Value",
+                    "Values",
+                },
+                taintedMethods: null);
+            AddSource(
+                sourceInfosBuilder,
                 WellKnownTypes.SystemWebHttpRequest,
                 taintedProperties: new string[] {
                     "AcceptTypes",
@@ -34,6 +46,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     // Anything potentially bad in Browser?
                     "ContentType",
                     "Cookies",
+                    "Files",
                     "Form",
                     "Headers",
                     "HttpMethod",
@@ -44,6 +57,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "PathInfo",
                     "QueryString",
                     "RawUrl",
+                    "RequestType",
                     "Url",
                     "UrlReferrer",
                     "UserAgent",
@@ -54,6 +68,116 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "GetBufferedInputStream",
                     "GetBufferlessInputStream",
                 });
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebHttpRequestBase,
+                taintedProperties: new string[] {
+                    "AcceptTypes",
+                    "AnonymousID",
+                    // Anything potentially bad in Browser?
+                    "ContentType",
+                    "Cookies",
+                    "Files",
+                    "Form",
+                    "Headers",
+                    "HttpMethod",
+                    "InputStream",
+                    "Item",
+                    "Params",
+                    "Path",
+                    "PathInfo",
+                    "QueryString",
+                    "RawUrl",
+                    "RequestType",
+                    "Url",
+                    "UrlReferrer",
+                    "UserAgent",
+                    "UserLanguages",
+                },
+                taintedMethods: new string[] {
+                    "BinaryRead",
+                    "GetBufferedInputStream",
+                    "GetBufferlessInputStream",
+                });
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebHttpRequestWrapper,
+                taintedProperties: new string[] {
+                    "AcceptTypes",
+                    "AnonymousID",
+                    // Anything potentially bad in Browser?
+                    "ContentType",
+                    "Cookies",
+                    "Files",
+                    "Form",
+                    "Headers",
+                    "HttpMethod",
+                    "InputStream",
+                    "Item",
+                    "Params",
+                    "Path",
+                    "PathInfo",
+                    "QueryString",
+                    "RawUrl",
+                    "RequestType",
+                    "Url",
+                    "UrlReferrer",
+                    "UserAgent",
+                    "UserLanguages",
+                },
+                taintedMethods: new string[] {
+                    "BinaryRead",
+                    "GetBufferedInputStream",
+                    "GetBufferlessInputStream",
+                });
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebUIAdaptersPageAdapter,
+                taintedProperties: new string[] {
+                    "QueryString",    // TODO paulming: This doesn't exist in .NET Framework 4.7.2, what do we actually care about?
+                },
+                taintedMethods: null);
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebUIDataBoundLiteralControl,
+                taintedProperties: new string[] {
+                    "Text",   // TODO paulming: Test this works for both the interface and type method.
+                },
+                taintedMethods: null);
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebUIDesignerDataBoundLiteralControl,
+                taintedProperties: new string[] {
+                    "Text",
+                },
+                taintedMethods: null);
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebUIHtmlControlsHtmlInputControl,
+                taintedProperties: new string[] {
+                    "Value",   // TODO paulming: Test that this covers HtmlInputButton.Value and other derived classes.
+                },
+                taintedMethods: null);
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebUIIndexedString,
+                taintedProperties: new string[] {
+                    "Value" },
+                taintedMethods: null);
+            AddSource(
+                sourceInfosBuilder,
+                WellKnownTypes.SystemWebUILiteralControl,
+                taintedProperties: new string[] {
+                    "Text",
+                },
+                taintedMethods: null);
+
+            //AddSource(
+            //    sourceInfosBuilder,
+            //    WellKnownTypes.System,
+            //    taintedProperties: new string[] { },
+            //    taintedMethods: new string[] { });
+
 
             SourceInfos = sourceInfosBuilder.ToImmutable();
         }
@@ -66,8 +190,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
-                ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties),
-                ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods));
+                taintedProperties != null 
+                    ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties)
+                    : ImmutableHashSet<string>.Empty,
+                taintedMethods != null 
+                    ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods)
+                    : ImmutableHashSet<string>.Empty);
             builder.Add(metadata.FullTypeName, metadata);
         }
 
