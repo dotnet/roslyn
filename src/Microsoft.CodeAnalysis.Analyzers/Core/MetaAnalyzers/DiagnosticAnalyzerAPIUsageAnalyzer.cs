@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var syntax = decl.GetSyntax(cancellationToken);
 
                 // GetSyntax for VB returns the StatementSyntax instead of BlockSyntax node.
-                syntax = syntax.FirstAncestorOrSelf<SyntaxNode>(node => IsNamedTypeDeclarationBlock(node), ascendOutOfTrivia: false);
+                syntax = syntax.FirstAncestorOrSelf<SyntaxNode>(node => IsNamedTypeDeclarationBlock(node), ascendOutOfTrivia: false) ?? syntax;
 
                 var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
                 var nodesToProcess = new Queue<(SyntaxNode node, bool inExecutableCode)>();
