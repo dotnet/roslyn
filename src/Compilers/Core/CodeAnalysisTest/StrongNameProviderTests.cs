@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class StrongNameProviderTests
     {
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void ResolveStrongNameKeyFile()
         {
             string fileName = "f.snk";
