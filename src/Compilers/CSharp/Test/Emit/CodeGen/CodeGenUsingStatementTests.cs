@@ -1032,10 +1032,14 @@ class Program
         public void UsingPatternTest()
         {
             var source = @"
+using System;
 class C1
 {
     public C1() { }
-    public void Dispose() { }
+    public void Dispose()
+    {
+        Console.WriteLine(""C1.Dispose()"");
+    }
 }
 
 class C2
@@ -1047,7 +1051,7 @@ class C2
         }
     }
 }";
-            CompileAndVerify(source).VerifyIL("C2.Main()", @"
+            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C2.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1074,11 +1078,18 @@ class C2
         public void UsingPatternDiffParameterOverloadTest()
         {
             var source = @"
+using System;
 class C1
 {
     public C1() { }
-    public void Dispose() { }
-    public void Dispose(int x) { }
+    public void Dispose()
+    {
+        Console.WriteLine(""C1.Dispose()"");
+    }
+    public void Dispose(int x) 
+    {
+        Console.WriteLine(""C1.Dispose(int)"");
+    }
 }
 
 class C2
@@ -1090,7 +1101,7 @@ class C2
         }
     }
 }";
-            CompileAndVerify(source).VerifyIL("C2.Main()", @"
+            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C2.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1118,10 +1129,14 @@ class C2
         public void UsingPatternInheritedTest()
         {
             var source = @"
+using System;
 class C1
 {
     public C1() { }
-    public void Dispose() { }
+    public void Dispose()
+    {
+        Console.WriteLine(""C1.Dispose()"");
+    }   
 }
 
 class C2 : C1
@@ -1138,12 +1153,115 @@ class C3
         }
     }
 }";
-            CompileAndVerify(source).VerifyIL("C3.Main()", @"
+            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C3.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
   .locals init (C2 V_0) //c
   IL_0000:  newobj     ""C2..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  callvirt   ""void C1.Dispose()""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodTest()
+        {
+            var source = @"
+using System;
+class C1
+{
+    public C1() { }
+}
+
+static class C2
+{
+    public static void Dispose(this C1 c1) 
+    {
+        Console.WriteLine(""C2.Dispose(C1)"");
+    }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)").VerifyIL("C3.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  .try
+  {
+    IL_0006:  leave.s    IL_0012
+  }
+  finally
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  brfalse.s  IL_0011
+    IL_000b:  ldloc.0
+    IL_000c:  call       ""void C2.Dispose(C1)""
+    IL_0011:  endfinally
+  }
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodResolutionTest()
+        {
+            var source = @"
+using System;
+class C1
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""C1.Dispose()"");
+    }
+}
+
+static class C2
+{
+    public static void Dispose(this C1 c1)
+    { 
+        Console.WriteLine(""C2.Dispose(C1)"");
+    }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "C1.Dispose()").VerifyIL("C3.Main()", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (C1 V_0) //c
+  IL_0000:  newobj     ""C1..ctor()""
   IL_0005:  stloc.0
   .try
   {

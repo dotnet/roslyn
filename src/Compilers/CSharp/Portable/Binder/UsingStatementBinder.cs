@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                 TypeSymbol expressionType = expressionOpt.Type;
-                
+               
                 if (!iDisposableConversion.IsImplicit)
                 {
                     if (!(expressionType is null))
                     {
-                        disposeMethod = TryFindDisposePatternMethod(expressionType, expressionSyntax, diagnostics);
+                        disposeMethod = TryFindDisposePatternMethod(expressionOpt, expressionSyntax, diagnostics);
                     }
                     if (disposeMethod is null)
                     {
