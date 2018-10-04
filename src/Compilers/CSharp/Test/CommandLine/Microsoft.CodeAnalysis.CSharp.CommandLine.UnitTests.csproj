@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
-    <TargetFrameworks>netcoreapp2.1;net46</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>

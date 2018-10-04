@@ -46,6 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return RuntimeEnvironment.GetRuntimeDirectory();
         }
 
+        internal CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)
+        {
+            sdkDirectory = sdkDirectory ?? SdkDirectory;
+            return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
+        }
+
         internal MockCSharpCompiler CreateCSharpCompiler(string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, AnalyzerAssemblyLoader loader = null)
         {
             return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, loader);

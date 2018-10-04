@@ -83,12 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             }
         }
 
-        private CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)
-        {
-            sdkDirectory = sdkDirectory ?? SdkDirectory;
-            return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
-        }
-
         private CSharpCommandLineArguments ScriptParse(IEnumerable<string> args, string baseDirectory)
         {
             return CSharpCommandLineParser.Script.Parse(args, baseDirectory, SdkDirectory);
@@ -9848,17 +9842,11 @@ class C
             }
         }
 
-        public class QuotedArgumentTests : CSharpTestBase
+        public class QuotedArgumentTests : CommandLineTestBase
         {
             private static readonly string s_rootPath = ExecutionConditionUtil.IsWindows
                 ? @"c:\"
                 : "/";
-
-            private CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)
-            {
-                sdkDirectory = sdkDirectory ?? GetSdkDirectory(Temp);
-                return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
-            }
 
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)
             {
