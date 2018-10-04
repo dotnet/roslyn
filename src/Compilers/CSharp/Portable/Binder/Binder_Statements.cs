@@ -3387,10 +3387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         DiagnosticBag diagnostics, MessageID messageID)
         {
             AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
-            ImmutableArray<TypeSymbol> typeArguments = default;
             MethodSymbol patternMethod = null;
 
-            var resolution = BindExtensionMethod(syntaxExpr, WellKnownMemberNames.DisposeMethodName, arguments, typeExpr, typeArguments, isMethodGroupConversion: false, returnRefKind: RefKind.None, returnType: null);
+            var resolution = BindExtensionMethod(syntaxExpr, methodName, arguments, typeExpr, typeArguments: default, isMethodGroupConversion: false, returnRefKind: RefKind.None, returnType: null);
             if (resolution.HasAnyApplicableMethod)
             {
                 if (resolution.OverloadResolutionResult.Succeeded)

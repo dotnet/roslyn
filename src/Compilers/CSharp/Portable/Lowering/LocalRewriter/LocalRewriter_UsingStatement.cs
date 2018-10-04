@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((!(methodOpt is null)) || Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt))
             {
                 disposeCall = methodOpt.IsExtensionMethod
-                    ? BoundCall.Synthesized(syntax, disposedExpression, methodOpt, local)
+                    ? BoundCall.Synthesized(syntax, receiverOpt: null, methodOpt, local)
                     : BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
             }
             else
