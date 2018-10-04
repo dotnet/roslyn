@@ -56,34 +56,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 var document = state.Document;
 
-                var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
                 var parts = state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
-
                 if (parts.Any(s => s.IndexOfAny(Path.GetInvalidPathChars()) >= 0))
                 {
                     return ImmutableArray<MoveFileCodeAction>.Empty;
                 }
 
-                //TODO: We can construct logic folder hierarchy from Document.Folders instead, to avoid file system access.
-
-                var projectRootPath = PathUtilities.GetDirectoryName(document.Project.FilePath);
-                FindCandidateFolders(new DirectoryInfo(projectRootPath), parts, ImmutableArray<string>.Empty, builder);
-
-                var candidateFolders = builder.ToImmutableAndFree();
-                if (candidateFolders.All(folders => !folders.SequenceEqual(parts, PathUtilities.Comparer)))
-                {
-                    candidateFolders = candidateFolders.Add(parts);
-                }
-
+                var projectRootFolder = FolderInfo.CreateFolderHierarchyForProject(document.Project);
+                var candidateFolders = FindCandidateFolders(projectRootFolder, parts, ImmutableArray<string>.Empty);
                 return candidateFolders.SelectAsArray(folders => new MoveFileCodeAction(document, folders));
             }
 
-            private static void FindCandidateFolders(DirectoryInfo currentDirInfo, ImmutableArray<string> parts, ImmutableArray<string> currentFolder, ArrayBuilder<ImmutableArray<string>> builder)
+            /// <summary>
+            /// We try to provide additional "move file" options if we can find existing folders that matches target namespace.
+            /// For example, if the target naemspace is 'DefaultNamesapce.A.B.C', and there's a folder 'ProjectRoot\A.B\' already exist, then will provide
+            /// two actions, "move file to ProjectRoot\A.B\C\" and "move file to ProjectRoot\A\B\C\".
+            /// </summary>
+            private static ImmutableArray<ImmutableArray<string>> FindCandidateFolders(FolderInfo currentFolderInfo, ImmutableArray<string> parts, ImmutableArray<string> currentFolder)
             {
                 if (parts.Length == 0)
                 {
-                    builder.Add(currentFolder);
-                    return;
+                    return ImmutableArray.Create(currentFolder);
                 }
 
                 var partsArray = parts.ToArray();
@@ -91,34 +84,78 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     .Select(i => (foldername: string.Join(".", partsArray, 0, i), index: i))     // index is the number of items in parts used to construct key
                     .ToImmutableDictionary(t => t.foldername, t => t.index, PathUtilities.Comparer);
 
-                ImmutableArray<DirectoryInfo> subDirectoryInfos = default;
-                try
-                {
-                    subDirectoryInfos = currentDirInfo.EnumerateDirectories().ToImmutableArray();
-                }
-                catch (Exception)
-                {
-                    // Ignore all expcetions might be thrown from examining file system.
-                }
+                var subFolders = currentFolderInfo.Folders;
 
-                if (subDirectoryInfos.IsDefault)
+                var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
+                foreach ((var folderName, var index) in candidates)
                 {
-                    return;
-                }
-
-                foreach (var subDirInfo in subDirectoryInfos)
-                {
-                    var dirName = subDirInfo.Name;
-                    if (candidates.TryGetValue(dirName, out var index))
+                    if (subFolders.TryGetValue(folderName, out var matchingFolderInfo))
                     {
-                        var newParts = index >= parts.Length 
+                        var newParts = index >= parts.Length
                             ? ImmutableArray<string>.Empty
                             : ImmutableArray.Create(parts, index, parts.Length - index);
-                        var newCurrentFolder = currentFolder.Add(dirName);
-                        FindCandidateFolders(subDirInfo, newParts, newCurrentFolder, builder);
+                        var newCurrentFolder = currentFolder.Add(matchingFolderInfo.Name);
+                        builder.AddRange(FindCandidateFolders(matchingFolderInfo, newParts, newCurrentFolder));
                     }
                 }
-                
+
+                var defaultPathBasedOnCurrentFolder = currentFolder.AddRange(parts);
+                if (builder.All(folders => !folders.SequenceEqual(defaultPathBasedOnCurrentFolder, PathUtilities.Comparer)))
+                {
+                    builder.Add(defaultPathBasedOnCurrentFolder);
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+
+            private class FolderInfo
+            {
+                Dictionary<string, FolderInfo> _folders;
+
+                public string Name { get; }
+
+                public FolderInfo Parent { get; }
+
+                public IReadOnlyDictionary<string, FolderInfo> Folders => _folders;
+
+                private FolderInfo(string name, FolderInfo parent)
+                {
+                    Name = name;
+                    Parent = parent;
+                    _folders = new Dictionary<string, FolderInfo>(StringComparer.Ordinal);
+                }
+
+                public void AddFolder(ImmutableArray<string> folder)
+                {
+                    if (folder.IsDefaultOrEmpty)
+                    {
+                        return;
+                    }
+
+                    var firstFolder = folder[0];
+                    if (!_folders.TryGetValue(firstFolder, out var firstFolderInfo))
+                    {
+                        firstFolderInfo = new FolderInfo(firstFolder, this);
+                        _folders[firstFolder] = firstFolderInfo;
+                    }
+
+                    firstFolderInfo.AddFolder(ImmutableArray.CreateRange(folder.Skip(1)));
+                }
+
+                // TODO: 
+                // Since we are getting folder data from documents, only non-empty folders 
+                // in the project are discovered. It's possible get complete folder structure
+                // from VS but it requires UI thread to do so. We might want to revisit this
+                // later.
+                public static FolderInfo CreateFolderHierarchyForProject(Project project)
+                {
+                    var rootFolderInfo = new FolderInfo("<ROOT>", parent: null);
+                    foreach (var document in project.Documents)
+                    {
+                        rootFolderInfo.AddFolder(document.Folders.ToImmutableArray());
+                    }
+                    return rootFolderInfo;
+                }
             }
         }
     }
