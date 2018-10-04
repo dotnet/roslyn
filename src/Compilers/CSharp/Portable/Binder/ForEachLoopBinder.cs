@@ -767,9 +767,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool SatisfiesGetEnumeratorPattern(ref ForEachEnumeratorInfo.Builder builder, TypeSymbol collectionExprType, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
-            MethodSymbol getEnumeratorMethod = FindPatternMethod(collectionExprType, GetEnumeratorMethodName, lookupResult,
-                                                                 _syntax.Expression, warningsOnly: true, diagnostics: diagnostics,
-                                                                 _syntax.SyntaxTree, MessageID.IDS_Collection);
+            MethodSymbol getEnumeratorMethod = FindPatternMethodStrict(collectionExprType, GetEnumeratorMethodName, lookupResult,
+                                                                       _syntax.Expression, warningsOnly: true, diagnostics: diagnostics,
+                                                                       _syntax.SyntaxTree, MessageID.IDS_Collection);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult lookupResult = LookupResult.GetInstance();
             try
             {
-                // If we searched for the accessor directly, we could reuse FindForEachPatternMethod and we
+                // If we searched for the accessor directly, we could reuse FindPatternMethodStrict and we
                 // wouldn't have to mangle CurrentPropertyName.  However, Dev10 searches for the property and
                 // then extracts the accessor, so we should do the same (in case of accessors with non-standard
                 // names).
@@ -871,9 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 lookupResult.Clear(); // Reuse the same LookupResult
 
-                MethodSymbol moveNextMethodCandidate = FindPatternMethod(enumeratorType, MoveNextMethodName, lookupResult, _syntax.Expression,
-                                                                        warningsOnly: false, diagnostics, _syntax.SyntaxTree, MessageID.IDS_Collection);
-
+                MethodSymbol moveNextMethodCandidate = FindPatternMethodStrict(enumeratorType, MoveNextMethodName, lookupResult, _syntax.Expression,
+                                                                               warningsOnly: false, diagnostics, _syntax.SyntaxTree, MessageID.IDS_Collection);
                 // SPEC VIOLATION: Dev10 checks the return type of the original definition, rather than the return type of the actual method.
 
                 if ((object)moveNextMethodCandidate == null ||
