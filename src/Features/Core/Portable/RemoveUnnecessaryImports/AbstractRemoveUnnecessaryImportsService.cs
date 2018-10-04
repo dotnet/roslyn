@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
         public Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(fromDocument, predicate: null, fromAllContext: true, cancellationToken: cancellationToken);
+            => RemoveUnnecessaryImportsAsync(fromDocument, predicate, fromAllContext: true, cancellationToken: cancellationToken);
 
         public Task<Document> RemoveUnnecessaryImportsFromCurrentContextAsync(Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(document, predicate: null, fromAllContext: false, cancellationToken: cancellationToken);
+            => RemoveUnnecessaryImportsAsync(document, predicate, fromAllContext: false, cancellationToken: cancellationToken);
 
         protected abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, bool fromAllContext, CancellationToken cancellationToken);
 
