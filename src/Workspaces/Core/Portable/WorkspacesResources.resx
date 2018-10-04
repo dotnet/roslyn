@@ -1396,4 +1396,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="regex_inline_options_short" xml:space="preserve">
     <value>inline options</value>
   </data>
+  <data name="ValueUsageInfo_NameOnly" xml:space="preserve">
+    <value>NameOnly</value>
+  </data>
+  <data name="ValueUsageInfo_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="ValueUsageInfo_Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="ValueUsageInfo_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
 </root>

@@ -37,6 +37,11 @@
         <target state="translated">모든 괄호 유지:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">필요한 경우 사용 안 함</target>

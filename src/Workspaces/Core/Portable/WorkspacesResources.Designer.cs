@@ -3502,6 +3502,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to NameOnly.
+        /// </summary>
+        internal static string ValueUsageInfo_NameOnly {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read.
+        /// </summary>
+        internal static string ValueUsageInfo_Read {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference.
+        /// </summary>
+        internal static string ValueUsageInfo_Reference {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write.
+        /// </summary>
+        internal static string ValueUsageInfo_Write {
+            get {
+                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variables captured:.
         /// </summary>
         internal static string Variables_captured_colon {

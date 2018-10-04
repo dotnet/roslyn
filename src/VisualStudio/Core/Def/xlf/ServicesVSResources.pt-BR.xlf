@@ -37,6 +37,11 @@
         <target state="translated">Mantenha todos os parênteses em:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nunca se desnecessário</target>

@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInOutContext(this ExpressionSyntax expression)
         {
-            var argument = expression.Parent as ArgumentSyntax;
+            var argument = expression?.Parent as ArgumentSyntax;
             return
                 argument != null &&
                 argument.Expression == expression &&

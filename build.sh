@@ -198,6 +198,10 @@ then
     if [[ "${use_mono}" == true ]]
     then
         test_runtime=mono
+
+        # Echo out the mono version to the comamnd line so it's visible in CI logs. It's not fixed
+        # as we're using a feed vs. a hard coded package. 
+        mono --version
     else
         test_runtime=dotnet
     fi

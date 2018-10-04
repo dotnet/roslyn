@@ -39,6 +39,7 @@ namespace Roslyn.Test.Utilities
 
         public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
+        public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
 
         /// <summary>
         /// Edit and continue is only supported on desktop at the moment.
@@ -135,10 +136,12 @@ namespace Roslyn.Test.Utilities
     public static class ExecutionConditionUtil
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
+        public static bool IsUnix => !IsWindows;
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsCoreClr => !IsDesktop;
+        public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
     }
 
     public class x86 : ExecutionCondition
