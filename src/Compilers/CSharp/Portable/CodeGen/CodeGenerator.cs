@@ -139,10 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _module.Compilation.Options.DebugPlusMode;
         }
 
-        private bool EnablePEVerifyCompat()
-        {
-            return _module.Compilation.LanguageVersion < LanguageVersion.CSharp7_2 || _module.Compilation.FeaturePEVerifyCompatEnabled;
-        }
+        private bool IsPeVerifyCompatEnabled() => _module.Compilation.IsPeVerifyCompatEnabled;
 
         private LocalDefinition LazyReturnTemp
         {
@@ -186,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool IsStackLocal(LocalSymbol local)
-        {
-            return _stackLocals != null && _stackLocals.Contains(local);
-        }
+        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> stackLocalsOpt)
+            => stackLocalsOpt?.Contains(local) ?? false;
+
+        private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
 
         public void Generate()
         {

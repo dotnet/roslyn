@@ -625,6 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.AndAssignmentExpression:
                 case SyntaxKind.ExclusiveOrAssignmentExpression:
@@ -646,6 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (token)
             {
+                case SyntaxKind.QuestionQuestionEqualsToken:
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.AmpersandEqualsToken:
                 case SyntaxKind.CaretEqualsToken:
@@ -689,6 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ModuloAssignmentExpression;
                 case SyntaxKind.EqualsToken:
                     return SyntaxKind.SimpleAssignmentExpression;
+                case SyntaxKind.QuestionQuestionEqualsToken:
+                    return SyntaxKind.CoalesceAssignmentExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -1326,6 +1330,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "^=";
                 case SyntaxKind.PercentEqualsToken:
                     return "%=";
+                case SyntaxKind.QuestionQuestionEqualsToken:
+                    return "??=";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:
@@ -1590,8 +1596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                    return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:

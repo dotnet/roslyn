@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
+            public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string EventHookup = nameof(EventHookup);
             public const string Expansion = nameof(Expansion);
+            public const string AddAwait = "Refactoring.AddAwait";
             public const string ExtractInterface = "Refactoring.ExtractInterface";
             public const string ExtractMethod = "Refactoring.ExtractMethod";
             public const string F1Help = nameof(F1Help);
