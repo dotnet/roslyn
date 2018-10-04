@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected virtual AssemblySymbol GetForwardedToAssembly(string name, int arity, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
+        {
+            return Next?.GetForwardedToAssembly(name, arity, ref qualifierOpt, diagnostics, location);
+        }
+
         // IsEarlyAttributeBinder is called relatively frequently so we want fast code here.
         internal bool IsEarlyAttributeBinder
         {

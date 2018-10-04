@@ -1782,10 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!suppressUseSiteDiagnostics)
                         {
-                            if (result.Error != null)
-                                wasError = true;
-                            else
-                                wasError = ReportUseSiteDiagnostics(singleResult, diagnostics, where);
+                            wasError = ReportUseSiteDiagnostics(singleResult, diagnostics, where);
                         }
                         else if (singleResult.Kind == SymbolKind.ErrorType)
                         {
@@ -1835,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(symbols.Count > 0);
 
             // Report any errors we encountered with the symbol we looked up.
-            if (!suppressUseSiteDiagnostics && result.Error == null)
+            if (!suppressUseSiteDiagnostics)
             {
                 for (int i = 0; i < symbols.Count; i++)
                 {
@@ -2076,17 +2073,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(qualifierOpt.IsNamespace);
 
-                    bool qualifierIsCompilationGlobalNamespace = ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace);
-
-                    fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
-                    if (!qualifierIsCompilationGlobalNamespace)
-                    {
-                        fullName = qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + fullName;
-                    }
-
-                    forwardedToAssembly = GetForwardedToAssembly(fullName, arity, diagnostics, location);
-
-                    if (qualifierIsCompilationGlobalNamespace)
+                    forwardedToAssembly = GetForwardedToAssembly(simpleName, arity, ref qualifierOpt, diagnostics, location);
+                    
+                    if (ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace))
                     {
                         Debug.Assert(aliasOpt == null || aliasOpt == SyntaxFacts.GetText(SyntaxKind.GlobalKeyword));
                         return (object)forwardedToAssembly == null
@@ -2122,101 +2111,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return diagnostics.Add(code, location);
             }
 
-            fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
-            forwardedToAssembly = GetForwardedToAssembly(fullName, arity, diagnostics, location);
+            forwardedToAssembly = GetForwardedToAssembly(simpleName, arity, ref qualifierOpt, diagnostics, location);
 
-            return (object)forwardedToAssembly == null
-                ? diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFound, location, whereText)
-                : diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly);
-        }
-
-        /// <summary>
-        /// Look for a type forwarder for the given type in the containing assembly and any referenced assemblies.
-        /// If one is found, search again in the target assembly.  Return the last assembly in the chain.
-        /// </summary>
-        /// <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
-        /// <param name="arity">The arity of the forwarded type.</param>
-        /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
-        /// <param name="location">Location to report errors on.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// Since this method is intended to be used for error reporting, it stops as soon as it finds
-        /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
-        /// </remarks>
-        private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, DiagnosticBag diagnostics, Location location)
-        {
-            Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
-            
-            // If we are in the process of binding assembly level attributes, we might get into an infinite cycle
-            // if any of the referenced assemblies forwards type to this assembly. Since forwarded types
-            // are specified through assembly level attributes, an attempt to resolve the forwarded type
-            // might require us to examine types forwarded by this assembly, thus binding assembly level 
-            // attributes again. And the cycle continues. 
-            // So, we won't do the analysis in this case, at the expense of better diagnostics.
-            if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            if ((object)forwardedToAssembly != null)
             {
-                var current = this;
-
-                do
-                {
-                    var contextualAttributeBinder = current as ContextualAttributeBinder;
-
-                    if (contextualAttributeBinder != null)
-                    {
-                        if ((object)contextualAttributeBinder.AttributeTarget != null &&
-                            contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.Assembly)
-                        {
-                            return null;
-                        }
-
-                        break;
-                    }
-
-                    current = current.Next;
-                }
-                while (current != null);
+                return qualifierOpt == null
+                    ? diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly)
+                    : diagnostics.Add(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, location, whereText, qualifierOpt, forwardedToAssembly);
             }
-
-            // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
-            // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
-            var metadataName = MetadataTypeName.FromFullName(fullName, useCLSCompliantNameArityEncoding: true, forcedArity: arity);
-
-            var containingAssembly = this.Compilation.Assembly;
-
-            // This method is only called after lookup has failed, so the containing (source!) assembly can't
-            // have a forwarder to another assembly.
-            NamedTypeSymbol forwardedType = null;
-            foreach (var referencedAssembly in containingAssembly.Modules[0].GetReferencedAssemblySymbols())
-            {
-                forwardedType = referencedAssembly.TryLookupForwardedMetadataType(ref metadataName);
-                if ((object)forwardedType != null)
-                {
-                    break;
-                }
-            }
-
-            if ((object)forwardedType != null)
-            {
-                if (forwardedType.Kind == SymbolKind.ErrorType)
-                {
-                    DiagnosticInfo diagInfo = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
-
-                    if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
-                    {
-                        Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
-                        diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
-                    }
-                    else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
-                    {
-                        diagnostics.Add(diagInfo, location);
-                        return null; // Cannot determine a suitable forwarding assembly
-                    }
-                }
-
-                return forwardedType.ContainingAssembly;
-            }
-
-            return null;
+            return diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFound, location, whereText);
         }
 
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)

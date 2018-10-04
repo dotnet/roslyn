@@ -706,22 +706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result.MergeEqual(res);
                 }
-
-                var fullName = typeOrNamespace.NamespaceOrType + "." + name;
-                var metadataName = MetadataTypeName.FromFullName(fullName);
-                var containingAssembly = originalBinder.Compilation.Assembly;
-
-                NamedTypeSymbol forwardedType = null;
-                foreach (var referencedAssembly in containingAssembly.Modules[0].GetReferencedAssemblySymbols())
-                {
-                    forwardedType = referencedAssembly.TryLookupForwardedMetadataType(ref metadataName);
-                    if ((object)forwardedType != null)
-                    {
-                        var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, name, typeOrNamespace.NamespaceOrType, forwardedType.ContainingAssembly);
-                        result.MergeEqual(LookupResult.NotReferencable(forwardedType, diagInfo));
-                    }
-                }
-
             }
         }
 
