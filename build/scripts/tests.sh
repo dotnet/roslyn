@@ -45,7 +45,6 @@ if [[ "${runtime}" == "dotnet" ]]; then
 elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
     file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
     file_skiplist=(
-        'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
         # Omitted because we appear to be missing things necessary to compile vb.net.
         # See https://github.com/mono/mono/issues/10679
         'Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.dll'
