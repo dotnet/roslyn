@@ -3526,6 +3526,45 @@ class C { }";
             }
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(29122, "https://github.com/dotnet/roslyn/issues/29122")]
+        public async Task TestOpenSolution_ProjectReferencesWithUnconventionalOutputPaths()
+        {
+            CreateFiles(GetBaseFiles()
+                .WithFile(@"TestVB2.sln", Resources.SolutionFiles.Issue29122_Solution)
+                .WithFile(@"Proj1\ClassLibrary1.vbproj", Resources.ProjectFiles.VisualBasic.Issue29122_ClassLibrary1)
+                .WithFile(@"Proj1\Class1.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass)
+                .WithFile(@"Proj1\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer)
+                .WithFile(@"Proj1\My Project\Application.myapp", Resources.SourceFiles.VisualBasic.Application)
+                .WithFile(@"Proj1\My Project\AssemblyInfo.vb", Resources.SourceFiles.VisualBasic.AssemblyInfo)
+                .WithFile(@"Proj1\My Project\Resources.Designer.vb", Resources.SourceFiles.VisualBasic.Resources_Designer)
+                .WithFile(@"Proj1\My Project\Resources.resx", Resources.SourceFiles.VisualBasic.Resources)
+                .WithFile(@"Proj1\My Project\Settings.Designer.vb", Resources.SourceFiles.VisualBasic.Settings_Designer)
+                .WithFile(@"Proj1\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings)
+                .WithFile(@"Proj2\ClassLibrary2.vbproj", Resources.ProjectFiles.VisualBasic.Issue29122_ClassLibrary2)
+                .WithFile(@"Proj2\Class1.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass)
+                .WithFile(@"Proj2\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer)
+                .WithFile(@"Proj2\My Project\Application.myapp", Resources.SourceFiles.VisualBasic.Application)
+                .WithFile(@"Proj2\My Project\AssemblyInfo.vb", Resources.SourceFiles.VisualBasic.AssemblyInfo)
+                .WithFile(@"Proj2\My Project\Resources.Designer.vb", Resources.SourceFiles.VisualBasic.Resources_Designer)
+                .WithFile(@"Proj2\My Project\Resources.resx", Resources.SourceFiles.VisualBasic.Resources)
+                .WithFile(@"Proj2\My Project\Settings.Designer.vb", Resources.SourceFiles.VisualBasic.Settings_Designer)
+                .WithFile(@"Proj2\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings));
+
+            var solutionFlePath = GetSolutionFileName(@"TestVB2.sln");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var solution = await workspace.OpenSolutionAsync(solutionFlePath);
+
+                // Neither project should contain any unresolved metadata references
+                foreach (var project in solution.Projects)
+                {
+                    Assert.DoesNotContain(project.MetadataReferences, mr => mr is UnresolvedMetadataReference);
+                }
+            }
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)

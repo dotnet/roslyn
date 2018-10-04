@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string DuplicatedGuidsBecomeSelfReferential => GetText("SolutionFiles.DuplicatedGuidsBecomeSelfReferential.sln");
             public static string DuplicatedGuidsBecomeCircularReferential => GetText("SolutionFiles.DuplicatedGuidsBecomeCircularReferential.sln");
             public static string EmptyLineBetweenProjectBlock => GetText("SolutionFiles.EmptyLineBetweenProjectBlock.sln");
+            public static string Issue29122_Solution => GetText("Issue29122.TestVB2.sln");
             public static string InvalidProjectPath => GetText("SolutionFiles.InvalidProjectPath.sln");
             public static string MissingEndProject1 => GetText("SolutionFiles.MissingEndProject1.sln");
             public static string MissingEndProject2 => GetText("SolutionFiles.MissingEndProject2.sln");
@@ -159,6 +160,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string Circular_Target => GetText("ProjectFiles.VisualBasic.Circular_Target.vbproj");
                 public static string Circular_Top => GetText("ProjectFiles.VisualBasic.Circular_Top.vbproj");
                 public static string Embed => GetText("ProjectFiles.VisualBasic.Embed.vbproj");
+                public static string Issue29122_ClassLibrary1 => GetText("Issue29122.Proj1.ClassLibrary1.vbproj");
+                public static string Issue29122_ClassLibrary2 => GetText("Issue29122.Proj2.ClassLibrary2.vbproj");
                 public static string InvalidProjectReference => GetText("ProjectFiles.VisualBasic.InvalidProjectReference.vbproj");
                 public static string NonExistentProjectReference => GetText("ProjectFiles.VisualBasic.NonExistentProjectReference.vbproj");
                 public static string UnknownProjectExtension => GetText("ProjectFiles.VisualBasic.UnknownProjectExtension.vbproj");
