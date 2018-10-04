@@ -1446,7 +1446,7 @@ class C
 {
     void M(Action<int, int> a)
     {
-        M((3[||]
+        M((x[||]
     }
 }");
         }
