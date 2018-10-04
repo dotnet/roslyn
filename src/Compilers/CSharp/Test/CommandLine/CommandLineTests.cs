@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void XmlMemoryMapped()
         {
             var dir = Temp.CreateDirectory();
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             using (var mmf = MemoryMappedFile.CreateFromFile(fileStream, "xmlMap", 0, MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true))
             {
                 exitCode = cmd.Run(outWriter);
-                Assert.Equal(1, exitCode);
                 Assert.StartsWith($"error CS0016: Could not write to output file '{xmlPath}' -- ", outWriter.ToString());
+                Assert.Equal(1, exitCode);
             }
         }
 
@@ -5900,7 +5900,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30152")]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"
@@ -9863,24 +9863,28 @@ class C
 
         public class QuotedArgumentTests
         {
+            private static readonly string s_rootPath = ExecutionConditionUtil.IsWindows
+                ? @"c:\"
+                : "/";
+
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)
             {
-                var args = DefaultParse(new[] { $"/{name}:{value}", "a.cs" }, @"c:\");
+                var args = DefaultParse(new[] { $"/{name}:{value}", "a.cs" }, s_rootPath);
                 Assert.Equal(0, args.Errors.Length);
                 Assert.Equal(expected, getValue(args));
 
-                args = DefaultParse(new[] { $@"/{name}:""{value}""", "a.cs" }, @"c:\");
+                args = DefaultParse(new[] { $@"/{name}:""{value}""", "a.cs" }, s_rootPath);
                 Assert.Equal(0, args.Errors.Length);
                 Assert.Equal(expected, getValue(args));
             }
 
             private void VerifyQuotedInvalid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)
             {
-                var args = DefaultParse(new[] { $"/{name}:{value}", "a.cs" }, @"c:\");
+                var args = DefaultParse(new[] { $"/{name}:{value}", "a.cs" }, s_rootPath);
                 Assert.Equal(0, args.Errors.Length);
                 Assert.Equal(expected, getValue(args));
 
-                args = DefaultParse(new[] { $@"/{name}:""{value}""", "a.cs" }, @"c:\");
+                args = DefaultParse(new[] { $@"/{name}:""{value}""", "a.cs" }, s_rootPath);
                 Assert.True(args.Errors.Length > 0);
             }
 
