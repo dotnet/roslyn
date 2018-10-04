@@ -93,7 +93,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Property
     End Module
 
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
     Friend Class VisualBasicAddImportCodeFixProvider
         Inherits AbstractAddImportCodeFixProvider

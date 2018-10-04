@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PasteTracking;
@@ -8,13 +9,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.AddMissingImports), Shared]
-    internal class AddMissingImportsRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
     {
         private readonly IPasteTrackingService _pasteTrackingService;
+        protected abstract string CodeActionTitle { get; }
 
-        [ImportingConstructor]
-        public AddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
+        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
         {
             _pasteTrackingService = pasteTrackingService;
         }
@@ -39,11 +39,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return;
             }
 
-            var title = document.Project.Language == LanguageNames.CSharp
-                ? FeaturesResources.Add_missing_usings
-                : FeaturesResources.Add_missing_imports;
+            context.RegisterRefactoring(new AddMissingImportsCodeAction(CodeActionTitle, _ => Task.FromResult(newProject.Solution)));
+        }
 
-            context.RegisterRefactoring(new AddMissingImportsCodeAction(title, _ => Task.FromResult(newProject.Solution)));
+        private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
+        {
+            public AddMissingImportsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
+            {
+            }
         }
     }
 }

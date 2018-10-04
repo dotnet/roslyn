@@ -19,12 +19,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.AddMissingImports
 
         protected AbstractAddMissingImportsFeatureServiceTest(string languageName)
         {
-            if (languageName != LanguageNames.CSharp
-                && languageName != LanguageNames.VisualBasic)
-            {
-                throw new ArgumentException("Invalid LanguageName. Only C# and Visual Basic languages are supported.", nameof(languageName));
-            }
-
             LanguageName = languageName;
         }
 

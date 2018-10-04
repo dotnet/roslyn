@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../FeaturesResources.resx">
     <body>
-      <trans-unit id="Add_missing_imports">
-        <source>Add missing imports</source>
-        <target state="new">Add missing imports</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_missing_usings">
-        <source>Add missing usings</source>
-        <target state="new">Add missing usings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">Parameter zu "{0}" (und Außerkraftsetzungen/Implementierungen) hinzufügen</target>

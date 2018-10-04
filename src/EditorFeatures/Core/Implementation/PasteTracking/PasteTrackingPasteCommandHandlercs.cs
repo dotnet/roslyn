@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         private readonly PasteTrackingService _pasteTrackingService;
 
         [ImportingConstructor]
-        internal PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
+        public PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
         {
             _pasteTrackingService = pasteTrackingService;
         }

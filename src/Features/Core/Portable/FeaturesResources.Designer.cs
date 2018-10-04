@@ -189,29 +189,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add missing imports.
-        /// </summary>
-        internal static string Add_missing_imports {
-            get {
-                return ResourceManager.GetString("Add_missing_imports", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add missing param nodes.
         /// </summary>
         internal static string Add_missing_param_nodes {
             get {
                 return ResourceManager.GetString("Add_missing_param_nodes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add missing usings.
-        /// </summary>
-        internal static string Add_missing_usings {
-            get {
-                return ResourceManager.GetString("Add_missing_usings", resourceCulture);
             }
         }
         

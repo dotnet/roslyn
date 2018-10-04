@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             textBuffer.Changed += RemovePastedTestSpan;
             textBuffer.Properties.AddProperty(this, textSpan);
 
-            // Try to start the light bulb session now so that it displayed to the user sooner.
+            // Try to start the light bulb session in an unexpanded state now
+            // so that it displayed to the user sooner.
             TryShowLightBulb(textView, textSpan);
 
             return;
@@ -78,7 +79,8 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             var triggerSpan = textView.TextBuffer.CurrentSnapshot.CreateTrackingSpan(caretPosition.Position, 0, SpanTrackingMode.EdgeExclusive);
 
             // Start a suggested refactoring session. Session ends if no suggested actions are found.
-            var session = _lightBulbBroker.CreateSession(_refactoringsCategorySet, textView, triggerPoint, triggerSpan, _refactoringsCategorySet, false);
+            var session = _lightBulbBroker.CreateSession(
+                _refactoringsCategorySet, textView, triggerPoint, triggerSpan, _refactoringsCategorySet, trackMouse: false);
             session.Start();
         }
     }

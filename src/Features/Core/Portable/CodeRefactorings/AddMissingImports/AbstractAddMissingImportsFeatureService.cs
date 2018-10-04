@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 diagnostics.Add(diagnostic);
             }
 
+            // Ensure that diagnostics for this document are always in document location
+            // order.  This provides a consistent and deterministic order for fixers
+            // that want to update a document.
             return diagnostics.ToImmutableAndFree()
                 .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
         }
@@ -78,24 +81,25 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var packageSources = ImmutableArray<PackageSource>.Empty;
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
-            var getFixesForSpanTasks = diagnostics
+            var getFixesForDiagnosticsTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => addImportService
-                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(), symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
+                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
+                        symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
 
-            await Task.WhenAll(getFixesForSpanTasks).ConfigureAwait(false);
+            await Task.WhenAll(getFixesForDiagnosticsTasks).ConfigureAwait(false);
 
             var fixes = ArrayBuilder<AddImportFixData>.GetInstance();
-            foreach (var getFixesForSpanTask in getFixesForSpanTasks)
+            foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
             {
-                var fixesForSpan = await getFixesForSpanTask.ConfigureAwait(false);
+                var fixesForDiagnostics = await getFixesForDiagnosticsTask.ConfigureAwait(false);
 
-                foreach (var fixForSpan in fixesForSpan)
+                foreach (var fixesForDiagnostic in fixesForDiagnostics)
                 {
                     // If there is more than one fix, then we will leave it for the user to manually apply.
-                    if (fixForSpan.Fixes.Length == 1)
+                    if (fixesForDiagnostic.Fixes.Length == 1)
                     {
-                        fixes.Add(fixForSpan.Fixes[0]);
+                        fixes.Add(fixesForDiagnostic.Fixes[0]);
                     }
                 }
             }
@@ -105,8 +109,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)
         {
-            if (fixes.IsEmpty
-                || !document.TryGetText(out var text))
+            if (fixes.IsEmpty)
             {
                 return document;
             }
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             await Task.WhenAll(getChangesTasks).ConfigureAwait(false);
 
-            // Using Sets allows us to accumulate only the distict changes.
+            // Using Sets allows us to accumulate only the distinct changes.
             var allTextChanges = new HashSet<TextChange>();
             // Some fixes require adding missing references.
             var allAddedProjectReferences = new HashSet<ProjectReference>();
@@ -140,6 +143,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences);
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
+            var text = await document.GetTextAsync(cancellationToken);
             var newText = text.WithChanges(allTextChanges);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 

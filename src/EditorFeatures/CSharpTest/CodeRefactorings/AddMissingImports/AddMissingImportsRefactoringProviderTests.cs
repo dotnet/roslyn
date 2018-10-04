@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             var testWorkspace = (TestWorkspace)workspace;
             var pasteTrackingService = testWorkspace.ExportProvider.GetExportedValue<PasteTrackingService>();
-            return new AddMissingImportsRefactoringProvider(pasteTrackingService);
+            return new CSharpAddMissingImportsRefactoringProvider(pasteTrackingService);
         }
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
@@ -71,7 +72,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected).ConfigureAwait(false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WpfFact]
@@ -86,7 +87,7 @@ class C
     }
 }";
 
-            await TestMissingInRegularAndScriptAsync(code).ConfigureAwait(false);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WpfFact]
@@ -103,11 +104,12 @@ class C
     }
 }";
 
-            await TestMissingInRegularAndScriptAsync(code).ConfigureAwait(false);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         private static Lazy<IExportProviderFactory> s_exportProviderFactory = new Lazy<IExportProviderFactory>(() =>
         {
+            // When running tests we need to get compiler diagnostics so we can find the missing imports
             var catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithoutPartsOfType(typeof(IWorkspaceDiagnosticAnalyzerProviderService))
                 .WithPart(typeof(CSharpCompilerDiagnosticAnalyzerProviderService));

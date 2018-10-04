@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax> where TSimpleNameSyntax : SyntaxNode
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
             /// <summary>
             /// Code action we use when just adding a using, possibly with a project or
