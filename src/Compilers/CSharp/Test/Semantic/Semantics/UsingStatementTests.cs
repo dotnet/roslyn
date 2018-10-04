@@ -441,6 +441,7 @@ class C3
         public void UsingPatternExtensionMethodInaccessibleInstanceMethodTest()
         {
             var source = @"
+using System;
 class C1
 {
     public C1() { }
@@ -450,7 +451,10 @@ class C1
 
 static class C2 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this C1 c1)
+    {
+        Console.WriteLine(""C2.Dispose(C1)"");
+    }
 }
 
 class C3
@@ -462,9 +466,9 @@ class C3
         }
     }
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
 
-            CompileAndVerify(compilation).VerifyIL("C3.Main", @"
+            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)").VerifyIL("C3.Main", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -820,6 +824,7 @@ class C4
         public void UsingPatternWithValidTargetAndLessDerivedTarget()
         {
             var source = @"
+using System;
 class C1
 {
 }
@@ -830,9 +835,15 @@ class C2 : C1
 
 static class C3 
 {
-    public static void Dispose(this C1 c1) { }
+    public static void Dispose(this C1 c1)
+    {
+        Console.WriteLine(""C3.Dispose(C1)"");
+    }
 
-    public static void Dispose(this C2 c2) { }
+    public static void Dispose(this C2 c2)
+    {
+        Console.WriteLine(""C3.Dispose(C2)"");
+    }
 }
 
 class C4
@@ -845,10 +856,10 @@ class C4
     }
 }";
             // ensure we bind without errors
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
 
             // check we're calling the correct extension
-            CompileAndVerify(compilation).VerifyIL("C4.Main", @"
+            CompileAndVerify(source, expectedOutput: "C3.Dispose(C2)").VerifyIL("C4.Main", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -982,15 +993,22 @@ class C3
         public void UsingPatternExtensionMethodMixOfGeneric()
         {
             var source = @"
+using System;
 class C1
 {
 }
 
 static class C2 
 {
-   public static void Dispose(this C1 c1) { }
+   public static void Dispose(this C1 c1)
+    {
+        Console.WriteLine(""C2.Dispose(C1)"");
+    }
 
-   public static void Dispose<T>(this T c1) where T : C1 { }
+   public static void Dispose<T>(this T c1) where T : C1
+    {
+        Console.WriteLine(""C2.Dispose<T>(T)"");
+    }
 
 }
 
@@ -1004,10 +1022,10 @@ class C3
     }
 }";
             // ensure we bind without errors
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
 
             // check we call the correct overload
-            CompileAndVerify(compilation).VerifyIL("C3.Main",@"
+            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)").VerifyIL("C3.Main",@"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1035,6 +1053,7 @@ class C3
         public void UsingPatternExtensionMethodMixOfGenericAndMoreDerived()
         {
             var source = @"
+using System;
 class C1
 {
 }
@@ -1049,10 +1068,15 @@ class C3 : C1
 
 static class C4
 {
-   public static void Dispose<T>(this T c1) where T : C1 { }
+    public static void Dispose<T>(this T c1) where T : C1
+    {
+        Console.Write(""C4.Dispose<T>(T) "");
+    }
 
-   public static void Dispose(this C3 c3) { }
-
+    public static void Dispose(this C3 c3)
+    {
+        Console.Write(""C4.Dispose(C3) "");
+    }
 }
 
 class C5
@@ -1067,10 +1091,10 @@ class C5
     }
 }";
             // ensure we bind without errors
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
 
             // check we call the correct overload
-            CompileAndVerify(compilation).VerifyIL("C5.Main", @"
+            CompileAndVerify(source, expectedOutput: $"C4.Dispose<T>(T) C4.Dispose<T>(T) C4.Dispose(C3)").VerifyIL("C5.Main", @"
 {
   // Code size       55 (0x37)
   .maxstack  1
