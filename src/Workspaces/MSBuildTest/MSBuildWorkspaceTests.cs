@@ -1608,7 +1608,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public async Task TTestCompilationOptions_CSharp_DebugType_Full()
+        public async Task TestCompilationOptions_CSharp_DebugType_Full()
         {
             CreateCSharpFilesWith("DebugType", "full");
             await AssertCSParseOptionsAsync(0, options => options.Errors.Length);
@@ -3551,11 +3551,11 @@ class C { }";
                 .WithFile(@"Proj2\My Project\Settings.Designer.vb", Resources.SourceFiles.VisualBasic.Settings_Designer)
                 .WithFile(@"Proj2\My Project\Settings.settings", Resources.SourceFiles.VisualBasic.Settings));
 
-            var solutionFlePath = GetSolutionFileName(@"TestVB2.sln");
+            var solutionFilePath = GetSolutionFileName(@"TestVB2.sln");
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var solution = await workspace.OpenSolutionAsync(solutionFlePath);
+                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
                 // Neither project should contain any unresolved metadata references
                 foreach (var project in solution.Projects)

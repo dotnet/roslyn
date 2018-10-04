@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 foreach (var reference in references)
                 {
-                    if (!reference.HasReferenceOutputAssemblyMetadataEqualToTrue())
+                    if (reference.ReferenceOutputAssemblyIsTrue())
                     {
                         var filePath = GetDocumentFilePath(reference);
 
