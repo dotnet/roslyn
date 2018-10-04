@@ -25,7 +25,7 @@
   </Choose>
 
   <PropertyGroup>
-    <_IlasmDeployProj>$(MSBuildThisFileDirectory)ILAsmDeploy.csproj</_IlasmDeployProj>
+    <_IlasmDeployProj>$(MSBuildThisFileDirectory)IlAsmDeploy.csproj</_IlasmDeployProj>
     <_IlasmIncrementalBuildMarker>$(IlasmPublishDir).v$(MicrosoftNETCoreILAsmVersion)</_IlasmIncrementalBuildMarker>
   </PropertyGroup>
 
