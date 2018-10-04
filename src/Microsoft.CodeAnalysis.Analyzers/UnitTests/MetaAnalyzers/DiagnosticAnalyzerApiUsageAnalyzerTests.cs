@@ -28,9 +28,13 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 interface I<T> { }
 
+internal delegate void MyDelegateGlobal();
+
 class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics=> throw new NotImplementedException();
+
+    internal delegate void MyDelegateInType();
 
     public override void Initialize(AnalysisContext context)
     {
@@ -66,8 +70,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Interface I(Of T)
 End Interface
 
+Friend Delegate Sub MyDelegateGlobal()
+
 Class MyAnalyzer
     Inherits DiagnosticAnalyzer
+    Friend Delegate Sub MyDelegateInType()
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
