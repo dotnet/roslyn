@@ -427,6 +427,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
+        public ProjectState UpdateDefaultNamespace(string defaultNamespace)
+        {
+            if (defaultNamespace == this.DefaultNamespace)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithDefaultNamespace(defaultNamespace).WithVersion(this.Version.GetNewerVersion()));
+        }
+
         public ProjectState UpdateCompilationOptions(CompilationOptions options)
         {
             if (options == this.CompilationOptions)

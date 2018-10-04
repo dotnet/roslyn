@@ -359,6 +359,11 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
         }
 
+        public ProjectInfo WithDefaultNamespace(string defaultNamespace)
+        {
+            return With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
+        }
+
         public ProjectInfo WithCompilationOptions(CompilationOptions compilationOptions)
         {
             return With(compilationOptions: compilationOptions);

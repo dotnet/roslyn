@@ -657,6 +657,29 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string defaultNamespace)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            var oldProjectState = this.GetProjectState(projectId);
+            var newProjectState = oldProjectState.UpdateDefaultNamespace(defaultNamespace);
+
+            if (oldProjectState == newProjectState)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProjectState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public SolutionState WithProjectName(ProjectId projectId, string name)

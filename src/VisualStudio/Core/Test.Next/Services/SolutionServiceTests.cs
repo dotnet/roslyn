@@ -178,6 +178,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestUpdateDefaultNamespace()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s => s.WithProjectDefaultNamespace(s.ProjectIds[0], "TestClassLibrary"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestUpdateDocumentInfo()
         {
             var code = @"class Test { void Method() { } }";
