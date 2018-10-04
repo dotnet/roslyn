@@ -18,13 +18,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImportsFeatureService
     {
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-
-        public AbstractAddMissingImportsFeatureService(IDiagnosticAnalyzerService diagnosticAnalyzerService)
-        {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
-        }
-
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
         public async Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -51,26 +44,19 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var project = document.Project;
-
-            var diagnosticData = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var getDiagnosticTasks = diagnosticData
-                .Where(datum => FixableDiagnosticIds.Contains(datum.Id))
-                .Select(datum => datum.ToDiagnosticAsync(project, cancellationToken));
-
-            await Task.WhenAll(getDiagnosticTasks).ConfigureAwait(false);
-
-            var diagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-            foreach (var getDiagnosticTask in getDiagnosticTasks)
-            {
-                var diagnostic = await getDiagnosticTask.ConfigureAwait(false);
-                diagnostics.Add(diagnostic);
-            }
+            var compilation = await project.GetCompilationAsync(cancellationToken);
 
             // Ensure that diagnostics for this document are always in document location
             // order.  This provides a consistent and deterministic order for fixers
             // that want to update a document.
-            return diagnostics.ToImmutableAndFree()
+            var diagnostics = compilation.GetDiagnostics(cancellationToken)
+                .Where(diagnostic => FixableDiagnosticIds.Contains(diagnostic.Id)
+                    && diagnostic.Location.SourceTree.FilePath == document.FilePath
+                    && diagnostic.Location.SourceSpan.IntersectsWith(textSpan))
+                .ToImmutableArray()
                 .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
+
+            return diagnostics;
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)

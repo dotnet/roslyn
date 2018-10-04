@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddMissingImports
@@ -12,12 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingImports
     [ExportLanguageService(typeof(IAddMissingImportsFeatureService), LanguageNames.CSharp), Shared]
     internal class CSharpAddMissingImportsFeatureService : AbstractAddMissingImportsFeatureService
     {
-        [ImportingConstructor]
-        public CSharpAddMissingImportsFeatureService(IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(diagnosticAnalyzerService)
-        {
-        }
-
         protected sealed override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
     }
 }

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End);
 
-            _pasteTrackingService.RegisterPastedTextSpan(args.TextView, args.SubjectBuffer, textSpan);
+            _pasteTrackingService.RegisterPastedTextSpan(args.SubjectBuffer, textSpan);
         }
     }
 }

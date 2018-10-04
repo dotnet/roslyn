@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddMissingImports
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 
@@ -11,11 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingImports
     <ExportLanguageService(GetType(IAddMissingImportsFeatureService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicAddMissingImportsFeatureService
         Inherits AbstractAddMissingImportsFeatureService
-
-        <ImportingConstructor>
-        Public Sub New(diagnosticAnalyzerService As IDiagnosticAnalyzerService)
-            MyBase.New(diagnosticAnalyzerService)
-        End Sub
 
         Protected Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
