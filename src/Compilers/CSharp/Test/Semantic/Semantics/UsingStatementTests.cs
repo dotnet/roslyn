@@ -468,28 +468,7 @@ class C3
 }";
             CreateCompilation(source).VerifyDiagnostics();
 
-            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)").VerifyIL("C3.Main", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (C1 V_0) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
-  .try
-  {
-    IL_0006:  leave.s    IL_0012
-  }
-  finally
-  {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  call       ""void C2.Dispose(C1)""
-    IL_0011:  endfinally
-  }
-  IL_0012:  ret
-}
-");
+            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)");
         }
 
         [Fact]
@@ -859,28 +838,7 @@ class C4
             CreateCompilation(source).VerifyDiagnostics();
 
             // check we're calling the correct extension
-            CompileAndVerify(source, expectedOutput: "C3.Dispose(C2)").VerifyIL("C4.Main", @"
-{
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (C2 V_0) //c
-  IL_0000:  newobj     ""C2..ctor()""
-  IL_0005:  stloc.0
-  .try
-  {
-    IL_0006:  leave.s    IL_0012
-  }
-  finally
-  {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  call       ""void C3.Dispose(C2)""
-    IL_0011:  endfinally
-  }
-  IL_0012:  ret
-}
-");
+            CompileAndVerify(source, expectedOutput: "C3.Dispose(C2)");
         }
 
         [Fact]
@@ -1025,28 +983,7 @@ class C3
             CreateCompilation(source).VerifyDiagnostics();
 
             // check we call the correct overload
-            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)").VerifyIL("C3.Main",@"
-{
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (C1 V_0) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
-  .try
-  {
-    IL_0006:  leave.s    IL_0012
-  }
-  finally
-  {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  call       ""void C2.Dispose(C1)""
-    IL_0011:  endfinally
-  }
-  IL_0012:  ret
-}
-");
+            CompileAndVerify(source, expectedOutput: "C2.Dispose(C1)");
         }
 
         [Fact]
@@ -1094,58 +1031,7 @@ class C5
             CreateCompilation(source).VerifyDiagnostics();
 
             // check we call the correct overload
-            CompileAndVerify(source, expectedOutput: $"C4.Dispose<T>(T) C4.Dispose<T>(T) C4.Dispose(C3)").VerifyIL("C5.Main", @"
-{
-  // Code size       55 (0x37)
-  .maxstack  1
-  .locals init (C1 V_0, //c
-                C2 V_1, //c
-                C3 V_2) //c
-  IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  stloc.0
-  .try
-  {
-    IL_0006:  leave.s    IL_0012
-  }
-  finally
-  {
-    IL_0008:  ldloc.0
-    IL_0009:  brfalse.s  IL_0011
-    IL_000b:  ldloc.0
-    IL_000c:  call       ""void C4.Dispose<C1>(C1)""
-    IL_0011:  endfinally
-  }
-  IL_0012:  newobj     ""C2..ctor()""
-  IL_0017:  stloc.1
-  .try
-  {
-    IL_0018:  leave.s    IL_0024
-  }
-  finally
-  {
-    IL_001a:  ldloc.1
-    IL_001b:  brfalse.s  IL_0023
-    IL_001d:  ldloc.1
-    IL_001e:  call       ""void C4.Dispose<C2>(C2)""
-    IL_0023:  endfinally
-  }
-  IL_0024:  newobj     ""C3..ctor()""
-  IL_0029:  stloc.2
-  .try
-  {
-    IL_002a:  leave.s    IL_0036
-  }
-  finally
-  {
-    IL_002c:  ldloc.2
-    IL_002d:  brfalse.s  IL_0035
-    IL_002f:  ldloc.2
-    IL_0030:  call       ""void C4.Dispose(C3)""
-    IL_0035:  endfinally
-  }
-  IL_0036:  ret
-}
-");
+            CompileAndVerify(source, expectedOutput: $"C4.Dispose<T>(T) C4.Dispose<T>(T) C4.Dispose(C3)");
         }
 
         [Fact]
