@@ -176,7 +176,9 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <InlineData(CompletionImplementation.Legacy)>
+        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/30276")>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionAdjustInsertionText_CommitsOnOpenParens2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <document>
