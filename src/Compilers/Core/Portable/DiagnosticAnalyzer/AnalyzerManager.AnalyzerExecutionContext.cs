@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _lazyPendingSymbolEndActionsOpt[symbol] = (symbolEndActions, symbolDeclaredEvent);
             }
 
-            [Conditional("DEBUG")]
+            [Conditional("DEBUG_ISSUE_30309")]
             public void VerifyAllSymbolEndActionsExecuted()
             {
                 lock (_gate)
