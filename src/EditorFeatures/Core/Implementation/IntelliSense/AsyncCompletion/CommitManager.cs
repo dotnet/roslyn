@@ -72,8 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             if (completionService.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider featuresCustomCommitCompletionProvider)
             {
+                // Custom commit provider assumes that null is provided is case of invoke. VS provides '\0' in the case.
+                char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
                 var commitBehavior = CustomCommit(document, featuresCustomCommitCompletionProvider, session.TextView, 
-                    subjectBuffer, roslynItem, session.ApplicableToSpan, typeChar, cancellationToken);
+                    subjectBuffer, roslynItem, session.ApplicableToSpan, commitChar, cancellationToken);
 
                 return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
             }
@@ -87,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new AsyncCompletionData.CommitResult(
-                    isHandled: false, 
+                return new AsyncCompletionData.CommitResult(isHandled: false, 
                     AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
             ITrackingSpan applicableSpan,
-            char commitCharacter,
+            char? commitCharacter,
             CancellationToken cancellationToken)
         {
             bool includesCommitCharacter;
@@ -187,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 includesCommitCharacter = change.IncludesCommitCharacter;
             }
 
-            return includesCommitCharacter ? 
-                AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers : 
-                AsyncCompletionData.CommitBehavior.None;
+            return includesCommitCharacter
+                ? AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers 
+                : AsyncCompletionData.CommitBehavior.None;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class SourceProvider : IAsyncCompletionSourceProvider
     {
-        private IAsyncCompletionSource _instance;
+        private static IAsyncCompletionSource _instance = new Source();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,14 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         {
         }
 
-        IAsyncCompletionSource IAsyncCompletionSourceProvider.GetOrCreate(ITextView textView)
-        {
-            if (_instance == null)
-            {
-                _instance = new Source();
-            }
-
-            return _instance;
-        }
+        public IAsyncCompletionSource GetOrCreate(ITextView textView) => _instance;
     }
 }

@@ -115,6 +115,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Function GetLineTextFromCaretPosition() As String
 
         Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
+
+        Sub SelectAndMoveCaret(offset As Integer)
 #End Region
 
 #Region "Signature Help and Completion Operations"

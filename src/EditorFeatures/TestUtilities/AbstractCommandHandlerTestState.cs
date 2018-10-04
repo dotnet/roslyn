@@ -259,6 +259,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var history = UndoHistoryRegistry.GetHistory(SubjectBuffer);
             history.Undo(count);
         }
+
+        public void SelectAndMoveCaret(int offset)
+        {
+            var currentCaret = GetCaretPoint();
+            EditorOperations.SelectAndMoveCaret(
+                new VirtualSnapshotPoint(SubjectBuffer.CurrentSnapshot, currentCaret.BufferPosition.Position),
+                new VirtualSnapshotPoint(SubjectBuffer.CurrentSnapshot, currentCaret.BufferPosition.Position + offset));
+        }
         #endregion
 
         #region test/information/verification

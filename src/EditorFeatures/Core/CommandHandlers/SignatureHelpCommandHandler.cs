@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelp)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
-    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class SignatureHelpCommandHandler :
         ForegroundThreadAffinitizedObject,
         IChainedCommandHandler<TypeCharCommandArgs>,

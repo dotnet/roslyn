@@ -255,6 +255,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, buffer), AddressOf MyBase.SendDelete, TestCommandExecutionContext.Create())
         End Sub
 
+        Private Sub ITestState_SelectAndMoveCaret(offset As Integer) Implements ITestState.SelectAndMoveCaret
+            MyBase.SelectAndMoveCaret(offset)
+        End Sub
 #End Region
 
 #Region "IntelliSense Operations"

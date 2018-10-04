@@ -4175,6 +4175,32 @@ public class Program
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackspaceWithMultipleCharactersSelected(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine$$
+    }
+}
+                              </Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendInvokeCompletionList()
+                state.SelectAndMoveCaret(-6)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="Write", isHardSelected:=True)
+            End Using
+        End Function
+
         <InlineData(CompletionImplementation.Modern)> ' New test: improves the behavior comparing with the legacy implementation
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMRUKeepsTwoRecentlyUsedItems(completionImplementation As CompletionImplementation) As Task

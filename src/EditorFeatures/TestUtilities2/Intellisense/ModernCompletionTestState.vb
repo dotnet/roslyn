@@ -380,12 +380,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Assert.Equal(shouldFormatOnCommit.Value, GetRoslynCompletionItem(items.SelectedItem).Rules.FormatOnCommit)
             End If
 
-#If False Then
-            If insertionText IsNot Nothing Then
-                Assert.Equal(insertionText, Me.CurrentCompletionPresenterSession.SelectedItem.TextChange.NewText)
-            End If
-#End If
-
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim service = CompletionService.GetService(document)
@@ -529,6 +523,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Sub ITestState_SendDeleteWordToLeft() Implements ITestState.SendDeleteWordToLeft
             MyBase.SendDeleteWordToLeft()
+        End Sub
+
+        Private Sub ITestState_SelectAndMoveCaret(offset As Integer) Implements ITestState.SelectAndMoveCaret
+            MyBase.SelectAndMoveCaret(offset)
         End Sub
 
         Public Function GetSelectedItem() As CompletionItem Implements ITestState.GetSelectedItem

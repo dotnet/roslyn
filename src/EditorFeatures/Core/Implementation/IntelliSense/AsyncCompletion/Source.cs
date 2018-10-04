@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,12 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     internal class Source : IAsyncCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
-        internal const string TriggerBuffer = nameof(TriggerBuffer);
+        internal const string TriggerSnapshot = nameof(TriggerSnapshot);
         internal const string InsertionText = nameof(InsertionText);
-        internal const string MustSetSelection = nameof(MustSetSelection);
+        internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
 
-        private static ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray;
+        private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
+            ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
 
         public AsyncCompletionData.CompletionStartData InitializeCompletion(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken cancellationToken)
         {
@@ -52,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
             // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
-            if (!(trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
-                trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
-                && !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, GetRoslynTrigger(trigger, triggerLocation)))
+            if (trigger.Reason != AsyncCompletionData.CompletionTriggerReason.Invoke &&
+                trigger.Reason != AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique && 
+                !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, GetRoslynTrigger(trigger, triggerLocation)))
             {
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
@@ -96,11 +97,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var item = Convert(document, roslynItem, completionService, filterCache);
-                item.Properties.AddProperty(TriggerBuffer, triggerLocation.Snapshot.TextBuffer);
-                if (!string.IsNullOrEmpty(item.DisplayText))
-                {
-                    itemsBuilder.Add(item);
-                }
+
+                // Have to store the snapshot to reuse it in some projections related scenarios
+                // where data and session in further calls are able to provide other snapshots.
+                item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
+                itemsBuilder.Add(item);
             }
 
             var items = itemsBuilder.ToImmutableAndFree();
@@ -113,7 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                             : string.Empty))
                     : null;
 
-            session.Properties.AddProperty(MustSetSelection, suggestionItemOptions != null);
+            // This is a code supporting legacy completion scenarios:
+            // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
+            session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
             return new AsyncCompletionData.CompletionContext(
                 items,
@@ -124,19 +127,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
-                !item.Properties.TryGetProperty<ITextBuffer>(TriggerBuffer, out var triggerBuffer))
+                !item.Properties.TryGetProperty<ITextSnapshot>(TriggerSnapshot, out var triggerSnapshot))
             {
                 return null;
             }
 
-            var document = triggerBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return null;
             }
 
-            var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
-            var description = await service.GetProvider(roslynItem).GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
+            var service = document.GetLanguageService<CompletionService>();
+            var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
@@ -157,8 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                     char characterRemoved;
                     if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
                     {
-                        // If multiple characters were removed (selection), this finds the first character. 
-                        // Maybe it should be re-considered to find the last removed character.
+                        // If multiple characters were removed (selection), this finds the first character from the left. 
                         characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
                     }
                     else
@@ -171,7 +173,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                     return new RoslynTrigger(CompletionTriggerKind.Snippets);
             }
 
-            throw ExceptionUtilities.UnexpectedValue(trigger.Reason);
+            FatalError.ReportWithoutCrash(ExceptionUtilities.UnexpectedValue(trigger.Reason));
+            return RoslynTrigger.Invoke;
         }
 
         private VSCompletionItem Convert(
@@ -182,14 +185,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         {
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
             var filters = GetFilters(roslynItem, filterCache);
-
+            
+            // roslynItem generated by providers can contain an insertionText in a property bag.
+            // Try using it first.
             if (!roslynItem.Properties.TryGetValue(InsertionText, out var insertionText))
             {
                 insertionText = roslynItem.DisplayText;
             }
 
             var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution.Workspace);
-            var attributeImages = supportedPlatforms != null ? GetWarningImageAttributeImagesArray() : ImmutableArray<ImageElement>.Empty;
+            var attributeImages = supportedPlatforms != null ? s_WarningImageAttributeImagesArray : ImmutableArray<ImageElement>.Empty;
 
             var item = new VSCompletionItem(
                 displayText: roslynItem.DisplayText,
@@ -206,20 +211,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return item;
         }
 
-        private static ImmutableArray<ImageElement> GetWarningImageAttributeImagesArray()
-        {
-            if (s_WarningImageAttributeImagesArray == null)
-            {
-                var warningImage = Glyph.CompletionWarning.GetImageId();
-                s_WarningImageAttributeImagesArray = ImmutableArray.Create(
-                    new ImageElement(
-                        warningImage,
-                        EditorFeaturesResources.Warning_image_element_automation_name));
-            }
-
-            return s_WarningImageAttributeImagesArray;
-        }
-
         private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
             var listBuilder = new ArrayBuilder<AsyncCompletionData.CompletionFilter>();
@@ -227,20 +218,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             {
                 if (filter.Matches(item))
                 {
-                    if (filterCache.TryGetValue(filter.DisplayText, out var applicableFilter))
-                    {
-                        listBuilder.Add(applicableFilter);
-                    }
-                    else
+                    if (!filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
                     {
                         var imageId = filter.Tags.GetFirstGlyph().GetImageId();
-                        var itemFilter = new AsyncCompletionData.CompletionFilter(
+                        itemFilter = new AsyncCompletionData.CompletionFilter(
                             filter.DisplayText,
                             filter.AccessKey.ToString(),
                             new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element_automation_name));
                         filterCache[filter.DisplayText] = itemFilter;
-                        listBuilder.Add(itemFilter);
                     }
+
+                    listBuilder.Add(itemFilter);
                 }
             }
 
