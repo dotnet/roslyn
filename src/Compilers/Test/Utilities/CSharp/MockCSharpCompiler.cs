@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCSharpCompiler : CSharpCompiler
     {
-        protected readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         internal Compilation Compilation;
 
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, AnalyzerAssemblyLoader loader = null)
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _analyzers = !analyzers.IsDefault ? analyzers : ImmutableArray<DiagnosticAnalyzer>.Empty;
         }
 
-        private static BuildPaths CreateBuildPaths(string workingDirectory) => RuntimeUtilities.CreateBuildPaths(workingDirectory);
+        private static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null) => RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory);
 
         protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,

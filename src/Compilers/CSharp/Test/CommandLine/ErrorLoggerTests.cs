@@ -16,10 +16,8 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class ErrorLoggerTests : CSharpTestBase
+    public class ErrorLoggerTests : CommandLineTestBase
     {
-        private readonly string _baseDirectory = TempRoot.Root;
-
         [Fact]
         public void NoDiagnostics()
         {
@@ -36,8 +34,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
-               $"/errorlog:{errorLogFile}" });
+            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello, $"/errorlog:{errorLogFile}" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -73,7 +70,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
                 "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -169,7 +166,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
                 "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -267,7 +264,7 @@ public class C
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
                 "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
 

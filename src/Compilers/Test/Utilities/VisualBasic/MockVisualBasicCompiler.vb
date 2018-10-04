@@ -35,7 +35,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
-        Return RuntimeUtilities.CreateBuildPaths(workingDirectory, tempDirectory)
+        Return RuntimeUtilities.CreateBuildPaths(workingDirectory, tempDirectory:=tempDirectory)
     End Function
 
     Protected Overrides Function ResolveAnalyzersFromArguments(
