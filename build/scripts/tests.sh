@@ -78,19 +78,6 @@ else
     exit 1
 fi
 
-UNAME="$(uname)"
-if [ "$UNAME" == "Darwin" ]; then
-    runtime_id=osx-x64
-elif [ "$UNAME" == "Linux" ]; then
-    runtime_id=linux-x64
-else
-    echo "Unknown OS: $UNAME" 1>&2
-    exit 1
-fi
-
-echo "Publishing ILAsm.csproj"
-dotnet publish "${root_path}/src/Tools/ILAsm" --no-restore --runtime ${runtime_id} --self-contained -o "${binaries_path}/Tools/ILAsm"
-
 echo "Using ${xunit_console}"
 
 # Discover and run the tests
