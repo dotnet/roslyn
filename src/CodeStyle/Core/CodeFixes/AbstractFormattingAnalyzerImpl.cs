@@ -82,10 +82,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 }
 
                 var location = Location.Create(tree, change.Span);
-                context.ReportDiagnostic(DiagnosticHelper.Create(
+                context.ReportDiagnostic(Diagnostic.Create(
                     _descriptor,
                     location,
-                    ReportDiagnostic.Default,
                     additionalLocations: null,
                     properties: null));
             }
