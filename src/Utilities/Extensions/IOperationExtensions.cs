@@ -513,5 +513,9 @@ namespace Analyzer.Utilities.Extensions
 
             return InstanceReferenceKind.Creation;
         }
+
+        public static bool IsWithinLambdaOrLocalFunction(this IOperation operation)
+            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null ||
+               operation.GetAncestor<ILocalFunctionOperation>(OperationKind.LocalFunction) != null;
     }
 }

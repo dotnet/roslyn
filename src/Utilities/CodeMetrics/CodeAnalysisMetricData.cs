@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 symbol.Kind == SymbolKind.Property);
             Debug.Assert(depthOfInheritance.HasValue == (symbol.Kind == SymbolKind.Assembly || symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.NamedType));
 
+#if LEGACY_CODE_METRICS_MODE
+            linesOfCode = !computationalComplexityMetrics.IsDefault ?
+                computationalComplexityMetrics.EffectiveLinesOfCode :
+                children.Sum(c => c.LinesOfCode);
+#endif
+
             Symbol = symbol;
             MaintainabilityIndex = maintainabilityIndex;
             ComputationalComplexityMetrics = computationalComplexityMetrics;
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        #region Core Compute Methods
+#region Core Compute Methods
         public async static Task<CodeAnalysisMetricData> ComputeAsync(Project project, CancellationToken cancellationToken)
         {
             if (project == null)
@@ -205,9 +211,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         internal static async Task<ImmutableArray<CodeAnalysisMetricData>> ComputeAsync(IEnumerable<ISymbol> children, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
             => (await Task.WhenAll(
                 from child in children
+#if !LEGACY_CODE_METRICS_MODE // Skip implicitly declared symbols, such as default constructor, for non-legacy mode.
                 where !child.IsImplicitlyDeclared || (child as INamespaceSymbol)?.IsGlobalNamespace == true
+#endif
                 select Task.Run(() => ComputeAsync(child, semanticModelProvider, cancellationToken))).ConfigureAwait(false)).ToImmutableArray();
 
-        #endregion
+#endregion
     }
 }
