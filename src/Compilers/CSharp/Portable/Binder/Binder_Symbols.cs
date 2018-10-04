@@ -2048,7 +2048,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as a type forwarder.  We'll look for type forwarders in the containing and
             // referenced assemblies and report more specific diagnostics if they are found.
             AssemblySymbol forwardedToAssembly;
-            string fullName;
 
             // for attributes, suggest both, but not for verbatim name
             if (options.IsAttributeTypeLookup() && !options.IsVerbatimNameAttributeTypeLookup())
