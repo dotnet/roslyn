@@ -31,7 +31,6 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)]
         public async Task TestSwitchStatement2()
         {
@@ -55,7 +54,6 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false ),
                 Region("case0", "casetext", "case 0:", autoCollapse: false),
                 Region("default", "defaulttext", "default:", false));
-
         }
     }
 }

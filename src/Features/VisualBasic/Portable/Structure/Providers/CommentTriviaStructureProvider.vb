@@ -9,11 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class CommentTriviaStructureProvider
         Inherits AbstractSyntaxTriviaStructureProvider
 
-        Public Overrides Sub CollectBlockSpans(
-                                              document As Document,
-                                              trivia As SyntaxTrivia,
-                                              spans As ArrayBuilder(Of BlockSpan),
-                                              cancellationToken As CancellationToken)
+        Public Overrides Sub CollectBlockSpans(document As Document,
+                                               trivia As SyntaxTrivia,
+                                               spans As ArrayBuilder(Of BlockSpan),
+                                               cancellationToken As CancellationToken)
             If trivia.Kind = SyntaxKind.CommentTrivia Then
                 VisualBasicOutliningHelpers.CollectCommentsRegions(trivia.Token.LeadingTrivia, spans)
                 VisualBasicOutliningHelpers.CollectCommentsRegions(trivia.Token.TrailingTrivia, spans)

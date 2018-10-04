@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
 #Region "Block Provider Specific Methods"
-
         ''' <summary>
         ''' The <see cref="BlockSpan"/> of the complete structure.
         ''' <code>
@@ -138,7 +137,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         ''' Eg End Select
         ''' </summary>
         Friend MustOverride Function GetEnd_XXX_Statement(block As TBlock) As TEndOfBlockStatement
-
 #End Region
 
         Protected Overrides Sub CollectBlockSpans(node As TBlock, spans As ArrayBuilder(Of BlockSpan), options As OptionSet, cancellationToken As CancellationToken)
@@ -229,7 +227,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
 #Region "MakeIfHasLineDeltaGreaterThanX Overloads"
-
         Private Function MakeIfHasLineDeltaGreaterThanX(X As Integer, StartingAt As SyntaxTrivia, FinishingAt As SyntaxTrivia, BannerText As String) As BlockSpan?
             Return If(LineDelta(StartingAt, FinishingAt) > X, MakeBlockSpan(StartingAt.SpanStart, FinishingAt.SpanStart, BannerText), Nothing)
         End Function
@@ -245,7 +242,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Private Function MakeIfHasAtLeastOneLineDelta(X As Integer, StartingAt As SyntaxNode, FinishingAt As SyntaxNode, BannerText As String) As BlockSpan?
             Return If(LineDelta(StartingAt, FinishingAt) > X, MakeBlockSpan(StartingAt.SpanStart, FinishingAt.SpanStart, BannerText), Nothing)
         End Function
-
 #End Region
 
         Friend Function FirstTriviaAfterFirstEndOfLine(Trivias As SyntaxTriviaList) As SyntaxTrivia?

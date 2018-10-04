@@ -42,9 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Case Is > 1
                     banner = $"Case {InnerBlock.CaseStatement.Cases(0).ToString},{SpaceEllipsis}"
             End Select
-
             Return banner
         End Function
     End Class
-
 End Namespace
