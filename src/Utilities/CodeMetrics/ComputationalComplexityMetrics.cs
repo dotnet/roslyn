@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -97,6 +98,14 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 {
                     continue;
                 }
+
+#if LEGACY_CODE_METRICS_MODE
+                // Legacy mode does not account for code within lambdas/local functions for code metrics.
+                if (operation.IsWithinLambdaOrLocalFunction())
+                {
+                    continue;
+                }
+#endif
 
                 if (operation.ConstantValue.HasValue)
                 {

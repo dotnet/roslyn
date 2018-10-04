@@ -35,9 +35,16 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, namedType, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
 
                 // Compat: Filter out nested types as they are children of most closest containing namespace.
-                // Also filter out accessors as they are children of their associated symbols, for which we generate a separate node.
-                var members = namedType.GetMembers().Where(m => m.Kind != SymbolKind.NamedType &&
-                    (m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null));
+                var members = namedType.GetMembers().Where(m => m.Kind != SymbolKind.NamedType);
+
+#if LEGACY_CODE_METRICS_MODE
+                // Legacy mode skips metrics for field/property/event symbols, and explicitly includes accessors as methods.
+                members = members.Where(m => m.Kind != SymbolKind.Field && m.Kind != SymbolKind.Property && m.Kind != SymbolKind.Event);
+#else
+                // Filter out accessors as they are children of their associated symbols, for which we generate a separate node.
+                members = members.Where(m => m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null);
+#endif
+
                 ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(members, semanticModelProvider, cancellationToken).ConfigureAwait(false);
 
                 // Heuristic to prevent simple fields (no initializer or simple initializer) from skewing the complexity.
