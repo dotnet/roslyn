@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    if (span.HasValue && !span.Value.Contains(diagnostic.Location.SourceSpan))
+                    if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
                     {
                         continue;
                     }
