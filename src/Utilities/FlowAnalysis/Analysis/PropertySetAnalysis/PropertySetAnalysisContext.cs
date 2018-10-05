@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -15,8 +14,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
     using InterproceduralBinaryFormatterAnalysisData = InterproceduralAnalysisData<IDictionary<AbstractLocation, PropertySetAbstractValue>, PropertySetAnalysisContext, PropertySetAbstractValue>;
-    using PropertySetAnalysisData = IDictionary<AbstractLocation, PropertySetAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
+    using PropertySetAnalysisData = IDictionary<AbstractLocation, PropertySetAbstractValue>;
 
     /// <summary>
     /// Analysis context for execution of <see cref="PropertySetAnalysis"/> on a control flow graph.
@@ -90,10 +89,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(pointsToAnalysisResultOpt != null);
             Debug.Assert(copyAnalysisResultOpt == null);
 
-            // Do not invoke any interprocedural analysis more than one level down.
-            // We only care about analyzing validation methods.
             return new PropertySetAnalysisContext(
-                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisKind.None,
+                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisKind.ContextSensitive,
                 PessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData,
                 this.TypeToTrackMetadataName,
@@ -120,7 +117,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         /// <summary>
         /// Whether to change the abstract value of the instance to flagged or not flagged,
-        /// when a property in <see cref="PropertyToSetFlag"/> is set to null or non-null.
+        /// when the <see cref="PropertyToSetFlag"/> property is set to null or non-null.
         /// </summary>
         public bool IsNullPropertyFlagged { get; }
 

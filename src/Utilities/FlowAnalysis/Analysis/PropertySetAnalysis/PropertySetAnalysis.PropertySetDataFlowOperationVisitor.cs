@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
             private const int MaxInterproceduralCallChain = 1;
-            private readonly ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue>.Builder _hazardousUsageBuilderOpt;
+            private readonly ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
             private INamedTypeSymbol DeserializerTypeSymbol;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
@@ -32,22 +32,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 Debug.Assert(analysisContext.OwningSymbol.Kind == SymbolKind.Method);
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _hazardousUsageBuilderOpt = ImmutableDictionary.CreateBuilder<IInvocationOperation, PropertySetAbstractValue>();
+                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<IInvocationOperation, PropertySetAbstractValue>();
 
                 this.WellKnownTypeProvider.TryGetKnownType(analysisContext.TypeToTrackMetadataName, out this.DeserializerTypeSymbol);
             }
 
             public override int GetHashCode()
             {
-                return HashUtilities.Combine(_hazardousUsageBuilderOpt?.GetHashCode() ?? 0, base.GetHashCode());
+                return HashUtilities.Combine(_hazardousUsageBuilder?.GetHashCode() ?? 0, base.GetHashCode());
             }
 
             public ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue> HazardousUsages
             {
                 get
                 {
-                    Debug.Assert(_hazardousUsageBuilderOpt != null);
-                    return _hazardousUsageBuilderOpt.ToImmutable();
+                    return _hazardousUsageBuilder.ToImmutable();
                 }
             }
 
@@ -73,7 +72,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     this.CurrentAnalysisData[location] = value;
                 }
             }
-
 
             protected override PropertySetAnalysisData MergeAnalysisData(PropertySetAnalysisData value1, PropertySetAnalysisData value2)
                 => BinaryFormatterAnalysisDomainInstance.Merge(value1, value2);
@@ -105,7 +103,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
-                if (operation.Type != null && operation.Type == this.DeserializerTypeSymbol)
+                if (operation.Type == this.DeserializerTypeSymbol)
                 {
                     abstractValue = this.DataFlowAnalysisContext.IsNewInstanceFlagged 
                         ? PropertySetAbstractValue.Flagged 
@@ -156,8 +154,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IInvocationOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
-                if (this._hazardousUsageBuilderOpt != null
-                    && visitedInstance != null
+                if (visitedInstance != null
                     && visitedInstance.Type != null
                     && visitedInstance.Type == this.DeserializerTypeSymbol
                     && this.DataFlowAnalysisContext.MethodNamesToCheckForFlaggedUsage.Contains(method.MetadataName))
@@ -182,12 +179,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     if (hasFlagged && !hasMaybeFlagged)
                     {
                         // Overwrite existing value, if any.
-                        this._hazardousUsageBuilderOpt[originalOperation] = PropertySetAbstractValue.Flagged;
+                        this._hazardousUsageBuilder[originalOperation] = PropertySetAbstractValue.Flagged;
                     }
                     else if ((hasFlagged || hasMaybeFlagged)
-                        && !this._hazardousUsageBuilderOpt.ContainsKey(originalOperation))   // Keep existing value, if there is one.
+                        && !this._hazardousUsageBuilder.ContainsKey(originalOperation))   // Keep existing value, if there is one.
                     {
-                        this._hazardousUsageBuilderOpt.Add(originalOperation, PropertySetAbstractValue.MaybeFlagged);
+                        this._hazardousUsageBuilder.Add(originalOperation, PropertySetAbstractValue.MaybeFlagged);
                     }
                 }
 
