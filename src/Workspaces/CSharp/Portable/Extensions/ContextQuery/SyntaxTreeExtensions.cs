@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter) &&
-                token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+                token.Parent.Parent.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 var parameter = token.GetAncestor<ParameterSyntax>();
                 var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
@@ -1031,7 +1031,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if ((token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword) ||
                  token.IsKind(SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword)) &&
-                token.Parent.GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+                token.Parent.IsKind(SyntaxKind.Parameter) &&
+                token.Parent.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 var parameter = token.GetAncestor<ParameterSyntax>();
                 var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
