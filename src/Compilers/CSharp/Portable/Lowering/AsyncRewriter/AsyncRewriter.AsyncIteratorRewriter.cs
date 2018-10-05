@@ -150,36 +150,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Generates the WaitForNextAsync method.
+            /// Generates the `ValueTask&lt;bool> MoveNextAsync()` method.
             /// </summary>
             private void GenerateIAsyncEnumeratorImplementation_MoveNextAsync()
             {
-                // Produce the implementation for `ValueTask<bool> MoveNextAsync()`:
-                // if (State == StateMachineStates.FinishedStateMachine)
-                // {
-                //     return default(ValueTask<bool>)
-                // }
-                // _valueOrEndPromise.Reset();
-                // var inst = this;
-                // _builder.Start(ref inst);
-                // return new ValueTask<bool>(this, _valueOrEndPromise.Version);
+                // Produce:
+                //  if (State == StateMachineStates.FinishedStateMachine)
+                //  {
+                //      return default(ValueTask<bool>)
+                //  }
+                //  _valueOrEndPromise.Reset();
+                //  var inst = this;
+                //  _builder.Start(ref inst);
+                //  return new ValueTask<bool>(this, _valueOrEndPromise.Version);
 
                 NamedTypeSymbol IAsyncEnumeratorOfElementType =
                     F.WellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T)
                     .Construct(_currentField.Type);
 
-                MethodSymbol IAsyncEnumerableOfElementType_WaitForNextAsync =
+                MethodSymbol IAsyncEnumerableOfElementType_MoveNextAsync =
                     F.WellKnownMethod(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync)
                     .AsMember(IAsyncEnumeratorOfElementType);
 
                 // The implementation doesn't depend on the method body of the iterator method.
-                OpenMethodImplementation(IAsyncEnumerableOfElementType_WaitForNextAsync, hasMethodBodyDependency: false);
+                OpenMethodImplementation(IAsyncEnumerableOfElementType_MoveNextAsync, hasMethodBodyDependency: false);
 
                 var ifFinished = F.If(
                     // if (State == StateMachineStates.FinishedStateMachine)
                     F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                     // return default(ValueTask<bool>)
-                    thenClause: F.Return(F.Default(IAsyncEnumerableOfElementType_WaitForNextAsync.ReturnType)));
+                    thenClause: F.Return(F.Default(IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType)));
 
                 // _promiseOfValueOrEnd.Reset();
                 BoundFieldAccess promiseField = F.Field(F.This(), _promiseOfValueOrEndField);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol valueTask_ctor =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor)
-                    .AsMember((NamedTypeSymbol)IAsyncEnumerableOfElementType_WaitForNextAsync.ReturnType);
+                    .AsMember((NamedTypeSymbol)IAsyncEnumerableOfElementType_MoveNextAsync.ReturnType);
 
                 MethodSymbol promise_get_Version =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version)

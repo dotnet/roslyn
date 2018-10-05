@@ -101,8 +101,9 @@ The promise of a value-or-end is returned from `MoveNextAsync`. It can be fulfil
 The promise is implemented as a `ManualResetValueTaskSourceLogic<bool>` (which is a re-usable and allocation-free way of producing and fulfilling `ValueTask<bool>` instances) and its surrounding interfaces on the state machine: `IValueTaskSource<bool>` and `IStrongBox<ManualResetValueTaskSourceLogic<bool>>`.
 
 Compared to the state machine for a regular async method, the `MoveNext()` for an async-iterator method adds logic:
-- to support handling a `yield return` statement, which saves the current value and fulfill the promise with result `true`,
+- to support handling a `yield return` statement, which saves the current value and fulfills the promise with result `true`,
 - to support handling a `yield break` statement, which fulfills the promise with result `false`,
+- to exit the method, which fulfills the promise with result `false`,
 - to the handling of exceptions, to set the exception into the promise.
 (The handling of an `await` is unchanged)
 
@@ -110,14 +111,12 @@ This is reflected in the implementation, which extends the lowering machinery fo
 1. handle `yield return` and `yield break` statements (add methods `VisitYieldReturnStatement` and `VisitYieldBreakStatement` to `AsyncMethodToStateMachineRewriter`),
 2. produce additional state and logic for the promise itself (we use `AsyncIteratorRewriter` instead of `AsyncRewriter` to drive the lowering, and produces the other members: `MoveNextAsync`, `Current`, `DisposeAsync`, and some members supporting the resettable `ValueTask`, namely `GetResult`, `SetStatus`, `OnCompleted` and `Value.get`).
 
-**open issue**: The compiler leverages existing BCL types (including some recently added types from the `System.Threading.Tasks.Extensions` NuGet package) in the state machine it generates. But as part of this feature, we may introduce some additional BCL types, so that the state machine can be further simplified and optimized.
-
 ```C#
 ValueTask<bool> MoveNextAsync()
 {
     if (State == StateMachineStates.FinishedStateMachine)
     {
-        return default(ValueTask<bool>)
+        return default(ValueTask<bool>);
     }
     _valueOrEndPromise.Reset();
     var inst = this;
@@ -128,41 +127,4 @@ ValueTask<bool> MoveNextAsync()
 
 ```C#
 T Current => _current;
-```
-
-In terms of the lowered code, there are five changes to the `MoveNext()` method of an async-iterator state machine, compared to that of a regular `async` state machines:
-- reaching the end of the method
-- reaching an `await`
-- reaching a `yield return`
-- reaching a `yield break`
-- handling exceptions
-Those changes are described below for information, but they are compiler implementation details which should not be depended on (such generated code is subject to change without notice).
-
-When we reach the end of the method, we need to fulfill the promise of value-or-end with `false` to signal that the end was reached:
-```C#
-_promiseOfValueOrEnd.SetResult(false);
-```
-
-When we reach a `yield return`, we save the "current" value and fulfill the promise of value-or-end with `true` to signal that a value is available:
-```C#
-_valueOrEndPromise.SetResult(true);
-```
-
-When we reach a `yield break`, we fulfill the promise of value-or-end with `false` to signal that the end was reached:
-```C#
-_promiseOfValueOrEnd.SetResult(false);
-return;
-```
-
-The `MoveNext()` method of the state machine also includes exception handling.
-For regular `async` methods, we catch any such exception and pass it on to the caller of the state machine, by setting the exception in the task being awaited by the caller.
-For async-iterators, we also catch any such exception and pass it on to the caller of the state machine (`MoveNextAsync`) via the promise:
-
-```C#
-catch (Exception ex)
-{
-    _state = finishedState;
-    _promiseOfValueOrEnd.SetException(ex);
-    return;
-}
 ```

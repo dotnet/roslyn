@@ -682,13 +682,14 @@ class C
             Write($""{value} "");
             found = await enumerator.MoveNextAsync();
             if (found) throw null;
+            found = await enumerator.MoveNextAsync();
+            if (found) throw null;
             Write(""5"");
         }
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var c = CompileAndVerify(comp);
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 

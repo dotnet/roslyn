@@ -495,8 +495,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
+            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression,
+                this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax));
+
             bool hasErrors = false;
-            BoundExpression placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax));
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             return hasErrors;
         }
@@ -588,9 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   1) Collection type
         ///   2) Element type
         ///   3) GetEnumerator (or GetAsyncEnumerator) method of the collection type (return type will be the enumerator type from the spec)
-        ///   4) Either:
-        ///         - Current property and MoveNext method of the enumerator type
-        ///         - WaitForNextAsync method and TryGetNext of the enumerator type (for async-foreach)
+        ///   4) Current property and MoveNext (or MoveNextAsync) method of the enumerator type
         ///   
         /// The caller will have to do some extra conversion checks before creating a ForEachEnumeratorInfo for the BoundForEachStatement.
         /// </summary>
@@ -791,7 +791,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.CurrentPropertyGetter = currentPropertyGetter.AsMember((NamedTypeSymbol)enumeratorType);
                         }
                     }
-                    else if (!isAsync)
+
+                    if (!isAsync)
                     {
                         // NOTE: MoveNext is actually inherited from System.Collections.IEnumerator
                         builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, errorLocationSyntax);
@@ -898,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             string methodName = isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
-            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics, isAsync);
+            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -914,9 +915,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="lookupResult">Passed in for reusability.</param>
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
-        /// <param name="arguments">If unspecified, we'll look for a method with no arguments. You can specify arguments, for example when looking for the `TryGetNext(out bool)` method.</param>
         /// <returns>The desired method or null.</returns>
-        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, AnalyzedArguments arguments = null)
+        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
             Debug.Assert(lookupResult.IsClear);
 
@@ -963,13 +963,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // some custom logic in ExpressionBinder.BindGrpToParams.  The biggest difference
                 // we've found (so far) is that it only considers methods with expected number of parameters
                 // (i.e. doesn't work with "params" or optional parameters).
-                if (method.ParameterCount == (arguments?.Arguments.Count ?? 0))
+                if (method.ParameterCount == 0)
                 {
                     candidateMethods.Add((MethodSymbol)member);
                 }
             }
 
-            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, arguments, isAsync);
+            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync);
 
             candidateMethods.Free();
 
@@ -980,14 +980,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The overload resolution portion of FindForEachPatternMethod.
         /// If no arguments are passed in, then an empty argument list will be used.
         /// </summary>
-        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, AnalyzedArguments arguments, bool isAsync)
+        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
         {
-            Debug.Assert(arguments is null || arguments.Arguments.Count > 0);
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            if (arguments == null)
-            {
-                arguments = AnalyzedArguments.GetInstance();
-            }
+            AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1047,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Called after it is determined that the expression being enumerated is of a type that
         /// has a GetEnumerator (or GetAsyncEnumerator) method.  Checks to see if the return type of the GetEnumerator
         /// method is suitable (i.e. has Current and MoveNext for regular case, 
-        /// or Current and WaitForNextAsync for async case).
+        /// or Current and MoveNextAsync for async case).
         /// </summary>
         /// <param name="builder">Must be non-null and contain a non-null GetEnumeratorMethod.</param>
         /// <param name="diagnostics">Will be populated with pattern diagnostics.</param>
@@ -1142,7 +1138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 lookupResult.Clear(); // Reuse the same LookupResult
 
-                MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType, isAsync ? MoveNextAsyncMethodName : MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics, isAsync);
+                MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType,
+                    isAsync ? MoveNextAsyncMethodName : MoveNextMethodName, lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||

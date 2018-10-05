@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbol = this.ContainingMemberOrLambda as MethodSymbol;
             if (symbol.IsAsync)
             {
-                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics: diagnostics, errorLocation: symbol.Locations[0]);
+                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, symbol.Locations[0]);
             }
         }
 

@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Method to fulfill the promise with an exception: `void ManualResetValueTaskSourceLogic<T>.SetException(Exception error)`
         internal MethodSymbol SetExceptionMethod { get; }
 
-        public AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, FieldSymbol currentField, MethodSymbol setResultMethod,
-            MethodSymbol setExceptionMethod)
+        public AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, FieldSymbol currentField,
+            MethodSymbol setResultMethod, MethodSymbol setExceptionMethod)
         {
             PromiseOfValueOrEndField = promiseOfValueOrEndField;
             CurrentField = currentField;
