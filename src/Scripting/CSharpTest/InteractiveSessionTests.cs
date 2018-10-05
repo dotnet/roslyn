@@ -1182,7 +1182,7 @@ new C()
             Assert.NotNull(result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1589,7 +1589,7 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1645,7 +1645,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference2()
         {
             var scriptCompilation = CSharpScript.Create(
@@ -1709,7 +1709,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"

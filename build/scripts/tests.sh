@@ -45,7 +45,6 @@ if [[ "${runtime}" == "dotnet" ]]; then
 elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
     file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
     file_skiplist=(
-        'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
         # Omitted because we appear to be missing things necessary to compile vb.net.
         # See https://github.com/mono/mono/issues/10679
         'Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.dll'
@@ -78,19 +77,6 @@ else
     echo "Unknown runtime: ${runtime}"
     exit 1
 fi
-
-UNAME="$(uname)"
-if [ "$UNAME" == "Darwin" ]; then
-    runtime_id=osx-x64
-elif [ "$UNAME" == "Linux" ]; then
-    runtime_id=linux-x64
-else
-    echo "Unknown OS: $UNAME" 1>&2
-    exit 1
-fi
-
-echo "Publishing ILAsm.csproj"
-dotnet publish "${root_path}/src/Tools/ILAsm" --no-restore --runtime ${runtime_id} --self-contained -o "${binaries_path}/Tools/ILAsm"
 
 echo "Using ${xunit_console}"
 

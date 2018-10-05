@@ -789,4 +789,16 @@
   <data name="Visual_Basic_files" xml:space="preserve">
     <value>Visual Basic files</value>
   </data>
+  <data name="ValueUsageInfo_NameOnly" xml:space="preserve">
+    <value>NameOnly</value>
+  </data>
+  <data name="ValueUsageInfo_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="ValueUsageInfo_Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="ValueUsageInfo_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
 </root>

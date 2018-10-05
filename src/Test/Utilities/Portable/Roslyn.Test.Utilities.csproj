@@ -12,6 +12,12 @@
     <RootNamespace></RootNamespace>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <IsShipping>false</IsShipping>
+
+    <!-- 
+      Directory where to deploy ILAsm when targeting .NET Core app.
+      IlasmUtilities relies on ILAsm being deployed to this location.
+    -->
+    <IlasmPublishDir>$(ArtifactsDir)Tools\ILAsm\</IlasmPublishDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -103,4 +109,6 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
   </ItemGroup>
+
+  <Import Project="..\..\..\Tools\ILAsm\DeployILAsm.targets"/>
 </Project>

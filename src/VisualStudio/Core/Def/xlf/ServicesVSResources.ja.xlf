@@ -42,6 +42,11 @@
         <target state="translated">すべてのかっこを保持:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">不必要なら保持しない</target>

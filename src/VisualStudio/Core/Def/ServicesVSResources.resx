@@ -1075,4 +1075,7 @@ I agree to all of the foregoing:</value>
   <data name="Save_dot_editorconfig_file" xml:space="preserve">
     <value>Save .editorconfig file</value>
   </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
 </root>
