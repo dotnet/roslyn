@@ -1043,6 +1043,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Attempt to execute all analyzer actions.
                 var processedState = EventProcessedState.Processed;
                 var symbol = symbolEvent.Symbol;
+                Debug.Assert(symbol.HasSourceLocation());
                 var isGeneratedCodeSymbol = IsGeneratedCodeSymbol(symbol);
 
                 var skipSymbolAnalysis = AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent);
