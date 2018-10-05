@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 IOperation visitedInstance,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
-                IInvocationOperation originalOperation,
+                IOperation originalOperation,
                 ParameterValidationAbstractValue defaultValue)
             {
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);

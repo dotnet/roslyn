@@ -227,18 +227,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 IOperation instance,
                 ImmutableArray<IArgumentOperation> arguments,
                 bool invokedAsDelegate,
-                IInvocationOperation originalOperation,
+                IOperation originaOperation,
                 DisposeAbstractValue defaultValue)
             {
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
-                    arguments, invokedAsDelegate, originalOperation, defaultValue);
+                    arguments, invokedAsDelegate, originaOperation, defaultValue);
 
                 var disposeMethodKind = targetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:
                     case DisposeMethodKind.DisposeBool:
-                        HandleDisposingOperation(originalOperation, instance);
+                        HandleDisposingOperation(originaOperation, instance);
                         break;
 
                     case DisposeMethodKind.Close:
@@ -253,15 +253,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         // FxCop compat: Catches things like static calls to File.Open() and Create()
                         if (IsDisposableCreationSpecialCase(targetMethod))
                         {
-                            var instanceLocation = GetPointsToAbstractValue(originalOperation);
-                            return HandleInstanceCreation(originalOperation.Type, instanceLocation, value);
+                            var instanceLocation = GetPointsToAbstractValue(originaOperation);
+                            return HandleInstanceCreation(originaOperation.Type, instanceLocation, value);
                         }
                         else if (arguments.Length > 0 &&
                             targetMethod.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
                         {
                             // FxCop compat: The object added to a collection is considered escaped.
                             var lastArgument = arguments[arguments.Length - 1];
-                            HandlePossibleEscapingOperation(originalOperation, lastArgument.Value);
+                            HandlePossibleEscapingOperation(originaOperation, lastArgument.Value);
                         }
 
                         break;

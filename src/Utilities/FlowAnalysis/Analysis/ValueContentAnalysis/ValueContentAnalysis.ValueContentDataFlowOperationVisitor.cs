@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 IOperation visitedInstance,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 bool invokedAsDelegate,
-                IInvocationOperation originalOperation,
+                IOperation originalOperation,
                 ValueContentAbstractValue defaultValue)
             {
                 // TODO: Handle invocations of string methods (Format, SubString, Replace, Concat, etc.)

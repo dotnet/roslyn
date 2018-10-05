@@ -151,7 +151,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return baseValue;
             }
 
-            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IInvocationOperation originalOperation, PropertySetAbstractValue defaultValue)
+            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
                 if (visitedInstance != null
@@ -172,19 +172,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         else if (locationAbstractValue == PropertySetAbstractValue.MaybeFlagged
                             || locationAbstractValue == PropertySetAbstractValue.Unknown)
                         {
+                            // NotApplicable also means we don't know.
                             hasMaybeFlagged = true;
                         }
                     }
 
+
                     if (hasFlagged && !hasMaybeFlagged)
                     {
-                        // Overwrite existing value, if any.
-                        this._hazardousUsageBuilder[originalOperation] = PropertySetAbstractValue.Flagged;
+                        this._hazardousUsageBuilderOpt.Add(
+                            (IInvocationOperation) originalOperation,
+                            PropertySetAbstractValue.Flagged);
                     }
                     else if ((hasFlagged || hasMaybeFlagged)
                         && !this._hazardousUsageBuilder.ContainsKey(originalOperation))   // Keep existing value, if there is one.
                     {
-                        this._hazardousUsageBuilder.Add(originalOperation, PropertySetAbstractValue.MaybeFlagged);
+                        this._hazardousUsageBuilderOpt.Add(
+                            (IInvocationOperation) originalOperation, 
+                            PropertySetAbstractValue.MaybeFlagged);
                     }
                 }
 

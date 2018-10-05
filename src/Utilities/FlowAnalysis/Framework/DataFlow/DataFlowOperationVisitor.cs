@@ -2227,7 +2227,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IOperation visitedInstance,
             ImmutableArray<IArgumentOperation> visitedArguments,
             bool invokedAsDelegate,
-            IInvocationOperation originalOperation,
+            IOperation originalOperation,
             TAbstractAnalysisValue defaultValue)
         {
             Func<ControlFlowGraph> getCfg = () =>
