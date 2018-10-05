@@ -1029,8 +1029,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if ((token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword) ||
-                 token.IsKind(SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword)) &&
+            if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword,
+                             SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword) &&
                 token.Parent.IsKind(SyntaxKind.Parameter) &&
                 token.Parent.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
