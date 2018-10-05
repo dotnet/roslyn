@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     internal class PasteTrackingService : IPasteTrackingService
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly object _pastedTextSpanKey = new object();
 
         [ImportingConstructor]
         public PasteTrackingService(IThreadingContext threadingContext)
@@ -29,22 +30,22 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             }
 
             // `PropertiesCollection` is thread-safe
-            return textBuffer.Properties.TryGetProperty(this, out textSpan);
+            return textBuffer.Properties.TryGetProperty(_pastedTextSpanKey, out textSpan);
         }
 
         internal void RegisterPastedTextSpan(ITextBuffer textBuffer, TextSpan textSpan)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
-            textBuffer.Changed += RemovePastedTestSpan;
-            textBuffer.Properties.AddProperty(this, textSpan);
+            textBuffer.Changed += RemovePastedTextSpan;
+            textBuffer.Properties.AddProperty(_pastedTextSpanKey, textSpan);
 
             return;
 
-            void RemovePastedTestSpan(object sender, TextContentChangedEventArgs e)
+            void RemovePastedTextSpan(object sender, TextContentChangedEventArgs e)
             {
-                textBuffer.Changed -= RemovePastedTestSpan;
-                textBuffer.Properties.RemoveProperty(this);
+                textBuffer.Changed -= RemovePastedTextSpan;
+                textBuffer.Properties.RemoveProperty(_pastedTextSpanKey);
             }
         }
 
