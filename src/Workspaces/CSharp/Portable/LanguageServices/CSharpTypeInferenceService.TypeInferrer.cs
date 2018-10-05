@@ -1840,14 +1840,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return ancestor is AnonymousFunctionExpressionSyntax anonymousFunction
                     ? InferTypeInAnonymousFunctionExpression(anonymousFunction)
-                    : InferTypeInDeclaration(ancestor);
+                    : InferTypeInMethodLikeDeclaration(ancestor);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
-                => InferTypeInDeclaration(arrowClause.Parent);
+                => InferTypeInMethodLikeDeclaration(arrowClause.Parent);
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInDeclaration(SyntaxNode declaration)
+            private IEnumerable<TypeInferenceInfo> InferTypeInMethodLikeDeclaration(SyntaxNode declaration)
             {
+                // `declaration` can be a base-method member, property, accessor or local function
+
                 var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
                 var type = GetMemberType(symbol, out var isAsync);
 
