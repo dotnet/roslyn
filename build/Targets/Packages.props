@@ -12,6 +12,7 @@
   <PropertyGroup>
     <VersionPrefix>3.0.0</VersionPrefix>
     <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
+    <SemanticVersioningV1>true</SemanticVersioningV1>
 
     <!-- 
       By default the assembly version in official builds is "$(VersionPrefix).0".
