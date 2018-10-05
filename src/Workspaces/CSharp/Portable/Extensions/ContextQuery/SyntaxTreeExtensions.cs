@@ -1125,30 +1125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsPossibleExtensionMethodContext(this SyntaxTree syntaxTree, SyntaxToken tokenOnLeftOfPosition)
         {
-            var method = tokenOnLeftOfPosition.GetAncestor<MethodDeclarationSyntax>();
+            var method = tokenOnLeftOfPosition.Parent.GetAncestor<MethodDeclarationSyntax>();
             var typeDecl = method.GetAncestorOrThis<TypeDeclarationSyntax>();
 
-            if (method == null || typeDecl == null)
-            {
-                return false;
-            }
-
-            if (typeDecl.Kind() != SyntaxKind.ClassDeclaration)
-            {
-                return false;
-            }
-
-            if (!method.Modifiers.Any(t => t.Kind() == SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
-
-            if (!typeDecl.Modifiers.Any(t => t.Kind() == SyntaxKind.StaticKeyword))
-            {
-                return false;
-            }
-
-            return true;
+            return method != null && typeDecl != null &&
+                   typeDecl.IsKind(SyntaxKind.ClassDeclaration) &&
+                   method.Modifiers.Any(SyntaxKind.StaticKeyword) &&
+                   typeDecl.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
 
         public static bool IsPossibleLambdaParameterModifierContext(
