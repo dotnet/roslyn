@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions.Internal;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Tools.Logging
         private readonly IConsole _console;
         private readonly LogLevel _logLevel;
 
-        private readonly IReadOnlyDictionary<LogLevel, ConsoleColor> _logLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
+        private static readonly ImmutableDictionary<LogLevel, ConsoleColor> _logLevelColorMap = new Dictionary<LogLevel, ConsoleColor>
         {
             [LogLevel.Critical] = ConsoleColor.Red,
             [LogLevel.Error] = ConsoleColor.Red,
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Tools.Logging
             [LogLevel.Debug] = ConsoleColor.Gray,
             [LogLevel.Trace] = ConsoleColor.Gray,
             [LogLevel.None] = ConsoleColor.White,
-        };
+        }.ToImmutableDictionary();
 
         public SimpleConsoleLogger(IConsole console, LogLevel logLevel)
         {

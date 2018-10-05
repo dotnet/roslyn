@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 {
-    internal class CodeFormatter
+    internal static class CodeFormatter
     {
         public static async Task<int> FormatWorkspaceAsync(ILogger logger, string solutionOrProjectPath, bool isSolution, CancellationToken cancellationToken)
         {
