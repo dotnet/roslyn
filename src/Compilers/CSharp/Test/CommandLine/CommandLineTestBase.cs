@@ -25,25 +25,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         public CommandLineTestBase()
         {
             WorkingDirectory = TempRoot.Root;
-            SdkDirectory = GetSdkDirectory(Temp);
+            SdkDirectory = getSdkDirectory(Temp);
             MscorlibFullPath = Path.Combine(SdkDirectory, "mscorlib.dll");
-        }
 
-        /// <summary>
-        /// This will return a directory which contains mscorlib for use in the compiler instances created for
-        /// this set of tests
-        /// </summary>
-        /// <returns></returns>
-        protected static string GetSdkDirectory(TempRoot temp)
-        {
-            if (ExecutionConditionUtil.IsCoreClr)
+            // This will return a directory which contains mscorlib for use in the compiler instances created for
+            // this set of tests
+            string getSdkDirectory(TempRoot temp)
             {
-                var dir = temp.CreateDirectory();
-                File.WriteAllBytes(Path.Combine(dir.Path, "mscorlib.dll"), TestResources.NetFX.net461.mscorlib);
-                return dir.Path;
-            }
+                if (ExecutionConditionUtil.IsCoreClr)
+                {
+                    var dir = temp.CreateDirectory();
+                    File.WriteAllBytes(Path.Combine(dir.Path, "mscorlib.dll"), TestResources.NetFX.net461.mscorlib);
+                    return dir.Path;
+                }
 
-            return RuntimeEnvironment.GetRuntimeDirectory();
+                return RuntimeEnvironment.GetRuntimeDirectory();
+            }
         }
 
         internal CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)

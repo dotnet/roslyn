@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, AnalyzerAssemblyLoader loader = null)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? RuntimeUtilities.CreateAnalyzerAssemblyLoader())
         {
-            _analyzers = !analyzers.IsDefault ? analyzers : ImmutableArray<DiagnosticAnalyzer>.Empty;
+            _analyzers = analyzers.NullToEmpty();
         }
 
         private static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null) => RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory);
