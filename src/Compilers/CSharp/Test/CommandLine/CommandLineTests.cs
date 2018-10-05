@@ -9275,7 +9275,7 @@ class C {
         }
 
         [CompilerTrait(CompilerFeature.Determinism)]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void PathMapParser()
         {
             var parsedArgs = DefaultParse(new[] { "/pathmap:", "a.cs" }, WorkingDirectory);
