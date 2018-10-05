@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class ErrorLoggerTests : CommandLineTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
             var helloWorldCS = @"using System;
@@ -58,7 +59,7 @@ class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics()
         {
             var source = @"
@@ -152,7 +153,7 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics_Suppressed()
         {
             var source = @"
@@ -252,7 +253,7 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             var source = @"

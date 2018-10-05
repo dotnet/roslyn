@@ -6375,7 +6375,7 @@ class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_01()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -6457,7 +6457,7 @@ public class C
         }
 
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_03()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -6554,7 +6554,8 @@ public class C
 
         private string GetDefaultResponseFilePath()
         {
-            return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.csc_rsp).Path;
+            var cscRsp = global::TestResources.ResourceLoader.GetResourceBlob("csc.rsp");
+            return Temp.CreateFile().WriteAllBytes(cscRsp).Path;
         }
 
         [Fact, WorkItem(530359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530359")]
@@ -8277,7 +8278,7 @@ using System.Diagnostics; // Unused.
             Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" } }));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ParseAdditionalFile()
         {
             var args = DefaultParse(new[] { "/additionalfile:web.config", "a.cs" }, WorkingDirectory);
@@ -9325,7 +9326,7 @@ class C {
             Assert.Equal(KeyValuePairUtil.Create("K 2\\", "V 2\\"), parsedArgs.PathMap[1]);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         [CompilerTrait(CompilerFeature.Determinism)]
         public void PathMapPdbParser()
         {
@@ -9338,7 +9339,7 @@ class C {
             Assert.Null(parsedArgs.EmitOptions.PdbFilePath);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [CompilerTrait(CompilerFeature.Determinism)]
         public void PathMapPdbEmit()
         {
