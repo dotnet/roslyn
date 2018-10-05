@@ -589,6 +589,10 @@ try {
 
     Process-Arguments
 
+    ${env:ROSLYNUSEHARDLINKS} = "1";
+    ${env:NUGET_PACKAGES} = "f:\nuget";
+    Create-Directory "f:\nuget"
+
     $msbuild = Ensure-MSBuild
     $dotnet = Ensure-DotnetSdk
     $configDir = Join-Path $binariesDir $configuration
