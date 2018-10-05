@@ -65,7 +65,7 @@ try {
 
     switch ($publishType) {
         "vsts" {
-            Exec-Block { & .\publish-assets.ps1 -config $config -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
+            Exec-Block { & .\..\..\build\scripts\publish-assets.ps1 -config $config -branchName $branchName -mygetApiKey $mygetApiKey -nugetApiKey $nugetApiKey -gitHubUserName $githubUserName -gitHubToken $gitHubToken -gitHubEmail $gitHubEmail -test:$(-not $official) }
             break;
         }
         "blob" {
