@@ -23,7 +23,19 @@ usage()
     echo "  --bootstrap           Implies --build-bootstrap and --use-bootstrap"
 }
 
-root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source="${BASH_SOURCE[0]}"
+
+# resolve $source until the file is no longer a symlink
+while [[ -h "$source" ]]; do
+  scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
+  source="$(readlink "$source")"
+  # if $source was a relative symlink, we need to resolve it relative to the path where the
+  # symlink file was located
+  [[ $source != /* ]] && source="$scriptroot/$source"
+done
+scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
+
+root_path="$scriptroot/../.."
 binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
 
@@ -123,11 +135,11 @@ function stop_processes {
 if [[ "$build_in_docker" = true ]]
 then
     echo "Docker exec: $args"
-    BUILD_COMMAND=/opt/code/build.sh "$root_path"/build/scripts/dockerrun.sh $args
+    BUILD_COMMAND=/opt/code/build.sh "$scriptroot"/dockerrun.sh $args
     exit
 fi
 
-source "${root_path}"/build/scripts/obtain_dotnet.sh
+source "${scriptroot}"/obtain_dotnet.sh
 
 if [[ "$restore" == true ]]
 then
@@ -205,5 +217,5 @@ then
     else
         test_runtime=dotnet
     fi
-    "${root_path}"/build/scripts/tests.sh "${build_configuration}" "${test_runtime}"
+    "${scriptroot}"/tests.sh "${build_configuration}" "${test_runtime}"
 fi
