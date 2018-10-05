@@ -151,7 +151,7 @@ public class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_common }, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
-            var c = CompileAndVerify(comp, symbolValidator: module =>
+            CompileAndVerify(comp, symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
                 AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute", "IteratorStateMachineAttribute" },
@@ -756,24 +756,24 @@ class C
 {
   // Code size       64 (0x40)
   .maxstack  2
-  .locals init (System.Threading.Tasks.ValueTask<bool> V_0,
-                C.<M>d__0 V_1)
+  .locals init (C.<M>d__0 V_0,
+                System.Threading.Tasks.ValueTask<bool> V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  ldc.i4.s   -2
   IL_0008:  bne.un.s   IL_0014
-  IL_000a:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
   IL_000c:  initobj    ""System.Threading.Tasks.ValueTask<bool>""
-  IL_0012:  ldloc.0
+  IL_0012:  ldloc.1
   IL_0013:  ret
   IL_0014:  ldarg.0
   IL_0015:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
   IL_001a:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
   IL_001f:  ldarg.0
-  IL_0020:  stloc.1
+  IL_0020:  stloc.0
   IL_0021:  ldarg.0
   IL_0022:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
-  IL_0027:  ldloca.s   V_1
+  IL_0027:  ldloca.s   V_0
   IL_0029:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<C.<M>d__0>(ref C.<M>d__0)""
   IL_002e:  ldarg.0
   IL_002f:  ldarg.0

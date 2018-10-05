@@ -181,6 +181,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // return default(ValueTask<bool>)
                     thenClause: F.Return(F.Default(IAsyncEnumerableOfElementType_WaitForNextAsync.ReturnType)));
 
+                // _promiseOfValueOrEnd.Reset();
+                BoundFieldAccess promiseField = F.Field(F.This(), _promiseOfValueOrEndField);
+                var resetMethod = (MethodSymbol)F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset, isOptional: true)
+                    .SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
+
+                var callReset = F.ExpressionStatement(F.Call(promiseField, resetMethod));
+
+                // _builder.Start(ref inst);
+                Debug.Assert(!_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints);
+                MethodSymbol startMethod = _asyncMethodBuilderMemberCollection.Start.Construct(this.stateMachineType);
+                LocalSymbol instSymbol = F.SynthesizedLocal(this.stateMachineType);
+                BoundLocal instLocal = F.Local(instSymbol);
+                BoundExpressionStatement startCall = F.ExpressionStatement(
+                     F.Call(
+                         F.Field(F.This(), _builderField),
+                         startMethod,
+                         ImmutableArray.Create<BoundExpression>(instLocal)));
+
                 MethodSymbol valueTask_ctor =
                     F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor)
                     .AsMember((NamedTypeSymbol)IAsyncEnumerableOfElementType_WaitForNextAsync.ReturnType);
@@ -193,9 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var returnStatement = F.Return(F.New(valueTask_ctor, F.This(), F.Call(F.Field(F.This(), _promiseOfValueOrEndField), promise_get_Version)));
 
                 F.CloseMethod(F.Block(
-                    ifFinished, 
-                    // _valueOrEndPromise.Reset(); var inst = this; _builder.Start(ref inst);
-                    GenerateCallStart(),
+                    ImmutableArray.Create(instSymbol),
+                    ifFinished,
+                    callReset, // _promiseOfValueOrEnd.Reset();
+                    F.Assignment(instLocal, F.This()), // var inst = this;
+                    startCall, // _builder.Start(ref inst);
                     returnStatement));
             }
 
@@ -223,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void GenerateIValueTaskSourceImplementation_GetResult()
             {
                 // Produce the implementation for `bool IValueTaskSource<bool>.GetResult(short token)`:
-                // return this._valueOrEndPromise.GetResult(token);
+                // return _valueOrEndPromise.GetResult(token);
 
                 NamedTypeSymbol IValueTaskSourceOfBool =
                     F.WellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T)
@@ -370,42 +390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Return(F.Default(IAsyncDisposable_DisposeAsync.ReturnType)));
 
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
-            }
-
-            /// <summary>
-            /// Generate code to start the state machine via builder.
-            /// </summary>
-            private BoundBlock GenerateCallStart()
-            {
-                // Produce:
-                //  _valueOrEndPromise.Reset();
-                //  var inst = this;
-                //  _builder.Start(ref inst);
-
-                LocalSymbol instSymbol = F.SynthesizedLocal(this.stateMachineType);
-                MethodSymbol startMethod = _asyncMethodBuilderMemberCollection.Start.Construct(this.stateMachineType);
-                BoundLocal instLocal = F.Local(instSymbol);
-                Debug.Assert(!_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints);
-
-                // _promiseOfValueOrEnd.Reset();
-                BoundFieldAccess promiseField = F.Field(F.This(), _promiseOfValueOrEndField);
-                var resetMethod = (MethodSymbol)F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset, isOptional: true)
-                    .SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
-
-                var callReset = F.ExpressionStatement(F.Call(promiseField, resetMethod));
-
-                // _builder.Start(ref inst);
-                BoundExpressionStatement startCall = F.ExpressionStatement(
-                     F.Call(
-                         F.Field(F.This(), _builderField),
-                         startMethod,
-                         ImmutableArray.Create<BoundExpression>(instLocal)));
-
-                return F.Block(
-                    ImmutableArray.Create(instSymbol),
-                    callReset, // _promiseOfValueOrEnd.Reset();
-                    F.Assignment(instLocal, F.This()), // var inst = this;
-                    startCall); // _builder.Start(ref inst);
             }
 
             /// <summary>

@@ -1880,7 +1880,6 @@ class C
                 );
         }
 
-        // PROTOTYPE keeps printing 0
         [Fact]
         public void TestWithPattern_WithStruct_MoveNextAsyncReturnsTask()
         {
@@ -1910,14 +1909,16 @@ class C
             get
             {
                 Write($""Current({i}) "");
+                i++;
                 return i;
             }
         }
         public async Task<bool> MoveNextAsync()
         {
             Write($""NextAsync({i}) "");
-            i++;
-            return await Task.FromResult(i < 4);
+            bool more = await Task.FromResult(i < 4);
+            i = i + 100; // Note: side-effects of async methods in structs are lost
+            return more;
         }
         public async ValueTask DisposeAsync()
         {
@@ -1928,9 +1929,9 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) "+
-                "Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Done", verify: Verification.Skipped);
+            CompileAndVerify(comp,
+                expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) Done",
+                verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1953,7 +1954,7 @@ class C
     {
         return new AsyncEnumerator(0);
     }
-    public struct AsyncEnumerator
+    public class AsyncEnumerator
     {
         int i;
         internal AsyncEnumerator(int start) { i = start; }
@@ -1980,7 +1981,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Got(4) Got(5) Got(7) Got(8) Done", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Done", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1993,7 +1994,7 @@ class C
             var memberModel = model.GetMemberModel(foreachSyntax);
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
-            Assert.False(internalInfo.NeedsDisposeMethod);
+            Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
         [Fact]
@@ -2152,6 +2153,7 @@ public class C
     IL_0019:  nop
     // sequence point: foreach
     IL_001a:  nop
+    // sequence point: new C()
     IL_001b:  ldarg.0
     IL_001c:  newobj     ""C..ctor()""
     IL_0021:  call       ""C.Enumerator C.GetAsyncEnumerator()""
@@ -2171,10 +2173,76 @@ public class C
       IL_003a:  ldloc.0
       IL_003b:  brfalse.s  IL_003f
       IL_003d:  br.s       IL_0041
+      IL_003f:  br.s       IL_00b2
+      // sequence point: <hidden>
+      IL_0041:  br.s       IL_0071
       // sequence point: var i
       IL_0043:  ldarg.0
       IL_0044:  ldarg.0
       IL_0045:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+      IL_004a:  callvirt   ""int C.Enumerator.Current.get""
+      IL_004f:  stfld      ""int C.<Main>d__0.<i>5__4""
+      // sequence point: {
+      IL_0054:  nop
+      // sequence point: Write($""Got({i}) "");
+      IL_0055:  ldstr      ""Got({0}) ""
+      IL_005a:  ldarg.0
+      IL_005b:  ldfld      ""int C.<Main>d__0.<i>5__4""
+      IL_0060:  box        ""int""
+      IL_0065:  call       ""string string.Format(string, object)""
+      IL_006a:  call       ""void System.Console.Write(string)""
+      IL_006f:  nop
+      // sequence point: }
+      IL_0070:  nop
+      // sequence point: in
+      IL_0071:  ldarg.0
+      IL_0072:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+      IL_0077:  callvirt   ""System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()""
+      IL_007c:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+      IL_0081:  stloc.1
+      // sequence point: <hidden>
+      IL_0082:  ldloca.s   V_1
+      IL_0084:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+      IL_0089:  brtrue.s   IL_00ce
+      IL_008b:  ldarg.0
+      IL_008c:  ldc.i4.0
+      IL_008d:  dup
+      IL_008e:  stloc.0
+      IL_008f:  stfld      ""int C.<Main>d__0.<>1__state""
+      // async: yield
+      IL_0094:  ldarg.0
+      IL_0095:  ldloc.1
+      IL_0096:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_009b:  ldarg.0
+      IL_009c:  stloc.2
+      IL_009d:  ldarg.0
+      IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_00a3:  ldloca.s   V_1
+      IL_00a5:  ldloca.s   V_2
+      IL_00a7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_00ac:  nop
+      IL_00ad:  leave      IL_01d5
+      // async: resume
+      IL_00b2:  ldarg.0
+      IL_00b3:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00b8:  stloc.1
+      IL_00b9:  ldarg.0
+      IL_00ba:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00bf:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+      IL_00c5:  ldarg.0
+      IL_00c6:  ldc.i4.m1
+      IL_00c7:  dup
+      IL_00c8:  stloc.0
+      IL_00c9:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00ce:  ldarg.0
+      IL_00cf:  ldloca.s   V_1
+      IL_00d1:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+      IL_00d6:  stfld      ""bool C.<Main>d__0.<>s__5""
+      IL_00db:  ldarg.0
+      IL_00dc:  ldfld      ""bool C.<Main>d__0.<>s__5""
+      IL_00e1:  brtrue     IL_0043
+      // sequence point: <hidden>
+      IL_00e6:  leave.s    IL_00f2
     }
     catch object
     {
@@ -2693,7 +2761,6 @@ class C : IAsyncEnumerable<int>
                 verify: Verification.Skipped);
         }
 
-        // PROTOTYPE
         [Fact]
         public void TestWithInterface_WithStruct()
         {
@@ -2724,14 +2791,16 @@ class C : IAsyncEnumerable<int>
             get
             {
                 Write($""Current({i}) "");
+                i++;
                 return i;
             }
         }
         public async ValueTask<bool> MoveNextAsync()
         {
             Write($""NextAsync({i}) "");
-            i++;
-            return await Task.FromResult(i < 4);
+            bool more = await Task.FromResult(i < 4);
+            i = i + 100; // Note: side-effects of async methods in structs are lost
+            return more;
         }
         public async ValueTask DisposeAsync()
         {
@@ -2743,141 +2812,9 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            // Note: NextAsync(3) is followed by Next(3) as NextAsync incremented a copy of the enumerator struct
-            // PROTOTYPE(async-streams) This seems strange, as I would expect we'd be handling as an IAsyncEnumerator<int> rather than as a struct
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done", verify: Verification.Skipped);
-        }
-
-        [Fact]
-        public void TestWithInterface_WithStruct_ManualIteration()
-        {
-            string source = @"
-using static System.Console;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-class C : IAsyncEnumerable<int>
-{
-    static async Task Main()
-    {
-        var e = ((IAsyncEnumerable<int>)new C()).GetAsyncEnumerator();
-        try
-        {
-            while (await e.MoveNextAsync())
-            {
-                while (true)
-                {
-                    int i = e.Current;
-                    if (!success) break;
-                    Write($""Got({i}) "");
-                }
-            }
-        }
-        finally { await e.DisposeAsync(); }
-
-        Write($""Done"");
-    }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
-    {
-        return new AsyncEnumerator(0);
-    }
-    internal struct AsyncEnumerator : IAsyncEnumerator<int>
-    {
-        int i;
-        internal AsyncEnumerator(int start) { i = start; }
-        public int Current
-        {
-            get
-            {
-                Write($""Next({i}) "");
-                i++;
-                success = (i % 10 % 3 != 0);
-                return i;
-            }
-        }
-        public async ValueTask<bool> MoveNextAsync()
-        {
-            Write($""NextAsync({i}) "");
-            i = i + 11;
-            bool more = await Task.FromResult(i < 20);
-            return more;
-        }
-        public async ValueTask DisposeAsync()
-        {
-            Write($""Disp"");
-            await Task.Delay(10);
-            Write($""ose({i}) "");
-        }
-    }
-}";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            // Note: NextAsync(3) is followed by Next(3) as NextAsync incremented a copy of the enumerator struct
-            // PROTOTYPE(async-streams) This seems strange, as I would expect we'd be handling as an IAsyncEnumerator<int> rather than as a struct
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done", verify: Verification.Skipped);
-        }
-
-        [Fact]
-        public void TestWithInterface_WithStruct2()
-        {
-            string source = @"
-using static System.Console;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-class C : IAsyncEnumerable<int>
-{
-    static async Task Main()
-    {
-        foreach await (var i in new C())
-        {
-            Write($""Got({i}) "");
-        }
-        Write($""Done"");
-    }
-    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
-    {
-        return new AsyncEnumerator(0);
-    }
-    internal struct AsyncEnumerator : IAsyncEnumerator<int>
-    {
-        int i;
-        int lastReturned;
-        internal AsyncEnumerator(int start) { i = start; lastReturned = -1; }
-        public int Current
-        {
-            get
-            {
-                Write($""Next({i}) "");
-                if (lastReturned != i)
-                {
-                    lastReturned = i;
-                    success = true;
-                    return i;
-                }
-                i++;
-                success = false;
-                return -2;
-            }
-        }
-        public async ValueTask<bool> MoveNextAsync()
-        {
-            Write($""NextAsync({i}) "");
-            i = i + 10;
-            bool more = await Task.FromResult(i < 13);
-            return more;
-        }
-        public async ValueTask DisposeAsync()
-        {
-            Write($""Disp"");
-            await Task.Delay(10);
-            Write($""ose({i}) "");
-        }
-    }
-}";
-            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(0) Next(0) NextAsync(1) Next(1) Got(1) Next(1) NextAsync(2) Next(2) Got(2) Next(2) NextAsync(3) Dispose(3) Done", verify: Verification.Skipped);
+            CompileAndVerify(comp,
+                expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) Dispose(4) Done",
+                verify: Verification.Skipped);
         }
 
         [Fact, WorkItem(27651, "https://github.com/dotnet/roslyn/issues/27651")]
@@ -2998,7 +2935,7 @@ class C : IAsyncEnumerable<int>
     {
         return new AsyncEnumerator(0);
     }
-    internal struct AsyncEnumerator : IAsyncEnumerator<int>
+    internal class AsyncEnumerator : IAsyncEnumerator<int>
     {
         int i;
         internal AsyncEnumerator(int start) { i = start; }
@@ -3026,7 +2963,7 @@ class C : IAsyncEnumerable<int>
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done", verify: Verification.Skipped);
+            CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
         }
 
         [Fact]
