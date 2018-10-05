@@ -987,34 +987,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this SyntaxTree syntaxTree,
             int position,
             SyntaxToken tokenOnLeftOfPosition,
-            CancellationToken cancellationToken,
-            bool includeOperators = false,
-            bool isThisKeyword = false)
+            bool includeOperators,
+            out int parameterIndex,
+            out SyntaxKind previousModifier,
+            CancellationToken cancellationToken)
         {
             // cases:
             //   Goo(|
             //   Goo(int i, |
             //   Goo([Bar]|
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+
+            parameterIndex = -1;
+            previousModifier = SyntaxKind.None;
 
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
                 token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
+                parameterIndex = 0;
                 return true;
             }
 
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                if (isThisKeyword)
-                {
-                    var parameterList = token.GetAncestor<ParameterListSyntax>();
-                    var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
-                    var index = commaIndex / 2 + 1;
-                    return index == 0;
-                }
+                var parameterList = token.GetAncestor<ParameterListSyntax>();
+                var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
 
+                parameterIndex = commaIndex / 2 + 1;
                 return true;
             }
 
@@ -1023,27 +1023,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Parent.IsParentKind(SyntaxKind.Parameter) &&
                 token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                if (isThisKeyword)
-                {
-                    var parameter = token.GetAncestor<ParameterSyntax>();
-                    var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
+                var parameter = token.GetAncestor<ParameterSyntax>();
+                var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
 
-                    int parameterIndex = parameterList.Parameters.IndexOf(parameter);
-                    return parameterIndex == 0;
-                }
-
+                parameterIndex = parameterList.Parameters.IndexOf(parameter);
                 return true;
             }
 
-            if (isThisKeyword &&
-                (token.IsKind(SyntaxKind.RefKeyword) || token.IsKind(SyntaxKind.InKeyword)) &&
+            if ((token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.InKeyword, SyntaxKind.OutKeyword) ||
+                 token.IsKind(SyntaxKind.ThisKeyword, SyntaxKind.ParamsKeyword)) &&
                 token.Parent.GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 var parameter = token.GetAncestor<ParameterSyntax>();
                 var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
 
-                int parameterIndex = parameterList.Parameters.IndexOf(parameter);
-                return parameterIndex == 0;
+                parameterIndex = parameterList.Parameters.IndexOf(parameter);
+                previousModifier = token.Kind();
+                return true;
             }
 
             return false;
@@ -1055,7 +1051,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken)
         {
-            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, cancellationToken))
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: false, out _, out var previousModifier, cancellationToken) &&
+                previousModifier == SyntaxKind.None)
             {
                 return true;
             }
@@ -1118,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             }
 
-            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, cancellationToken))
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: true, out _, out _, cancellationToken))
             {
                 return true;
             }
@@ -1136,6 +1133,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsPossibleExtensionMethodContext(this SyntaxTree syntaxTree, SyntaxToken tokenOnLeftOfPosition)
+        {
+            var method = tokenOnLeftOfPosition.GetAncestor<MethodDeclarationSyntax>();
+            var typeDecl = method.GetAncestorOrThis<TypeDeclarationSyntax>();
+
+            if (method == null || typeDecl == null)
+            {
+                return false;
+            }
+
+            if (typeDecl.Kind() != SyntaxKind.ClassDeclaration)
+            {
+                return false;
+            }
+
+            if (!method.Modifiers.Any(t => t.Kind() == SyntaxKind.StaticKeyword))
+            {
+                return false;
+            }
+
+            if (!typeDecl.Modifiers.Any(t => t.Kind() == SyntaxKind.StaticKeyword))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static bool IsPossibleLambdaParameterModifierContext(
