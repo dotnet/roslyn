@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
 
             logger.LogTrace(Resources.Loading_workspace);
 
+            var exitCode = 1;
             var workspaceStopwatch = Stopwatch.StartNew();
 
             var properties = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -61,17 +62,17 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 logger.LogTrace(Resources.Workspace_loaded_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
                 workspaceStopwatch.Restart();
 
-                await FormatFilesInSolutionAsync(logger, workspace.CurrentSolution, projectPath, codingConventionsManager, cancellationToken).ConfigureAwait(false);
+                exitCode = await FormatFilesInSolutionAsync(logger, workspace.CurrentSolution, projectPath, codingConventionsManager, cancellationToken).ConfigureAwait(false);
 
                 logger.LogDebug(Resources.Format_complete_in_0_ms, workspaceStopwatch.ElapsedMilliseconds);
             }
 
             logger.LogInformation(Resources.Format_complete);
 
-            return 0;
+            return exitCode;
         }
 
-        private static async Task FormatFilesInSolutionAsync(ILogger logger, Solution solution, string projectPath, ICodingConventionsManager codingConventionsManager, CancellationToken cancellationToken)
+        private static async Task<int> FormatFilesInSolutionAsync(ILogger logger, Solution solution, string projectPath, ICodingConventionsManager codingConventionsManager, CancellationToken cancellationToken)
         {
             var formattedSolution = solution;
             var optionsApplier = new EditorConfigOptionsApplier();
@@ -85,13 +86,13 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                     continue;
                 }
 
-                logger.LogInformation(Resources.Formatting_code_files_in_project_0, project.Name);
-
                 if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
                 {
                     logger.LogWarning(Resources.Could_not_format_0_Format_currently_supports_only_CSharp_and_Visual_Basic_projects, project.FilePath);
                     continue;
                 }
+
+                logger.LogInformation(Resources.Formatting_code_files_in_project_0, project.Name);
 
                 formattedSolution = await FormatFilesInProjectAsync(logger, project, codingConventionsManager, optionsApplier, cancellationToken).ConfigureAwait(false);
             }
@@ -99,7 +100,10 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             if (!solution.Workspace.TryApplyChanges(formattedSolution))
             {
                 logger.LogError(Resources.Failed_to_save_formatting_changes);
+                return 1;
             }
+
+            return 0;
         }
 
         private static async Task<Solution> FormatFilesInProjectAsync(ILogger logger, Project project, ICodingConventionsManager codingConventionsManager, EditorConfigOptionsApplier optionsApplier, CancellationToken cancellationToken)
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 OptionSet documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 var codingConventionsContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath, cancellationToken).ConfigureAwait(false);
-                if (codingConventionsContext != null && codingConventionsContext.CurrentConventions != null)
+                if (codingConventionsContext?.CurrentConventions != null)
                 {
                     documentOptions = optionsApplier.ApplyConventions(documentOptions, codingConventionsContext.CurrentConventions, project.Language);
                 }

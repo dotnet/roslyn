@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Source\RunTests\ProcessRunner.cs" Link="InternalUtilities\ProcessRunner.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="InternalUtilities\PathKind.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="InternalUtilities\PathUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="InternalUtilities\FileNameUtilities.cs" />

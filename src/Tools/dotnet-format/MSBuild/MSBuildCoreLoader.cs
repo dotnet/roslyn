@@ -13,6 +13,10 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.Tools.MSBuild
 {
+    // TODO: This is a stopgap solution for locating the .NET Core sdk instance of MSBuild.
+    // MSBuildLocator has an open PR to add .NET Core support and we should transition once
+    // it has been accepted and released.
+    // See https://github.com/Microsoft/MSBuildLocator/pull/33
     internal static class MSBuildCoreLoader
     {
         private const string MSBuildPublicKeyToken = "b03f5f7f11d50a3a";

@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 .UseSuggestDirective()
                 .UseParseErrorReporting()
                 .UseExceptionHandler()
-                .AddOption(new[] { "-w", "--workspace" }, "The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.", a => a.WithDefaultValue(() => null).ParseArgumentsAs<string>())
-                .AddOption(new[] { "-v", "--verbosity" }, "Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]", a => a.FromAmong(_verbosityLevels).ExactlyOne())
+                .AddOption(new[] { "-w", "--workspace" }, Resources.The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command_will_search_the_current_directory_for_one, a => a.WithDefaultValue(() => null).ParseArgumentsAs<string>())
+                .AddOption(new[] { "-v", "--verbosity" }, Resources.Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diagnostic, a => a.FromAmong(_verbosityLevels).ExactlyOne())
                 .AddVersionOption()
                 .OnExecute(typeof(Program).GetMethod(nameof(Run)))
                 .Build();
@@ -44,18 +44,22 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var logger = serviceProvider.GetService<ILogger<Program>>();
 
+            var cancellationTokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                e.Cancel = true;
+                cancellationTokenSource.Cancel();
+            };
+
             try
             {
-                using (var cancellationTokenSource = new CancellationTokenSource())
-                {
-                    var workingDirectory = Directory.GetCurrentDirectory();
-                    var (isSolution, workspacePath) = MSBuildWorkspaceFinder.FindWorkspace(workingDirectory, workspace);
+                var workingDirectory = Directory.GetCurrentDirectory();
+                var (isSolution, workspacePath) = MSBuildWorkspaceFinder.FindWorkspace(workingDirectory, workspace);
 
-                    MSBuildEnvironment.ApplyEnvironmentVariables();
-                    MSBuildCoreLoader.LoadDotnetInstance();
+                MSBuildEnvironment.ApplyEnvironmentVariables();
+                MSBuildCoreLoader.LoadDotnetInstance();
 
-                    return await CodeFormatter.FormatWorkspaceAsync(logger, workspacePath, isSolution, cancellationTokenSource.Token);
-                }
+                return await CodeFormatter.FormatWorkspaceAsync(logger, workspacePath, isSolution, cancellationTokenSource.Token);
             }
             catch (FileNotFoundException fex)
             {
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
             }
             catch (OperationCanceledException)
             {
-                return 0;
+                return 1;
             }
         }
 

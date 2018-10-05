@@ -171,4 +171,10 @@
   <data name="Workspace_loaded_in_0_ms" xml:space="preserve">
     <value>Workspace loaded in {0}ms.</value>
   </data>
+  <data name="Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diagnostic" xml:space="preserve">
+    <value>Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]</value>
+  </data>
+  <data name="The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command_will_search_the_current_directory_for_one" xml:space="preserve">
+    <value>The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.</value>
+  </data>
 </root>

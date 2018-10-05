@@ -7,8 +7,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Text.RegularExpressions;
+using RunTests;
 
 namespace Microsoft.CodeAnalysis.Tools.MSBuild
 {
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
         private static readonly Regex DotnetBasePathRegex = new Regex("Base Path:(.*)$", RegexOptions.Compiled | RegexOptions.Multiline);
         private static string DotnetBasePath;
 
+        /// <summary>
+        /// Ensures the proper MSBuild environment variables are populated.
+        /// </summary>
         public static void ApplyEnvironmentVariables()
         {
             var environment = GetEnvironmentVariables();
@@ -26,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
             }
         }
 
-        public static Dictionary<string, string> GetEnvironmentVariables()
+        private static ImmutableDictionary<string, string> GetEnvironmentVariables()
         {
             // workaround for https://github.com/dotnet/docfx/issues/1752
             var dotnetBasePath = GetDotnetBasePath();
@@ -37,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
                     ["MSBUILD_EXE_PATH"] = dotnetBasePath + "MSBuild.dll",
                     ["MSBuildExtensionsPath"] = dotnetBasePath,
                     ["MSBuildSDKsPath"] = dotnetBasePath + "Sdks"
-                };
+                }.ToImmutableDictionary();
             }
 
-            return new Dictionary<string, string>();
+            return ImmutableDictionary<string, string>.Empty;
         }
 
         public static string GetDotnetBasePath()
@@ -55,38 +60,23 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
 
         private static string DetermineDotnetBasePath()
         {
-            using (var outputStream = new MemoryStream())
-            using (var outputStreamWriter = new StreamWriter(outputStream))
+            var processResult = ProcessRunner.CreateProcess("dotnet", "--info", captureOutput: true, displayWindow: false).Result.Result;
+            if (processResult.ExitCode != 0)
             {
-                try
-                {
-                    CommandUtility.RunCommand(new CommandInfo
-                    {
-                        Name = "dotnet",
-                        Arguments = "--info"
-                    }, outputStreamWriter, timeoutInMilliseconds: 60000);
-                }
-                catch
-                {
-                    // when error running dotnet command, consilder dotnet as not available
-                    return null;
-                }
-
-                // writer streams have to be flushed before reading from memory streams
-                // make sure that streamwriter is not closed before reading from memory stream
-                outputStreamWriter.Flush();
-
-                var outputString = System.Text.Encoding.UTF8.GetString(outputStream.ToArray());
-
-                var matched = DotnetBasePathRegex.Match(outputString);
-                if (matched.Success)
-                {
-                    DotnetBasePath = matched.Groups[1].Value.Trim();
-                    return DotnetBasePath;
-                }
-
+                // when error running dotnet command, consider dotnet as not available
                 return null;
             }
+
+            var outputString = string.Join(Environment.NewLine, processResult.OutputLines);
+            var matched = DotnetBasePathRegex.Match(outputString);
+
+            if (!matched.Success)
+            {
+                return null;
+            }
+
+            DotnetBasePath = matched.Groups[1].Value.Trim();
+            return DotnetBasePath;
         }
     }
 }

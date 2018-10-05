@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
 {
     internal class MSBuildWorkspaceFinder
     {
+        // Used to exclude dnx projects
         private static readonly string s_dnxProjectExtension = ".xproj";
 
         /// <summary>

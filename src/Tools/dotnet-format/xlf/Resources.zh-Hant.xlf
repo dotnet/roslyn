@@ -62,6 +62,11 @@
         <target state="new">Multiple MSBuild solution files found in '{0}'. Specify which to use with the --workspace option.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diagnostic">
+        <source>Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]</source>
+        <target state="new">Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Skipping_referenced_project_0">
         <source>Skipping referenced project '{0}'.</source>
         <target state="new">Skipping referenced project '{0}'.</target>
@@ -80,6 +85,11 @@
       <trans-unit id="The_solution_file_0_does_not_exist">
         <source>The solution file '{0}' does not exist.</source>
         <target state="new">The solution file '{0}' does not exist.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command_will_search_the_current_directory_for_one">
+        <source>The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.</source>
+        <target state="new">The solution or project file to operate on. If a file is not specified, the command will search the current directory for one.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_workspace">

@@ -174,6 +174,16 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Set the verbosity level. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic].
+        /// </summary>
+        internal static string Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diagnostic {
+            get {
+                return ResourceManager.GetString("Set_the_verbosity_level_Allowed_values_are_quiet_minimal_normal_detailed_and_diag" +
+                        "nostic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Skipping referenced project &apos;{0}&apos;..
         /// </summary>
         internal static string Skipping_referenced_project_0 {
@@ -206,6 +216,16 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter {
         internal static string The_solution_file_0_does_not_exist {
             get {
                 return ResourceManager.GetString("The_solution_file_0_does_not_exist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The solution or project file to operate on. If a file is not specified, the command will search the current directory for one..
+        /// </summary>
+        internal static string The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command_will_search_the_current_directory_for_one {
+            get {
+                return ResourceManager.GetString("The_solution_or_project_file_to_operate_on_If_a_file_is_not_specified_the_command" +
+                        "_will_search_the_current_directory_for_one", resourceCulture);
             }
         }
         
