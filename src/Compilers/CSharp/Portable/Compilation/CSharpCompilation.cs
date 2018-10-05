@@ -1624,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!(method.ReturnType is NamedTypeSymbol namedType))
+            if (!(method.ReturnType.TypeSymbol is NamedTypeSymbol namedType))
             {
                 return false;
             }
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
@@ -1660,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, false);
             }
 
-            TypeSymbol returnType = method.ReturnType;
+            TypeSymbol returnType = method.ReturnType.TypeSymbol;
             bool returnsTaskOrTaskOfInt = false;
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var array = (ArrayTypeSymbol)firstType;
+            var array = (ArrayTypeSymbol)firstType.TypeSymbol;
             return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
@@ -1807,7 +1807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeSymbolWithAnnotations.Create(elementType), rank);
         }
 
         /// <summary>
@@ -1820,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return new PointerTypeSymbol(elementType);
+            return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(elementType));
         }
 
         private protected override bool IsSymbolAccessibleWithinCore(
@@ -2981,10 +2981,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
+            var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
+                var elementType = elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]");
+                typesBuilder.Add(TypeSymbolWithAnnotations.Create(elementType));
             }
 
             return TupleTypeSymbol.Create(
@@ -3040,7 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = memberTypes[i];
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
-                fields.Add(new AnonymousTypeField(name, location, (TypeSymbol)type));
+                fields.Add(new AnonymousTypeField(name, location, TypeSymbolWithAnnotations.Create((TypeSymbol)type)));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);

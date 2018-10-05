@@ -90,14 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var newType = VisitType(local.Type);
-            if (newType == local.Type)
+            var newType = VisitType(local.Type.TypeSymbol);
+            if (newType == local.Type.TypeSymbol)
             {
                 newLocal = local;
             }
             else
             {
-                newLocal = new TypeSubstitutedLocalSymbol(local, newType, CurrentMethod);
+                newLocal = new TypeSubstitutedLocalSymbol(local, TypeSymbolWithAnnotations.Create(newType), CurrentMethod);
                 localMap.Add(local, newLocal);
             }
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override TypeSymbol VisitType(TypeSymbol type)
         {
-            return TypeMap.SubstituteType(type).Type;
+            return TypeMap.SubstituteType(type).TypeSymbol;
         }
 
         public override BoundNode VisitMethodInfo(BoundMethodInfo node)
@@ -274,12 +274,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgs = methodBeingCalled.TypeArguments;
             Debug.Assert(typeArgs.Length == newMethod.Arity);
 
-            TypeSymbol[] visitedTypeArgs = new TypeSymbol[typeArgs.Length];
-            for (int i = 0; i < visitedTypeArgs.Length; i++)
+            var visitedTypeArgs = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArgs.Length);
+            foreach (var typeArg in typeArgs)
             {
-                visitedTypeArgs[i] = VisitType(typeArgs[i]);
+                visitedTypeArgs.Add(typeArg.WithTypeAndModifiers(VisitType(typeArg.TypeSymbol), typeArg.CustomModifiers));
             }
-            return newMethod.Construct(visitedTypeArgs.AsImmutableOrNull());
+
+            return newMethod.Construct(visitedTypeArgs.ToImmutableAndFree());
         }
 
         private MethodSymbol GetOrCreateBaseFunctionWrapper(MethodSymbol methodBeingWrapped, SyntaxNode syntax)
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalSymbol replacementLocal;
             if (this.localMap.TryGetValue(node.LocalSymbol, out replacementLocal))
             {
-                return new BoundLocal(node.Syntax, replacementLocal, node.ConstantValueOpt, replacementLocal.Type, node.HasErrors);
+                return new BoundLocal(node.Syntax, replacementLocal, node.ConstantValueOpt, replacementLocal.Type.TypeSymbol, node.HasErrors);
             }
 
             return base.VisitLocal(node);
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)newType == oldType)
                 {
                     //  tuple type symbol was not rewritten
-                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
                 }
 
                 Debug.Assert(newType.IsTupleType);
@@ -533,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)constructedFrom == oldMembers[i])
                     {
-                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
                     }
                 }
 
@@ -565,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
-                    .ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    .ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
             }
         }
 
@@ -662,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    typeMap = typeMap.WithAlphaRename(methodBeingWrapped, this, out typeParameters);
+                    typeMap = typeMap.WithAlphaRename(methodBeingWrapped, this, nonNullTypesContext: NonNullTypesTrueContext.Instance, out typeParameters);
                 }
 
                 AssignTypeMapAndTypeParameters(typeMap, typeParameters);
