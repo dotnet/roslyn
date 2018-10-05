@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             var completionService = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
-            if (!item.Properties.TryGetProperty<RoslynCompletionItem>(Source.RoslynItem, out var roslynItem))
+            if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionSource.RoslynItem, out var roslynItem))
             {
                 // This isn't an item we provided (e.g. Razor). Let the editor handle it normally.
                 return CommitResultUnhandled;
@@ -149,11 +151,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             if (!subjectBuffer.CheckEditAccess())
             {
                 // We are on the wrong thread.
+                FatalError.ReportWithoutCrash(new AccessViolationException("Subject buffer did not provide Edit Access"));
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
             if (subjectBuffer.EditInProgress)
             {
+                FatalError.ReportWithoutCrash(new AccessViolationException("Subject buffer is editing by someone else."));
                 return AsyncCompletionData.CommitBehavior.None;
             }
 

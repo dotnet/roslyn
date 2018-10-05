@@ -25,15 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 {
     internal class ItemManager : IAsyncCompletionItemManager
     {
-        private readonly IAsyncCompletionBroker _broker;
         private readonly CompletionHelper _completionHelper;
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
 
-        public ItemManager(IAsyncCompletionBroker broker)
+        public ItemManager()
         {
-            _broker = broker;
             _completionHelper = new CompletionHelper(isCaseSensitive: true);
         }
 
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            if (!session.Properties.TryGetProperty<bool>(Source.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
+            if (!session.Properties.TryGetProperty<bool>(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
             {
                 // This is the scenario when the session is created out of Roslyn, in some other provider, e.g. in Debugger.
                 // For now, the default hasSuggestedItemOptions is false. We can discuss if the opposite is required.
@@ -122,8 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.
             var snapshotForDocument = data.InitialSortedList
-                .FirstOrDefault(i => i.Properties.ContainsProperty(Source.TriggerSnapshot))?.
-                Properties.GetProperty<ITextSnapshot>(Source.TriggerSnapshot) ?? data.Snapshot;
+                                          .FirstOrDefault(i => i.Properties.ContainsProperty(CompletionSource.TriggerSnapshot))?
+                                          .Properties.GetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot) 
+                                          ?? data.Snapshot;
 
             var document = snapshotForDocument.GetOpenDocumentInCurrentContextWithChanges();
 
@@ -518,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         private static RoslynCompletionItem GetOrCreateRoslynItem(VSCompletionItem item)
         {
-            if (item.Properties.TryGetProperty<RoslynCompletionItem>(Source.RoslynItem, out var roslynItem))
+            if (item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionSource.RoslynItem, out var roslynItem))
             {
                 return roslynItem;
             }

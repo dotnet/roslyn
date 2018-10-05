@@ -14,17 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class ItemManagerProvider : IAsyncCompletionItemManagerProvider
     {
-        private readonly IAsyncCompletionBroker _broker;
-
-        // This is a cheap object to create. We can initialize it in ctor.
-        private readonly IAsyncCompletionItemManager _instance;
+        private readonly IAsyncCompletionItemManager _instance = new ItemManager();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ItemManagerProvider(IAsyncCompletionBroker broker)
         {
-            _broker = broker;
-            _instance = new ItemManager(_broker);
         }
 
         public IAsyncCompletionItemManager GetOrCreate(ITextView textView) => _instance;

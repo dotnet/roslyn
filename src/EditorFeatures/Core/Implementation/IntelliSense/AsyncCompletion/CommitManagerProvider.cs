@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class CommitManagerProvider : IAsyncCompletionCommitManagerProvider
     {
-        private IAsyncCompletionCommitManager _instance;
+        private readonly IAsyncCompletionCommitManager _instance = new CommitManager();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
-            if (_instance == null)
-            {
-                _instance = new CommitManager();
-            }
-
             return _instance;
         }
     }

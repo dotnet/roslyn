@@ -25,7 +25,7 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
-    internal class Source : IAsyncCompletionSource
+    internal class CompletionSource : IAsyncCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
         internal const string TriggerSnapshot = nameof(TriggerSnapshot);

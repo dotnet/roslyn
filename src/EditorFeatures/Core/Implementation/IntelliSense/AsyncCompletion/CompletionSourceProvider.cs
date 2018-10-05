@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [Export(typeof(IAsyncCompletionSourceProvider))]
     [Name("Roslyn Completion Source Provider")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class SourceProvider : IAsyncCompletionSourceProvider
+    internal class CompletionSourceProvider : IAsyncCompletionSourceProvider
     {
-        private static IAsyncCompletionSource _instance = new Source();
+        private readonly IAsyncCompletionSource _instance = new CompletionSource();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SourceProvider()
+        public CompletionSourceProvider()
         {
         }
 
