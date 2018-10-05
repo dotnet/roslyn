@@ -456,60 +456,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    string CS()
+                    switch (ParameterSymbol.Language)
+                    {
+                        case LanguageNames.CSharp:
+                            return ModifierText("out","ref","in","params","this");
+                        case LanguageNames.VisualBasic:
+                            return ModifierText(@ref: "ByRef", @params: "ParamArray", @this: "Me");
+                        default:
+                            return string.Empty;
+                    }
+
+                    string ModifierText(string @out = default, string @ref = default, string @in  = default, string @params = default, string @this = default)
                     {
                         switch (ParameterSymbol.RefKind)
                         {
                             case RefKind.Out:
-                                return "out";
+                                return @out ?? string.Empty;
                             case RefKind.Ref:
-                                return "ref";
+                                return @ref ?? string.Empty;
                             case RefKind.In:
-                                return "in";
+                                return @in ?? string.Empty;
                         }
 
                         if (ParameterSymbol.IsParams)
                         {
-                            return "params";
+                            return @params ?? string.Empty;
                         }
 
                         if (_changeSignatureDialogViewModel._thisParameter != null &&
                             ParameterSymbol == _changeSignatureDialogViewModel._thisParameter.ParameterSymbol)
                         {
-                            return "this";
+                            return @this ?? string.Empty;
                         }
                         return string.Empty;
-                    }
-
-                    string VB()
-                    {
-                        switch (ParameterSymbol.RefKind)
-                        {
-                            case RefKind.Ref:
-                                return "ByRef";
-                        }
-
-                        if (ParameterSymbol.IsParams)
-                        {
-                            return "ParamArray";
-                        }
-
-                        if (_changeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == _changeSignatureDialogViewModel._thisParameter.ParameterSymbol)
-                        {
-                            return "Me";
-                        }
-                        return string.Empty;
-                    }
-
-                    switch (ParameterSymbol.Language)
-                    {
-                        case "C#":
-                            return CS();
-                        case "Visual Basic":
-                            return VB();
-                        default:
-                            return string.Empty;
                     }
                 }
             }
@@ -522,29 +501,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    string CS()
-                    {
-                        return ParameterSymbol.ExplicitDefaultValue == null
-                        ? "null"
-                        : ParameterSymbol.ExplicitDefaultValue is string
-                            ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\""
-                            : ParameterSymbol.ExplicitDefaultValue.ToString();
-                    }
-                    string VB()
-                    {
-                        return ParameterSymbol.ExplicitDefaultValue == null ? "Nothing" :
-                               ParameterSymbol.ExplicitDefaultValue.ToString();
-                    }
-
                     if (!ParameterSymbol.HasExplicitDefaultValue)
                     {
                         return string.Empty;
                     }
-                    switch(ParameterSymbol.Language)
+                    switch (ParameterSymbol.Language)
                     {
-                        case "CS": return CS();
-                        case "Visual Basic": return VB();
-                        default: return string.Empty;
+                        case LanguageNames.CSharp:
+                            return NullText("null");
+                        case LanguageNames.VisualBasic:
+                            return NullText("Nothing");
+                    }
+                    return string.Empty; 
+
+                    string NullText(string @null)
+                    {
+                        return ParameterSymbol.ExplicitDefaultValue == null ? @null :
+                               ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
+                               ParameterSymbol.ExplicitDefaultValue.ToString();
                     }
 
                 }
