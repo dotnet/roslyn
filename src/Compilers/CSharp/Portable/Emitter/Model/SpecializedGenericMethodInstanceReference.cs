@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             foreach (var arg in UnderlyingMethod.TypeArguments)
             {
-                yield return moduleBeingBuilt.Translate(arg, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
             }
         }
 

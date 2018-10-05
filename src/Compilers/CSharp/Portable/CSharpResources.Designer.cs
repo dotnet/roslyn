@@ -404,6 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a nullable reference type in object creation..
+        /// </summary>
+        internal static string ERR_AnnotationDisallowedInObjectCreation {
+            get {
+                return ResourceManager.GetString("ERR_AnnotationDisallowedInObjectCreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use ref, out, or in parameter &apos;{0}&apos; inside an anonymous method, lambda expression, query expression, or local function.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
@@ -4265,6 +4274,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NullableAttribute&apos; is not allowed..
+        /// </summary>
+        internal static string ERR_ExplicitNullableAttribute {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitNullableAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not use &apos;System.ParamArrayAttribute&apos;. Use the &apos;params&apos; keyword instead..
         /// </summary>
         internal static string ERR_ExplicitParamArray {
@@ -7235,6 +7253,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please use language version {0} or greater to use the NonNullTypes attribute..
+        /// </summary>
+        internal static string ERR_NonNullTypesNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_NonNullTypesNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
         internal static string ERR_NonTaskMainCantBeAsync {
@@ -7402,6 +7429,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoVoidParameter {
             get {
                 return ResourceManager.GetString("ERR_NoVoidParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a &apos;class&apos;, &apos;struct&apos;, or type constraint..
+        /// </summary>
+        internal static string ERR_NullableUnconstrainedTypeParameter {
+            get {
+                return ResourceManager.GetString("ERR_NullableUnconstrainedTypeParameter", resourceCulture);
             }
         }
         
@@ -10286,6 +10322,60 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression is probably never null..
+        /// </summary>
+        internal static string HDN_ExpressionIsProbablyNeverNull {
+            get {
+                return ResourceManager.GetString("HDN_ExpressionIsProbablyNeverNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression is probably never null..
+        /// </summary>
+        internal static string HDN_ExpressionIsProbablyNeverNull_Title {
+            get {
+                return ResourceManager.GetString("HDN_ExpressionIsProbablyNeverNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysFalse {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysFalse_Title {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysFalse_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysTrue {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysTrue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
+        /// </summary>
+        internal static string HDN_NullCheckIsProbablyAlwaysTrue_Title {
+            get {
+                return ResourceManager.GetString("HDN_NullCheckIsProbablyAlwaysTrue_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unused extern alias..
         /// </summary>
         internal static string HDN_UnusedExternAlias {
@@ -10827,6 +10917,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to object generic type constraint.
+        /// </summary>
+        internal static string IDS_FeatureObjectGenericTypeConstraint {
+            get {
+                return ResourceManager.GetString("IDS_FeatureObjectGenericTypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to object initializer.
         /// </summary>
         internal static string IDS_FeatureObjectInitializer {
@@ -11025,6 +11124,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to static null checking.
+        /// </summary>
+        internal static string IDS_FeatureStaticNullChecking {
+            get {
+                return ResourceManager.GetString("IDS_FeatureStaticNullChecking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to switch on boolean type.
         /// </summary>
         internal static string IDS_FeatureSwitchOnBool {
@@ -11120,6 +11228,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_GlobalNamespace {
             get {
                 return ResourceManager.GetString("IDS_GlobalNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to injected declaration.
+        /// </summary>
+        internal static string IDS_InjectedDeclaration {
+            get {
+                return ResourceManager.GetString("IDS_InjectedDeclaration", resourceCulture);
             }
         }
         
@@ -12978,6 +13095,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting null literal or possible null value to non-nullable type..
+        /// </summary>
+        internal static string WRN_ConvertingNullableToNonNullable {
+            get {
+                return ResourceManager.GetString("WRN_ConvertingNullableToNonNullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Converting null literal or possible null value to non-nullable type..
+        /// </summary>
+        internal static string WRN_ConvertingNullableToNonNullable_Title {
+            get {
+                return ResourceManager.GetString("WRN_ConvertingNullableToNonNullable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The fully qualified name for &apos;{0}&apos; is too long for debug information. Compile without &apos;/debug&apos; option..
         /// </summary>
         internal static string WRN_DebugFullNameTooLong {
@@ -13925,6 +14060,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a &apos;[NonNullTypes(true/false)]&apos; context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContext {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a &apos;[NonNullTypes(true/false)]&apos; context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContext_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContext_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;[NonNullTypes(true)]&apos; context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotation {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;[NonNullTypes(true)]&apos; context..
+        /// </summary>
+        internal static string WRN_MissingNonNullTypesContextForAnnotation_Title {
+            get {
+                return ResourceManager.GetString("WRN_MissingNonNullTypesContextForAnnotation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter &apos;{0}&apos; has no matching param tag in the XML comment for &apos;{1}&apos; (but other parameters do).
         /// </summary>
         internal static string WRN_MissingParamTag {
@@ -14163,6 +14334,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No best nullability for operands of conditional expression &apos;{0}&apos; and &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityConditionalExpression {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityConditionalExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability for operands of conditional expression..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityConditionalExpression_Title {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityConditionalExpression_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ignoring /noconfig option because it was specified in a response file.
         /// </summary>
         internal static string WRN_NoConfigNotOnCommandLine {
@@ -14285,6 +14474,402 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NubExprIsConstBool2_Title {
             get {
                 return ResourceManager.GetString("WRN_NubExprIsConstBool2_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in argument of type &apos;{0}&apos; doesn&apos;t match target type &apos;{1}&apos; for parameter &apos;{2}&apos; in &apos;{3}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInArgument {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in argument doesn&apos;t match target type..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInArgument_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInArgument_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in value of type &apos;{0}&apos; doesn&apos;t match target type &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInAssignment {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in value doesn&apos;t match target type..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInAssignment_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability in constraints for type parameter &apos;{0}&apos; of method &apos;{1}&apos; doesn&apos;t match the constraints for type parameter &apos;{2}&apos; of interface method &apos;{3}&apos;. Consider using an explicit interface implementation instead..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability in constraints for type parameter doesn&apos;t match the constraints for type parameter in implicitly implemented interface method&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; of &apos;{1}&apos; doesn&apos;t match the target delegate &apos;{2}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOfTargetDelegate {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOfTargetDelegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match the target delegate..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match implemented member &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match implicitly implemented member &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match implicitly implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnOverride {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnOverride_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter &apos;{0}&apos; doesn&apos;t match partial method declaration..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnPartial {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnPartial", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type of parameter doesn&apos;t match partial method declaration..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInParameterTypeOnPartial_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInParameterTypeOnPartial_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type of &apos;{0}&apos; doesn&apos;t match the target delegate &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOfTargetDelegate {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOfTargetDelegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match the target delegate..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implicitly implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match implicitly implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnOverride {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in return type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInReturnTypeOnOverride_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInReturnTypeOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnExplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnExplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implicitly implemented member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnImplicitImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnImplicitImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match implicitly implemented member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnOverride {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeOnOverride_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{3}&apos; cannot be used as type parameter &apos;{2}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{3}&apos; doesn&apos;t match constraint type &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterConstraint {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn&apos;t match constraint type..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterConstraint_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterConstraint_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be used as type parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{2}&apos; doesn&apos;t match &apos;class&apos; constraint..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn&apos;t match &apos;class&apos; constraint..
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
+        /// </summary>
+        internal static string WRN_NullAsNonNullable {
+            get {
+                return ResourceManager.GetString("WRN_NullAsNonNullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
+        /// </summary>
+        internal static string WRN_NullAsNonNullable_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullAsNonNullable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference argument for parameter &apos;{0}&apos; in &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_NullReferenceArgument {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference argument..
+        /// </summary>
+        internal static string WRN_NullReferenceArgument_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceArgument_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment..
+        /// </summary>
+        internal static string WRN_NullReferenceAssignment {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment..
+        /// </summary>
+        internal static string WRN_NullReferenceAssignment_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible dereference of a null reference..
+        /// </summary>
+        internal static string WRN_NullReferenceReceiver {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReceiver", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible dereference of a null reference..
+        /// </summary>
+        internal static string WRN_NullReferenceReceiver_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReceiver_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference return..
+        /// </summary>
+        internal static string WRN_NullReferenceReturn {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference return..
+        /// </summary>
+        internal static string WRN_NullReferenceReturn_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReturn_Title", resourceCulture);
             }
         }
         
@@ -14552,6 +15137,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        /// </summary>
+        internal static string WRN_SuppressionOperatorNotReferenceType {
+            get {
+                return ResourceManager.GetString("WRN_SuppressionOperatorNotReferenceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The suppression operator (!) can only be applied to reference types..
+        /// </summary>
+        internal static string WRN_SuppressionOperatorNotReferenceType_Title {
+            get {
+                return ResourceManager.GetString("WRN_SuppressionOperatorNotReferenceType_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect.
         /// </summary>
         internal static string WRN_TooManyLinesForDebugger {
@@ -14746,6 +15349,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnimplementedCommandLineSwitch_Title {
             get {
                 return ResourceManager.GetString("WRN_UnimplementedCommandLineSwitch_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-nullable {0} &apos;{1}&apos; is uninitialized..
+        /// </summary>
+        internal static string WRN_UninitializedNonNullableField {
+            get {
+                return ResourceManager.GetString("WRN_UninitializedNonNullableField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-nullable field is uninitialized..
+        /// </summary>
+        internal static string WRN_UninitializedNonNullableField_Title {
+            get {
+                return ResourceManager.GetString("WRN_UninitializedNonNullableField_Title", resourceCulture);
             }
         }
         

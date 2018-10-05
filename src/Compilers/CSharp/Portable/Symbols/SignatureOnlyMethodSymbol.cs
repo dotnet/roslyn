@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
-        private readonly TypeSymbol _returnType;
-        private readonly ImmutableArray<CustomModifier> _returnTypeCustomModifiers;
+        private readonly TypeSymbolWithAnnotations _returnType;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
@@ -34,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
-            TypeSymbol returnType,
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+            TypeSymbolWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
@@ -43,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = typeParameters;
             _refKind = refKind;
             _returnType = returnType;
-            _returnTypeCustomModifiers = returnTypeCustomModifiers;
             _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
             _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -66,9 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind { get { return _refKind; } }
 
-        public override TypeSymbol ReturnType { get { return _returnType; } }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get { return _returnTypeCustomModifiers; } }
+        public override TypeSymbolWithAnnotations ReturnType { get { return _returnType; } }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
@@ -104,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() { throw ExceptionUtilities.Unreachable; }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments { get { throw ExceptionUtilities.Unreachable; } }
 
         public override Symbol AssociatedSymbol { get { throw ExceptionUtilities.Unreachable; } }
 

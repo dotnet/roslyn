@@ -76,7 +76,7 @@ function Exec-Console([string]$command, [string]$commandArgs) {
 # meets our minimal requirements for the Roslyn repo.
 function Get-VisualStudioDirAndId() {
   $vswhere = Join-Path $PSScriptRoot "vswhere\vswhere.exe"
-  $output = Exec-Command $vswhere "-prerelease -requires Microsoft.VisualStudio.Component.Roslyn.Compiler -version [15.5,15.8) -format json" | Out-String
+  $output = Exec-Command $vswhere "-prerelease -requires Microsoft.VisualStudio.Component.Roslyn.Compiler -version [15.5,15.9) -format json" | Out-String
   $j = ConvertFrom-Json $output
   $foundVsInstall = $false
   foreach ($obj in $j) {
@@ -86,7 +86,7 @@ function Get-VisualStudioDirAndId() {
     $name = $obj.installationName
     if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") {
       $minVersion = New-Object System.Version "15.5.0"
-      $maxVersion = New-Object System.Version "15.8.0"
+      $maxVersion = New-Object System.Version "15.9.0"
       $version = New-Object System.Version $matches[2]
       if ($version -ge $minVersion -and $version -lt $maxVersion) {
         Write-Output $obj.installationPath

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (interfaces.Count > 1)
                 {
-                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringTupleNames);
                     foreach (var @interface in interfaces)
                     {
                         NamedTypeSymbol other;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var b = baseTypeSyntax.Type;
                         var tmpDiag = DiagnosticBag.GetInstance();
-                        var curBaseSym = baseBinder.BindType(b, tmpDiag);
+                        var curBaseSym = baseBinder.BindType(b, tmpDiag).TypeSymbol;
                         tmpDiag.Free();
 
                         if (baseSym.Equals(curBaseSym))
@@ -208,12 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ReferenceEquals(_lazyDeclaredBases, null))
             {
-                DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = DiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, diagnostics), null) == null)
                 {
                     AddDeclarationDiagnostics(diagnostics);
                 }
-
                 diagnostics.Free();
             }
 
@@ -371,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (i == 0 && TypeKind == TypeKind.Class) // allow class in the first position
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
 
                     SpecialType baseSpecialType = baseType.SpecialType;
                     if (IsRestrictedBaseType(baseSpecialType))
@@ -439,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved);
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
                 }
 
                 switch (baseType.TypeKind)

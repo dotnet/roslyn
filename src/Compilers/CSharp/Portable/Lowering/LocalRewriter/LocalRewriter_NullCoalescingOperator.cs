@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenRight = (BoundExpression)Visit(node.RightOperand);
             TypeSymbol rewrittenResultType = VisitType(node.Type);
 
-            return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, rewrittenResultType);
+            return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, node.OperatorResultKind, rewrittenResultType);
         }
 
         private BoundExpression MakeNullCoalescingOperator(
@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
             Conversion leftConversion,
+            BoundNullCoalescingOperatorResultKind resultKind,
             TypeSymbol rewrittenResultType)
         {
             Debug.Assert(rewrittenLeft != null);
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BadExpression(syntax, rewrittenResultType, rewrittenLeft, rewrittenRight);
                 }
 
-                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, rewrittenResultType);
+                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, rewrittenConversion, resultKind, rewrittenResultType);
             }
 
             var isUnconstrainedTypeParameter = rewrittenLeft.Type != null && !rewrittenLeft.Type.IsReferenceType && !rewrittenLeft.Type.IsValueType;
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     rewrittenLeft = MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
                 }
-                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, rewrittenResultType);
+                return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, resultKind, rewrittenResultType);
             }
 
             if (leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable)

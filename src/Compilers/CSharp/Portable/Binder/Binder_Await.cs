@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the return type of GetResult is void, the await-expression is classified as nothing. If it has a
             // non-void return type T, the await-expression is classified as a value of type T.
             TypeSymbol awaitExpressionType =
-                (object)getResult != null ? getResult.ReturnType :
+                (object)getResult != null ? getResult.ReturnType.TypeSymbol :
                 hasErrors ? CreateErrorType() :
                 Compilation.DynamicType;
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             info = method.ReturnsVoid ?
                                 new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod) :
-                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
+                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType.TypeSymbol);
                         }
                         break;
                 }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol awaiterType = getAwaiter.ReturnType;
+            TypeSymbol awaiterType = getAwaiter.ReturnType.TypeSymbol;
             return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
                 && GetGetResultMethod(getAwaiterCall, node, expression.Type, diagnostics, out getResult, out getAwaiterGetResultCall);
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
-            var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), invoked: false, indexed: false, diagnostics);
+            var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbolWithAnnotations>), invoked: false, indexed: false, diagnostics);
             if (qualified.HasAnyErrors)
             {
                 isCompletedProperty = null;
