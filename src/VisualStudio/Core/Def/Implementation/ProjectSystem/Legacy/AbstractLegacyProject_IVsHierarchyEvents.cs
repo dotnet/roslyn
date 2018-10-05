@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
@@ -66,7 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                  propid == (int)__VSHPROPID.VSHPROPID_Name) &&
                 itemid == (uint)VSConstants.VSITEMID.Root)
             {
-                VisualStudioProject.FilePath = Hierarchy.GetProjectFilePath();
+                var filePath = Hierarchy.GetProjectFilePath();
+
+                if (File.Exists(filePath))
+                {
+                    VisualStudioProject.FilePath = filePath;
+                }
 
                 if (Hierarchy.TryGetName(out var name))
                 {
