@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// LICENSING NOTE: The license for this file is from the originating 
-// source and not the general https://github.com/dotnet/roslyn license.
+// Original License:
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // See https://github.com/Microsoft/MSBuildLocator/blob/6631a6dbf9be72b2426e260c99dc0f345e79b8e5/src/MSBuildLocator/MSBuildLocator.cs
 
 using System;
