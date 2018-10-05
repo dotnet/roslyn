@@ -183,6 +183,7 @@ namespace My
         static A() 
         {
             int x = default;
+            string y = null!;
         }
 
         [method: Obsolete]

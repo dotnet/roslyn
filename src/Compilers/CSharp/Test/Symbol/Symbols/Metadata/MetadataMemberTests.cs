@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("String", p2.Type.Name);
             Assert.True(p2.IsDefinition);
             Assert.Equal("System.Byte[] bKeyBlob", p3.ToTestDisplayString());
-            Assert.Equal("System.Byte[]", p3.Type.ToTestDisplayString()); //array types do not have names - use ToTestDisplayString
+            Assert.Equal("System.Byte[]", p3.Type.TypeSymbol.ToTestDisplayString()); //array types do not have names - use ToTestDisplayString
 
             Assert.False(p1.IsStatic);
             Assert.False(p1.IsAbstract);

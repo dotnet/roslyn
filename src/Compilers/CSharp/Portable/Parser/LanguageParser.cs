@@ -1880,7 +1880,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
+            SyntaxToken questionToken = null;
             var syntaxKind = this.CurrentToken.Kind;
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.NewKeyword:
@@ -1890,10 +1892,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.ConstructorConstraint(newToken, open, close);
                 case SyntaxKind.StructKeyword:
                     var structToken = this.EatToken();
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                    {
+                        questionToken = this.EatToken();
+                        questionToken = this.AddError(questionToken, ErrorCode.ERR_UnexpectedToken, questionToken.Text);
+                    }
+
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken, questionToken);
                 case SyntaxKind.ClassKeyword:
                     var classToken = this.EatToken();
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                    {
+                        questionToken = this.EatToken();
+                    }
+
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
@@ -4470,7 +4485,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, allowQuestionToken: false, sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -5866,6 +5881,11 @@ tryAgain:
 
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
+
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    lastTokenOfType = this.EatToken();
+                }
             }
 
             return result;
@@ -6242,7 +6262,7 @@ tryAgain:
                     while (this.IsPossibleRankAndDimensionSpecifier())
                     {
                         bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out unused);
+                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, allowQuestionToken: true, out unused);
                         ranks.Add(rank);
                         expectSizes = false;
                     }
@@ -6281,7 +6301,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, bool allowQuestionToken, out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6347,7 +6367,13 @@ tryAgain:
                 // Eat the close brace and we're done.
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
-                return _syntaxFactory.ArrayRankSpecifier(open, list, close);
+                SyntaxToken questionToken = null;
+                if (allowQuestionToken && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    questionToken = this.EatToken();
+                }
+
+                return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);
             }
             finally
             {
@@ -9422,6 +9448,12 @@ tryAgain:
                         }
 
                         goto default;
+
+                    case SyntaxKind.ExclamationToken:
+                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
+                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureStaticNullChecking);
+                        break;
+
                     default:
                         return expr;
                 }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of this field.
         /// </summary>
-        public TypeSymbol Type
+        public TypeSymbolWithAnnotations Type
         {
             get
             {
@@ -56,12 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
-
-        /// <summary>
-        /// Gets the list of custom modifiers, if any, associated with the field.
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+        internal abstract TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
@@ -161,6 +156,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal abstract ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes);
+
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                Debug.Assert(IsDefinition);
+                return (AssociatedSymbol ?? ContainingType)?.NonNullTypes;
+            }
+        }
 
         /// <summary>
         /// Gets the kind of this symbol.
@@ -330,8 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.CustomModifiers))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type))
             {
                 return true;
             }
@@ -341,8 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, this, ref unificationCheckedTypes))
+                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
                 }
@@ -458,13 +460,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type;
+                return this.Type.TypeSymbol;
             }
         }
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers; }
+            get { return this.Type.CustomModifiers; }
         }
 
         IFieldSymbol IFieldSymbol.OriginalDefinition

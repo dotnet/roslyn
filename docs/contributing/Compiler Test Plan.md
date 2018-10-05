@@ -93,6 +93,7 @@ This document provides guidance for thinking about language interactions and tes
 - COM interop
 - modopt and modreq
 - ref assemblies
+- extern alias
 - telemetry
 
 # Testing in interaction with other components

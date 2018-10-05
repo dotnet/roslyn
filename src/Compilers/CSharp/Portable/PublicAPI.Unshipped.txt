@@ -2,6 +2,9 @@
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8 = 800 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.QuestionToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> sizes, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax.WithQuestionToken(Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.AddArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.WithArguments(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax> arguments) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseCrefParameterListSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseCrefParameterListSyntax
@@ -46,6 +49,9 @@ Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.WithSemicolonToke
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax.QuestionToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken classOrStructKeyword, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax.WithQuestionToken(Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithForEachKeyword(Microsoft.CodeAnalysis.SyntaxToken forEachKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax
@@ -82,9 +88,12 @@ Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEndQuoteToken(Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEqualsToken(Microsoft.CodeAnalysis.SyntaxToken equalsToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithStartQuoteToken(Microsoft.CodeAnalysis.SyntaxToken startQuoteToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.SuppressNullableWarningExpression = 9054 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.QuestionQuestionEqualsToken = 8284 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceAssignmentExpression = 8725 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ArrayRankSpecifier(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> sizes, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ClassOrStructConstraint(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.SyntaxToken classOrStructKeyword, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax
