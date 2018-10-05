@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsPossibleExtensionMethodContext(this SyntaxTree syntaxTree, SyntaxToken tokenOnLeftOfPosition)
         {
-            var method = tokenOnLeftOfPosition.Parent.GetAncestor<MethodDeclarationSyntax>();
+            var method = tokenOnLeftOfPosition.Parent.GetAncestorOrThis<MethodDeclarationSyntax>();
             var typeDecl = method.GetAncestorOrThis<TypeDeclarationSyntax>();
 
             return method != null && typeDecl != null &&
