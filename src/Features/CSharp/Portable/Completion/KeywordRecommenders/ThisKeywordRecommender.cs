@@ -60,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsThisParameterModifierContext(CSharpSyntaxContext context)
         {
-            // TODO(cyrusn): lambda/anon methods can have out/ref parameters
-
             if (context.SyntaxTree.IsParameterModifierContext(
                     context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
