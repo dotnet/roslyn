@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 IsInstanceExpressionOrStatement(context) ||
-                IsThisParameterModifierContext(context, cancellationToken) ||
+                IsThisParameterModifierContext(context) ||
                 IsConstructorInitializerContext(context);
         }
 
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private static bool IsThisParameterModifierContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsThisParameterModifierContext(CSharpSyntaxContext context)
         {
             // TODO(cyrusn): lambda/anon methods can have out/ref parameters
 
             if (context.SyntaxTree.IsParameterModifierContext(
-                    context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier, cancellationToken))
+                    context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
                 if (previousModifier == SyntaxKind.None ||
                     previousModifier == SyntaxKind.RefKeyword ||

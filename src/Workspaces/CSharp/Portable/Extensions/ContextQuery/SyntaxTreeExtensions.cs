@@ -989,8 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             bool includeOperators,
             out int parameterIndex,
-            out SyntaxKind previousModifier,
-            CancellationToken cancellationToken)
+            out SyntaxKind previousModifier)
         {
             // cases:
             //   Goo(|
@@ -1048,10 +1047,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsParamsModifierContext(
             this SyntaxTree syntaxTree,
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
-            CancellationToken cancellationToken)
+            SyntaxToken tokenOnLeftOfPosition)
         {
-            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: false, out _, out var previousModifier, cancellationToken) &&
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: false, out _, out var previousModifier) &&
                 previousModifier == SyntaxKind.None)
             {
                 return true;
@@ -1115,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             }
 
-            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: true, out _, out _, cancellationToken))
+            if (syntaxTree.IsParameterModifierContext(position, tokenOnLeftOfPosition, includeOperators: true, out _, out _))
             {
                 return true;
             }

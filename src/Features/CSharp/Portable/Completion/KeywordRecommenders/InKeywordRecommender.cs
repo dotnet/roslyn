@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsValidContextInForEachClause(context) ||
                 IsValidContextInFromClause(context, cancellationToken) ||
                 IsValidContextInJoinClause(context, cancellationToken) ||
-                IsInParameterModifierContext(position, context, cancellationToken) ||
+                IsInParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsTypeParameterVarianceContext();
         }
 
-        private static bool IsInParameterModifierContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsInParameterModifierContext(int position, CSharpSyntaxContext context)
         {
             if (context.SyntaxTree.IsParameterModifierContext(
-                    position, context.LeftToken, includeOperators: true, out var parameterIndex, out var previousModifier, cancellationToken))
+                    position, context.LeftToken, includeOperators: true, out var parameterIndex, out var previousModifier))
             {
                 if (previousModifier == SyntaxKind.None)
                 {
