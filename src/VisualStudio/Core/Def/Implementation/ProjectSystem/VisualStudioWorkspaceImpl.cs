@@ -199,9 +199,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _projectNameToProjectMap.GetValueOrDefault(projectName, defaultValue: null);
         }
 
+        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
         internal AbstractProject GetHostProject(ProjectId projectId)
         {
-            throw new NotImplementedException();
+            var project = CurrentSolution.GetProject(projectId);
+
+            if (project == null)
+            {
+                return null;
+            }
+
+            return new StubProject(ProjectTracker, project, GetHierarchy(projectId), project.OutputFilePath);
+        }
+
+        private sealed class StubProject : AbstractProject
+        {
+            public StubProject(VisualStudioProjectTracker projectTracker, CodeAnalysis.Project project, IVsHierarchy hierarchy, string outputPath)
+                : base(projectTracker, null, project.Name + "_Stub", null, hierarchy, project.Language, Guid.Empty, null, null, null, null)
+            {
+                ExplicitBinPath = outputPath;
+            }
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]

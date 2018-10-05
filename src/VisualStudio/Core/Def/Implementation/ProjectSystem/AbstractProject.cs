@@ -89,10 +89,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected string ExplicitBinPath;
+
         /// <summary>
         /// A full path to the project bin output binary, or null if the project doesn't have an bin output binary.
         /// </summary>
-        internal string BinOutputPath => VisualStudioProject.OutputFilePath;
+        internal string BinOutputPath => ExplicitBinPath ?? VisualStudioProject.OutputFilePath;
 
         public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
 
