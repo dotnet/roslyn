@@ -885,7 +885,8 @@ internal class Example
     }
 }";
 
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemExistsAsync(markup, "Target");
+            await VerifyItemExistsAsync(markup, "Method");
         }
 
         [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
