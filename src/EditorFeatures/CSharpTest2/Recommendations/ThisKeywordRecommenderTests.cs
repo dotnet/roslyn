@@ -1066,6 +1066,21 @@ public static class Extensions
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(out $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(out $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestExtensionMethods_SecondParameter_AfterRefKeyword_InClass()
         {
             await VerifyAbsenceAsync(@"
@@ -1081,7 +1096,7 @@ public static class Extensions
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestExtensionMethods_SecondParameter_AfterInKeywords_InClass()
+        public async Task TestExtensionMethods_SecondParameter_AfterInKeyword_InClass()
         {
             await VerifyAbsenceAsync(@"
 public static class Extensions
@@ -1096,6 +1111,21 @@ public static class Extensions
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_SecondParameter_AfterOutKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, out $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, out $$ object obj) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_OutsideClass()
         {
             await VerifyAbsenceAsync("public static void Extension(ref $$");
@@ -1104,11 +1134,19 @@ public static class Extensions
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_OutsideClass()
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_OutsideClass()
         {
             await VerifyAbsenceAsync("public static void Extension(in $$");
 
             await VerifyAbsenceAsync("public static void Extension(in $$ object obj, int x) { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(out $$");
+
+            await VerifyAbsenceAsync("public static void Extension(out $$ object obj, int x) { }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -1127,7 +1165,7 @@ public class Extensions
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_NonStaticClass()
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_NonStaticClass()
         {
             await VerifyAbsenceAsync(@"
 public class Extensions
@@ -1138,6 +1176,21 @@ public class Extensions
 public class Extensions
 {
     public static void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(out $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(out $$ object obj, int x) { }
 }");
         }
 
@@ -1157,7 +1210,7 @@ public static class Extensions
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_NonStaticMethod()
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_NonStaticMethod()
         {
             await VerifyAbsenceAsync(@"
 public static class Extensions
@@ -1168,6 +1221,21 @@ public static class Extensions
 public static class Extensions
 {
     public void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestExtensionMethods_FirstParameter_AfterOutKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(out $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(out $$ object obj, int x) { }
 }");
         }
 
