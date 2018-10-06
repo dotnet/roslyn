@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
 Class C
     Sub M()
         {|span0:Try $$
-        Catch e As Exception
+        Catch (e As Exception)
         End Try|}
     End Sub
 End Class
