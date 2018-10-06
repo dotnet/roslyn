@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             var document = context.Document;
 
-            // Currently this refactoring requires the document to have a pasted text span.
-            if (!_pasteTrackingService.TryGetPastedTextSpan(document, out var textSpan))
+            // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
+            var sourceText = await document.GetTextAsync();
+            if (!_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
             {
                 return;
             }

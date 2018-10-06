@@ -11,11 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Friend Class VisualBasicAddMissingImportsRefactoringProvider
     Inherits AbstractAddMissingImportsRefactoringProvider
 
-    Protected Overrides ReadOnly Property CodeActionTitle As String
-        Get
-            Return VBFeaturesResources.Add_missing_Imports
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Add_missing_Imports
 
     <ImportingConstructor>
     Public Sub New(pasteTrackingService As IPasteTrackingService)

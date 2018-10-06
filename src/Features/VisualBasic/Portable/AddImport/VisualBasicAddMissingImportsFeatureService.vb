@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingImports
     Friend Class VisualBasicAddMissingImportsFeatureService
         Inherits AbstractAddMissingImportsFeatureService
 
-        Protected Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
-            Get
-                Return AddImportDiagnosticIds.FixableDiagnosticIds
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = AddImportDiagnosticIds.FixableDiagnosticIds
     End Class
 End Namespace

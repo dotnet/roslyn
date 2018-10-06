@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
-        ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes, IPackageInstallerService installerService, bool limitResults);
+        ImmutableArray<CodeAction> GetCodeActionsForFixes(
+            Document document, ImmutableArray<AddImportFixData> fixes, 
+            IPackageInstallerService installerService, int maxResults);
     }
 }

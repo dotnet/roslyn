@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 
@@ -43,20 +43,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var project = document.Project;
-            var compilation = await project.GetCompilationAsync(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            if (semanticModel is null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
 
-            // Ensure that diagnostics for this document are always in document location
-            // order.  This provides a consistent and deterministic order for fixers
-            // that want to update a document.
-            var diagnostics = compilation.GetDiagnostics(cancellationToken)
-                .Where(diagnostic => FixableDiagnosticIds.Contains(diagnostic.Id)
-                    && diagnostic.Location.SourceTree.FilePath == document.FilePath
-                    && diagnostic.Location.SourceSpan.IntersectsWith(textSpan))
-                .ToImmutableArray()
-                .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
-
-            return diagnostics;
+            return semanticModel.GetDiagnostics(textSpan, cancellationToken)
+                .Where(diagnostic => FixableDiagnosticIds.Contains(diagnostic.Id))
+                .ToImmutableArray();
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -73,8 +68,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                     .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
                         symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
 
-            await Task.WhenAll(getFixesForDiagnosticsTasks).ConfigureAwait(false);
-
             var fixes = ArrayBuilder<AddImportFixData>.GetInstance();
             foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
             {
@@ -82,7 +75,11 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
                 foreach (var fixesForDiagnostic in fixesForDiagnostics)
                 {
-                    // If there is more than one fix, then we will leave it for the user to manually apply.
+                    // When there is more than one potential fix for a missing import diagnostic,
+                    // which is possible when the same class name is present in mutliple namespaces,
+                    // we do not want to choose for the user and be wrong. We will not attempt to
+                    // fix this diagnostic and instead leave it for the user to resolve since they
+                    // will have more context for determining the proper fix.
                     if (fixesForDiagnostic.Fixes.Length == 1)
                     {
                         fixes.Add(fixesForDiagnostic.Fixes[0]);
@@ -101,14 +98,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             var solution = document.Project.Solution;
+            var progressTracker = new ProgressTracker();
+            var textDiffingService = solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
             var packageInstallerService = solution.Workspace.Services.GetService<IPackageInstallerService>();
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             // Do not limit the results since we plan to fix all the reported issues.
-            var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, limitResults: false);
-            var getChangesTasks = codeActions.Select(action => GetChangesForCodeActionAsync(document, action, cancellationToken));
-
-            await Task.WhenAll(getChangesTasks).ConfigureAwait(false);
+            var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, int.MaxValue);
+            var getChangesTasks = codeActions.Select(
+                action => GetChangesForCodeActionAsync(document, action, progressTracker, textDiffingService, cancellationToken));
 
             // Using Sets allows us to accumulate only the distinct changes.
             var allTextChanges = new HashSet<TextChange>();
@@ -126,22 +124,33 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Apply changes to both the project and document.
-            var newProject = document.Project.AddMetadataReferences(allAddedMetaDataReferences);
+            var newProject = document.Project;
+            newProject = newProject.AddMetadataReferences(allAddedMetaDataReferences);
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
+            // Although it doesn't affect the location the changes are inserted at,
+            // new imports should be alphabetized.
+            var orderedTextChanges = allTextChanges.OrderBy(change => change.NewText);
             var text = await document.GetTextAsync(cancellationToken);
-            var newText = text.WithChanges(allTextChanges);
+            var newText = text.WithChanges(orderedTextChanges);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
             return newDocument;
         }
 
-        private async Task<(ProjectChanges projectChanges, IEnumerable<TextChange> textChanges)> GetChangesForCodeActionAsync(Document document, CodeAction codeAction, CancellationToken cancellationToken)
+        private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
+            Document document, 
+            CodeAction codeAction,
+            ProgressTracker progressTracker,
+            IDocumentTextDifferencingService textDiffingService,
+            CancellationToken cancellationToken)
         {
-            var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+            var newSolution = await codeAction.GetChangedSolutionAsync(
+                progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
             var newDocument = newSolution.GetDocument(document.Id);
 
-            var textChanges = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var textChanges = await textDiffingService.GetTextChangesAsync(
+                document, newDocument, cancellationToken).ConfigureAwait(false);
             var projectChanges = newDocument.Project.GetChanges(document.Project);
 
             return (projectChanges, textChanges);

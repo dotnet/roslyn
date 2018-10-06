@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
 #pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
+        private const int MaxResults = 3;
+
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
 
@@ -51,13 +53,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ? installerService.PackageSources
                 : ImmutableArray<PackageSource>.Empty;
 
-            var fixesForDiagnostic = await addImportService
-                .GetFixesForDiagnosticsAsync(document, span, diagnostics, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+            var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
+                document, span, diagnostics, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {
                 // Limit the results returned since this will be displayed to the user
-                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, installerService, limitResults: true);
+                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, installerService, MaxResults);
                 context.RegisterFixes(codeActions, diagnostic);
             }
         }

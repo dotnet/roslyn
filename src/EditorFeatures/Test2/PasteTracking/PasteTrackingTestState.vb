@@ -93,25 +93,27 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
         ''' <summary>
         ''' Optionally pass in a TextSpan to assert it is equal to the pasted text span 
         ''' </summary>
-        Public Sub AssertHasPastedTextSpan(hostDocument As TestHostDocument, Optional textSpan As TextSpan = Nothing)
+        Public Async Function AssertHasPastedTextSpanAsync(hostDocument As TestHostDocument, Optional textSpan As TextSpan = Nothing) As Task
             Dim document = Workspace.CurrentSolution.GetDocument(hostDocument.Id)
+            Dim sourceText = Await document.GetTextAsync()
 
             Dim pastedTextSpan As TextSpan
-            Assert.True(PasteTrackingService.TryGetPastedTextSpan(document, pastedTextSpan))
+            Assert.True(PasteTrackingService.TryGetPastedTextSpan(sourceText.Container, pastedTextSpan))
 
             If (textSpan.IsEmpty) Then
                 Return
             End If
 
             Assert.Equal(textSpan, pastedTextSpan)
-        End Sub
+        End Function
 
-        Public Sub AssertMissingPastedTextSpan(hostDocument As TestHostDocument)
+        Public Async Function AssertMissingPastedTextSpanAsync(hostDocument As TestHostDocument) As Task
             Dim document = Workspace.CurrentSolution.GetDocument(hostDocument.Id)
+            Dim sourceText = Await document.GetTextAsync()
 
             Dim textSpan As TextSpan
-            Assert.False(PasteTrackingService.TryGetPastedTextSpan(document, textSpan))
-        End Sub
+            Assert.False(PasteTrackingService.TryGetPastedTextSpan(sourceText.Container, textSpan))
+        End Function
 
         Private Sub Dispose() Implements IDisposable.Dispose
             Workspace.Dispose()

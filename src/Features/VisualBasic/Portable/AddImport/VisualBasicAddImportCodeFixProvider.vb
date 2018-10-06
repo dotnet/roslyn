@@ -108,10 +108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             MyBase.New(installerService, searchService)
         End Sub
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
-            Get
-                Return AddImportDiagnosticIds.FixableDiagnosticIds
-            End Get
-        End Property
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = AddImportDiagnosticIds.FixableDiagnosticIds
     End Class
 End Namespace

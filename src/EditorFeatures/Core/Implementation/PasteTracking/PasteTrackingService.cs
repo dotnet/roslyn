@@ -21,9 +21,10 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             _threadingContext = threadingContext;
         }
 
-        public bool TryGetPastedTextSpan(Document document, out TextSpan textSpan)
+        public bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan)
         {
-            if (!TryGetTextBuffer(document, out var textBuffer))
+            var textBuffer = sourceTextContainer.TryGetTextBuffer();
+            if (textBuffer is null)
             {
                 textSpan = default;
                 return false;
@@ -37,8 +38,14 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
-            textBuffer.Changed += RemovePastedTextSpan;
+            // Use the TextBuffer properties to store the pasted text span. 
+            // The `PropertiesCollection` is thread-safe and will be cleared
+            // when all TextViews that share this buffer are closed.
+            // Any change to the TextBuffer will remove the pasted text span.
+            // This includes consecutive paste operations which will fire the
+            // Changed event prior to the handler registering a new text span.
             textBuffer.Properties.AddProperty(_pastedTextSpanKey, textSpan);
+            textBuffer.Changed += RemovePastedTextSpan;
 
             return;
 

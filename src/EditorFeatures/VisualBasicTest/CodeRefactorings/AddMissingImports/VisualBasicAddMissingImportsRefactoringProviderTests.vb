@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.PasteTracking
@@ -31,6 +32,17 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
             End If
 
             Return Workspace
+        End Function
+
+        Private Overloads Function TestInRegularAndScriptAsync(
+            initialMarkup As String, expectedMarkup As String,
+            placeSystemNamespaceFirst As Boolean, separateImportDirectiveGroups As Boolean) As Task
+
+            Dim options = OptionsSet(
+                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
+                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups))
+
+            Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options:=options)
         End Function
 
         <WpfFact>
@@ -79,7 +91,7 @@ End Namespace
         End Function
 
         <WpfFact>
-        Public Async Function AddMissingImports_AddImports_PasteContainsMultipleMissingImports() As Task
+        Public Async Function AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports() As Task
             Dim code = "
 Imports System
 
@@ -120,7 +132,101 @@ Namespace B
 End Namespace
 "
 
-            Await TestInRegularAndScriptAsync(code, expected)
+            Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=True, separateImportDirectiveGroups:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function AddMissingImports_AddImportsAboveSystem_DontPlaceSystemFirstPasteContainsMultipleMissingImports() As Task
+            Dim code = "
+Imports System
+
+Class C
+    [|Dim foo As D
+    Dim bar As E|]
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Dim expected = "
+Imports A
+Imports B
+Imports System
+
+Class C
+    Dim foo As D
+    Dim bar As E
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
+        End Function
+
+        <WpfFact>
+        Public Async Function AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports() As Task '
+            ' The current fixes for AddImport diagnostics do not consider whether imports should be grouped.
+            ' This test documents this behavior and is a reminder that when the behavior changes 
+            ' AddMissingImports is also affected and should be considered.
+
+            Dim code = "
+Imports System
+
+Class C
+    [|Dim foo As D
+    Dim bar As E|]
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Dim expected = "
+Imports A
+Imports B
+Imports System
+
+Class C
+    Dim foo As D
+    Dim bar As E
+End Class
+
+Namespace A
+    Public Class D
+    End Class
+End Namespace
+
+Namespace B
+    Public Class E
+    End Class
+End Namespace
+"
+
+            Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=True)
         End Function
 
         <WpfFact>

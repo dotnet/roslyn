@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.PasteTracking
 {
     internal interface IPasteTrackingService
     {
-        bool TryGetPastedTextSpan(Document document, out TextSpan textSpan);
+        bool TryGetPastedTextSpan(SourceTextContainer sourceTextContainer, out TextSpan textSpan);
     }
 }

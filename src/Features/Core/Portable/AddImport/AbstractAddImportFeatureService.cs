@@ -497,7 +497,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             return fixesForDiagnosticBuilder.ToImmutableAndFree();
         }
 
-        public ImmutableArray<CodeAction> GetCodeActionsForFixes(Document document, ImmutableArray<AddImportFixData> fixes, IPackageInstallerService installerService, bool limitResults)
+        public ImmutableArray<CodeAction> GetCodeActionsForFixes(
+            Document document, ImmutableArray<AddImportFixData> fixes, 
+            IPackageInstallerService installerService, int maxResults)
         {
             var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -507,7 +509,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 codeActionsBuilder.AddIfNotNull(codeAction);
 
-                if (limitResults && codeActionsBuilder.Count >= MaxResults)
+                if (codeActionsBuilder.Count >= maxResults)
                 {
                     break;
                 }
