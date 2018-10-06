@@ -8,56 +8,44 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-    Friend Class TryBlockStructureProvider
-        Inherits InternalStructureBlockStructureProvider(Of TryBlockSyntax, TryStatementSyntax, CatchBlockSyntax, FinallyBlockSyntax, EndBlockStatementSyntax)
 
-        Sub New()
-            MyBase.New()
-        End Sub
+    Friend NotInheritable Class TryBlockStructureProvider
+        Inherits InternalStructureBlockStructureProvider(Of
+            TryBlockSyntax,
+            TryStatementSyntax,
+            CatchBlockSyntax,
+            FinallyBlockSyntax,
+            FinallyStatementSyntax,
+            EndBlockStatementSyntax)
 
-        Friend Overrides Function FullStructuralBlockOutlining(block As TryBlockSyntax) As BlockSpan?
-            Return MyBase.FullStructuralBlockOutlining(block, block.TryStatement)
+        Friend Overrides Function HeaderOfFullBlock(tryBlock As TryBlockSyntax) As TryStatementSyntax
+            Return tryBlock.TryStatement
         End Function
 
-        Friend Overrides Function GetBannerTextOfFullStructuralBlock(block As TryBlockSyntax) As TryStatementSyntax
-            Return block.TryStatement
+        Friend Overrides Function GetInnerBlocks(tryBlock As TryBlockSyntax) As SyntaxList(Of CatchBlockSyntax)
+            Return tryBlock.CatchBlocks
         End Function
 
-        Friend Overrides Function GetPreambleOutlining(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
-            Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetPreambleOutlining(block))
-        End Function
-
-        Friend Overrides Function GetFirstStatementOfPreamble(block As TryBlockSyntax) As SyntaxNode
-            Return If(block.Statements.Count > 0, block.Statements(0), Nothing)
-        End Function
-
-        Friend Overrides Function GetInternalStructuralBlocks(block As TryBlockSyntax) As SyntaxList(Of CatchBlockSyntax)
-            Return block.CatchBlocks
-        End Function
-
-        Friend Overrides Function GetBannerTextOfInternalStructuralBlock(InnerBlock As CatchBlockSyntax) As String
-            Return If(InnerBlock IsNot Nothing,
-                      If(InnerBlock.CatchStatement IsNot Nothing, InnerBlock.CatchStatement.ToString, String.Empty),
+        Friend Overrides Function InnerBlock_Text(catchBlock As CatchBlockSyntax) As String
+            Return If(catchBlock IsNot Nothing,
+                      If(catchBlock.CatchStatement IsNot Nothing, catchBlock.CatchStatement.ToString, String.Empty),
                       String.Empty)
         End Function
 
-        Friend Overrides Function GetEpilogueBlockOutlining(block As TryBlockSyntax, cancellationToken As Threading.CancellationToken) As BlockSpan?
-            With block
-                If (block Is Nothing) OrElse
-                   (.FinallyBlock Is Nothing OrElse .FinallyBlock.IsMissing) OrElse
-                   (.EndTryStatement Is Nothing OrElse .EndTryStatement.IsMissing) Then
-                    Return Nothing
-                End If
-                Return GetBlockSpan(.FinallyBlock, .FinallyBlock.FinallyStatement, .EndTryStatement, .FinallyBlock.FinallyStatement.FinallyKeyword.Text, IgnoreHeader:=False)
-            End With
+        Friend Overrides Function Epilogue_Statement(epilogueNode As FinallyBlockSyntax) As FinallyStatementSyntax
+            Return epilogueNode.FinallyStatement
         End Function
 
-        Friend Overrides Function GetEpilogueBlock(block As TryBlockSyntax) As FinallyBlockSyntax
-            Return block.FinallyBlock
+        Friend Overrides Function Epilogue_Text(epilogueNode As FinallyStatementSyntax) As String
+            Return epilogueNode.FinallyKeyword.Text
         End Function
 
-        Friend Overrides Function GetEnd_XXX_Statement(block As TryBlockSyntax) As EndBlockStatementSyntax
-            Return block.EndTryStatement
+        Friend Overrides Function Epilogue(tryBlock As TryBlockSyntax) As FinallyBlockSyntax
+            Return tryBlock.FinallyBlock
+        End Function
+
+        Friend Overrides Function EndOfBlockStatement(tryBlock As TryBlockSyntax) As EndBlockStatementSyntax
+            Return tryBlock.EndTryStatement
         End Function
     End Class
 End Namespace

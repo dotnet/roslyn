@@ -8,54 +8,41 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-    Friend Class MultiLineIfBlockStructureProvider
-        Inherits InternalStructureBlockStructureProvider(Of MultiLineIfBlockSyntax, IfStatementSyntax, ElseIfBlockSyntax, ElseBlockSyntax, EndBlockStatementSyntax)
+    Friend NotInheritable Class MultiLineIfBlockStructureProvider
+        Inherits InternalStructureBlockStructureProvider(Of
+            MultiLineIfBlockSyntax,
+            IfStatementSyntax,
+            ElseIfBlockSyntax,
+            ElseBlockSyntax,
+            ElseStatementSyntax,
+            EndBlockStatementSyntax)
 
-        Sub New()
-            MyBase.New()
-        End Sub
-
-        Friend Overrides Function FullStructuralBlockOutlining(block As MultiLineIfBlockSyntax) As BlockSpan?
-            Return MyBase.FullStructuralBlockOutlining(block, block.IfStatement)
+        Friend Overrides Function HeaderOfFullBlock(ifBlock As MultiLineIfBlockSyntax) As IfStatementSyntax
+            Return ifBlock.IfStatement
         End Function
 
-        Friend Overrides Function GetBannerTextOfFullStructuralBlock(block As MultiLineIfBlockSyntax) As IfStatementSyntax
-            Return block.IfStatement
+        Friend Overrides Function GetInnerBlocks(ifBlock As MultiLineIfBlockSyntax) As SyntaxList(Of ElseIfBlockSyntax)
+            Return ifBlock.ElseIfBlocks
         End Function
 
-        Friend Overrides Function GetPreambleOutlining(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
-            Return If(block Is Nothing OrElse block.IsMissing, Nothing, GetPreambleOutlining(block))
+        Friend Overrides Function InnerBlock_Text([ElseIf] As ElseIfBlockSyntax) As String
+            Return [ElseIf].ElseIfStatement.ToString
         End Function
 
-        Friend Overrides Function GetFirstStatementOfPreamble(block As MultiLineIfBlockSyntax) As SyntaxNode
-            Return If(block.Statements.Count > 0, block.Statements(0), Nothing)
+        Friend Overrides Function Epilogue(ifBlock As MultiLineIfBlockSyntax) As ElseBlockSyntax
+            Return ifBlock.ElseBlock
         End Function
 
-        Friend Overrides Function GetInternalStructuralBlocks(block As MultiLineIfBlockSyntax) As SyntaxList(Of ElseIfBlockSyntax)
-            Return block.ElseIfBlocks
+        Friend Overrides Function Epilogue_Text(epilogueNode As ElseStatementSyntax) As String
+            Return epilogueNode.ElseKeyword.Text
         End Function
 
-        Friend Overrides Function GetBannerTextOfInternalStructuralBlock(InnerBlock As ElseIfBlockSyntax) As String
-            Return InnerBlock.ElseIfStatement.ToString
+        Friend Overrides Function Epilogue_Statement(epilogueNode As ElseBlockSyntax) As ElseStatementSyntax
+            Return epilogueNode.ElseStatement
         End Function
 
-        Friend Overrides Function GetEpilogueBlockOutlining(block As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As BlockSpan?
-            With block
-                If (block Is Nothing) OrElse
-                   (.ElseBlock Is Nothing OrElse .ElseBlock.IsMissing) OrElse
-                   (.EndIfStatement Is Nothing OrElse .EndIfStatement.IsMissing) Then
-                    Return Nothing
-                End If
-                Return GetBlockSpan(.ElseBlock, .ElseBlock.ElseStatement, .EndIfStatement, .ElseBlock.ElseStatement.ElseKeyword.Text, IgnoreHeader:=False)
-            End With
-        End Function
-
-        Friend Overrides Function GetEpilogueBlock(block As MultiLineIfBlockSyntax) As ElseBlockSyntax
-            Return block.ElseBlock
-        End Function
-
-        Friend Overrides Function GetEnd_XXX_Statement(block As MultiLineIfBlockSyntax) As EndBlockStatementSyntax
-            Return block.EndIfStatement
+        Friend Overrides Function EndOfBlockStatement(ifBlock As MultiLineIfBlockSyntax) As EndBlockStatementSyntax
+            Return ifBlock.EndIfStatement
         End Function
     End Class
 End Namespace
