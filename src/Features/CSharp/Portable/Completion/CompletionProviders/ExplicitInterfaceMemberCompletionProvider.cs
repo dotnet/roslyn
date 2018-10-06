@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var members = symbol.GetMembers();
+                var members = symbol.GetMembers().WhereAsArray(m => !IsPropertyGetOrSetMethod(m));
 
                 // We're going to create a entry for each one, including the signature
                 var namePosition = name.SpanStart;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
-                    if (IsPropertyGetOrSetMethod(member)) continue;
+                    //if (IsPropertyGetOrSetMethod(member)) continue;
 
                     var displayText = member.ToMinimalDisplayString(
                         semanticModel, namePosition, s_signatureDisplayFormat);
