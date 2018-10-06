@@ -1272,6 +1272,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Kind.
+        /// </summary>
+        internal static string Kind {
+            get {
+                return ResourceManager.GetString("Kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Kind:.
         /// </summary>
         internal static string Kind_colon {
@@ -1782,6 +1791,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_colon {
             get {
                 return ResourceManager.GetString("Prefer_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer compound assignments.
+        /// </summary>
+        internal static string Prefer_compound_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_compound_assignments", resourceCulture);
             }
         }
         

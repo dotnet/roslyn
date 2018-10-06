@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Check if the underlying member is neither read nor a readable reference to the member is taken.
                         // If so, we flag the member as either unused (never written) or unread (written but not read).
                         if (TryRemove(member, out var valueUsageInfo) &&
-                            !valueUsageInfo.ContainsReadOrReadableRef())
+                            !valueUsageInfo.IsReadFrom())
                         {
                             Debug.Assert(IsCandidateSymbol(member));
                             Debug.Assert(!member.IsImplicitlyDeclared);
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             }
 
                             // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
-                            var rule = !valueUsageInfo.ContainsWriteOrWritableRef() && !valueUsageInfo.ContainsNonReadWriteRef() && !symbolsReferencedInDocComments.Contains(member)
+                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
                                 ? s_removeUnusedMembersRule
                                 : s_removeUnreadMembersRule;
 

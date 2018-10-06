@@ -62,6 +62,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
+        internal void UsingDeclaration(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseMemberDeclaration(text);
+            // we validate the text roundtrips
+            Assert.Equal(text, node.ToFullString());
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
+        }
+
+        internal void UsingDeclaration(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseMemberDeclaration(text, offset, options, consumeFullText);
+            if (consumeFullText)
+            {
+                // we validate the text roundtrips
+                Assert.Equal(text, node.ToFullString());
+            }
+
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
+        }
+
         internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseExpression(text, options: options);

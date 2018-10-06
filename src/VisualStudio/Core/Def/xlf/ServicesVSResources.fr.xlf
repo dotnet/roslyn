@@ -37,6 +37,11 @@
         <target state="translated">Conserver toutes les parenthèses dans :</target>
         <note />
       </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Jamais si ce n'est pas nécessaire</target>
@@ -45,6 +50,11 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="translated">Préférences relatives aux parenthèses :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_compound_assignments">
+        <source>Prefer compound assignments</source>
+        <target state="new">Prefer compound assignments</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
