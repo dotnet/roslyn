@@ -274,5 +274,45 @@ internal static class C
 #endif
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEnd1()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] public class C { }",
+@"public partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEnd2()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] abstract class C { }",
+@"abstract partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEnd3()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] sealed class C { }",
+@"sealed partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEnd4()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] static class C { }",
+@"static partial class C { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task PartialAtTheEnd5()
+        {
+            await TestInRegularAndScript1Async(
+@"[|partial|] unsafe class C { }",
+@"unsafe partial class C { }");
+        }
     }
 }

@@ -33,8 +33,10 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             _helpers = helpers;
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId);
+        protected abstract ImmutableArray<string> FixableCompilerErrorIds { get; }
+
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+            => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
