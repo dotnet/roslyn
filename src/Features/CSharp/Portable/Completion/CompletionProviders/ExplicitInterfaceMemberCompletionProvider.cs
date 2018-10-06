@@ -92,8 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
-                    //if (IsPropertyGetOrSetMethod(member)) continue;
-
                     var displayText = member.ToMinimalDisplayString(
                         semanticModel, namePosition, s_signatureDisplayFormat);
                     var insertionText = displayText;
