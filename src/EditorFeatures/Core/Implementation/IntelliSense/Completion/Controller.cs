@@ -252,30 +252,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private const int MaxMRUSize = 10;
-        private ImmutableList<string> _recentItems = ImmutableList<string>.Empty;
+        private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
 
         public string DisplayName => EditorFeaturesResources.Code_Completion;
 
         public void MakeMostRecentItem(string item)
         {
-            ImmutableInterlocked.Update(ref _recentItems, (oldItems) => {
+            bool updated = false;
+
+            while (!updated)
+            {
+                var oldItems = _recentItems;
+
                 // We need to remove the item if it's already in the list.
                 var newItems = oldItems.Remove(item);
 
                 // If we're at capacity, we need to remove the least recent item.
-                if (newItems.Count == MaxMRUSize)
+                if (newItems.Length == MaxMRUSize)
                 {
                     newItems = newItems.RemoveAt(0);
                 }
 
                 newItems = newItems.Add(item);
-                return newItems;
-            });
+
+                updated = ImmutableInterlocked.InterlockedCompareExchange(ref _recentItems, newItems, oldItems) == oldItems;
+            }
         }
 
         public ImmutableArray<string> GetRecentItems()
         {
-            return _recentItems.ToImmutableArray();
+            return _recentItems;
         }
     }
 }

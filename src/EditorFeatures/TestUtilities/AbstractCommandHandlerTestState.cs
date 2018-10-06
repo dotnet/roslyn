@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         #endregion
 
         #region editor related operation
-        public void SendBackspace()
+        public virtual void SendBackspace()
         {
             EditorOperations.Backspace();
         }
 
-        public void SendDelete()
+        public virtual void SendDelete()
         {
             EditorOperations.Delete();
         }

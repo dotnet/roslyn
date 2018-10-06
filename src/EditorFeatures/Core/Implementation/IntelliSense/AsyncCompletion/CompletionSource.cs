@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -17,10 +16,8 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
-using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
@@ -50,12 +47,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
+            if (!Helpers.TryGetRoslynTrigger(trigger, triggerLocation, out var roslynTrigger))
+            {
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+            }
+
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
             // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
             if (trigger.Reason != AsyncCompletionData.CompletionTriggerReason.Invoke &&
                 trigger.Reason != AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique && 
-                !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, GetRoslynTrigger(trigger, triggerLocation)))
+                !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
             {
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
@@ -80,10 +82,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var completionService = document.GetLanguageService<CompletionService>();
 
+            if (!Helpers.TryGetRoslynTrigger(trigger, triggerLocation, out var roslynTrigger))
+            {
+                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
+            }
+
             var completionList = await completionService.GetCompletionsAsync(
                 document,
                 triggerLocation,
-                GetRoslynTrigger(trigger, triggerLocation)).ConfigureAwait(false);
+                roslynTrigger).ConfigureAwait(false);
 
             if (completionList == null)
             {
@@ -139,42 +146,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             var service = document.GetLanguageService<CompletionService>();
+
+            if (service== null)
+            {
+                return null;
+            }
+
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
-        }
-
-        private static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
-        {
-            switch (trigger.Reason)
-            {
-                case AsyncCompletionData.CompletionTriggerReason.Invoke:
-                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return RoslynTrigger.Invoke;
-                case AsyncCompletionData.CompletionTriggerReason.Insertion:
-                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
-                case AsyncCompletionData.CompletionTriggerReason.Deletion:
-                    return RoslynTrigger.CreateDeletionTrigger(trigger.Character);
-                case AsyncCompletionData.CompletionTriggerReason.Backspace:
-                    var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
-                    char characterRemoved;
-                    if (triggerLocation.Position >= 0 && triggerLocation.Position < snapshotBeforeEdit.Length)
-                    {
-                        // If multiple characters were removed (selection), this finds the first character from the left. 
-                        characterRemoved = snapshotBeforeEdit[triggerLocation.Position];
-                    }
-                    else
-                    {
-                        characterRemoved = (char)0;
-                    }
-
-                    return RoslynTrigger.CreateDeletionTrigger(characterRemoved);
-                case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
-                    return new RoslynTrigger(CompletionTriggerKind.Snippets);
-            }
-
-            FatalError.ReportWithoutCrash(ExceptionUtilities.UnexpectedValue(trigger.Reason));
-            return RoslynTrigger.Invoke;
         }
 
         private VSCompletionItem Convert(
@@ -187,7 +167,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var filters = GetFilters(roslynItem, filterCache);
             
             // roslynItem generated by providers can contain an insertionText in a property bag.
-            // Try using it first.
+            // We will not use it but other providers may need it.
+            // We actually will calculate the insertion text once again when called TryCommit.
             if (!roslynItem.Properties.TryGetValue(InsertionText, out var insertionText))
             {
                 insertionText = roslynItem.DisplayText;

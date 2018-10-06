@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var filterTextStartsWithANumber = filterText.Length > 0 && char.IsNumber(filterText[0]);
                 if (filterTextStartsWithANumber)
                 {
-                    if (!IsAfterDot(model, model.TriggerSnapshot, textSpanToText))
+                    if (!IsAfterDot(model))
                     {
                         return null;
                     }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return filterState;
             }
 
-            private bool IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
+            private bool IsAfterDot(Model model)
             {
                 var originalSpan = model.OriginalList.Span;
 
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             /// Given multiple possible chosen completion items, pick the one that has the
             /// best MRU index.
             /// </summary>
-            private CompletionItem GetBestCompletionItemBasedOnMRU(
+            internal static CompletionItem GetBestCompletionItemBasedOnMRU(
                 ImmutableArray<CompletionItem> chosenItems, ImmutableArray<string> recentItems)
             {
                 if (chosenItems.Length == 0)
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            private bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
+            internal static bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
             {
                 var item1 = result1.CompletionItem;
                 var item2 = result2.CompletionItem;
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            private static bool MatchesFilterText(
+            internal static bool MatchesFilterText(
                 CompletionHelper helper, CompletionItem item,
                 string filterText, CompletionTrigger trigger,
                 CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
@@ -515,14 +515,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return true;
             }
 
-            private bool IsHardSelection(
+            private  bool IsHardSelection(
                 Model model,
                 CompletionItem bestFilterMatch,
                 SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
                 CompletionFilterReason reason)
             {
-                if (bestFilterMatch == null || model.UseSuggestionMode)
+                var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
+                var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, caretPosition.Snapshot, endPoint: null);
+                return IsHardSelection(itemViewSpan.TextSpan, fullFilterText, model.Trigger, bestFilterMatch, caretPosition, completionHelper, reason, this.Controller.GetRecentItems(), model.UseSuggestionMode);
+            }
+
+            internal static bool IsHardSelection(
+                TextSpan textSpan,
+                string fullFilterText,
+                CompletionTrigger trigger,
+                CompletionItem bestFilterMatch,
+                SnapshotPoint caretPosition,
+                CompletionHelper completionHelper,
+                CompletionFilterReason reason,
+                ImmutableArray<string> recentItems,
+                bool useSuggestionMode)
+            {
+                if (bestFilterMatch == null || useSuggestionMode)
                 {
                     return false;
                 }
@@ -540,10 +556,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 //
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
-                var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
-                var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, textSnapshot, endPoint: null);
 
-                var trigger = model.Trigger;
                 var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
@@ -552,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, recentItems))
                 {
                     return false;
                 }
@@ -564,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want the filter span non-empty because we still want hard selection in the following case:
                 //
                 //  A a = new |
-                if (caretPosition == itemViewSpan.TextSpan.Start && itemViewSpan.TextSpan.Length > 0)
+                if (caretPosition == textSpan.Start && textSpan.Length > 0)
                 {
                     return false;
                 }

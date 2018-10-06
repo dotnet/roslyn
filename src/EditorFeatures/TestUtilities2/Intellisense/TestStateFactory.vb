@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                      Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                     Optional includeFormatCommandHandler As Boolean = False) As ITestState
+                                                     Optional includeFormatCommandHandler As Boolean = False) As TestStateBase
             Select Case completionImplementation
                 Case CompletionImplementation.Legacy
                     Return TestState.CreateCSharpTestState(documentElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler)
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Shared Function CreateVisualBasicTestState(completionImplementation As CompletionImplementation,
                                                            documentElement As XElement,
                                                            Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                                                           Optional extraExportedTypes As List(Of Type) = Nothing) As ITestState
+                                                           Optional extraExportedTypes As List(Of Type) = Nothing) As TestStateBase
             Select Case completionImplementation
                 Case CompletionImplementation.Legacy
                     Return TestState.CreateVisualBasicTestState(documentElement, extraCompletionProviders, extraExportedTypes)
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                             workspaceElement As XElement,
                                                             Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                             Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                            Optional workspaceKind As String = Nothing) As ITestState
+                                                            Optional workspaceKind As String = Nothing) As TestStateBase
             Select Case completionImplementation
                 Case CompletionImplementation.Legacy
                     Return TestState.CreateTestStateFromWorkspace(workspaceElement, extraCompletionProviders, extraExportedTypes, workspaceKind)

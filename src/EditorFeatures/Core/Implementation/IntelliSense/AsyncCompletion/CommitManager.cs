@@ -58,7 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return CommitResultUnhandled;
             }
 
-            var completionService = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
+            if (!(document.GetLanguageService<CompletionService>() is CompletionServiceWithProviders completionService))
+            {
+                return CommitResultUnhandled;
+            }
+
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionSource.RoslynItem, out var roslynItem))
             {
                 // This isn't an item we provided (e.g. Razor). Let the editor handle it normally.

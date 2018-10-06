@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         internal partial class Session
         {
-            private struct FilterResult
+            internal struct FilterResult
             {
                 public readonly CompletionItem CompletionItem;
                 public readonly bool MatchedFilterText;
