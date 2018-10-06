@@ -1221,7 +1221,7 @@ public class B
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
 
-                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Dim descriptorsMap = diagnosticService.CreateDiagnosticDescriptorsPerReference(project)
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
