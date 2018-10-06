@@ -137,7 +137,9 @@ class Bar : I2
             var markup = @"
 interface i1
 {
-    public int Prop { get; set;}
+    int Prop { get; set;}
+
+    int TestMethod(); 
 }
 
 public class MyClass : i1
