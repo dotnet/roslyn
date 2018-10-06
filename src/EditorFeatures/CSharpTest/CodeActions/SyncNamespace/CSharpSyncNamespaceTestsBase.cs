@@ -1,16 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;                
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
 {
@@ -46,10 +49,150 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             }
             else
             {
-                var folderPath = string.Join(PathUtilities.DirectorySeparatorStr, folder);
+                var folderPath = CreateFolderPath(folder);
                 var relativePath = PathUtilities.CombinePossiblyRelativeAndRelativePaths(folderPath, fileName);
                 return (folderPath, PathUtilities.CombineAbsoluteAndRelativePaths(ProjectRootPath, relativePath));
             }
-        }        
+        }
+
+        protected string CreateFolderPath(params string[] folders)
+        {
+            return string.Join(PathUtilities.DirectorySeparatorStr, folders);
+        }
+
+        protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
+        {
+            var testOptions = new TestParameters();
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
+            {
+                if (expectedFolders?.Count > 0)
+                {
+                    var expectedFolderPaths = expectedFolders.Select(f => string.Join(PathUtilities.DirectorySeparatorStr, f));
+
+                    var oldDocument = workspace.Documents[0];
+                    var oldDocumentId = oldDocument.Id;
+                    var expectedText = workspace.Documents[0].TextBuffer.CurrentSnapshot.GetText();
+
+
+                    // a new document with the same text as old document is added.
+                    var allResults = await TestOperationAsync(testOptions, workspace, expectedText);
+
+                    var actualFolderPaths = new HashSet<string>();
+                    foreach (var result in allResults)
+                    {
+                        // the original source document does not exist in the new solution.
+                        var oldSolution = result.Item1;
+                        var newSolution = result.Item2;
+
+                        Assert.Null(newSolution.GetDocument(oldDocumentId));
+
+                        var newDocument = GetDocumentToVerify(expectedChangedDocumentId: null, oldSolution, newSolution);
+                        actualFolderPaths.Add(string.Join(PathUtilities.DirectorySeparatorStr, newDocument.Folders));
+                    }
+
+                    Assert.True(expectedFolderPaths.Count() == actualFolderPaths.Count, "Number of available \"Move file\" actions are not equal.");
+                    foreach (var expected in expectedFolderPaths)
+                    {
+                        Assert.True(actualFolderPaths.Contains(expected));
+                    }
+                }
+                else
+                {
+                    var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
+                    if (actions.Length > 0)
+                    {
+                        var renameFileAction = actions.Any(action => action is CSharpSyncNamespaceCodeRefactoringProvider.MoveFileCodeAction);
+                        Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
+                    }
+                }
+            }
+
+            async Task<List<Tuple<Solution, Solution>>> TestOperationAsync(
+                TestParameters parameters,
+                TestWorkspace workspace,
+                string expectedCode)
+            {
+                var results = new List<Tuple<Solution, Solution>>();
+
+                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+                var moveFileActions = actions.Where(a => a is CSharpSyncNamespaceCodeRefactoringProvider.MoveFileCodeAction);
+
+                foreach (var action in moveFileActions)
+                {
+                    var operations = await action.GetOperationsAsync(CancellationToken.None);
+
+                    results.Add(
+                        await TestOperationsAsync(workspace,
+                        expectedText: expectedCode,
+                        operations: operations,
+                        conflictSpans: ImmutableArray<TextSpan>.Empty,
+                        renameSpans: ImmutableArray<TextSpan>.Empty,
+                        warningSpans: ImmutableArray<TextSpan>.Empty,
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
+                        expectedChangedDocumentId: null));
+                }
+                return results;
+            }
+        }
+
+        protected async Task TestChangeNamespaceAsync(
+            string initialMarkUp,
+            string expectedSourceOriginal,
+            string expectedSourceReference = null)
+        {
+            var testOptions = new TestParameters();
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkUp, testOptions))
+            {
+                if (expectedSourceOriginal != null)
+                {
+                    Assert.True(workspace.Documents.Count == 1 || 
+                        workspace.Documents.Count == 2 && expectedSourceReference != null);
+
+                    var originalDocument = workspace.Documents.Single(doc => !doc.SelectedSpans.IsEmpty());
+                    var originalDocumentId = originalDocument.Id;
+
+                    var refDocument = workspace.Documents.Where(doc => doc.Id != originalDocumentId).SingleOrDefault();
+                    var refDocumentId = refDocument?.Id;
+
+                    var oldAndNewSolution = await TestOperationAsync(testOptions, workspace);
+                    var oldSolution = oldAndNewSolution.Item1;
+                    var newSolution = oldAndNewSolution.Item2;
+
+                    var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
+
+                    Assert.True(changedDocumentIds.Contains(originalDocumentId), "original document was not changed.");
+                    Assert.True(expectedSourceReference == null || changedDocumentIds.Contains(refDocumentId), "reference document was not changed.");
+
+                    var modifiedOriginalDocument = newSolution.GetDocument(originalDocumentId);
+                    var text = await modifiedOriginalDocument.GetTextAsync();
+                    var fullstring = (await modifiedOriginalDocument.GetSyntaxRootAsync()).ToFullString();
+                    Assert.Equal(expectedSourceOriginal, (await modifiedOriginalDocument.GetTextAsync()).ToString());
+
+                    if (expectedSourceReference != null)
+                    {
+                        var modifiedRefDocument = newSolution.GetDocument(refDocumentId);
+                        Assert.Equal(expectedSourceReference, (await modifiedRefDocument.GetTextAsync()).ToString());
+                    }
+                }
+                else
+                {
+                    var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
+                    if (actions.Length > 0)
+                    {
+                        var hasChangeNamespaceAction = actions.Any(action => action is CSharpSyncNamespaceCodeRefactoringProvider.ChangeNamespaceCodeAction);
+                        Assert.False(hasChangeNamespaceAction, "Change namespace to match folder action was not expected, but shows up.");
+                    }
+                }
+            }
+            
+            async Task<Tuple<Solution, Solution>> TestOperationAsync(TestParameters parameters, TestWorkspace workspace)
+            {
+                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+                var changeNamespaceAction = actions.Single(a => a is CSharpSyncNamespaceCodeRefactoringProvider.ChangeNamespaceCodeAction);
+                var operations = await changeNamespaceAction.GetOperationsAsync(CancellationToken.None);
+
+                return ApplyOperationsAndGetSolution(workspace, operations);
+            }
+        }
     }
 }

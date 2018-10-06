@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {
-        private class ChangeNamespaceCodeAction : CodeAction
+        internal sealed class ChangeNamespaceCodeAction : CodeAction
         {
             private readonly State _state;
             private readonly TService _service;
 
-            public override string Title => $"Change namespace to \"{_state.TargetNamespace}\"";
+            public override string Title => string.Format(FeaturesResources.Change_namespace_to_0, _state.TargetNamespace);
 
             public ChangeNamespaceCodeAction(TService service, State state)
             {

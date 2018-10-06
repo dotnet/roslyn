@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return null;
             }
 
-            var folderContainers = folderAttribute.Value.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+            var folderContainers = folderAttribute.Value.Split(new[] { PathUtilities.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
             return new ReadOnlyCollection<string>(folderContainers.ToList());
         }
 

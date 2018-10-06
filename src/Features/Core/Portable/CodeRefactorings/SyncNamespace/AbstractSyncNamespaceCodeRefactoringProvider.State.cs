@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
     {
-        private class State
+        internal sealed class State
         {                                                                        
             private static readonly SymbolDisplayFormat s_qualifiedNameOnlyFormat = 
                 new SymbolDisplayFormat(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,

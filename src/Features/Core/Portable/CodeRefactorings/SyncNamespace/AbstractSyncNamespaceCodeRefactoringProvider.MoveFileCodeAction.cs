@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {
-        private class MoveFileCodeAction : CodeAction
+        internal sealed class MoveFileCodeAction : CodeAction
         {
             private readonly Document _document;
             private readonly ImmutableArray<string> _newfolders;
 
             public override string Title
                 => _newfolders.Length > 0 
-                ? string.Format(FeaturesResources.Move_file_to_0_folder, string.Join(".", _newfolders)) 
+                ? string.Format(FeaturesResources.Move_file_to_0_folder, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders)) 
                 : FeaturesResources.Move_file_to_project_root_folder;
 
 
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             /// <summary>
             /// We try to provide additional "move file" options if we can find existing folders that matches target namespace.
-            /// For example, if the target naemspace is 'DefaultNamesapce.A.B.C', and there's a folder 'ProjectRoot\A.B\' already exist, then will provide
-            /// two actions, "move file to ProjectRoot\A.B\C\" and "move file to ProjectRoot\A\B\C\".
+            /// For example, if the target namespace is 'DefaultNamesapce.A.B.C', and there's a folder 'ProjectRoot\A.B\' already exists, 
+            /// then will provide two actions, "move file to ProjectRoot\A.B\C\" and "move file to ProjectRoot\A\B\C\".
             /// </summary>
             private static ImmutableArray<ImmutableArray<string>> FindCandidateFolders(FolderInfo currentFolderInfo, ImmutableArray<string> parts, ImmutableArray<string> currentFolder)
             {
@@ -110,36 +110,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private class FolderInfo
             {
-                Dictionary<string, FolderInfo> _folders;
+                private Dictionary<string, FolderInfo> _folders;
 
                 public string Name { get; }
 
-                public FolderInfo Parent { get; }
-
                 public IReadOnlyDictionary<string, FolderInfo> Folders => _folders;
 
-                private FolderInfo(string name, FolderInfo parent)
+                private FolderInfo(string name)
                 {
                     Name = name;
-                    Parent = parent;
                     _folders = new Dictionary<string, FolderInfo>(StringComparer.Ordinal);
                 }
 
-                public void AddFolder(ImmutableArray<string> folder)
+                private void AddFolder(IEnumerable<string> folder)
                 {
-                    if (folder.IsDefaultOrEmpty)
+                    if (!folder.Any())
                     {
                         return;
                     }
 
-                    var firstFolder = folder[0];
+                    var firstFolder = folder.First();
                     if (!_folders.TryGetValue(firstFolder, out var firstFolderInfo))
                     {
-                        firstFolderInfo = new FolderInfo(firstFolder, this);
+                        firstFolderInfo = new FolderInfo(firstFolder);
                         _folders[firstFolder] = firstFolderInfo;
                     }
 
-                    firstFolderInfo.AddFolder(ImmutableArray.CreateRange(folder.Skip(1)));
+                    firstFolderInfo.AddFolder(folder.Skip(1));
                 }
 
                 // TODO: 
@@ -149,10 +146,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // later.
                 public static FolderInfo CreateFolderHierarchyForProject(Project project)
                 {
-                    var rootFolderInfo = new FolderInfo("<ROOT>", parent: null);
+                    var handledFolders = new HashSet<string>(StringComparer.Ordinal);
+
+                    var rootFolderInfo = new FolderInfo("<ROOT>");
                     foreach (var document in project.Documents)
                     {
-                        rootFolderInfo.AddFolder(document.Folders.ToImmutableArray());
+                        var folders = document.Folders;
+                        if (handledFolders.Add(string.Join(PathUtilities.DirectorySeparatorStr, folders)))
+                        {
+                            rootFolderInfo.AddFolder(folders);
+                        }
                     }
                     return rootFolderInfo;
                 }
