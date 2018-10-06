@@ -115,6 +115,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
+        private bool IsPropertyGetOrSetMethod(ISymbol symbol)
+        {
+            if (symbol.Kind == SymbolKind.Method)
+            {
+                var methodSymbol = symbol as IMethodSymbol;
+                return methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet;
+            }
+
+            return false;
+        }
+
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
@@ -130,17 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
-        }
-
-        private bool IsPropertyGetOrSetMethod(ISymbol symbol)
-        {
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                var methodSymbol = symbol as IMethodSymbol;
-                return methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet;
-            }
-
-            return false;
         }
     }
 }

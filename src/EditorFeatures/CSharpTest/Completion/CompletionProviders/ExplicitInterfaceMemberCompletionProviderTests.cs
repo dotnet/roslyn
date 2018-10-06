@@ -130,5 +130,25 @@ class Bar : I2
             await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExplicitInterfaceMemberCompletionIgnoresPropertyGetterOrSetterMethod()
+        {
+            var markup = @"
+interface i1
+{
+    public int Prop { get; set;}
+}
+
+public class MyClass : i1
+{
+    int i1.$$
+}
+";
+
+            var completionItems = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
+            Assert.DoesNotContain(completionItems, ci => ci.DisplayText == "Prop.get" || ci.DisplayText == "Prop.set");
+
+        }
     }
 }
