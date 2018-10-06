@@ -265,11 +265,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                                                        .WhereNotNull()
                                                        .ToSet();
             return renameLocations.Locations.Any(
-                loc => IsWrittenToOutsideOfConstructorOrProperty(loc, propertyDeclaration, constructorNodes, cancellationToken));
+                loc => IsWrittenToOutsideOfConstructorOrProperty(
+                    renameLocations.Solution, loc, propertyDeclaration, constructorNodes, cancellationToken));
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
-            RenameLocation location, TPropertyDeclaration propertyDeclaration, ISet<TConstructorDeclaration> constructorNodes, CancellationToken cancellationToken)
+            Solution solution,
+            RenameLocation location,
+            TPropertyDeclaration propertyDeclaration,
+            ISet<TConstructorDeclaration> constructorNodes,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -279,8 +284,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return false;
             }
 
+            var syntaxFacts = solution.GetDocument(location.DocumentId).GetLanguageService<ISyntaxFactsService>();
             var node = location.Location.FindToken(cancellationToken).Parent;
-            while (node != null)
+
+            while (node != null && !syntaxFacts.IsAnonymousOrLocalFunction(node))
             {
                 if (node == propertyDeclaration)
                 {
