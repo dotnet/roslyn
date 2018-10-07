@@ -113,12 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private bool IsPropertyGetOrSetMethod(ISymbol symbol)
+        private static bool IsPropertyGetOrSetMethod(ISymbol symbol)
         {
-            if (symbol.Kind == SymbolKind.Method)
+            if (symbol.Kind is SymbolKind.Method)
             {
                 var methodSymbol = symbol as IMethodSymbol;
-                return methodSymbol.MethodKind == MethodKind.PropertyGet || methodSymbol.MethodKind == MethodKind.PropertySet;
+                return methodSymbol.MethodKind is MethodKind.PropertyGet || methodSymbol.MethodKind is MethodKind.PropertySet;
             }
 
             return false;
