@@ -132,6 +132,7 @@ class Bar : I2
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
         public async Task ExplicitInterfaceMemberCompletionIgnoresPropertyGetterOrSetterMethod()
         {
             var markup = @"
@@ -149,8 +150,11 @@ public class MyClass : i1
 ";
 
             var completionItems = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
-            Assert.DoesNotContain(completionItems, ci => ci.DisplayText == "Prop.get" || ci.DisplayText == "Prop.set");
+            await VerifyItemIsAbsentAsync(markup, "Prop.get");
+            await VerifyItemIsAbsentAsync(markup, "Prop.set");
 
+            await VerifyItemExistsAsync(markup, "Prop");
+            await VerifyItemExistsAsync(markup, "TestMethod()");
         }
     }
 }
