@@ -1243,6 +1243,22 @@ class D
                 MainDescription("struct System.Boolean"));
         }
 
+        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullLiteral()
+        {
+            await TestInMethodAsync(@"string f = null$$",
+                MainDescription("class System.String"));
+        }
+
+        [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDefaultLiteral()
+        {
+            await TestInMethodAsync(@"string f = default$$",
+                MainDescription("class System.String"));
+        }
+
         [WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitKeywordOnGenericTaskReturningAsync()
@@ -3065,7 +3081,8 @@ namespace N {
         var q = from i in new int[0]
                 where true
                 $$select i;
-");
+",
+            MainDescription($"interface System.Collections.Generic.IEnumerable<out T>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
