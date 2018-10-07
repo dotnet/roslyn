@@ -5715,13 +5715,6 @@ tryAgain:
                         explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(
                             explicitInterfaceName,
                             AddError(separator, ErrorCode.ERR_ExplicitEventFieldImpl));
-
-                        Debug.Assert(beforeIdentifierPointSet);
-                        Reset(ref beforeIdentifierPoint);
-
-                        //clear fields that were populated after the reset point
-                        identifierOrThisOpt = null;
-                        typeParameterListOpt = null;
                     }
                     else
                     {

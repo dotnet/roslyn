@@ -881,6 +881,27 @@ interface i1
         }
 
         [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface05()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    abstract event System.Action I2.P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 36),
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 40),
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, ";").WithLocation(6, 40),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 2),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 37));
+        }
+
+        [Fact]
         public void CS0066ERR_EventNotDelegate()
         {
             var text = @"
