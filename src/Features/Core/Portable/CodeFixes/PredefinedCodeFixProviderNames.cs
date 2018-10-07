@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddOverloads = nameof(AddOverloads);
         public const string AddNew = nameof(AddNew);
         public const string UseDefaultExpression = nameof(UseDefaultExpression);
+        public const string UseDefaultLiteral = nameof(UseDefaultLiteral);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
         public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
