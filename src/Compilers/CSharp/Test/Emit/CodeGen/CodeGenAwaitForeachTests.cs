@@ -69,6 +69,28 @@ class D
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestWithIAsyncEnumerator()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public class C
+{
+    async Task M(IAsyncEnumerator<int> enumerator)
+    {
+        foreach await (int i in enumerator) { }
+    }
+}
+";
+            var comp_checked = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable });
+            comp_checked.VerifyDiagnostics(
+                // (8,33): error CS9001: Async foreach statement cannot operate on variables of type 'IAsyncEnumerator<int>' because 'IAsyncEnumerator<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
+                //         foreach await (int i in enumerator) { }
+                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "enumerator").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithUIntToIntConversion()
         {
             string source = @"

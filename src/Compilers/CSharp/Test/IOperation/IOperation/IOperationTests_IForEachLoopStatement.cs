@@ -3805,7 +3805,7 @@ class Program
     }
 }
 ";
-            // PROTOTYPE how do we flag `await`?
+            // https://github.com/dotnet/roslyn/issues/30362 how do we flag `await`?
             string expectedOperationTree = @"
 IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach awa ... }')
   Locals: Local_1: System.String value
@@ -3853,9 +3853,9 @@ class Program
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            // PROTOTYPE should signal `await`. 
-            // PROTOTYPE missing await on `MoveNextAsync()` and `DisposeAsync()` calls
-            // PROTOTYPE why is it showing `Dispose()` instead of `DisposeAsync()`?
+            // https://github.com/dotnet/roslyn/issues/30362 should signal `await`.
+            // https://github.com/dotnet/roslyn/issues/30362 missing await on `MoveNextAsync()` and `DisposeAsync()` calls
+            // https://github.com/dotnet/roslyn/issues/30362 showing `Dispose()` instead of `DisposeAsync()`
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)

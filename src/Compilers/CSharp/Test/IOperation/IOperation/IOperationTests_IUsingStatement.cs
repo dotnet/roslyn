@@ -88,7 +88,7 @@ class C
     }
 }
 ";
-            // PROTOTYPE should show `await`
+            // https://github.com/dotnet/roslyn/issues/30362 should show `await`
             string expectedOperationTree = @"
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using await ... }')
   Locals: Local_1: System.IAsyncDisposable c
@@ -119,12 +119,8 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using await ... }')
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            string expectedGraph = @"
-";
             var expectedDiagnostics = DiagnosticDescription.None;
-
             VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source + s_IAsyncEnumerable + s_ValueTask, expectedOperationTree, expectedDiagnostics);
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + s_IAsyncEnumerable + s_ValueTask, expectedGraph, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
@@ -148,7 +144,7 @@ class C
 }
 ";
 
-            // PROTOTYPE should be `await DisposeAsync()`
+            // https://github.com/dotnet/roslyn/issues/30362 should be `await DisposeAsync()`
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
