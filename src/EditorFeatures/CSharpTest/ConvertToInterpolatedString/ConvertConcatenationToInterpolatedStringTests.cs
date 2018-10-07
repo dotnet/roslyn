@@ -541,5 +541,187 @@ public class C
     }
 }");
         }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithSelectionOnEntireToBeInterpolatedString()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = [|""string"" + 1|];
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""string{1}"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithSelectionOnPartOfToBeInterpolatedString()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = [|""string"" + 1|] + ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""string{1}string"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingWithSelectionExceedingToBeInterpolatedString()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        [|var v = ""string"" + 1|];
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithCaretBeforeNonStringToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = [||]3 + ""string"" + 1 + ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{3}string{1}string"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithCaretAfterNonStringToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 3[||] + ""string"" + 1 + ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{3}string{1}string"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithCaretBeforePlusToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 3 [||]+ ""string"" + 1 + ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{3}string{1}string"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithCaretAfterPlusToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 3 +[||] ""string"" + 1 + ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{3}string{1}string"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithCaretBeforeLastPlusToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 3 + ""string"" + 1 [||]+ ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{3}string{1}string"";
+    }
+}");
+        }
+
+        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithCaretAfterLastPlusToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        var v = 3 + ""string"" + 1 +[||] ""string"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        var v = $""{3}string{1}string"";
+    }
+}");
+        }
     }
 }
