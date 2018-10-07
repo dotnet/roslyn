@@ -3081,8 +3081,7 @@ namespace N {
         var q = from i in new int[0]
                 where true
                 $$select i;
-",
-            MainDescription($"interface System.Collections.Generic.IEnumerable<out T>"));
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

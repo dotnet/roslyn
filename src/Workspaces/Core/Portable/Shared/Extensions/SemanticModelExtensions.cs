@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
             {
                 type = null;
+                convertedType = null;
             }
 
             return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
