@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseCompoundAssignment = "CodeActions.UseCompoundAssignment";
             public const string CodeActionsUseConditionalExpression = "CodeActions.UseConditionalExpression";
             public const string CodeActionsUseDeconstruction = "CodeActions.UseDeconstruction";
+            public const string CodeActionsUseDefaultExpression = "CodeActions.UseDefaultExpression";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
             public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";

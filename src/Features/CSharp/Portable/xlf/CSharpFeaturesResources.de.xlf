@@ -97,6 +97,11 @@
         <target state="translated">Zugriffsmodifizierer sortieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_default_expression">
+        <source>Use default expression</source>
+        <target state="new">Use default expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">Die if-Anweisung kann vereinfacht werden.</target>

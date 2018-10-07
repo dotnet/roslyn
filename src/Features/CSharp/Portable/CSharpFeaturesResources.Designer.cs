@@ -1235,6 +1235,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use default expression.
+        /// </summary>
+        internal static string Use_default_expression {
+            get {
+                return ResourceManager.GetString("Use_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicit type.
         /// </summary>
         internal static string Use_explicit_type {
