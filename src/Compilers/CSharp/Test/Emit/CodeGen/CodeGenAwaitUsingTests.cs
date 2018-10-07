@@ -765,6 +765,56 @@ class C : System.IAsyncDisposable, System.IDisposable
         public void TestIAsyncDisposableInRegularUsing()
         {
             string source = @"
+class C : System.IAsyncDisposable
+{
+    public static int Main()
+    {
+        using (var x = new C())
+        {
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.ValueTask DisposeAsync()
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,16): error CS9008: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'using await'?
+                //         using (var x = new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void TestIAsyncDisposableInRegularUsing_Expression()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static int Main()
+    {
+        using (new C())
+        {
+            return 1;
+        }
+    }
+    public System.Threading.Tasks.ValueTask DisposeAsync()
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,16): error CS9008: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'using await'?
+                //         using (new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void TestIAsyncDisposableInRegularUsing_WithDispose()
+        {
+            string source = @"
 class C : System.IAsyncDisposable, System.IDisposable
 {
     public static int Main()
@@ -789,6 +839,56 @@ class C : System.IAsyncDisposable, System.IDisposable
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "body Dispose");
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        public void TestIDisposableInAsyncUsing()
+        {
+            string source = @"
+class C : System.IDisposable
+{
+    async System.Threading.Tasks.Task<int> M()
+    {
+        using await (var x = new C())
+        {
+            return 1;
+        }
+    }
+    public void Dispose()
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,22): error CS9007: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'using await'?
+                //         using await (var x = new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void TestIDisposableInAsyncUsing_Expression()
+        {
+            string source = @"
+class C : System.IDisposable
+{
+    async System.Threading.Tasks.Task<int> M()
+    {
+        using await (new C())
+        {
+            return 1;
+        }
+    }
+    public void Dispose()
+        => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
+            comp.VerifyDiagnostics(
+                // (6,22): error CS9007: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'using await'?
+                //         using await (new C())
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 22)
+                );
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
