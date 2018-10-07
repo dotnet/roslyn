@@ -4,24 +4,36 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceUsingStatement;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), Shared]
     internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
-        : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax, BlockSyntax>
+        : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax>
     {
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
-        protected override SyntaxList<StatementSyntax> GetStatements(BlockSyntax blockSyntax)
+        protected override bool IsBlockLike(SyntaxNode node)
         {
-            return blockSyntax.Statements;
+            return node is BlockSyntax || node is SwitchSectionSyntax;
         }
 
-        protected override BlockSyntax WithStatements(BlockSyntax blockSyntax, SyntaxList<StatementSyntax> statements)
+        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
         {
-            return blockSyntax.WithStatements(statements);
+            return
+                blockLike is BlockSyntax block ? block.Statements :
+                blockLike is SwitchSectionSyntax switchSection ? switchSection.Statements :
+                throw ExceptionUtilities.UnexpectedValue(blockLike);
+        }
+
+        protected override SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements)
+        {
+            return
+                blockLike is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
+                blockLike is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
+                throw ExceptionUtilities.UnexpectedValue(blockLike);
         }
 
         protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<StatementSyntax> statementsToSurround)

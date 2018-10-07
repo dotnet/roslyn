@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,16 +16,15 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 {
-    internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<TStatementSyntax, TLocalDeclarationSyntax, TBlockSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<TStatementSyntax, TLocalDeclarationSyntax> : CodeRefactoringProvider
         where TStatementSyntax : SyntaxNode
         where TLocalDeclarationSyntax : TStatementSyntax
-        where TBlockSyntax : SyntaxNode
     {
         protected abstract string CodeActionTitle { get; }
 
-        protected abstract SyntaxList<TStatementSyntax> GetStatements(TBlockSyntax blockSyntax);
-
-        protected abstract TBlockSyntax WithStatements(TBlockSyntax blockSyntax, SyntaxList<TStatementSyntax> statements);
+        protected abstract bool IsBlockLike(SyntaxNode node);
+        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode blockLike);
+        protected abstract SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<TStatementSyntax> statements);
 
         protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<TStatementSyntax> statementsToSurround);
 
@@ -138,31 +136,9 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!(declarationStatement.Parent is TBlockSyntax parent))
-            {
-                throw new NotImplementedException();
-            }
-
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
-            // Find the minimal number of statements to move into the using block
-            // in order to not break existing references to the local.
-            var lastUsageStatement = FindSiblingStatementContainingLastUsage(
-                declarationStatement,
-                localVariable,
-                semanticModel,
-                syntaxFactsService,
-                cancellationToken);
-
-            var parentStatementsList = GetStatements(parent);
-
-            var declarationStatementIndex = parentStatementsList.IndexOf(declarationStatement);
-
-            var lastUsageStatementIndex = lastUsageStatement is null
-                ? -1
-                : parentStatementsList.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
-
-            var statementsToSurround = GetStatementsToSurround(parentStatementsList, declarationStatementIndex, lastUsageStatementIndex);
+            var statementsToSurround = GetStatementsToSurround(declarationStatement, localVariable, semanticModel, syntaxFactsService, cancellationToken);
 
             // Separate the newline from the trivia that is going on the using declaration line.
             var trailingTrivia = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
@@ -176,15 +152,57 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     .WithTrailingTrivia(trailingTrivia.endOfLine)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-            var newParent = WithStatements(
-                parent,
-                ReplaceRange(
-                    parentStatementsList,
-                    index: declarationStatementIndex,
-                    count: 1 + statementsToSurround.Count,
-                    newNodes: new[] { usingStatement }));
+            if (statementsToSurround.Any())
+            {
+                var parentStatements = GetStatements(declarationStatement.Parent);
+                var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
 
-            return document.WithSyntaxRoot(root.ReplaceNode(parent, newParent));
+                var newParent = WithStatements(
+                    declarationStatement.Parent,
+                    new SyntaxList<TStatementSyntax>(
+                        parentStatements.Take(declarationStatementIndex)
+                        .Concat(new[] { usingStatement })
+                        .Concat(parentStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
+
+                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement.Parent, newParent));
+            }
+            else
+            {
+                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingStatement));
+            }
+        }
+
+        private SyntaxList<TStatementSyntax> GetStatementsToSurround(
+            TLocalDeclarationSyntax declarationStatement,
+            ILocalSymbol localVariable,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFactsService,
+            CancellationToken cancellationToken)
+        {
+            if (IsBlockLike(declarationStatement.Parent))
+            {
+                // Find the minimal number of statements to move into the using block
+                // in order to not break existing references to the local.
+                var lastUsageStatement = FindSiblingStatementContainingLastUsage(
+                    declarationStatement,
+                    localVariable,
+                    semanticModel,
+                    syntaxFactsService,
+                    cancellationToken);
+
+                if (lastUsageStatement != null)
+                {
+                    var parentStatements = GetStatements(declarationStatement.Parent);
+                    var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
+                    var lastUsageStatementIndex = parentStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
+
+                    return new SyntaxList<TStatementSyntax>(parentStatements
+                        .Take(lastUsageStatementIndex + 1)
+                        .Skip(declarationStatementIndex + 1));
+                }
+            }
+
+            return default;
         }
 
         private static (SyntaxTriviaList sameLine, SyntaxTriviaList endOfLine) SplitTrailingTrivia(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
@@ -193,24 +211,8 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var lastIndex = trailingTrivia.Count - 1;
 
             return lastIndex != -1 && syntaxFactsService.IsEndOfLineTrivia(trailingTrivia[lastIndex])
-                ? (
-                    sameLine: trailingTrivia.RemoveAt(lastIndex),
-                    endOfLine: new SyntaxTriviaList(trailingTrivia[lastIndex]))
-                : (
-                    sameLine: trailingTrivia,
-                    endOfLine: SyntaxTriviaList.Empty);
-        }
-
-        protected static SyntaxList<TStatementSyntax> GetStatementsToSurround(SyntaxList<TStatementSyntax> parentList, int declarationStatementIndex, int lastUsageStatementIndex)
-        {
-            if (lastUsageStatementIndex == -1)
-            {
-                return default;
-            }
-
-            return new SyntaxList<TStatementSyntax>(parentList
-                .Take(lastUsageStatementIndex + 1)
-                .Skip(declarationStatementIndex + 1));
+                ? (sameLine: trailingTrivia.RemoveAt(lastIndex), endOfLine: new SyntaxTriviaList(trailingTrivia[lastIndex]))
+                : (sameLine: trailingTrivia, endOfLine: SyntaxTriviaList.Empty);
         }
 
         private static TStatementSyntax FindSiblingStatementContainingLastUsage(
@@ -272,17 +274,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
 
             return false;
-        }
-
-        private static SyntaxList<T> ReplaceRange<T>(SyntaxList<T> syntaxList, int index, int count, IEnumerable<T> newNodes)
-            where T : SyntaxNode
-        {
-            var list = syntaxList.ToList();
-
-            list.RemoveRange(index, count);
-            list.InsertRange(index, newNodes);
-
-            return new SyntaxList<T>(list);
         }
 
         private sealed class MyCodeAction : DocumentChangeAction

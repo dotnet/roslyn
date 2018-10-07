@@ -444,5 +444,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
     }
 }");
         }
+
+        [Fact]
+        public async Task WorksInSwitchSections()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        switch (disposable)
+        {
+            default:
+                var x = disposable;[||]
+                M(x);
+                break;
+        }
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        switch (disposable)
+        {
+            default:
+                using (var x = disposable)
+                {
+                    M(x);
+                }
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task WorksOnInvalidEmbeddedStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        if (disposable != null)
+            var x = disposable;[||]
+    }
+}",
+@"class C<T> where T : System.IDisposable
+{
+    void M(T disposable)
+    {
+        if (disposable != null)
+            using (var x = disposable)
+            {
+            }
+    }
+}");
+        }
     }
 }
