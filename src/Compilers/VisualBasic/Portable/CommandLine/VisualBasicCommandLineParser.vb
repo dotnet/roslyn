@@ -1252,7 +1252,7 @@ lVbRuntimePlus:
             End If
 
             ' add additional reference paths if specified
-            If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
+            If Not String.IsNullOrEmpty(additionalReferenceDirectories) Then
                 libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
@@ -1260,7 +1260,7 @@ lVbRuntimePlus:
             Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
 
             ' Public sign doesn't use legacy search path settings
-            If publicSign AndAlso Not String.IsNullOrWhiteSpace(keyFileSetting) Then
+            If publicSign AndAlso Not String.IsNullOrEmpty(keyFileSetting) Then
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
             End If
 
@@ -1291,11 +1291,11 @@ lVbRuntimePlus:
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            If Not String.IsNullOrWhiteSpace(baseDirectory) Then
+            If Not String.IsNullOrEmpty(baseDirectory) Then
                 keyFileSearchPaths.Add(baseDirectory)
             End If
 
-            If Not String.IsNullOrWhiteSpace(outputDirectory) AndAlso baseDirectory <> outputDirectory Then
+            If Not String.IsNullOrEmpty(outputDirectory) AndAlso baseDirectory <> outputDirectory Then
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 

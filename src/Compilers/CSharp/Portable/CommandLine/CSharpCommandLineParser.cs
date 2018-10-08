@@ -1214,7 +1214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // add additional reference paths if specified
-            if (!string.IsNullOrWhiteSpace(additionalReferenceDirectories))
+            if (!string.IsNullOrEmpty(additionalReferenceDirectories))
             {
                 ParseAndResolveReferencePaths(null, additionalReferenceDirectories, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
             }
@@ -1225,18 +1225,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Dev11 searches for the key file in the current directory and assembly output directory.
             // We always look to base directory and then examine the search paths.
-            if (!string.IsNullOrWhiteSpace(baseDirectory))
+            if (!string.IsNullOrEmpty(baseDirectory))
             {
                 keyFileSearchPaths.Add(baseDirectory);
             }
 
-            if (!string.IsNullOrWhiteSpace(outputDirectory) && baseDirectory != outputDirectory)
+            if (!string.IsNullOrEmpty(outputDirectory) && baseDirectory != outputDirectory)
             {
                 keyFileSearchPaths.Add(outputDirectory);
             }
 
             // Public sign doesn't use the legacy search path settings
-            if (publicSign && !string.IsNullOrWhiteSpace(keyFileSetting))
+            if (publicSign && !string.IsNullOrEmpty(keyFileSetting))
             {
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
