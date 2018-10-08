@@ -11,7 +11,7 @@
 
 [CmdletBinding(PositionalBinding=$false)]
 param(
-    [switch]$configuration = "Debug",
+    [string]$configuration = "Debug",
     [switch]$cibuild = $false)
 
 Set-StrictMode -version 2.0
@@ -21,7 +21,7 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
     $releaseArg = if ($configuration -eq "Release") { "-release" } else { "" }
-    $configDir = Join-Path $binariesDir $buildConfiguration
+    $configDir = Join-Path $binariesDir $configuration
 
     Write-Host "Building Roslyn"
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -cibuild:$cibuild -configuration:$configuration -pack -binaryLog }
