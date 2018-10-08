@@ -11,8 +11,7 @@ usage()
     echo "Usage: build.sh [options]"
     echo ""
     echo "Options"
-    echo "  --debug               Build Debug (default)"
-    echo "  --release             Build Release"
+    echo "  --configuration       Build configuration ('Debug' or 'Release')"
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
     echo "  --pack                Build nuget packages"
@@ -76,11 +75,10 @@ do
             shift
             continue
             ;;
-        --debug)
-            build_configuration=Debug
-            ;;
-        --release)
-            build_configuration=Release
+        --configuration)
+            build_configuration=$2
+            args="$args $1"
+            shift
             ;;
         --restore|-r)
             restore=true

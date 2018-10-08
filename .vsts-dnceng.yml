@@ -87,7 +87,7 @@ phases:
     name: Helix
     timeoutInMinutes: 90
   steps:
-    - script: build/scripts/test-build-correctness.cmd -cibuild -release
+    - script: build/scripts/test-build-correctness.cmd -cibuild -configuration Release
 
     - task: PublishBuildArtifacts@1
       inputs:
