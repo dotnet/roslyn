@@ -97,12 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Look for a type forwarder for the given type in the containing assembly and any referenced assemblies.
+        /// Look for a type forwarder for the given type in any referenced assemblies.
         /// </summary>
         /// <param name="name">The name of the (potentially) forwarded type.</param>
-        /// <param name="arity">The arity of the forwarded type.</param>
-        /// <param name="qualifierOpt">The namespace of the potentially forwarded type. If non is provided, will
-        /// try Usings of the current import for egligable namespaces and return the namespace of the found forwarder, 
+        /// <param name="qualifierOpt">Will be used to return the namespace of the found forwarder, 
         /// if any.</param>
         /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
         /// <param name="location">Location to report errors on.</param>
