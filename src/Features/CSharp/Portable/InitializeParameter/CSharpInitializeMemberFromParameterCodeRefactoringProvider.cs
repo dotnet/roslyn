@@ -35,5 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
+
+        // Fields are always private by default in C#.
+        protected override Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType)
+            => Accessibility.Private;
+
+        // Properties are always private by default in C#.
+        protected override Accessibility DetermineDefaultPropertyAccessibility()
+            => Accessibility.Private;
     }
 }
