@@ -1291,8 +1291,11 @@ lVbRuntimePlus:
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory)
-            If baseDirectory <> outputDirectory Then
+            If Not String.IsNullOrWhiteSpace(baseDirectory) Then
+                keyFileSearchPaths.Add(baseDirectory)
+            End If
+
+            If Not String.IsNullOrWhiteSpace(outputDirectory) AndAlso baseDirectory <> outputDirectory Then
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
