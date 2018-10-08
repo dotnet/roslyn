@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultExpression
             var defaultLiteral = (LiteralExpressionSyntax)defaultToken.Parent;
 
             var type = semanticModel.GetTypeInfo(defaultLiteral, cancellationToken).ConvertedType;
-            if (type.IsAnonymousType)
+            if (type == null || type.IsAnonymousType)
             {
                 type = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
             }
