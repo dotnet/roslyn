@@ -96,37 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyImports;
         }
 
-        AssemblySymbol GetForwardedToAssembly(string fullName, DiagnosticBag diagnostics, Location location)
-        {
-            var metadataName = MetadataTypeName.FromFullName(fullName);
-            foreach (var referencedAssembly in
-                Compilation.Assembly.Modules[0].GetReferencedAssemblySymbols())
-            {
-                var forwardedType =
-                    referencedAssembly.TryLookupForwardedMetadataType(ref metadataName);
-                if ((object)forwardedType != null)
-                {
-                    if (forwardedType.Kind == SymbolKind.ErrorType)
-                    {
-                        DiagnosticInfo diagInfo = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
-
-                        if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
-                        {
-                            Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
-                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
-                        }
-                        else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
-                        {
-                            diagnostics.Add(diagInfo, location);
-                            return null; // Cannot determine a suitable forwarding assembly
-                        }
-                    }
-                    return forwardedType.ContainingAssembly;
-                }
-            }
-            return null;
-        }
-
         /// <summary>
         /// Look for a type forwarder for the given type in the containing assembly and any referenced assemblies.
         /// </summary>
@@ -142,31 +111,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
         /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
         /// </remarks>
-        protected override AssemblySymbol GetForwardedToAssembly(string name, int arity, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
+        protected override AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string name, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
         {
-            name = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
             var imports = GetImports(basesBeingResolved: null);
-
-            var fullName = qualifierOpt != null && !ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace) ? qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + name : name;
-            var result = GetForwardedToAssembly(fullName, diagnostics, location);
-            if (result != null || diagnostics.HasAnyErrors())
-                return result;
-
-            if (qualifierOpt == null)
+            foreach (var typeOrNamespace in imports.Usings)
             {
-                foreach (var typeOrNamespace in imports.Usings)
+                var fullName = typeOrNamespace.NamespaceOrType + "." + name;
+                var result = GetForwardedToAssembly(fullName, diagnostics, location);
+                if (result != null || diagnostics.HasAnyErrors())
                 {
-                    fullName = typeOrNamespace.NamespaceOrType + "." + name;
-                    result = GetForwardedToAssembly(fullName, diagnostics, location);
-                    if (result != null || diagnostics.HasAnyErrors())
-                    {
-                        qualifierOpt = typeOrNamespace.NamespaceOrType;
-                        return result;
-                    }
+                    qualifierOpt = typeOrNamespace.NamespaceOrType;
+                    return result;
                 }
             }
 
-            return base.GetForwardedToAssembly(name, arity, ref qualifierOpt, diagnostics, location);
+            return base.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
         }
 
         internal override ImportChain ImportChain
