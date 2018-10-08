@@ -51,7 +51,9 @@ namespace BuildBoss
 
             if (string.IsNullOrEmpty(repositoryDirectory))
             {
-                repositoryDirectory = AppContext.BaseDirectory;
+                repositoryDirectory = solutionFiles.Count > 0
+                    ? Path.GetDirectoryName(solutionFiles[0])
+                    : AppContext.BaseDirectory;
             }
 
             return Go(repositoryDirectory, isRelease, solutionFiles);
