@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        private static ImmutableArray<MethodKind> s_invalidCodeCompletionMethodKind = ImmutableArray.Create(new MethodKind[] { MethodKind.PropertyGet, MethodKind.PropertySet, MethodKind.EventAdd, MethodKind.EventRemove });
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return text[characterPosition] == '.';
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var members = symbol.GetMembers().WhereAsArray(m => !IsPropertyGetOrSetMethod(m));
+                var members = symbol.GetMembers().WhereAsArray(m => !IsIvalidCompletionMethodKind(m));
 
                 // We're going to create a entry for each one, including the signature
                 var namePosition = name.SpanStart;
@@ -113,12 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static bool IsPropertyGetOrSetMethod(ISymbol symbol)
+        private static bool IsIvalidCompletionMethodKind(ISymbol symbol)
         {
             if (symbol.Kind is SymbolKind.Method)
             {
                 var methodSymbol = symbol as IMethodSymbol;
-                return methodSymbol.MethodKind is MethodKind.PropertyGet || methodSymbol.MethodKind is MethodKind.PropertySet;
+                return s_invalidCodeCompletionMethodKind.Contains(methodSymbol.MethodKind);
             }
 
             return false;

@@ -102,6 +102,7 @@ class Bar : IGoo
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
+        [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
         public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
         {
             var markup = @"
@@ -113,7 +114,8 @@ interface I1
 interface I2 : I1
 {
     void Goo2();
-    int Prop { get; }
+    int Prop { get; };
+    event EventHandler TestEvent;
 }
 
 class Bar : I2
@@ -126,35 +128,13 @@ class Bar : I2
             await VerifyItemIsAbsentAsync(markup, "GetHashCode()");
             await VerifyItemIsAbsentAsync(markup, "GetType()");
             await VerifyItemIsAbsentAsync(markup, "ToString()");
+            await VerifyItemIsAbsentAsync(markup, "Prop.get");
+            await VerifyItemIsAbsentAsync(markup, "TestEvent.add");
+            await VerifyItemIsAbsentAsync(markup, "TestEvent.remove");
 
             await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
-        public async Task ExplicitInterfaceMemberCompletionIgnoresPropertyGetterOrSetterMethod()
-        {
-            var markup = @"
-interface i1
-{
-    int Prop { get; set;}
-
-    int TestMethod(); 
-}
-
-public class MyClass : i1
-{
-    int i1.$$
-}
-";
-
-            var completionItems = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
-            await VerifyItemIsAbsentAsync(markup, "Prop.get");
-            await VerifyItemIsAbsentAsync(markup, "Prop.set");
-
-            await VerifyItemExistsAsync(markup, "Prop");
-            await VerifyItemExistsAsync(markup, "TestMethod()");
+            await VerifyItemExistsAsync(markup, "TestEvent");
         }
     }
 }
