@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             foreach (var diagnostic in diagnostics)
             {
-                var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                var declarationNode = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                var localDeclaration = declarationNode as LocalDeclarationStatementSyntax
+                                    ?? (LocalDeclarationStatementSyntax)declarationNode.Parent;
                 var anonymousFunction = (AnonymousFunctionExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
                 var references = new List<ExpressionSyntax>(diagnostic.AdditionalLocations.Count - 2);

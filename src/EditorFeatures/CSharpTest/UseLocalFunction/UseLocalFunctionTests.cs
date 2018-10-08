@@ -3309,5 +3309,37 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/29793")]
+        public async Task TestExtraTrailingClosingBracket()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<Task> [||]getTask = () =>
+        {
+            return Task.CompletedTask;
+        });
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Task getTask()
+        {
+            return Task.CompletedTask;
+        });
+    }
+}");
+        }
     }
 }
+
