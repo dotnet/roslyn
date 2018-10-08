@@ -243,6 +243,13 @@ d.cs
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
+        [Fact]
+        public void NullBaseDirectoryNotAddedToKeyFileSearchPaths()
+        {
+            var parser = CSharpCommandLineParser.Default.Parse(new string[0], null, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {
