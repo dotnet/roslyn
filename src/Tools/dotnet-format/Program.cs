@@ -56,8 +56,12 @@ namespace Microsoft.CodeAnalysis.Tools.CodeFormatter
                 var workingDirectory = Directory.GetCurrentDirectory();
                 var (isSolution, workspacePath) = MSBuildWorkspaceFinder.FindWorkspace(workingDirectory, workspace);
 
-                MSBuildEnvironment.ApplyEnvironmentVariables();
-                MSBuildCoreLoader.LoadDotnetInstance();
+                // To ensure we get the version of MSBuild packaged with the dotnet SDK used by the
+                // workspace, use its directory as our working directory which will take into account
+                // a global.json if present.
+                var workspaceDirectory = Path.GetDirectoryName(workspacePath);
+                MSBuildEnvironment.ApplyEnvironmentVariables(workspaceDirectory);
+                MSBuildCoreLoader.LoadDotnetInstance(workspaceDirectory);
 
                 return await CodeFormatter.FormatWorkspaceAsync(logger, workspacePath, isSolution, cancellationTokenSource.Token);
             }

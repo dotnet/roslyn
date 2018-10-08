@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Tools.MSBuild
         /// <summary>
         /// Loads the MSBuild assemblies from the DotNet CLI sdk path.
         /// </summary>
-        public static void LoadDotnetInstance()
+        public static void LoadDotnetInstance(string workingDirectory)
         {
             // Workaround for https://github.com/Microsoft/msbuild/issues/3352
-            LoadMSBuildAssemblies(MSBuildEnvironment.GetDotnetBasePath());
+            LoadMSBuildAssemblies(MSBuildEnvironment.GetDotnetBasePath(workingDirectory));
         }
 
         /// <summary>

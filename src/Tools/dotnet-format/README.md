@@ -38,7 +38,7 @@ dotnet pack -c release -o nupkg /p:SemanticVersioningV1=false
 # Successfully created package '..\roslyn\src\Tools\dotnet-code-format\nupkg\dotnet-format.2.11.0-dev.nupkg'.
 # Use the value that is in the form `2.11.0-dev` as the version in the next command.
 dotnet tool install --add-source .\nupkg -g dotnet-format --version <version>
-dotnetsay
+dotnet format
 ```
 
 > Note: On macOS and Linux, `.\nupkg` will need be switched to `./nupkg` to accomodate for the different slash directions.
