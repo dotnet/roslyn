@@ -52,6 +52,16 @@
         <target state="translated">Použít předvolby kvalifikace this.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Feature_async_main_is_not_available">
+        <source>Feature 'async main' is not available</source>
+        <target state="new">Feature 'async main' is not available</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Feature_async_main_is_not_available_in_CSharp_0_Please_use_language_version_7_1_or_greater">
+        <source>Feature 'async main' is not available in C# {0}. Please use language version 7.1 or greater.</source>
+        <target state="new">Feature 'async main' is not available in C# {0}. Please use language version 7.1 or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Dočasná vložená proměnná</target>

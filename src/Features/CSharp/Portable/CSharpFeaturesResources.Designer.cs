@@ -486,6 +486,25 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;async main&apos; is not available.
+        /// </summary>
+        internal static string Feature_async_main_is_not_available {
+            get {
+                return ResourceManager.GetString("Feature_async_main_is_not_available", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;async main&apos; is not available in C# {0}. Please use language version 7.1 or greater..
+        /// </summary>
+        internal static string Feature_async_main_is_not_available_in_CSharp_0_Please_use_language_version_7_1_or_greater {
+            get {
+                return ResourceManager.GetString("Feature_async_main_is_not_available_in_CSharp_0_Please_use_language_version_7_1_o" +
+                        "r_greater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to filter clause.
         /// </summary>
         internal static string filter_clause {
