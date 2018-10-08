@@ -61,10 +61,6 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeSymbol(SymbolAnalysisContext context)
     {
     }
-
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-    }
 }";
             DiagnosticResult[] expected = new[]
             {
@@ -129,9 +125,6 @@ Class MyAnalyzer
     End Sub
 
     Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-    End Sub
-
-    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
     End Sub
 End Class
 ";
