@@ -104,10 +104,10 @@ phases:
     parallel: 2
     matrix:
       coreclr:
-        _args: --debug
+        _args: --configuration Debug
         _name: CoreClr 
       mono:
-        _args: --debug --docker --mono
+        _args: --configuration Debug --docker --mono
         _name: Mono
   steps:
     - script: ./build/scripts/cibuild.sh $(_args)
