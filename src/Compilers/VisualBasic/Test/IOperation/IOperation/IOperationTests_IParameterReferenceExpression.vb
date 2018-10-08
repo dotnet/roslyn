@@ -775,7 +775,7 @@ IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(x, x,
       IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray(x, x, x)')
         Operand: 
           ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,,)) (Syntax: 'intArray')
-        Indices(3):
+        DimensionSizes(3):
             IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')

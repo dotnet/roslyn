@@ -1307,13 +1307,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitReDimClause(IReDimClauseOperation operation)
         {
             Assert.Equal(OperationKind.ReDimClause, operation.Kind);
-            Assert.NotNull(operation.Operand);
-            foreach (var index in operation.Indices)
-            {
-                Assert.NotNull(index);
-            }
-
-            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Indices), operation.Children);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
         }
     }
 }

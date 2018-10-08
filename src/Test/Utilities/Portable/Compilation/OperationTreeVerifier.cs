@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IReDimClauseOperation));
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Operand, "Operand");
-            VisitArray(operation.Indices, "Indices", logElementCount: true);
+            VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
         }
 
         #endregion

@@ -7119,7 +7119,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public abstract IOperation Operand { get; }
-        public abstract ImmutableArray<IOperation> Indices { get; }
+        public abstract ImmutableArray<IOperation> DimensionSizes { get; }
 
         public sealed override IEnumerable<IOperation> Children
         {
@@ -7128,7 +7128,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(Operand != null);
                 yield return Operand;
 
-                foreach (var index in Indices)
+                foreach (var index in DimensionSizes)
                 {
                     Debug.Assert(index != null);
                     yield return index;
@@ -7149,30 +7149,30 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class ReDimClauseOperation : BaseReDimClauseOperation
     {
-        public ReDimClauseOperation(IOperation operand, ImmutableArray<IOperation> indices, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public ReDimClauseOperation(IOperation operand, ImmutableArray<IOperation> dimensionSizes, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Operand = SetParentOperation(operand, this);
-            Indices = SetParentOperation(indices, this);
+            DimensionSizes = SetParentOperation(dimensionSizes, this);
         }
 
         public override IOperation Operand { get; }
-        public override ImmutableArray<IOperation> Indices { get; }
+        public override ImmutableArray<IOperation> DimensionSizes { get; }
     }
 
     internal sealed class LazyReDimClauseOperation : BaseReDimClauseOperation
     {
         private readonly Lazy<IOperation> _lazyOperand;
-        private readonly Lazy<ImmutableArray<IOperation>> _lazyIndices;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyDimensionSizes;
 
-        public LazyReDimClauseOperation(Lazy<IOperation> lazyOperand, Lazy<ImmutableArray<IOperation>> lazyIndices, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyReDimClauseOperation(Lazy<IOperation> lazyOperand, Lazy<ImmutableArray<IOperation>> lazyDimensionSizes, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyOperand = lazyOperand;
-            _lazyIndices = lazyIndices;
+            _lazyDimensionSizes = lazyDimensionSizes;
         }
 
         public override IOperation Operand => SetParentOperation(_lazyOperand.Value, this);
-        public override ImmutableArray<IOperation> Indices => SetParentOperation(_lazyIndices.Value, this);
+        public override ImmutableArray<IOperation> DimensionSizes => SetParentOperation(_lazyDimensionSizes.Value, this);
     }
 }

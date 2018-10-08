@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitReDimClause(IReDimClauseOperation operation, object argument)
         {
-            return new ReDimClauseOperation(Visit(operation.Operand), VisitArray(operation.Indices), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ReDimClauseOperation(Visit(operation.Operand), VisitArray(operation.DimensionSizes), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

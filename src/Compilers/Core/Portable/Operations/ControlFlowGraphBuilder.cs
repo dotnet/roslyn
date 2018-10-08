@@ -6502,32 +6502,32 @@ oneMoreTime:
 
         public override IOperation VisitReDim(IReDimOperation operation, int? argument)
         {
-            // We visit and rewrite the ReDim clauses in two phases:
-            //  1. Visit all the clause operands and indices and push them onto the eval stack.
-            //  2. Traverse the parts in reverse order, popping the indices and the operands from the eval stack for producing visited clauses.
-            EvalStackFrame frame = PushStackFrame();
+            // We split the ReDim clauses into separate ReDim operations to ensure that we preserve the evaluation order,
+            // i.e. each ReDim clause operand is re-allocated prior to evaluating the next clause.
+            
+            // Mark the split ReDim operations as implicit if we have more than one ReDim clause.
+            bool isImplicit = operation.Clauses.Length > 1 || IsImplicit(operation);
+
             foreach (var clause in operation.Clauses)
             {
-                PushOperand(Visit(clause.Operand));
-                VisitAndPushArray(clause.Indices);
+                EvalStackFrame frame = PushStackFrame();
+                var visitedReDimClause = VisitReDimClause(clause);
+                var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit: isImplicit || IsImplicit(clause));
+                AddStatement(visitedReDimOperation);
+                PopStackFrameAndLeaveRegion(frame);
             }
 
-            var clausesBuilder = ArrayBuilder<IReDimClauseOperation>.GetInstance(operation.Clauses.Length);
-            for (int i = operation.Clauses.Length - 1; i >= 0; i--)
+            return null;
+
+            IReDimClauseOperation VisitReDimClause(IReDimClauseOperation clause)
             {
-                IReDimClauseOperation clause = operation.Clauses[i];
-                var visitedIndices = PopArray(clause.Indices);
+                PushOperand(Visit(clause.Operand));
+                var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
                 var visitedOperand = PopOperand();
-                var rewrittenClause = new ReDimClauseOperation(visitedOperand, visitedIndices, semanticModel: null,
+                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null,
                     clause.Syntax, clause.Type, clause.ConstantValue, IsImplicit(clause));
-                clausesBuilder.Add(rewrittenClause);
             }
-
-            clausesBuilder.ReverseContents();
-            PopStackFrame(frame);
-
-            return new ReDimOperation(clausesBuilder.ToImmutableAndFree(), operation.Preserve,
-                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)

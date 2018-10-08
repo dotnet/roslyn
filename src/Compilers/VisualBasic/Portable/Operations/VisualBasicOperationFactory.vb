@@ -1784,12 +1784,12 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundReDimClauseOperation(boundRedimClause As BoundRedimClause) As IReDimClauseOperation
             Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundRedimClause.Operand))
-            Dim indices As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundRedimClause.Indices.SelectAsArray(Function(n) Create(n)))
+            Dim dimensionSizes As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundRedimClause.Indices.SelectAsArray(Function(n) Create(n)))
             Dim syntax As SyntaxNode = boundRedimClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
             Dim isImplicit As Boolean = boundRedimClause.WasCompilerGenerated
-            Return New LazyReDimClauseOperation(operand, indices, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyReDimClauseOperation(operand, dimensionSizes, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
     End Class
 End Namespace

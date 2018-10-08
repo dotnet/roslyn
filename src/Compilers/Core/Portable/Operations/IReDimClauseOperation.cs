@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operand { get; }
         /// <summary>
-        /// Bounds of each dimension of the re-allocated array.
+        /// Sizes of the dimensions of the created array instance.
         /// </summary>
-        ImmutableArray<IOperation> Indices { get; }
+        ImmutableArray<IOperation> DimensionSizes { get; }
     }
 }
 
