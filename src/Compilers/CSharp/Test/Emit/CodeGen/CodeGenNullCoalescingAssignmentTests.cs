@@ -191,7 +191,7 @@ In GetInt
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IndexerLvalue()
         {
             CompileAndVerify(@"
