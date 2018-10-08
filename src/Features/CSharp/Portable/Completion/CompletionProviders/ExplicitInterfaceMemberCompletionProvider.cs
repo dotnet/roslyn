@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var members = symbol.GetMembers().WhereAsArray(m => !IsIvalidCompletionMethodKind(m));
+                var members = symbol.GetMembers().WhereAsArray(m => !IsInvalidCompletionMethodKind(m));
 
                 // We're going to create a entry for each one, including the signature
                 var namePosition = name.SpanStart;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static bool IsIvalidCompletionMethodKind(ISymbol symbol)
+        private static bool IsInvalidCompletionMethodKind(ISymbol symbol)
         {
             if (symbol.Kind is SymbolKind.Method)
             {
