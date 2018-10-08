@@ -33,7 +33,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<OperationMethodKey, PropertySetAbstractValue>();
 
-                this.WellKnownTypeProvider.TryGetKnownType(analysisContext.TypeToTrackMetadataName, out this.DeserializerTypeSymbol);
+                this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.DeserializerTypeSymbol);
             }
 
             public override int GetHashCode()
