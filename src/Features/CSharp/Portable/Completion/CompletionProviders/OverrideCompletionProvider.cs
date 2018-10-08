@@ -197,10 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
             {
-                // property: no accessors; move to the end of the declaration
                 if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
                 {
-                    // move to the end of the last statement of the first accessor
+                    // property: move to the end of the last statement of the first accessor
                     var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
                     var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
                         firstAccessor.ExpressionBody.Expression;
@@ -208,6 +207,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
                 else
                 {
+                    // property: move ahead of the arrow token
+                    var expressionBody = propertyDeclaration.GetExpressionBody();
+                    if (expressionBody != null)
+                    {
+                        return expressionBody.ArrowToken.GetLocation().SourceSpan.Start;
+                    }
+
+                    // property: no accessors; move to the end of the declaration
                     return propertyDeclaration.GetLocation().SourceSpan.End;
                 }
             }

@@ -504,7 +504,7 @@ partial class Bar
 partial class Bar
 {
     partial void Foo();
-    partial void Foo() => throw new NotImplementedException();$$
+    partial void Foo() $$=> throw new NotImplementedException();
 }
 "
 ;
