@@ -303,9 +303,9 @@ namespace Roslyn.Test.Utilities.Desktop
             }
 
             var shouldSucceed = verification == Verification.Passes;
+            var emitData = GetEmitData();
             try
             {
-                var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
                 if (!shouldSucceed)

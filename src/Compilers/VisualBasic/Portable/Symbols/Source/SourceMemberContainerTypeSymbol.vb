@@ -3140,13 +3140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ImmutableInterlocked.InterlockedInitialize(Me._lazyMembersFlattened, result)
             End If
 
-#If DEBUG Then
-            ' In DEBUG, swap first And last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return _lazyMembersFlattened.DeOrder()
-#Else
-            Return _lazyMembersFlattened
-#End If
+            Return _lazyMembersFlattened.ConditionallyDeOrder()
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)

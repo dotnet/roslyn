@@ -93,9 +93,9 @@
     <MicrosoftVisualStudioComponentModelHostVersion>15.7.27703</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>15.8.414-preview</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
-    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>15.7.2082401</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
+    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>15.7.2082401</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.8.27812-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.17</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
@@ -156,7 +156,7 @@
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63127-02</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63328-04</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
@@ -269,7 +269,6 @@
   <ItemGroup>
     <PrivateVisualStudioPackage Include="EnvDTE"/>
     <PrivateVisualStudioPackage Include="EnvDTE80"/>
-    <PrivateVisualStudioPackage Include="Microsoft.CodeAnalysis.Elfie" />
     <PrivateVisualStudioPackage Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.MSXML"/>
@@ -353,6 +352,7 @@
       https://dotnet.myget.org/F/sourcelink/api/v3/index.json;
       https://myget.org/F/vs-devcore/api/v3/index.json;
       https://myget.org/F/vs-editor/api/v3/index.json;
+      https://myget.org/F/roslyn_concord/api/v3/index.json;
       https://vside.myget.org/F/vssdk/api/v3/index.json;
       https://vside.myget.org/F/vs-impl/api/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;

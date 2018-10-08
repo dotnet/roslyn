@@ -325,6 +325,9 @@ namespace Microsoft.Cci
                 : base(metadataWriter)
             {
             }
+
+            protected override bool ProcessReferencesInCurrentModule
+                => false;
         }
 
         protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)

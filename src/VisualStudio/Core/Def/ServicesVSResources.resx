@@ -1066,4 +1066,10 @@ I agree to all of the foregoing:</value>
   <data name="Use_expression_body_for_lambdas" xml:space="preserve">
     <value>Use expression body for lambdas</value>
   </data>
+  <data name="Generate_dot_editorconfig_file_from_settings" xml:space="preserve">
+    <value>Generate .editorconfig file from settings</value>
+  </data>
+  <data name="Save_dot_editorconfig_file" xml:space="preserve">
+    <value>Save .editorconfig file</value>
+  </data>
 </root>

@@ -690,7 +690,7 @@ public class D : ITest1
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType;
+                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 Assert.Equal("S", s.ToTestDisplayString());
                 Assert.NotNull(s.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
@@ -779,7 +779,7 @@ public class D
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType;
+                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 Assert.Equal("S", s.ToTestDisplayString());
 
                 var field = s.GetMember("field");
@@ -3377,7 +3377,7 @@ using System;
                              sourceSymbolValidator: delegate (ModuleSymbol m)
                              {
                                  string[] expectedGlobalMembers = { "C1", "B", "A1", "F", "G", "E", "D" };
-                                 var actualGlobalMembers = m.GlobalNamespace.GetMembers().ToArray();
+                                 var actualGlobalMembers = m.GlobalNamespace.GetMembers().Where(member => !member.IsImplicitlyDeclared).ToArray();
                                  for (int i = 0; i < System.Math.Max(expectedGlobalMembers.Length, actualGlobalMembers.Length); i++)
                                  {
                                      Assert.Equal(expectedGlobalMembers[i], actualGlobalMembers[i].Name);

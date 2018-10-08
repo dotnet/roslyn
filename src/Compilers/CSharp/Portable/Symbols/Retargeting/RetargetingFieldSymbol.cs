@@ -3,13 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
+using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -25,8 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// Owning RetargetingModuleSymbol.
         /// </summary>
         private readonly RetargetingModuleSymbol _retargetingModule;
-
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -60,17 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return this.RetargetingTranslator.Retarget(_underlyingField.GetFieldType(fieldsBeingBound), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return this.RetargetingTranslator.RetargetModifiers(_underlyingField.CustomModifiers, ref _lazyCustomModifiers);
-            }
         }
 
         public override Symbol ContainingSymbol
@@ -139,6 +124,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                return _underlyingField.NonNullTypes;
+            }
         }
     }
 }

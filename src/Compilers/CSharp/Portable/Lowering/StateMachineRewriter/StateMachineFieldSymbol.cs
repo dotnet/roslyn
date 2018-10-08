@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly bool _isThis;
 
         // -1 if the field doesn't represent a long-lived local or an awaiter.
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type != null);
             Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
 
-            _type = type;
+            _type = TypeSymbolWithAnnotations.Create(type);
             this.SlotIndex = slotIndex;
             this.SlotDebugInfo = slotDebugInfo;
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }

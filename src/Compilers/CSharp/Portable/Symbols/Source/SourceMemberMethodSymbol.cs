@@ -181,6 +181,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _cachedDiagnostics; }
         }
 
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NonNullTypes ?? base.NonNullTypes;
+            }
+        }
+
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
             //return the diagnostics that were actually saved in the event that there were two threads racing. 
@@ -203,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbol returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private)
             {
@@ -218,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType);
+                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -230,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
                 }
             }
 
@@ -669,14 +678,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -685,11 +686,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments();
             }
         }
 
@@ -923,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected MethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -931,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1142,11 +1143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetPreserveSignature(arguments.Index);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MethodImplAttribute))
             {
-                AttributeData.DecodeMethodImplAttribute<CommonMethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
+                AttributeData.DecodeMethodImplAttribute<MethodWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>(ref arguments, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DllImportAttribute))
             {
@@ -1154,11 +1155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
@@ -1166,11 +1167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasSuppressUnmanagedCodeSecurityAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicSecurityMethodAttribute))
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDynamicSecurityMethodAttribute = true;
             }
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.ObsoleteAttribute))
             {
@@ -1206,12 +1207,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
+            {
+                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().NonNullTypes = value;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
                 if (attribute.IsSecurityAttribute(compilation))
                 {
-                    attribute.DecodeSecurityAttribute<CommonMethodWellKnownAttributeData>(this, compilation, ref arguments);
+                    attribute.DecodeSecurityAttribute<MethodWellKnownAttributeData>(this, compilation, ref arguments);
                 }
             }
         }
@@ -1332,6 +1338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
         }
 
         private void DecodeDllImportAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -1433,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!hasErrors)
             {
-                arguments.GetOrCreateData<CommonMethodWellKnownAttributeData>().SetDllImport(
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().SetDllImport(
                     arguments.Index,
                     moduleName,
                     importName,
@@ -1562,7 +1573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
             var attributesBag = this.GetAttributesBag();
-            var wellKnownData = (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
                 SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;
