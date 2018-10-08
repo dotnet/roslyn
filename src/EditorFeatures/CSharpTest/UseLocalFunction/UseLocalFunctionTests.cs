@@ -3311,7 +3311,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        [WorkItem(23149, "https://github.com/dotnet/roslyn/issues/29793")]
+        [WorkItem(29793, "https://github.com/dotnet/roslyn/issues/29793")]
         public async Task TestExtraTrailingClosingBracket()
         {
             await TestInRegularAndScriptAsync(
@@ -3321,9 +3321,9 @@ class C
 {
     void M()
     {
-        Func<Task> [||]getTask = () =>
+        Func<int> [||]getInt = () =>
         {
-            return Task.CompletedTask;
+            return 100;
         });
     }
 }",
@@ -3333,9 +3333,9 @@ class C
 {
     void M()
     {
-        Task getTask()
+        int getInt()
         {
-            return Task.CompletedTask;
+            return 100;
         });
     }
 }");
