@@ -114,7 +114,7 @@ interface I1
 interface I2 : I1
 {
     void Goo2();
-    int Prop { get; };
+    int Prop { get; }
     event EventHandler TestEvent;
 }
 
