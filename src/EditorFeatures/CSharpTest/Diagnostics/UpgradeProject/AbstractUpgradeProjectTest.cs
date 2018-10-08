@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 var operations = await VerifyActionAndGetOperationsAsync(action, default);
 
-                var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
-                var oldSolution = appliedChanges.Item1;
-                var newSolution = appliedChanges.Item2;
+                var (oldSolution, newSolution) = ApplyOperationsAndGetSolution(workspace, operations);
+
                 Assert.All(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp),
                     p => Assert.Equal(expected, ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion));
 
