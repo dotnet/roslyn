@@ -4274,6 +4274,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NonNullTypesAttribute&apos; is not allowed..
+        /// </summary>
+        internal static string ERR_ExplicitNonNullTypesAttribute {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitNonNullTypesAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NullableAttribute&apos; is not allowed..
         /// </summary>
         internal static string ERR_ExplicitNullableAttribute {
@@ -14978,6 +14987,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_PossibleMistakenNullStatement_Title {
             get {
                 return ResourceManager.GetString("WRN_PossibleMistakenNullStatement_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-null reference types are off..
+        /// </summary>
+        internal static string WRN_PragmaNonNullTypes {
+            get {
+                return ResourceManager.GetString("WRN_PragmaNonNullTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-null reference types are off..
+        /// </summary>
+        internal static string WRN_PragmaNonNullTypes_Title {
+            get {
+                return ResourceManager.GetString("WRN_PragmaNonNullTypes_Title", resourceCulture);
             }
         }
         

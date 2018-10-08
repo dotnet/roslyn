@@ -149,7 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(nonNullTypesContext != null);
             Debug.Assert((nonNullTypesContext as Symbol)?.IsDefinition != false);
-
+#if DEBUG
+            _ = nonNullTypesContext.NonNullTypes; // Should be able to ask this question right away.
+#endif
             if (typeSymbol is null)
             {
                 return default;

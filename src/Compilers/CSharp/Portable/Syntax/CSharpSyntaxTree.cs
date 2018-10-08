@@ -593,6 +593,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
+        internal ReportDiagnostic? GetPragmaDirectiveSpecificWarningState(string id, int position)
+        {
+            if (_lazyPragmaWarningStateMap == null)
+            {
+                // Create the warning state map on demand.
+                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this), null);
+            }
+
+            return _lazyPragmaWarningStateMap.GetSpecificWarningState(id, position);
+        }
+
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
 
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;

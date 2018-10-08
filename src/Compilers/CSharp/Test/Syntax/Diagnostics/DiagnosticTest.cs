@@ -286,6 +286,7 @@ class X
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
+                        case ErrorCode.WRN_PragmaNonNullTypes:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

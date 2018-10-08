@@ -16,6 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
+        private static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
+                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Error) });
+        }
+
+        private static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
+                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Suppress) });
+        }
+
+        private static string NonNullTypesOff()
+        {
+            return $"#pragma warning disable {(int)ErrorCode.WRN_PragmaNonNullTypes}";
+        }
+
+        private static string NonNullTypesOn()
+        {
+            return $"#pragma warning restore {(int)ErrorCode.WRN_PragmaNonNullTypes}";
+        }
+
         [Fact]
         public void Test0()
         {
@@ -37,7 +59,7 @@ class C
                 //         string? x = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 17)
                 );
- 
+
             var c2 = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             c2.VerifyDiagnostics(
                 // (6,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -143,7 +165,7 @@ partial class C
 }
 ";
 
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var c = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (6,23): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.OmittedMethod(string x)'.
                 //         OmittedMethod(x);
@@ -167,7 +189,7 @@ partial class Collection : IEnumerable
 }
 ";
 
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (7,32): warning CS8604: Possible null reference argument for parameter 'x' in 'void Collection.Add(string x)'.
                 //         _ = new Collection() { x };
@@ -214,9 +236,9 @@ public class C<T>
     public static implicit operator C<T>(T x) => throw null;
 }
 ";
- 
+
             var c = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            c.VerifyDiagnostics( );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -230,7 +252,7 @@ public class C<T>
 }
 ";
 
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (5,12): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     public Unknown? field2;
@@ -256,7 +278,7 @@ class C
         z.ToString();
     }
 }
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 class C2
 {
     void M(string z)
@@ -276,11 +298,12 @@ class C2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(16, 9)
                 );
 
-            var c2 = CreateCompilation(new[] { source}, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            var c2 = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes pragma for old language version
             c2.VerifyDiagnostics(
-                // (10,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(10, 2)
+                //// (10,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [System.Runtime.CompilerServices.NonNullTypes]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(10, 2)
                 );
         }
 
@@ -288,27 +311,21 @@ class C2
         public void NonNullTypesOnPartialSymbol()
         {
             var source = @"
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 partial class C
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     partial void M();
 }
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 partial class C
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     partial void M() { }
 }
 ";
             var c = CreateCompilation(new[] { source });
             c.VerifyDiagnostics(
-                // (8,2): error CS0579: Duplicate 'System.Runtime.CompilerServices.NonNullTypes' attribute
-                // [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(8, 2),
-                // (11,6): error CS0579: Duplicate 'System.Runtime.CompilerServices.NonNullTypes' attribute
-                //     [System.Runtime.CompilerServices.NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypes").WithLocation(11, 6)
                 );
         }
 
@@ -327,7 +344,7 @@ class C
 }
 ";
             // https://github.com/dotnet/roslyn/issues/29710 should we produce an error for misuse of suppression on an L-value?
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
         }
 
@@ -350,7 +367,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(6, 10)
                 );
 
-            c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
         }
 
@@ -412,7 +429,7 @@ class C
         WriteLine(y.Length);
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -430,7 +447,7 @@ public class C
         uint y = true ? 1 : a;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
         }
 
@@ -448,7 +465,7 @@ public class C
     }
     public static implicit operator C?(int i) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (8,22): warning CS8601: Possible null reference assignment.
                 //         C y = true ? 1 : c;
@@ -470,7 +487,7 @@ public class C
     }
     public static implicit operator C?(int i) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (7,27): warning CS8601: Possible null reference assignment.
                 //         C x = false ? c : 1;
@@ -492,7 +509,7 @@ public class C
     }
     public static implicit operator C?(int i) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (7,23): warning CS8601: Possible null reference assignment.
                 //         C x = b ? c : 1;
@@ -521,7 +538,7 @@ public class C
     }
     public static implicit operator int(C i) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (11,25): warning CS8604: Possible null reference argument for parameter 'i' in 'C.implicit operator int(C i)'.
                 //         int x2 = true ? c2 : 1;
@@ -683,7 +700,7 @@ class C<T> where T : class
             var c = CreateCompilation(source);
             c.VerifyDiagnostics(expectedDiagnostics);
 
-            var c2 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var c2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c2.VerifyDiagnostics(
                 // (43,14): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
                 //         D3(C<T?> x) => throw null; // warn 26
@@ -702,7 +719,7 @@ class C<T> where T : class
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Event").WithLocation(37, 17)
                 );
 
-            var c3 = CreateCompilation(new[] { source, NonNullTypesFalse });
+            var c3 = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
             c3.VerifyDiagnostics(expectedDiagnostics
                 .Concat(new[] {
                     // (37,17): warning CS8602: Possible dereference of a null reference.
@@ -763,24 +780,24 @@ class Client
     }
 }
 ";
-            var comp2 = CreateCompilation(new[] { client, NonNullTypesTrue }, references: new[] { c.ToMetadataReference() });
+            var comp2 = CreateCompilation(new[] { client }, options: WithNonNullTypesTrue(), references: new[] { c.ToMetadataReference() });
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         c.M("").ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9)
                 );
 
-            c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics();
 
-            comp2 = CreateCompilation(new[] { client, NonNullTypesTrue }, references: new[] { c.EmitToImageReference() });
+            comp2 = CreateCompilation(new[] { client }, options: WithNonNullTypesTrue(), references: new[] { c.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         c.M("").ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"c.M("""")").WithLocation(6, 9)
                 );
 
-            comp2 = CreateCompilation(new[] { client, NonNullTypesTrue }, references: new[] { c.ToMetadataReference() });
+            comp2 = CreateCompilation(new[] { client }, options: WithNonNullTypesTrue(), references: new[] { c.ToMetadataReference() });
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         c.M("").ToString();
@@ -815,7 +832,7 @@ class C4 { }";
                 // [A(typeof(B<object?>))] // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 19));
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -823,7 +840,7 @@ class C4 { }";
         public void EmbeddedAttribute_Injected()
         {
             var source = @"
-[module: System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 [module: Microsoft.CodeAnalysis.Embedded]
 
 [Microsoft.CodeAnalysis.Embedded]
@@ -878,7 +895,7 @@ interface I { }
             Assert.Equal(new[] { ".ctor" }, type.MemberNames);
             Assert.False(type.MightContainExtensionMethods);
             Assert.Equal("EmbeddedAttribute", type.Name);
-            Assert.True(type.NonNullTypes);
+            Assert.Null(type.NonNullTypes);
             Assert.Equal(SpecialType.None, type.SpecialType);
             Assert.Empty(type.StaticConstructors);
             Assert.Equal(TypeKind.Class, type.TypeKind);
@@ -908,15 +925,16 @@ interface I { }
         [Fact]
         public void NonNullTypesAttribute_Injected_InCSharp7()
         {
-            var comp = CreateCompilation(NonNullTypesTrue, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation("", options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
                 );
 
             Assert.True(comp.SourceModule.NonNullTypes);
-            Assert.Equal(new[] { "System.Runtime.CompilerServices.NonNullTypesAttribute(true)" }, comp.SourceModule.GetAttributes().Select(a => a.ToString()));
+            Assert.Empty(comp.SourceModule.GetAttributes());
 
             var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
             Assert.NotNull(type);
@@ -998,11 +1016,12 @@ interface I { }
         [Fact]
         public void NonNullTypesAttribute_False_Injected_InCSharp7()
         {
-            var comp = CreateCompilation(NonNullTypesFalse, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation("", options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular7);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(false)").WithArguments("8.0").WithLocation(1, 10)
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(false)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(false)").WithArguments("8.0").WithLocation(1, 10)
                 );
 
             Assert.False(comp.SourceModule.NonNullTypes);
@@ -1030,11 +1049,12 @@ namespace System.Runtime.CompilerServices.NonNullTypesAttribute
 {
     class C { }
 }";
-            var comp = CreateCompilation(new[] { comp_cs, NonNullTypesTrue }, references: new[] { reference.ToMetadataReference() });
-            comp.VerifyDiagnostics(
-                // (1,42): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(1, 42)
+            var comp = CreateCompilation(new[] { comp_cs }, options: WithNonNullTypesTrue(), references: new[] { reference.ToMetadataReference() });
+            // PROTOTYPE(NullableReferenceTypes): Report an error if we are unable to synthesize NonNullTypesAttribute application
+            comp.VerifyEmitDiagnostics(
+                //// (1,42): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "NonNullTypes").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(1, 42)
                 );
 
             var type = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute);
@@ -1084,26 +1104,43 @@ namespace NotMicrosoft.CodeAnalysis { }
         // Test emitting netmodule (we won't inject NNT)
         // Test script
 
-        [Theory]
-        [InlineData(NonNullTypesTrue)]
-        [InlineData(NonNullTypesFalse)]
-        [InlineData("[System.Runtime.CompilerServices.NonNullTypes] class C { }")]
-        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] public string s = null!; }")]
-        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] public event System.Action e; void M() { e(); } }")]
-        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] void M() { } }")]
-        [InlineData("class C { [System.Runtime.CompilerServices.NonNullTypes] string P { get; set; } }")]
-        [InlineData("using NNT = System.Runtime.CompilerServices.NonNullTypesAttribute; [NNT] class C { }")]
-        [InlineData("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute M() => throw null; }")]
-        [InlineData("using System.Runtime.CompilerServices; class C { void M(NonNullTypesAttribute x) => throw null; }")]
-        [InlineData("using System.Runtime.CompilerServices; namespace System { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
-        [InlineData("using System.Runtime.CompilerServices; namespace System.Runtime { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
-        [InlineData("namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }")]
-        [InlineData("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute field = null; void M() { if (field != null) field = null; } }")]
-        [InlineData("using System.Runtime.CompilerServices; class C { void M() { _ = new NonNullTypesAttribute(); } }")]
-        [InlineData("using System.Runtime.CompilerServices; class C { void M() { local(); void local() { _ = new NonNullTypesAttribute(); } } }")]
-        public void NonNullTypesAttribute_Injected(string source)
+        [Fact]
+        public void NonNullTypesAttribute_Injected()
         {
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            NonNullTypesAttribute_Injected("", WithNonNullTypesTrue());
+            NonNullTypesAttribute_Injected("", WithNonNullTypesFalse());
+            NonNullTypesAttribute_Injected(
+NonNullTypesOn() + @"
+class C { }");
+            NonNullTypesAttribute_Injected(
+@"class C { 
+" + NonNullTypesOn() + @"
+public string s = null!; }");
+            NonNullTypesAttribute_Injected(
+@"class C {
+" + NonNullTypesOn() + @"
+public event System.Action e; void M() { e(); } }");
+            NonNullTypesAttribute_Injected(
+@"class C {
+" + NonNullTypesOn() + @"
+void M() { } }");
+            NonNullTypesAttribute_Injected(
+@"class C {
+" + NonNullTypesOn() + @"
+string P { get; set; } }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute M() => throw null; }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { void M(NonNullTypesAttribute x) => throw null; }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; namespace System { class C { void M(NonNullTypesAttribute x) => throw null; } }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; namespace System.Runtime { class C { void M(NonNullTypesAttribute x) => throw null; } }");
+            NonNullTypesAttribute_Injected("namespace System.Runtime.CompilerServices { class C { void M(NonNullTypesAttribute x) => throw null; } }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { NonNullTypesAttribute field = null; void M() { if (field != null) field = null; } }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { void M() { _ = new NonNullTypesAttribute(); } }");
+            NonNullTypesAttribute_Injected("using System.Runtime.CompilerServices; class C { void M() { local(); void local() { _ = new NonNullTypesAttribute(); } } }");
+        }
+
+        private void NonNullTypesAttribute_Injected(string source, CSharpCompilationOptions options = null)
+        {
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: options);
             comp.VerifyDiagnostics();
 
             Action<ModuleSymbol> validator = module =>
@@ -1234,7 +1271,7 @@ namespace System
     public class String { }
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -1263,7 +1300,7 @@ namespace System
     // missing AttributeUsageAttribute
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
@@ -1343,7 +1380,7 @@ namespace System
     public class AttributeUsageAttribute : Attribute { /* missing ctor */ }
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1)
@@ -1380,7 +1417,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
         }
 
@@ -1409,7 +1446,7 @@ namespace System
         GenericParameter = 16384, All = 32767 }
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
@@ -1470,7 +1507,7 @@ namespace System
     public class String { }
 }
 ";
-            var comp = CreateEmptyCompilation(new[] { source, "[module: System.Runtime.CompilerServices.NonNullTypes()]" });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1),
@@ -1560,7 +1597,7 @@ public class C
         return null!;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -1797,15 +1834,15 @@ namespace System
             comp1.VerifyDiagnostics();
             Assert.Null(getParameterType(comp1).IsNullable);
 
-            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: compRefs0);
+            comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: compRefs0);
             comp1.VerifyDiagnostics();
             Assert.Null(getParameterType(comp1).IsNullable);
-            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: metadataRefs0);
+            comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: metadataRefs0);
             comp1.VerifyDiagnostics();
             Assert.Null(getParameterType(comp1).IsNullable);
 
             // 8.0 library
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
@@ -1827,13 +1864,13 @@ namespace System
             comp1.VerifyDiagnostics();
             Assert.Equal(false, getParameterType(comp1).IsNullable);
 
-            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: compRefs0);
+            comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: compRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
             Assert.Equal(false, getParameterType(comp1).IsNullable);
-            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: metadataRefs0);
+            comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: metadataRefs0);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
@@ -2024,7 +2061,7 @@ public class C
 }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue },
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(),
                 references: new[] { comp0.EmitToImageReference() });
             comp1.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -2099,7 +2136,7 @@ class P
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue },
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(),
                 references: new MetadataReference[] { new CSharpCompilationReference(comp0) });
             comp1.VerifyDiagnostics(
                 // (43,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? B2.F(object o)'.
@@ -2115,7 +2152,7 @@ class P
                 //         y = d2.F(x);
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "d2.F(x)").WithLocation(51, 13));
 
-            comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue },
+            comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(),
                 references: new[] { comp0.EmitToImageReference() });
             comp1.VerifyDiagnostics(
                 // (43,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? B2.F(object o)'.
@@ -2183,7 +2220,7 @@ public class D : C
         ((I)d).G(null).ToString();
     }
 }";
-            var comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            var comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -2218,10 +2255,10 @@ public class D : C
                 //         ((I)d).G(null).ToString();
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18)
             };
-            var comp2C = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { ref0, ref1 });
+            var comp2C = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
             comp2C.VerifyDiagnostics(expectedDiagnostics);
 
-            var comp2D = CreateCompilation(new[] { source2, NonNullTypesFalse }, references: new[] { ref0, ref1 });
+            var comp2D = CreateCompilation(new[] { source2 }, options: WithNonNullTypesFalse(), references: new[] { ref0, ref1 });
             comp2D.VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2312,7 +2349,7 @@ class P
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 27)
                 );
 
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             comp0.VerifyDiagnostics();
             ref0 = comp0.EmitToImageReference();
 
@@ -2320,7 +2357,7 @@ class P
             comp1.VerifyDiagnostics();
             ref1 = comp1.EmitToImageReference();
 
-            comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { ref0, ref1 });
+            comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
             comp2.VerifyDiagnostics(
                 // (15,13): warning CS8604: Possible null reference argument for parameter 'x' in 'object C1.F(object x, object y)'.
                 //         c.F(x, y).ToString();
@@ -2385,7 +2422,7 @@ public sealed class B : A<object>
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypesAttribute(false)]
+" + NonNullTypesOff() + @"
     class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
@@ -2405,7 +2442,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class NonNullTypesAttribute : System.Attribute
     {
         public NonNullTypesAttribute(bool flag = true) { }
@@ -2425,7 +2462,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     [System.Obsolete(""obsolete"")]
     class NonNullTypesAttribute : System.Attribute
     {
@@ -2472,7 +2509,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -2483,7 +2520,7 @@ namespace System.Runtime.CompilerServices
 [System.Flags]
 enum E { }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -2497,7 +2534,7 @@ interface I { }
 interface I2 : I { }
 
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -2539,7 +2576,7 @@ class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
     public override string DisplayName { get => throw null; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -2549,8 +2586,9 @@ class AttributeWithProperty : System.ComponentModel.DisplayNameAttribute
             string source = @"
 namespace System
 {
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public struct Boolean { }
+" + NonNullTypesOff() + @"
     public class Attribute { }
     public class Object { }
     public struct Void { }
@@ -2614,22 +2652,22 @@ public class Oblivious
             var obliviousComp = CreateCompilation(obliviousLib, parseOptions: TestOptions.Regular7);
 
             var lib = @"
-using System.Runtime.CompilerServices;
-[NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 public class External
 {
     public static string s;
     public static string? ns;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static string fs;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static string? fns;
 }
 ";
 
-            var libComp = CreateCompilation(new[] { lib, NonNullTypesTrue });
+            var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
             libComp.VerifyDiagnostics(
                 // (13,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     public static string? fns;
@@ -2638,12 +2676,12 @@ public class External
             verifyExternal(libComp);
 
             var source = @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 public class OuterA
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public class A
     {
         public static string s;
@@ -2658,36 +2696,36 @@ public class B
     public static string? ns;
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class C
 {
-    [NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string s;
 
-    [NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string? ns;
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterD
 {
     public class D
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string s;
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string? ns;
     }
 }
 
 public class Oblivious2
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static string s;
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static string? ns;
 }
-
+" + NonNullTypesOn() + @"
 class E
 {
     public void M()
@@ -2717,7 +2755,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -2789,7 +2827,7 @@ class E
 public class List2<T> { public T Item { get; set; } = null!; }
 ";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!; }
@@ -2804,7 +2842,7 @@ public class List2<T> { public T Item { get; set; } = null!; }
 public class List2<T> { public T Item { get; set; } = null!!; }
 ";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,55): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 // public class List2<T> { public T Item { get; set; } = null!!; }
@@ -2833,23 +2871,23 @@ public class External
     public static List2<string> s;
     public static List2<string?> ns;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static List2<string> fs;
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static List2<string?> fns;
 }
 ";
 
-            var libComp = CreateCompilation(new[] { lib, NonNullTypesTrue });
+            var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
 
             var source = @"
-using System.Runtime.CompilerServices;
+
 public class List3<T> { public T Item { get; set; } = default!; }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterA
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public class A
     {
         public static List3<string> s;
@@ -2864,25 +2902,25 @@ public class B
     public static List3<string?> ns;
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterD
 {
     public class D
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static List3<string> s;
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static List3<string?> ns;
     }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class Oblivious2
 {
     public static List3<string> s;
     public static List3<string?> ns;
 }
-
+" + NonNullTypesOn() + @"
 class E
 {
     public void M()
@@ -2909,7 +2947,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -2951,15 +2989,15 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(new[] { lib, NonNullTypesTrue });
+            var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
 
             var source = @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 public class OuterA
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public class A
     {
         public static (string s, string? ns) t;
@@ -2972,22 +3010,22 @@ public class B
     public static (string s, string? ns) t;
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterD
 {
     public class D
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static (string s, string? ns) t;
     }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class Oblivious2
 {
     public static (string s, string? ns) t;
 }
-
+" + NonNullTypesOn() + @"
 class E
 {
     public void M()
@@ -3011,7 +3049,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -3054,15 +3092,15 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(new[] { lib, NonNullTypesTrue });
+            var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
 
             var source = @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypesAttribute(false)]
+
+" + NonNullTypesOff() + @"
 public class OuterA
 {
-    [type: NonNullTypesAttribute(true)]
+" + NonNullTypesOn() + @"
     public class A
     {
         public static string[] s;
@@ -3077,25 +3115,25 @@ public class B
     public static string?[] ns;
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterD
 {
     public class D
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string[] s;
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string?[] ns;
     }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class Oblivious2
 {
     public static string[] s;
     public static string?[] ns;
 }
-
+" + NonNullTypesOn() + @"
 class E
 {
     public void M()
@@ -3119,7 +3157,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -3164,19 +3202,19 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(new[] { lib, NonNullTypesTrue });
+            var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
 
             var source = @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 public class OuterA
 {
     public class A
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string s { get; set; }
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string? ns { get; set; }
     }
 }
@@ -3188,10 +3226,10 @@ public class B
     public static string? ns { get; set; }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterD
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public class D
     {
         public static string s { get; set; }
@@ -3201,12 +3239,12 @@ public class OuterD
 
 public class Oblivious2
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static string s { get; set; }
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public static string? ns { get; set; }
 }
-
+" + NonNullTypesOn() + @"
 class E
 {
     public void M()
@@ -3230,7 +3268,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -3354,16 +3392,16 @@ public class External
 }
 ";
 
-            var libComp = CreateCompilation(new[] { lib, NonNullTypesTrue });
+            var libComp = CreateCompilation(new[] { lib }, options: WithNonNullTypesTrue());
             verifyExternal(libComp);
 
             var source = @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 public class OuterA
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public class A
     {
         public static string Method(string s) => throw null;
@@ -3378,25 +3416,25 @@ public class B
     public static string? NMethod(string? ns) => throw null;
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class OuterD
 {
     public class D
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string Method(string s) => throw null;
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public static string? NMethod(string? ns) => throw null;
     }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class Oblivious2
 {
     public static string Method(string s) => throw null;
     public static string? NMethod(string? ns) => throw null;
 }
-
+" + NonNullTypesOn() + @"
 class E
 {
     public void M()
@@ -3420,7 +3458,7 @@ class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -3482,10 +3520,8 @@ class E
         [Fact]
         public void NonNullTypes_OnModule()
         {
-            var obliviousLib = @"
-using System.Runtime.CompilerServices;
-
-[module: NonNullTypesAttribute(false)]
+            var obliviousLib =
+NonNullTypesOff() + @"
 public class Oblivious { }
 ";
 
@@ -3503,7 +3539,6 @@ public class Oblivious { }
         public void NonNullTypes_OnModule_WithExtraConstructor()
         {
             var obliviousLib = @"
-[module: System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
 public class Oblivious { }
 
 namespace System.Runtime.CompilerServices
@@ -3517,7 +3552,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var obliviousComp = CreateCompilation(obliviousLib);
+            var obliviousComp = CreateCompilation(obliviousLib, options: WithNonNullTypesFalse());
             obliviousComp.VerifyDiagnostics();
             VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
@@ -3533,12 +3568,16 @@ namespace System.Runtime.CompilerServices
             var obliviousLib = @"
 using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;
 
-[module: NonNullTypesAlias(false)]
+" + NonNullTypesOff() + @"
 public class Oblivious { }
 ";
 
             var obliviousComp = CreateCompilation(new[] { obliviousLib });
-            obliviousComp.VerifyDiagnostics();
+            obliviousComp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NonNullTypesAlias = System.Runtime.CompilerServices.NonNullTypesAttribute;").WithLocation(2, 1)
+                );
             VerifyNonNullTypes(obliviousComp.GetMember("Oblivious"), expectNonNullTypes: false);
 
             var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
@@ -3557,7 +3596,7 @@ using System.Runtime.CompilerServices;
 public class Oblivious { }
 ";
 
-            var obliviousComp = CreateCompilation(new[] { obliviousLib, NonNullTypesTrue });
+            var obliviousComp = CreateCompilation(new[] { obliviousLib }, options: WithNonNullTypesTrue());
             obliviousComp.VerifyDiagnostics(
                 // (4,12): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 // [assembly: NonNullTypes(false)]
@@ -3570,8 +3609,7 @@ public class Oblivious { }
         public void NonNullTypes_ValueTypeArgument()
         {
             var source =
-@"using System.Runtime.CompilerServices;
-[module: NonNullTypes(false)]
+NonNullTypesOff() + @"
 class A<T> { }
 class B
 {
@@ -3586,8 +3624,7 @@ class B
         public void NonNullTypes_GenericOverriddenMethod_ValueType()
         {
             var source =
-@"using System.Runtime.CompilerServices;
-[module: NonNullTypes(false)]
+NonNullTypesOff() + @"
 class C<T> { }
 abstract class A
 {
@@ -3633,7 +3670,7 @@ class C<T>
             comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,7): warning CS8618: Non-nullable field '_f' is uninitialized.
                 // class C<T>
@@ -3654,14 +3691,15 @@ class B<T> : A<T> where T : A<T>.I
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
                 );
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -3690,7 +3728,7 @@ class C
 }
 ";
             // Should a declared type affect an oblivious state? https://github.com/dotnet/roslyn/issues/27686
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
 
             compilation.VerifyTypes();
@@ -3701,11 +3739,11 @@ class C
         public void NonNullTypesTrue_Foreach()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 
 class C
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M2()
     {
         foreach (string s in Collection())
@@ -3749,20 +3787,20 @@ class C
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     string[] Collection() => throw null;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     string?[] NCollection() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string[] FalseCollection() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string?[] FalseNCollection() => throw null; // 5
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -3788,11 +3826,11 @@ class C
         public void NonNullTypesFalse_Foreach()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 
 class C
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public void M2()
     {
         foreach (string s in Collection())
@@ -3836,20 +3874,20 @@ class C
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     string[] Collection() => throw null;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     string?[] NCollection() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string[] FalseCollection() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string?[] FalseNCollection() => throw null; // 7
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -3881,11 +3919,11 @@ class C
         public void NonNullTypesTrue_OutVars()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 
 class C
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M()
     {
         Out(out string s2);
@@ -3921,20 +3959,20 @@ class C
         ns5 = null;
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void Out(out string s) => throw null;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void NOut(out string? ns) => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     void FalseOut(out string s) => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     void FalseNOut(out string? ns) => throw null; // warn 7
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -3969,11 +4007,11 @@ class C
         public void NonNullTypesFalse_OutVars()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 
 class C
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public void M()
     {
         Out(out string s2);
@@ -4009,20 +4047,20 @@ class C
         ns5 = null;
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void Out(out string s) => throw null;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void NOut(out string? ns) => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     void FalseOut(out string s) => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     void FalseNOut(out string? ns) => throw null; // 8
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -4057,9 +4095,9 @@ class C
         public void NonNullTypesTrue_LocalDeclarations()
         {
             var source = @"
-using System.Runtime.CompilerServices;
 
-[module:NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 public class C : Base
 {
     public void M()
@@ -4099,16 +4137,16 @@ public class C : Base
 }
 public class Base
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public string Method() => throw null;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public string? NMethod() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public string FalseMethod() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public string? FalseNMethod() => throw null; // warn 8
 }
 ";
@@ -4147,9 +4185,9 @@ public class Base
         public void NonNullTypesFalse_LocalDeclarations()
         {
             var source = @"
-using System.Runtime.CompilerServices;
 
-[module:NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 public class C : Base
 {
     public void M()
@@ -4189,16 +4227,16 @@ public class C : Base
 }
 public class Base
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public string Method() => throw null;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public string? NMethod() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public string FalseMethod() => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public string? FalseNMethod() => throw null; // 8
 }
 ";
@@ -4237,10 +4275,10 @@ public class Base
         public void NonNullTypes_Constraint()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 public class S { }
 
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 public struct C<T> where T : S
 {
     public void M(T t)
@@ -4250,7 +4288,7 @@ public struct C<T> where T : S
     }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public struct D<T> where T : S
 {
     public void M(T t)
@@ -4260,7 +4298,7 @@ public struct D<T> where T : S
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -4274,14 +4312,14 @@ public struct D<T> where T : S
         public void NonNullTypes_Delegate()
         {
             var source = @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 public delegate string[] MyDelegate(string[] x);
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public delegate string[] MyFalseDelegate(string[] x);
-
+" + NonNullTypesOn() + @"
 public delegate string[]? MyNullableDelegate(string[]? x);
 
 class C
@@ -4302,17 +4340,17 @@ class C
         MyNullableDelegate z5 = NullableParameterMethod; // warn 5
      }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public string[] Method(string[] x) => throw null;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public string[] FalseMethod(string[] x) => throw null;
-
+" + NonNullTypesOn() + @"
     public string[]? NullableReturnMethod(string[] x) => throw null;
     public string[] NullableParameterMethod(string[]? x) => throw null;
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -4334,23 +4372,25 @@ class C
         public void NonNullTypes_Constructor()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 
 public class C
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public C(string[] x) => throw null;
 }
 public class D
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public D(string[] x) => throw null;
 }
+" + NonNullTypesOn() + @"
 public class E
 {
     public string[] field = null!;
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public string[] obliviousField;
+" + NonNullTypesOn() + @"
     public string[]? nullableField;
 
     void M()
@@ -4364,13 +4404,13 @@ public class E
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
-                // (25,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C.C(string[] x)'.
+                // (27,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C.C(string[] x)'.
                 //         new C(nullableField); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "nullableField").WithArguments("x", "C.C(string[] x)").WithLocation(25, 15)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "nullableField").WithArguments("x", "C.C(string[] x)").WithLocation(27, 15)
                 );
         }
 
@@ -4378,11 +4418,11 @@ public class E
         public void NonNullTypes_Constraint_Nested()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 public class S { }
 public class List<T> { public T Item { get; set; } = default!; }
 
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 public struct C<T, NT>
     where T : List<S>
     where NT : List<S?>
@@ -4396,7 +4436,7 @@ public struct C<T, NT>
     }
 }
 
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public struct D<T, NT>
     where T : List<S>
     where NT : List<S?> // warn 3
@@ -4410,7 +4450,7 @@ public struct D<T, NT>
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -4434,7 +4474,7 @@ public struct D<T, NT>
         {
             var source =
 @"using System;
-using System.Runtime.CompilerServices;
+
 class C1
 {
     string F1() => throw null;
@@ -4443,7 +4483,7 @@ class C1
     int? F4() => throw null;
     Nullable<int> F5() => throw null;
 }
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 class C2
 {
     string F1() => throw null;
@@ -4452,7 +4492,7 @@ class C2
     int? F4() => throw null;
     Nullable<int> F5() => throw null;
 }
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 class C3
 {
     string F1() => throw null;
@@ -4504,7 +4544,7 @@ class C3
         {
             var source =
 @"using System;
-using System.Runtime.CompilerServices;
+
 class C1
 {
     T F1<T>() => throw null;
@@ -4515,7 +4555,7 @@ class C1
     T? F6<T>() where T : struct => throw null;
     Nullable<T> F7<T>() where T : struct => throw null;
 }
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 class C2
 {
     T F1<T>() => throw null;
@@ -4526,7 +4566,7 @@ class C2
     T? F6<T>() where T : struct => throw null;
     Nullable<T> F7<T>() where T : struct => throw null;
 }
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 class C3
 {
     T F1<T>() => throw null;
@@ -4623,7 +4663,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             //var a = compilation.GetTypeByMetadataName("A");
             //var aFoo = a.GetMember<MethodSymbol>("Foo");
@@ -4654,7 +4694,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics();
         }
 
@@ -4678,7 +4718,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(new[] { source, NonNullTypesTrue }).VerifyDiagnostics();
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4699,7 +4739,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(new[] { source, NonNullTypesTrue }).VerifyDiagnostics();
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4722,7 +4762,7 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(new[] { source, NonNullTypesTrue }).VerifyDiagnostics();
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4743,7 +4783,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -4781,7 +4821,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics();
 
@@ -4846,7 +4886,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 );
 
@@ -4905,7 +4945,7 @@ class D : C
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29847: The overriding is ambiguous.
             // We simply matched the first candidate. Should this be an error?
@@ -4974,7 +5014,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -5007,7 +5047,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -5035,7 +5075,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void M1<T>(T? x) where T : struct
@@ -5098,7 +5138,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (8,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public void M2<T>(T? x) 
@@ -5163,7 +5203,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public virtual void M1<T>(System.Nullable<T> x) where T : class
@@ -5204,7 +5244,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                  // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                  //     public virtual C<System.Nullable<T>> M1<T>() where T : class
@@ -5280,7 +5320,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                  // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                  //     public override string? M1()
@@ -5365,7 +5405,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (27,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -5463,7 +5503,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                  // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
                  //     public override int M3()
@@ -5534,7 +5574,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
@@ -5595,7 +5635,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (19,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -5646,8 +5686,9 @@ class B2 : A
 using System.Runtime.CompilerServices;
 public abstract class A
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public abstract System.Action<string> Oblivious1(System.Action<string> x);
+" + NonNullTypesOn() + @"
     [return: NonNullTypes(false)]
     public abstract System.Action<string> Oblivious2([NonNullTypes(false)] System.Action<string> x);
     public abstract System.Action<string> M3(System.Action<string> x);
@@ -5669,59 +5710,60 @@ public class B2 : A
     [return: NonNullTypes(false)]
     public override System.Action<string> Oblivious1([NonNullTypes(false)] System.Action<string> x) => throw null;
     public override System.Action<string> Oblivious2(System.Action<string> x) => throw null;
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override System.Action<string> M3(System.Action<string> x) => throw null;
+" + NonNullTypesOn() + @"
     [return: NonNullTypes(false)]
     public override System.Action<string> M4([NonNullTypes(false)] System.Action<string> x) => throw null;
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override System.Action<string> M5(System.Action<string> x) => throw null;
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // (7,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                // (8,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     [return: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 14),
-                // (8,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(8, 14),
+                // (9,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     public abstract System.Action<string> Oblivious2([NonNullTypes(false)] System.Action<string> x);
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(8, 55),
-                // (17,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "Oblivious2").WithLocation(17, 44),
-                // (17,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "Oblivious2").WithArguments("x").WithLocation(17, 44),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(9, 55),
                 // (18,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(18, 44),
+                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "Oblivious2").WithLocation(18, 44),
                 // (18,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(18, 44),
+                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "Oblivious2").WithArguments("x").WithLocation(18, 44),
                 // (19,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> M4(System.Action<string?> x) => throw null; // warn 7 and 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(19, 44),
+                //     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(19, 44),
                 // (19,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override System.Action<string?> M4(System.Action<string?> x) => throw null; // warn 7 and 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("x").WithLocation(19, 44),
+                //     public override System.Action<string?> M3(System.Action<string?> x) => throw null; // warn 5 and 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(19, 44),
                 // (20,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> M5(System.Action<string?> x) => throw null; // warn 9 and 10
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(20, 44),
+                //     public override System.Action<string?> M4(System.Action<string?> x) => throw null; // warn 7 and 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(20, 44),
                 // (20,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override System.Action<string?> M4(System.Action<string?> x) => throw null; // warn 7 and 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("x").WithLocation(20, 44),
+                // (21,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override System.Action<string?> M5(System.Action<string?> x) => throw null; // warn 9 and 10
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(20, 44),
-                // (30,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(21, 44),
+                // (21,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override System.Action<string?> M5(System.Action<string?> x) => throw null; // warn 9 and 10
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(21, 44),
+                // (32,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     [return: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(30, 14),
-                // (31,47): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(32, 14),
+                // (33,47): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     public override System.Action<string> M4([NonNullTypes(false)] System.Action<string> x) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(31, 47),
-                // (25,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(33, 47),
+                // (26,14): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     [return: NonNullTypes(false)]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(25, 14),
-                // (26,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(26, 14),
+                // (27,55): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     public override System.Action<string> Oblivious1([NonNullTypes(false)] System.Action<string> x) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(26, 55)
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NonNullTypes").WithArguments("NonNullTypes", "module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(27, 55)
                 );
 
             var b1 = compilation.GetTypeByMetadataName("B1");
@@ -5750,8 +5792,8 @@ public class B2 : A
         public void Overriding_Properties_WithNullableTypeArgument()
         {
             var source = @"
-using System.Runtime.CompilerServices;
-[module: NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 public class List<T> { }
 public class Base<T>
 {
@@ -5759,7 +5801,7 @@ public class Base<T>
 }
 public class Class<T> : Base<T>
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override List<T?> P { get; set; } = default;
 }
 ";
@@ -5781,8 +5823,8 @@ public class Class<T> : Base<T>
         public void Overriding_Properties_WithNullableTypeArgument_WithClassConstraint()
         {
             var source = @"
-using System.Runtime.CompilerServices;
-[module: NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 public class List<T> { }
 public class Base<T> where T : class
 {
@@ -5790,7 +5832,7 @@ public class Base<T> where T : class
 }
 public class Class<T> : Base<T> where T : class
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override List<T?> P { get; set; } = default;
 }
 ";
@@ -5806,7 +5848,7 @@ public class Class<T> : Base<T> where T : class
         public void Overriding_Properties_WithNullableTypeArgument_WithStructConstraint()
         {
             var source = @"
-using System.Runtime.CompilerServices;
+
 public class List<T> { }
 public class Base<T> where T : struct
 {
@@ -5814,11 +5856,11 @@ public class Base<T> where T : struct
 }
 public class Class<T> : Base<T> where T : struct
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override List<T?> P { get; set; } = default;
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -5834,15 +5876,15 @@ public class Base
 }
 public class Class : Base
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override List<string[]> this[List<string[]> x] { get => throw null; set => throw null; }
 }
-public class Class2 : Base
-{
+public class Class2 : Base {
+" + NonNullTypesOn() + @"
     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (15,92): error CS0592: Attribute 'NonNullTypes' is not valid on this declaration type. It is only valid on 'module, class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //     public override List<string[]> this[[NonNullTypes(false)] List<string[]> x] { [return: NonNullTypes(false)] get => throw null; set => throw null; }
@@ -5856,14 +5898,15 @@ public class Class2 : Base
         public void Overriding_Indexer2()
         {
             var source = @"
-using System.Runtime.CompilerServices;
-[module: NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 public class List<T> { }
 public class Oblivious
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public virtual List<string[]> this[List<string[]> x] { get => throw null; set => throw null; }
 }
+" + NonNullTypesOn() + @"
 public class Class : Oblivious
 {
     public override List<string[]> this[List<string[]> x] { get => throw null; set => throw null; }
@@ -5877,7 +5920,7 @@ public class Class : Oblivious
         public void Overriding_21()
         {
             var source = @"
-[module: System.Runtime.CompilerServices.NonNullTypes(true)]
+
 class C
 {
     public static void Main()
@@ -5893,19 +5936,19 @@ abstract class A
 
 class B1 : A
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override event System.Action<string?> E1 {add {} remove{}} // 1, 2
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override event System.Action<string> E2 {add {} remove{}}
 }
-
+" + NonNullTypesOn() + @"
 class B2 : A
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override event System.Action<string?> E1; // 3, 4
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override event System.Action<string> E2;
-
+" + NonNullTypesOn() + @"
     void Dummy()
     {
         var e1 = E1;
@@ -5913,7 +5956,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (19,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -5971,7 +6014,7 @@ class B2 : IA
 }
 
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (26,40): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
@@ -6064,7 +6107,7 @@ class B2 : IB
     event System.Action<string?>? IB.E3; // 2
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -6179,7 +6222,7 @@ class B2 : A2
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (28,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -6241,19 +6284,19 @@ abstract class A1
 
 class B1 : A1
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override string[] P1 {get; set;}
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override string[]? P2 {get; set;} // 3
     
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override string[] this[int x]
     {
         get {throw new System.NotImplementedException();}
         set {}
     } 
     
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override string[]? this[short x] // 4
     {
         get {throw new System.NotImplementedException();}
@@ -6327,7 +6370,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (23,22): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
@@ -6418,7 +6461,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (22,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
@@ -6497,7 +6540,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -6540,20 +6583,20 @@ abstract class A
 
 class B : A
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override string?[] M1()
     {
         return new string?[] {};
     } 
 
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override S?[] M2<S>()
     {
         return new S?[] {};
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/28684: Should report return type mismatch
             // for M2 as well.
             compilation.VerifyDiagnostics(
@@ -6611,7 +6654,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (23,17): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
@@ -6679,7 +6722,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -6724,13 +6767,13 @@ interface IA
 
 class B : IA
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string?[] IA.M1()
     {
         return new string?[] {};
     }
 
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     S?[] IA.M2<S>()
     {
         return new S?[] {};
@@ -6738,7 +6781,7 @@ class B : IA
 }
 ";
             // https://github.com/dotnet/roslyn/issues/28684: missing a warning on IA.M2
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
                 //     string?[] IA.M1()
@@ -6764,19 +6807,19 @@ class B : IA
             var source = @"
 interface IA
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string?[] M1();
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     T?[] M2<T>() where T : class;
 }
-
+" + NonNullTypesOn() + @"
 class B : IA
 {
     string[] IA.M1() => throw null;
     S[] IA.M2<S>() => throw null;
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (13,12): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T?[] IA.M2<T>()'.
                 //     S[] IA.M2<S>() => throw null;
@@ -6802,19 +6845,19 @@ class B : IA
             var source = @"
 interface IA
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     string[] M1();
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     T[] M2<T>() where T : class;
 }
-
+" + NonNullTypesOn() + @"
 class B : IA
 {
     string[] IA.M1() => throw null;
     S[] IA.M2<S>() => throw null;
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics();
         }
 
@@ -6851,7 +6894,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -6880,7 +6923,7 @@ class B : A
         public void Overriding_24()
         {
             var source = @"
-[module: System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 
 abstract class A
 {
@@ -6890,12 +6933,12 @@ abstract class A
 
 class B : A
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override void M1(string?[] x)
     {
     } 
 
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public override void M2<T>(T?[] x)
     {
     } 
@@ -7022,8 +7065,8 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue }, new[] { CompileIL(ilSource, prependDefaultHeader: false) },
-                                                            options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation(new[] { source }, new[] { CompileIL(ilSource, prependDefaultHeader: false) },
+                                                            options: WithNonNullTypesTrue(),
                                                             parseOptions: TestOptions.Regular8);
 
             var m1 = compilation.GetTypeByMetadataName("B").GetMember<MethodSymbol>("M1");
@@ -7068,7 +7111,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (20,17): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
@@ -7131,7 +7174,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
@@ -7212,7 +7255,7 @@ class B3 : A3
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (24,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -7297,7 +7340,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (32,16): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
@@ -7382,7 +7425,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                  // (24,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
@@ -7439,7 +7482,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/30145: What nullability is getting emitted?
             compilation.VerifyDiagnostics(
                  // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -7470,12 +7513,12 @@ partial class C1
         }
 
         [Fact]
-        public void PartialMethods_02()
+        public void PartialMethods_02_01()
         {
             var source = @"
 partial class C1
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
 }
 
@@ -7484,7 +7527,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (10,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -7551,6 +7594,57 @@ partial class C1
         }
 
         [Fact]
+        public void PartialMethods_02_02()
+        {
+            var source = @"
+partial class C1
+{
+" + NonNullTypesOff() + @"
+    partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+}
+" + NonNullTypesOn() + @"
+partial class C1
+{
+    partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+    { }
+}";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                // (10,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("x").WithLocation(10, 18),
+                // (10,18): warning CS8611: Nullability of reference types in type of parameter 'y' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("y").WithLocation(10, 18),
+                // (10,18): warning CS8611: Nullability of reference types in type of parameter 'z' doesn't match partial method declaration.
+                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("z").WithLocation(10, 18),
+                // (5,30): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 30),
+                // (5,29): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(5, 29),
+                // (5,72): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 72),
+                // (5,71): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(5, 71),
+                // (5,75): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 75),
+                // (5,77): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 77),
+                // (5,80): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 80)
+                );
+        }
+
+        [Fact]
         public void PartialMethods_03()
         {
             var source = @"
@@ -7568,7 +7662,7 @@ partial class C1
 
 partial class C1
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
@@ -7650,7 +7744,7 @@ class A
     string? Test2(string y2) { return y2; }
 }
 ";
-            CreateCompilation(new[] { source, NonNullTypesTrue }).
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).
                 VerifyDiagnostics(
                 // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
                 //     void Test1(string x2) {}
@@ -7676,7 +7770,7 @@ class A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics();
         }
 
@@ -8032,7 +8126,7 @@ struct S2
 {
     public S1 F5;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -8264,7 +8358,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (12,12): warning CS8604: Possible null reference argument for parameter 'p' in 'void C.M1(CL1 p)'.
                 //         M1(x1);
@@ -8331,7 +8425,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -8366,7 +8460,7 @@ class CL0 : System.Collections.IEnumerable
         throw new System.NotImplementedException();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,30): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -8402,7 +8496,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y);
@@ -8465,7 +8559,7 @@ class C
     }
 }
 ";
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (6,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         xNone = null;
@@ -8487,7 +8581,7 @@ class C
     }
 }
 ";
-            var c2 = CreateCompilation(new[] { source2, NonNullTypesTrue });
+            var c2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue());
             c2.VerifyDiagnostics(
                 // (6,9): error CS8331: Cannot assign to variable 'in string' because it is a readonly variable
                 //         xIn = null;
@@ -8522,7 +8616,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         G(x: x, x: y);
@@ -8576,7 +8670,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,45): error CS1737: Optional parameters must appear after all required parameters
                 //     static void G(object? x = null, object y)
@@ -8600,7 +8694,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     static void G(params object[] x, params object[] y)
@@ -8636,7 +8730,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,20): error CS0225: The params parameter must be a single dimensional array
                 //     static void F2(params object x)
@@ -8670,7 +8764,7 @@ class C
     public static object operator+(C x, params object?[] y) => x;
     static object F(C x, object[] y) => x + y;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,41): error CS1670: params is not valid in this context
                 //     public static object operator+(C x, params object?[] y) => x;
@@ -8728,7 +8822,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -8806,7 +8900,7 @@ struct S1
     public CL1 F1;
     public CL1? F2;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -8865,7 +8959,7 @@ struct S1
     public CL1 F1;
     public CL1? F2;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -8912,7 +9006,7 @@ class C
 class CL0<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,16): warning CS8620: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M1(ref CL0<string> x)'.
@@ -8945,7 +9039,7 @@ class CL0<T>
         x = new object();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y, in object z)'.
                 //         G(out x, ref y, in z);
@@ -8976,7 +9070,7 @@ class CL0<T>
         x = new object();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         G(out x, ref y, in z);
@@ -9135,7 +9229,7 @@ public struct S2
 {
     public object? F2;
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 // (63,16): warning CS8603: Possible null reference return.
@@ -9203,7 +9297,7 @@ class C
         object z6 = x6 ?? new object();
     }
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 // (14,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -9269,7 +9363,7 @@ class C
         object z3 = x3 ?? new object();
     }
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                  // (20,22): hidden CS8607: Expression is probably never null.
@@ -9340,7 +9434,7 @@ class C
         object z6 = x6 ?? new object();
     }
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 // (14,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -9396,7 +9490,7 @@ class C
         object x3 =  M4() ? M2() : M3();
     }
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                  // (14,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -9473,7 +9567,7 @@ class C
         object z6 = x6 ?? new object();
     }
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 // (16,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -9534,7 +9628,7 @@ class C
         object y3 = x3;
     }
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 // (16,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -9668,7 +9762,7 @@ class B3 : IA2
     }
 
 }
-", NonNullTypesTrue }, references: new[] { c0.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics();
         }
@@ -9702,7 +9796,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,16): warning CS8603: Possible null reference return.
@@ -9735,7 +9829,7 @@ class C
 class CL1<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,16): warning CS8619: Nullability of reference types in value of type 'CL1<string>' doesn't match target type 'CL1<string?>'.
@@ -9763,7 +9857,7 @@ class C
     static IIn<object> G(IIn<object?> x) => x;
     static IOut<object> G(IOut<object?> x) => x;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,41): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //     static I<object?> F(I<object> x) => x;
@@ -9797,7 +9891,7 @@ class C
     static async Task<IIn<object>> G(IIn<object?> x) => x;
     static async Task<IOut<object>> G(IOut<object?> x) => x;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,53): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //     static async Task<I<object?>> F(I<object> x) => x;
@@ -9827,7 +9921,7 @@ class Test
                       where n < 5
                       select n;
     }
-}", NonNullTypesTrue });
+}" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,33): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
@@ -9859,7 +9953,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29855: there should only be two diagnostics
             c.VerifyDiagnostics(
@@ -9898,7 +9992,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29855: there should only be two diagnostics
             c.VerifyDiagnostics(
@@ -9937,7 +10031,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29855: there should only be two diagnostics
             c.VerifyDiagnostics(
@@ -9962,7 +10056,7 @@ public class C
 {
     public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -9989,7 +10083,7 @@ public class C
     }
     public static T MyIsNullOrEmpty<T>([NotNullWhenFalse] string? s, T t) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -10023,7 +10117,7 @@ public class C
     }
     public static bool M([NotNullWhenTrue] string? s, out string? s2) => throw null;
 }
-", NonNullTypesTrue, NotNullWhenTrueAttributeDefinition });
+", NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,13): warning CS8602: Possible dereference of a null reference.
@@ -10069,7 +10163,7 @@ public class C
     }
     public static bool M([EnsuresNotNull] string? s, out string? s2) => throw null;
 }
-", NonNullTypesTrue, EnsuresNotNullAttributeDefinition });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,13): warning CS8602: Possible dereference of a null reference.
@@ -10097,7 +10191,7 @@ public class C
     }
     public static void M(out string value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -10115,7 +10209,7 @@ public class C
     }
     public static void M(out string value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -10134,7 +10228,7 @@ public class C
     }
     public static void M(ref string value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -10152,7 +10246,7 @@ public class C
     }
     public static void M(ref string value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,15): warning CS8604: Possible null reference argument for parameter 'value' in 'void C.M(ref string value)'.
@@ -10175,7 +10269,7 @@ public class C
     }
     public static void M(ref string value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -10194,7 +10288,7 @@ public class C
     }
     public static void M(ref string? value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -10219,7 +10313,7 @@ public class C
     }
     public static void M(ref string? value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -10245,7 +10339,7 @@ public class C
     }
     public static void M(ref string? value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -10278,7 +10372,7 @@ public class C
     }
     public static bool TryGetValue(string key, out string? value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10335,7 +10429,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?
             c.VerifyTypes();
@@ -10359,7 +10453,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!");
             c.VerifyTypes();
@@ -10379,7 +10473,7 @@ public class C
     }
     public static T Copy<T>(T key) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
@@ -10399,7 +10493,7 @@ public class C
     }
     public static T Copy<T>(T key) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?
             c.VerifyTypes();
@@ -10424,7 +10518,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!");
             c.VerifyTypes();
@@ -10444,7 +10538,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T? value) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10468,7 +10562,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T? value) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10496,7 +10590,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T? value) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10520,7 +10614,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T?[] value) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?[]");
             c.VerifyTypes();
@@ -10544,7 +10638,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T?[] value) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?[]");
             c.VerifyTypes();
@@ -10571,7 +10665,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T[] value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string![]");
             c.VerifyTypes();
@@ -10592,7 +10686,7 @@ public class C
     }
     public static void CopyOrDefault<T>(T key, out T[] value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string![]"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?[]
             c.VerifyTypes();
@@ -10613,7 +10707,7 @@ public class C
     }
     public static void Copy<T>(T key, [EnsuresNotNull] out T value) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: T is inferred to string! instead of string?, so the `var` gets `string!`
             c.VerifyTypes();
@@ -10634,7 +10728,7 @@ public class C
     }
     public static void Copy<T>(T key, [EnsuresNotNull] out T? value) where T : class => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10658,7 +10752,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!");
             c.VerifyTypes();
@@ -10682,7 +10776,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!");
             c.VerifyTypes();
@@ -10703,7 +10797,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string!");
             c.VerifyTypes(); // https://github.com/dotnet/roslyn/issues/29857: is string! correct?
@@ -10727,7 +10821,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10751,7 +10845,7 @@ public class C
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyOutVar(c, "string?");
             c.VerifyTypes();
@@ -10775,7 +10869,7 @@ public class C
     }
     public T Copy<T>(T key) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
@@ -10795,7 +10889,7 @@ public class C
     }
     public T Copy<T>(T key) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?
             c.VerifyTypes();
@@ -10820,7 +10914,7 @@ public class C
     }
     public T Copy<T>(T key) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
@@ -10840,7 +10934,7 @@ public class C
     }
     public T? Copy<T>(T key) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string?");
             c.VerifyTypes();
@@ -10868,7 +10962,7 @@ public class C
     }
     public T? Copy<T>(T key) where T : class => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string?");
             c.VerifyTypes();
@@ -10915,7 +11009,7 @@ public class C
         s2 = null; // warn
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             VerifyVarLocal(c, "string!");
             c.VerifyTypes();
@@ -10936,7 +11030,7 @@ public class C
         s2/*T:string*/.ToString(); // ok
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29862: The suppression operator isn't producing a non-null result
             //                                                I'd expect default! to return a non-null result
@@ -10967,7 +11061,7 @@ public class C
         ns.ToString(); // ok
     }
 }
-", NonNullTypesTrue }, references: new[] { libComp.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { libComp.EmitToImageReference() });
 
             VerifyVarLocal(comp, "string!");
             comp.VerifyTypes();
@@ -10995,7 +11089,7 @@ public class C
 }
 public class List { public static List<T> Create<T>(T t) => throw null; }
 public class List<T> { }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             comp.VerifyTypes();
             comp.VerifyDiagnostics();
@@ -11060,7 +11154,7 @@ public class C
 }
 public class List { public static List<T> Create<T>(T t) => throw null; }
 public class List<T> { }
-", NonNullTypesTrue }, references: new[] { obliviousComp.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { obliviousComp.EmitToImageReference() });
 
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
@@ -11085,7 +11179,7 @@ public class C
         s.ToString(); // warn 2
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -11109,7 +11203,7 @@ public class C
         s.ToString(); // warn 2
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -11143,7 +11237,7 @@ public class C
     }
     public static bool TryGetValue(string key, [NotNullWhenTrue] out string? value) => throw null;
 }
-", NonNullTypesTrue, NotNullWhenTrueAttributeDefinition });
+", NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
@@ -11174,7 +11268,7 @@ public class C
     }
     public static void M([NotNullWhenTrue, NotNullWhenFalse] out string? value) => throw null;
 }
-", NonNullTypesTrue, NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition } );
+", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -11196,7 +11290,7 @@ class C
 
     void MyAssert([AssertsTrue] bool condition) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11218,7 +11312,7 @@ class C
 
     void MyAssert([AssertsTrue] bool condition) => throw null;
 }
-", AssertsTrueAttributeDefinition, NonNullTypesTrue });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11238,7 +11332,7 @@ class C
 
     void MyAssert([AssertsTrue] bool condition) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -11261,7 +11355,7 @@ class C
 
     void MyAssert([AssertsTrue] ref bool condition, [AssertsFalse] out bool condition2, [AssertsTrue] in bool condition3) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition, AssertsFalseAttributeDefinition });
+", AssertsTrueAttributeDefinition, AssertsFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11287,7 +11381,7 @@ class C
 
     bool MyAssert([AssertsTrue] bool condition) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11304,7 +11398,7 @@ class C
         c.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11323,7 +11417,7 @@ class C
     }
     static void Assert([AssertsTrue] bool b) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11340,7 +11434,7 @@ class C
         c.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11359,7 +11453,7 @@ class C
     }
     static void Assert([AssertsTrue] bool b) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -11380,7 +11474,7 @@ class C
         c.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11397,7 +11491,7 @@ class C
         c.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11414,7 +11508,7 @@ class C
         c.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11433,7 +11527,7 @@ class C
     }
     static void Assert([AssertsTrue] bool b, string message) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,16): hidden CS8606: Result of the comparison is possibly always false.
@@ -11457,7 +11551,7 @@ class C
     bool Method(string x) => throw null;
     static void Assert([AssertsTrue] bool b, string message) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -11488,7 +11582,7 @@ class C
     }
     static void Assert([AssertsTrue] bool b, string message) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,9): warning CS8602: Possible dereference of a null reference.
@@ -11514,7 +11608,7 @@ class C
     }
     static void Assert([AssertsTrue] bool b) => throw null;
 }
-", NonNullTypesTrue, AssertsTrueAttributeDefinition });
+", AssertsTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (11,9): warning CS8602: Possible dereference of a null reference.
@@ -11538,7 +11632,7 @@ class C
 
     void MyAssert([AssertsFalse] bool condition) => throw null;
 }
-", AssertsFalseAttributeDefinition, NonNullTypesTrue });
+", AssertsFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11558,7 +11652,7 @@ class C
 
     void MyAssert([AssertsFalse] bool condition) => throw null;
 }
-", AssertsFalseAttributeDefinition, NonNullTypesTrue });
+", AssertsFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -11589,7 +11683,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -11613,7 +11707,7 @@ public class C
 {
     public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -11645,7 +11739,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [NotNullWhenFalse] string? s2) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -11690,7 +11784,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [NotNullWhenTrue] string? s2) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NotNullWhenTrueAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition, NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -11732,7 +11826,7 @@ class C
     }
     public bool this[[NotNullWhenFalse] string? s, int x] => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -11764,7 +11858,7 @@ class C
     }
     static bool Method([NotNullWhenFalse] string? s, string s2) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,23): warning CS8602: Possible dereference of a null reference.
@@ -11796,7 +11890,7 @@ class C
     }
     static bool Method([NotNullWhenFalse] string? s, string? s2) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -11829,7 +11923,7 @@ class C
     }
     static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (17,34): error CS0246: The type or namespace name 'NotNullWhenFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)
@@ -11898,7 +11992,7 @@ namespace System.Runtime.CompilerServices
         public NotNullWhenFalseAttribute(bool bad) { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -11932,7 +12026,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
@@ -11956,7 +12050,7 @@ class C
     }
     static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -11981,7 +12075,7 @@ public class C
     }
     public bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -12015,7 +12109,7 @@ public static class Extension
 {
     public static bool MyIsNullOrEmpty(this C c, [NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -12044,7 +12138,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -12103,7 +12197,7 @@ namespace System
         public ObsoleteAttribute(string message) => throw null;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -12163,7 +12257,7 @@ namespace System
         public ObsoleteAttribute(string message) => throw null;
     }
 }
-", NotNullWhenTrueAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenTrueAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -12221,7 +12315,7 @@ namespace System.Diagnostics
         public static void Assert(bool condition, [EnsuresNotNull] string message) => throw null;
     }
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -12276,7 +12370,7 @@ namespace System
         public ObsoleteAttribute(string message) => throw null;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -12305,7 +12399,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -12330,7 +12424,7 @@ class C
     }
     string? M2(string s) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,38): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -12353,7 +12447,7 @@ class C
     }
     void M2(string s) => throw null;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,35): error CS1503: Argument 1: cannot convert from 'void' to 'string'
@@ -12380,7 +12474,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -12407,7 +12501,7 @@ public partial class C
     partial void M3([NotNullWhenFalse] string? s);
     partial void M3([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (11,22): error CS0579: Duplicate 'NotNullWhenFalse' attribute
@@ -12440,7 +12534,7 @@ public class C
     }
     public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -12525,7 +12619,7 @@ public class D
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(new[] { source, NonNullTypesTrue }, il);
+            var compilation = CreateCompilationWithIL(new[] { source }, il, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn 1
@@ -12552,7 +12646,7 @@ class C
     }
     object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -12583,7 +12677,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [EnsuresNotNull] string? s2) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition, EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -12612,7 +12706,7 @@ public class C
     }
     public static bool MyIsNullOrEmpty([NotNullWhenFalse, EnsuresNotNull] string? s) => throw null;
 }
-", NotNullWhenFalseAttributeDefinition, EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", NotNullWhenFalseAttributeDefinition, EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -12633,7 +12727,7 @@ public class C
     }
     public static void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -12655,7 +12749,7 @@ public class C
     }
     public static void ThrowIfNull(string? s1, [EnsuresNotNull] string? s2) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -12679,7 +12773,7 @@ public class C
     }
     public int this[string? s1, [EnsuresNotNull] string? s2] { get { throw null; } }
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -12702,7 +12796,7 @@ public class C
     }
     public static void ThrowIfNull(I<object?> x, [EnsuresNotNull] string? s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,21): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.ThrowIfNull(I<object?> x, string? s)'.
@@ -12725,7 +12819,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -12763,7 +12857,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -12785,7 +12879,7 @@ public interface Interface
 {
     void ThrowIfNull(int x, [EnsuresNotNull] string? s);
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -12812,7 +12906,7 @@ public interface Interface
 {
     void ThrowIfNull(int x, [EnsuresNotNull] string? s);
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -12844,7 +12938,7 @@ public interface Interface
 {
     void ThrowIfNull(int x, string? s);
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -12870,7 +12964,7 @@ public class C
         s.ToString(); // ok
     }
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -12896,7 +12990,7 @@ public class C
         a.ToString(); // ok
     }
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -12925,7 +13019,7 @@ public class D
         c.ToString(); // warn 2
     }
 }
-", NonNullTypesTrue }, @"
+" }, @"
 .class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
     extends [mscorlib]System.Attribute
 {
@@ -13003,7 +13097,7 @@ public class D
         IL_0008: ret
     }
 }
-");
+", options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -13033,7 +13127,7 @@ public class C
         x.ToString(); // ok
     }
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (11,9): warning CS8602: Possible dereference of a null reference.
@@ -13075,7 +13169,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -13101,7 +13195,7 @@ public class C
         s.ToString(); // warn 2
     }
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -13133,7 +13227,7 @@ public class C
     }
     public static void ThrowIfNull(string? x1, [EnsuresNotNull] string? x2) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29865: Should we be able to trace that s2 was assigned a non-null value?
             c.VerifyDiagnostics(
@@ -13157,7 +13251,7 @@ public class C
     }
     public static void ThrowIfNull([EnsuresNotNull] string? x1, string? x2) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -13176,7 +13270,7 @@ public class C
     }
     public static void ThrowIfNull([EnsuresNotNull] string? x1, string? x2) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -13199,7 +13293,7 @@ public class C
     }
     public static void ThrowIfNull(string? x1, string? x2, string? x3, [EnsuresNotNull] string? x4) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -13224,7 +13318,7 @@ public class C
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T x1, out T x2) => throw null;
 }
-", NonNullTypesTrue, EnsuresNotNullAttributeDefinition });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyTypes();
             c.VerifyDiagnostics(
@@ -13249,7 +13343,7 @@ class C
     [System.Diagnostics.Conditional(""DEBUG"")]
     static void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue }, options: TestOptions.ReleaseDll);
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -13268,7 +13362,7 @@ public class C
     }
     public static void ThrowIfNull([EnsuresNotNull] string? s, string s2) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,24): warning CS8602: Possible dereference of a null reference.
@@ -13293,7 +13387,7 @@ class C
     }
     static void ThrowIfNull([EnsuresNotNull] string? s, string? s2) => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -13314,7 +13408,7 @@ class C
         s.ToString(); // ok
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
 
@@ -13335,7 +13429,7 @@ class C
     }
     public int this[int x, [EnsuresNotNull] string? s] => throw null;
 }
-", EnsuresNotNullAttributeDefinition, NonNullTypesTrue });
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -13422,7 +13516,7 @@ class CL2
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13525,7 +13619,7 @@ class CL2
     public override bool Equals(object obj) { return false; }
     public override int GetHashCode() { return 0; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13600,7 +13694,7 @@ class CL1
 {
     public bool M1() { return true; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13670,7 +13764,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13727,7 +13821,7 @@ class CL1
     public CL1? M2() { return null; }
     public void M3(CL1 x) { }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13800,7 +13894,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13879,7 +13973,7 @@ class CL1
     public CL1 M1() { return new CL1(); }
     public string? M2() { return null; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -13930,7 +14024,7 @@ class CL1
     public bool P1 { get { return true;} }
     public bool P2 { get { return true;} }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             // Not tracking state of x?.P == expr
             // unless expr is `null`. See https://github.com/dotnet/roslyn/issues/26624.
             c.VerifyDiagnostics(
@@ -13958,7 +14052,7 @@ class C
         y1.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,21): hidden CS8607: Expression is probably never null.
@@ -13985,7 +14079,7 @@ class C
         y1.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,21): hidden CS8605: Result of the comparison is possibly always true.
@@ -14012,7 +14106,7 @@ class C
         y1.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,9): hidden CS8607: Expression is probably never null.
@@ -14048,7 +14142,7 @@ class C
         y1.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (13,13): hidden CS8606: Result of the comparison is possibly always false.
@@ -14084,7 +14178,7 @@ class C
         y1.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (13,13): hidden CS8605: Result of the comparison is possibly always true.
@@ -14186,7 +14280,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (17,13): warning CS8602: Possible dereference of a null reference.
@@ -14255,7 +14349,7 @@ class C
 
     object? this[int i] { get => null; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -14284,7 +14378,7 @@ class C
             t.ToString(); // warn
         }
     }
-}", NonNullTypesTrue });
+}" }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -14308,7 +14402,7 @@ class C
             c2.Prop.ToString(); // warn 1 2
         }
     }
-}", NonNullTypesTrue });
+}" }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS8602: Possible dereference of a null reference.
@@ -14334,7 +14428,7 @@ class C
             y.ToString(); // warn
         }
     }
-}", NonNullTypesTrue });
+}" }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -14361,7 +14455,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -14389,7 +14483,7 @@ class C : Base
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
@@ -14416,7 +14510,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -14443,7 +14537,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -14470,7 +14564,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -14492,7 +14586,7 @@ class C
         if (t != null) t.ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics();
         }
@@ -14508,7 +14602,7 @@ class C
         if (null is string) return;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (6,13): warning CS0184: The given expression is never of the provided ('string') type
@@ -14535,7 +14629,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -14562,7 +14656,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
@@ -14590,7 +14684,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
@@ -14618,7 +14712,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
@@ -14642,7 +14736,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
@@ -14677,7 +14771,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (8,22): hidden CS8606: Result of the comparison is possibly always false.
@@ -14710,7 +14804,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,17): warning CS8602: Possible dereference of a null reference.
@@ -14738,7 +14832,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
@@ -14775,7 +14869,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyTypes();
             c.VerifyDiagnostics(
@@ -14815,7 +14909,7 @@ class C
         }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyTypes();
             c.VerifyDiagnostics(
@@ -14841,7 +14935,7 @@ class C
         v.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         z.ToString();
@@ -14868,7 +14962,7 @@ class C
         if (y != null) (b ? y : x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y).ToString();
@@ -14892,7 +14986,7 @@ class C
         (true ? y : x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (false ? x : y).ToString();
@@ -14919,7 +15013,7 @@ class C
         (b ? y : x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y).ToString();
@@ -14960,7 +15054,7 @@ class C
         (b ? y : x)/*T:A<object>!*/.P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable property 'P' is uninitialized.
@@ -15003,7 +15097,7 @@ class C
         (b ? default: default).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and '<null>'
                 //         (b ? null: null).ToString();
@@ -15057,7 +15151,7 @@ class C
         (b ? y: null).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F(bool b, Unknown x, Unknown? y)
@@ -15095,7 +15189,7 @@ class C
         (b ? y : x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,28): error CS0246: The type or namespace name 'UnknownA' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(bool b, UnknownA x, UnknownB y)
@@ -15159,7 +15253,7 @@ class C
         (b ? y : x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'B'
                 //         (b ? x : y).ToString();
@@ -15202,7 +15296,7 @@ class C
         (b ? throw new Exception() : y).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : throw new Exception()).ToString();
@@ -15224,7 +15318,7 @@ class C
         (b ? throw null : x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -15240,7 +15334,7 @@ class C
         (b ? throw new Exception() : throw new Exception()).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<throw expression>' and '<throw expression>'
                 //         (b ? throw new Exception() : throw new Exception()).ToString();
@@ -15321,7 +15415,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (15,13): error CS0165: Use of unassigned local variable 'x1'
                 //             x1.ToString(); // unassigned (if)
@@ -15412,7 +15506,7 @@ class C
         (b ? ref y4 : ref y4)/*T:IOut<string!>!*/.P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (8,10): warning CS8602: Possible dereference of a null reference.
@@ -15487,7 +15581,7 @@ class C
         b = true ? x : y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         a = c ? x : y;
@@ -15544,7 +15638,7 @@ class C
         v.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         z.ToString();
@@ -15567,7 +15661,7 @@ class C
         if (y != null) (y ?? x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).ToString();
@@ -15590,7 +15684,7 @@ class C
         (null ?? y).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
                 //         (null ?? null).ToString();
@@ -15615,7 +15709,7 @@ class C
         ("""" ?? y).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): hidden CS8607: Expression is probably never null.
                 //         ("" ?? x).ToString();
@@ -15651,7 +15745,7 @@ public class NotNull
     public A A = new A();
     public B B = new B();
 }";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
@@ -15695,7 +15789,7 @@ public class NotNull
         (x9.A ?? y9.B)/*T:!*/.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0, ref1 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (5,10): error CS0019: Operator '??' cannot be applied to operands of type 'A' and 'B'
@@ -15763,7 +15857,7 @@ public class NotNull
         (y2 ?? null)/*T:!*/.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             // Note: Unknown type is treated as a value type
             comp.VerifyDiagnostics(
@@ -15815,7 +15909,7 @@ public class NotNull
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             (a ?? c)[0].ToString();
@@ -15844,7 +15938,7 @@ class C
         return x ?? y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,21): warning CS8619: Nullability of reference types in value of type '(I<object?>, I<object>)?' doesn't match target type '(I<object>, I<object?>)?'.
                 //         return x ?? y;
@@ -15903,7 +15997,7 @@ class C
         z7 = x7 ?? (IOut<object?>)y7;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,30): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         I<object> z1 = x1 ?? y1;
@@ -15992,7 +16086,7 @@ class C
         FOut((FOut(x4) ?? FOut(y4))/*T:IOut<object!>?*/).ToString(); // D
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (22,14): warning CS8620: Nullability of reference types in argument of type 'IIn<object>' doesn't match target type 'IIn<object?>' for parameter 'x' in 'void C.FIn(IIn<object?>? x)'.
@@ -16042,7 +16136,7 @@ class C
         (x ?? y).Item1.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).Item1.ToString();
@@ -16094,7 +16188,7 @@ class C
         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (14,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
@@ -16180,7 +16274,7 @@ class C
         (y6 ?? x6)/*T:B<object!>*/.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (6,7): warning CS8618: Non-nullable field 'F' is uninitialized.
@@ -16246,7 +16340,7 @@ class C
         (z ?? y).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).ToString();
@@ -16286,7 +16380,7 @@ public class NotNull
     public object Object = new object();
     public string String = string.Empty;
 }";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
@@ -16339,7 +16433,7 @@ public class NotNull
         (y9.String ?? x9.Object)/*T:object!*/.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0, ref1 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (10,10): warning CS8602: Possible dereference of a null reference.
@@ -16397,7 +16491,7 @@ class C
         (w ?? z).F.ToString(); // 4
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T>
@@ -16449,7 +16543,7 @@ class C
         (w ?? z)/*T:IIn<string!>!*/.F(string.Empty, null);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (9,10): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<string?>'.
@@ -16493,7 +16587,7 @@ class C
         (w ?? z)/*T:IOut<object?>!*/.P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (9,15): warning CS8619: Nullability of reference types in value of type 'IOut<string?>' doesn't match target type 'IOut<object>'.
@@ -16565,7 +16659,7 @@ class CL1
     public void M1() { }
     public void M2(CL1 x) { }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (15,13): warning CS8602: Possible dereference of a null reference.
@@ -16629,7 +16723,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (11,13): hidden CS8606: Result of the comparison is possibly always false.
@@ -16684,7 +16778,7 @@ class B
         return b3.G;
     }
 }";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: new[] { comp0.EmitToImageReference() });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: new[] { comp0.EmitToImageReference() });
             comp1.VerifyDiagnostics(
                 // (9,20): warning CS8601: Possible null reference assignment.
                 //             b1.G = o;
@@ -16742,7 +16836,7 @@ class C
         return a3.F;
     }
 }";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: new[] { comp0.EmitToImageReference() });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: new[] { comp0.EmitToImageReference() });
             comp1.VerifyDiagnostics(
                 // (10,16): warning CS8603: Possible null reference return.
                 //         return a1.F;
@@ -16779,7 +16873,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -16806,7 +16900,7 @@ class CL1
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -16866,7 +16960,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         t.ToString();
@@ -16894,7 +16988,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): error CS0841: Cannot use local variable 't' before it is declared
                 //         t = null;
@@ -16929,7 +17023,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         t = null;
@@ -16964,7 +17058,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             t.ToString();
@@ -16996,7 +17090,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             t.ToString();
@@ -17029,7 +17123,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             t.ToString();
@@ -17063,7 +17157,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             t.ToString();
@@ -17091,7 +17185,7 @@ class CL1
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         t = null;
@@ -17119,7 +17213,7 @@ class CL1
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,17): error CS0841: Cannot use local variable 's' before it is declared
@@ -17151,7 +17245,7 @@ class CL1
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
@@ -17191,7 +17285,7 @@ class CL1
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,28): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
@@ -17218,7 +17312,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -17280,7 +17374,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (11,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -17345,7 +17439,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (37,17): warning CS8601: Possible null reference assignment.
@@ -17381,7 +17475,7 @@ class C
         var z1 = u1?[u1[0]];
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,18): warning CS8602: Possible dereference of a null reference.
@@ -17466,7 +17560,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,14): warning CS8619: Nullability of reference types in value of type 'CL1?[]' doesn't match target type 'CL1[]'.
@@ -17513,7 +17607,7 @@ class C
         var z2 = u2.Length;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (18,18): warning CS8602: Possible dereference of a null reference.
@@ -17635,7 +17729,7 @@ class C
         u9[0][0,0].ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -17775,7 +17869,7 @@ class C
         u9[0][0,0].ToString();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (16,54): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -17851,7 +17945,7 @@ class C
 class CL0<T>
 {}
 
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,31): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
@@ -17895,7 +17989,7 @@ class CL0<T>
         a3 = new T[] { default(T) };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,24): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         a1 = new T[] { default }; // 1
@@ -17933,7 +18027,7 @@ class CL0<T>
         c[0][0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
@@ -17966,7 +18060,7 @@ class CL0<T>
         e[0][0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
@@ -17994,7 +18088,7 @@ class CL0<T>
         (new[] { y, x })[1].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { y, x })[1].ToString();
@@ -18016,7 +18110,7 @@ class CL0<T>
         b[0][0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -18039,7 +18133,7 @@ class CL0<T>
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             a[0].ToString();
@@ -18071,7 +18165,7 @@ class CL0<T>
         f[0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,39): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var a = new[] { new object(), (string)null };
@@ -18124,7 +18218,7 @@ class C
         d[0].F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T>
@@ -18178,7 +18272,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //             var c = new[] { a, b };
@@ -18215,7 +18309,7 @@ class C
         b2[0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,26): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void G(C? x2, Unknown y2)
@@ -18247,7 +18341,7 @@ class C
         c[0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,35): warning CS8601: Possible null reference assignment.
                 //         var a = new object[] { x, y };
@@ -18294,7 +18388,7 @@ class C
         (new[] { w, z })[0].ToString(); // C6
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,21): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         (new[] { x, y })[0].ToString(); // A1
@@ -18391,7 +18485,7 @@ public class B : A<object>
         (new[] { z!, w! })[0].F.ToString(); // 11
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -18460,7 +18554,7 @@ class C
         IOut<object>[] d = new[] { x };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,27): warning CS8619: Nullability of reference types in value of type 'I<object>?[]' doesn't match target type 'I<object?>?[]'.
                 //         I<object?>?[] a = new[] { x };
@@ -18508,7 +18602,7 @@ class C
         var w = new A<object?>[] { x, y };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,38): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         var z = new A<object>[] { x, y };
@@ -18537,7 +18631,7 @@ class C
         var b = new IOut<object>[] { y };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,38): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<string?>'.
                 //         var a = new IIn<string?>[] { x };
@@ -18566,7 +18660,7 @@ class C
         (new[] { y, x })[0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, y })[0].ToString();
@@ -18611,7 +18705,7 @@ class CL1
     public CL1 P1 {get; set;}
     public CL1? P2 {get; set;}
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,35): warning CS8601: Possible null reference assignment.
@@ -18636,7 +18730,7 @@ class CL1
         if (x != null) y = new C(x);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,23): warning CS8604: Possible null reference argument for parameter 'o' in 'C.C(object o)'.
                 //         var y = new C(x);
@@ -18663,7 +18757,7 @@ class C
         o.F.G.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -18694,7 +18788,7 @@ class C
         set { }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,16): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'int C.this[I<string> x, I<object?> y]'.
                 //             y: y, // warn 1
@@ -18722,7 +18816,7 @@ class C
         };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8604: Possible null reference argument for parameter 'item' in 'void List<A<object>>.Add(A<object> item)'.
                 //             x, // 1
@@ -18795,7 +18889,7 @@ struct S2
 {
     public S1 F2;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -18918,7 +19012,7 @@ struct S1
     public CL1? F1;
     public CL1? F3;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (11,17): error CS0165: Use of unassigned local variable 'y1'
@@ -18998,7 +19092,7 @@ struct S2
 
     S2(CL1 x) { F2 = x; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -19039,7 +19133,7 @@ struct TS2
         E2 = null;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -19163,8 +19257,7 @@ struct S1
 {
     public CL1? p1;
     public CL1? p2;
-}",
-NonNullTypesTrue });
+}" }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29889: Why isn't u2 = v2 causing a warning?
             c.VerifyDiagnostics(
@@ -19293,7 +19386,7 @@ class CL1
 {
     public CL1? M1(CL1 x) { return null; }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (25,29): error CS0269: Use of unassigned out parameter 'x3'
@@ -19325,7 +19418,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -19356,7 +19449,7 @@ class C
 class CL1<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: CL1<string?> F1>' doesn't match target type '<anonymous type: CL1<string> F1>'.
@@ -19407,7 +19500,7 @@ class C
         b3 = a3;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29889: Should report a warning for `a0 = b0`.
             // https://github.com/dotnet/roslyn/issues/29889: Should not report a warning for `b3 = a3`.
             comp.VerifyDiagnostics(
@@ -19444,7 +19537,7 @@ class C
         y = new { x, y = y }.y ?? y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29890: Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
             // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
@@ -19463,7 +19556,7 @@ class C
         (new { Q = o }).Q.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (new { P = o }).P.ToString();
@@ -19486,7 +19579,7 @@ class C
         (new { Q = new[] { o }}).Q[0].ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (new { P = new[] { o }}).P[0].ToString();
@@ -19512,7 +19605,7 @@ class C
         this?.Test1();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,9): hidden CS8607: Expression is probably never null.
@@ -19589,7 +19682,7 @@ struct S1
 {
     public C0? F1;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (22,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -19673,7 +19766,7 @@ struct S1
 {
     public C0? F1;
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,14): warning CS8601: Possible null reference assignment.
@@ -19729,7 +19822,7 @@ class C
 class CL1
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (17,18): error CS0165: Use of unassigned local variable 'y1'
@@ -19778,7 +19871,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -19811,7 +19904,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -19854,7 +19947,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,37): warning CS8603: Possible null reference return.
@@ -19899,7 +19992,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,46): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -19954,7 +20047,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (20,22): warning CS8603: Possible null reference return.
@@ -20015,7 +20108,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -20063,7 +20156,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (19,22): warning CS8603: Possible null reference return.
@@ -20123,7 +20216,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -20169,7 +20262,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (21,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -20227,7 +20320,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (22,28): warning CS8603: Possible null reference return.
@@ -20276,7 +20369,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -20331,7 +20424,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -20398,7 +20491,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,33): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
@@ -20453,7 +20546,7 @@ class C
 
 class CL1
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -20504,7 +20597,7 @@ class C
                 };
     }
 }
-", NonNullTypesTrue }, references: new[] { notAnnotated.EmitToImageReference() });
+" }, options: WithNonNullTypesTrue(), references: new[] { notAnnotated.EmitToImageReference() });
 
             c.VerifyDiagnostics(
                 // (20,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -20542,7 +20635,7 @@ class C
 
 class CL1<T>
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,42): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
@@ -20579,7 +20672,7 @@ class C
 
 class CL1<T>
 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,54): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1<string?>>'.
@@ -20612,7 +20705,7 @@ class C
             });
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,21): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         var d1 = (D<string?>)((string s1) =>
@@ -20674,7 +20767,7 @@ class C
 }";
             // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             z1 = x1; // warning
@@ -20706,7 +20799,7 @@ class C
         F(() => { if (y == null) return x; return y; });
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,56): warning CS8603: Possible null reference return.
                 //         F(() => { if ((object)x == y) return x; return y; });
@@ -20734,7 +20827,7 @@ class C
         F(() => { if (b) return y; return x; });
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,43): warning CS8603: Possible null reference return.
                 //         F(() => { if (b) return x; return y; });
@@ -20770,7 +20863,7 @@ class C
         F(() => { if (b) return x; return y; }).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(() => { if (b) return x; return y; }).ToString();
@@ -20801,7 +20894,7 @@ class C
 }";
             // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(() => o).ToString();
@@ -20833,7 +20926,7 @@ class C
         F(o => { if (o == null) throw new ArgumentException(); return o; }).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -20853,7 +20946,7 @@ class C
         F(y => F(z => z, y), x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y => F(z => z, y), x).ToString();
@@ -20876,7 +20969,7 @@ class C
         if (x != null) F(x, y => F(y, z => { y.ToString(); z.ToString(); }));
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,31): warning CS8602: Possible dereference of a null reference.
                 //         F(x, y => F(y, z => { y.ToString(); z.ToString(); }));
@@ -20912,7 +21005,7 @@ class C
 }";
             // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,29): warning CS8603: Possible null reference return.
                 //         D<object> b = () => y;
@@ -20947,7 +21040,7 @@ class C
         D<I<object>> d = (I<object?> o) => { };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,24): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<object?>'.
                 //         D<object?> a = (object o) => { };
@@ -20983,7 +21076,7 @@ class C
             // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
             // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
@@ -21012,7 +21105,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -21056,7 +21149,7 @@ static class E
         var y = x => x;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var y = x => x;
@@ -21074,7 +21167,7 @@ static class E
         var z = y => y ?? x.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var z = y => y ?? x.ToString();
@@ -21133,7 +21226,7 @@ static class E
         object? f() => x4;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29892: Should report warnings as indicated in source above.
             comp.VerifyDiagnostics(
                 // (10,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -21203,7 +21296,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29892: Should report warnings for `y3.ToString()`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -21260,7 +21353,7 @@ class C
         x5 = (new T5?[1])[0]; // error 16
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,14): error CS8630: Cannot use a nullable reference type in object creation.
                 //         x1 = new object?(); // error 1
@@ -21347,7 +21440,7 @@ class C
         x2 = new T2() ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -21375,7 +21468,7 @@ class C
         F2(y);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -21404,7 +21497,7 @@ class CL0
     public CL0(int x) {}
     public CL0(long x) {}
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -21428,7 +21521,7 @@ class CL0
         if (x != null) o = new C(y, x);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29893: We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
@@ -21453,7 +21546,7 @@ class CL0
         o.G.ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -21491,7 +21584,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -21534,7 +21627,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -21577,7 +21670,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -21620,7 +21713,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -21663,7 +21756,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -21706,7 +21799,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -21734,7 +21827,7 @@ class C
         x2 = x2[0] ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -21774,7 +21867,7 @@ class CL0<T>
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (22,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -21827,7 +21920,7 @@ class CL1
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (14,26): warning CS8601: Possible null reference assignment.
@@ -21873,7 +21966,7 @@ class CL0
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,14): warning CS8602: Possible dereference of a null reference.
@@ -21917,7 +22010,7 @@ class CL0
         return new CL0(); 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -21958,7 +22051,7 @@ class CL0
         return new CL0(); 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -21999,7 +22092,7 @@ class CL0
         return new CL0(); 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -22040,7 +22133,7 @@ class CL0
         return new CL0(); 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -22081,7 +22174,7 @@ class CL0
         return (int)x; 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -22122,7 +22215,7 @@ class CL0
         return x; 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (14,14): hidden CS8607: Expression is probably never null.
@@ -22150,7 +22243,7 @@ class C
         x2 = x2.M1(0) ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -22187,7 +22280,7 @@ class CL0<T>
         return x;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (22,16): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -22228,7 +22321,7 @@ class CL0
         return new CL0(); 
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (9,14): warning CS8602: Possible dereference of a null reference.
@@ -22264,7 +22357,7 @@ class C
         dynamic y3 = x3.M1;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (19,22): warning CS8602: Possible dereference of a null reference.
@@ -22287,7 +22380,7 @@ class C
         y = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             comp.VerifyTypes();
         }
@@ -22324,7 +22417,7 @@ class CL0
     {
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (16,18): hidden CS8607: Expression is probably never null.
@@ -22348,7 +22441,7 @@ class CL0
         if (x != null) F(y, x);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29893: We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
@@ -22376,7 +22469,7 @@ class C
         x2 = z2 ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (16,14): hidden CS8607: Expression is probably never null.
@@ -22405,7 +22498,7 @@ class C
         x2 = $""{y2}"" ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -22434,7 +22527,7 @@ class C
         x2 = new System.Action(Main) ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -22473,7 +22566,7 @@ class C
 }
 
 class CL0<T>{}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -22502,7 +22595,7 @@ class C
         D<IOut<object?>> h = F<IOut<object>>;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,23): warning CS8621: Nullability of reference types in return type of 'object? C.F<object?>()' doesn't match the target delegate 'D<object>'.
                 //         D<object> a = F<object?>;
@@ -22544,7 +22637,7 @@ class C
         D<IOut<object?>> h = F<IOut<object>>;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,24): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<object>(object t)' doesn't match the target delegate 'D<object?>'.
                 //         D<object?> b = F<object>;
@@ -22589,7 +22682,7 @@ class B
         e = (D<object>)y.M;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29844: Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M`.
             comp.VerifyDiagnostics();
         }
@@ -22618,7 +22711,7 @@ class C
         D<IOut<object?>> h = F<IOut<object>>;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29844: Should not warn for `b`, `e`, `h`.
             comp.VerifyDiagnostics(
                 // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -22673,7 +22766,7 @@ class C
         D<IOut<object?>> h = F<IOut<object>>;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,23): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<object?>(ref object? t)' doesn't match the target delegate 'D<object>'.
                 //         D<object> a = F<object?>;
@@ -22721,7 +22814,7 @@ class C : Base
         base.Test();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -22747,7 +22840,7 @@ class C
         x2 = typeof(C) ?? x2;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -22777,7 +22870,7 @@ class C<T, TClass, TStruct>
         _ = typeof(List<TStruct?>);
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29894: should nullable reference types be disallowed in `typeof`?
             c.VerifyDiagnostics(
@@ -22805,7 +22898,7 @@ class C
         x1 = default(C);
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -22830,7 +22923,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -22864,7 +22957,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -22898,7 +22991,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -22939,7 +23032,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -22976,7 +23069,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -23013,7 +23106,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -23045,7 +23138,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             // https://github.com/dotnet/roslyn/issues/29895: Improve this diagnostic. default is the cause of the error, but is not mentioned in the diagnostic.
             comp.VerifyDiagnostics(
@@ -23080,7 +23173,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -23132,7 +23225,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -23169,7 +23262,7 @@ class C<T>
         (x, y) = c;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29618: Assign each of the deconstructed values.
             // The expected warning is confusing: "warning CS8619: Nullability of
             // reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'".
@@ -23197,7 +23290,7 @@ class C<T>
         y = null;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -23224,7 +23317,7 @@ class C<T>
         y = null;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -23255,7 +23348,7 @@ class C<T>
         y = null;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -23284,7 +23377,7 @@ class C<T>
         t.y = null;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         t.y.ToString();
@@ -23312,7 +23405,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var y`.
             comp.VerifyDiagnostics();
             //// (11,13): warning CS8602: Possible dereference of a null reference.
@@ -23334,7 +23427,7 @@ class C
     }
 }";
             // https://github.com/dotnet/roslyn/issues/29618: Should report WRN_NullReferenceReceiver.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             //// (7,9): warning CS8602: Possible dereference of a null reference.
             ////         ((x, _) = t).Item2.ToString();
@@ -23348,7 +23441,7 @@ class C
             var source =
 @"class C<T>
 {
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void F(object o1, object? o2, C<object> o3, C<object?> o4)
     {
         _ /*T:object*/ = o1;
@@ -23356,7 +23449,7 @@ class C
         _ /*T:C<object!>*/ = o3;
         _ /*T:C<object?>*/ = o4;
     }
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     void F(C<object> o)
     {
         _ /*T:C<object>*/ = o;
@@ -23387,7 +23480,7 @@ class C
         string z2 = x2 + y2 ?? """";
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (15,21): hidden CS8607: Expression is probably never null.
@@ -23416,7 +23509,7 @@ class C
         dynamic z2 = x2 + y2 ?? """";
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -23485,7 +23578,7 @@ class CL2
         return y;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,24): warning CS8604: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator +(string? x, CL0 y)'.
@@ -23549,7 +23642,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
@@ -23597,7 +23690,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator false(CL0 x)'.
@@ -23642,7 +23735,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -23681,7 +23774,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -23723,7 +23816,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -23767,7 +23860,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'bool CL0.operator true(CL0 x)'.
@@ -23822,7 +23915,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -23878,7 +23971,7 @@ class C
         System.Action u8 = x8 - y8;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (15,28): hidden CS8607: Expression is probably never null.
@@ -23942,7 +24035,7 @@ class CL0
         return null;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,25): warning CS8604: Possible null reference argument for parameter 'y' in 'CL0 CL0.operator &(CL0? x, CL0 y)'.
@@ -23984,7 +24077,7 @@ class CL0
         return false;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -24018,7 +24111,7 @@ class CL0
         if (y || y) { }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -24038,7 +24131,7 @@ class CL0
         s = y + y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -24072,7 +24165,7 @@ class CL0
         if (y != x) { }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -24101,7 +24194,7 @@ class CL0
 {
     public void M1() {}
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,28): warning CS8602: Possible dereference of a null reference.
@@ -24146,7 +24239,7 @@ class C
 class CL0<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,37): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string>(string x)' doesn't match the target delegate 'Action<string?>'.
@@ -24197,7 +24290,7 @@ class C
 class CL0<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -24239,7 +24332,7 @@ class C
 class CL0<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (17,34): warning CS8621: Nullability of reference types in return type of 'string? C.M1<string?>()' doesn't match the target delegate 'Func<string>'.
@@ -24290,7 +24383,7 @@ class C
 class CL0<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -24318,7 +24411,7 @@ class C
         d = Create(x).F; // warning
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29844: Report conversion warnings.
             comp.VerifyDiagnostics(
                 // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -24387,7 +24480,7 @@ class CL2
         return new CL2();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator !(CL0 x)'.
@@ -24411,7 +24504,7 @@ class CL2
         s = ~s;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -24527,7 +24620,7 @@ class CL1 {}
 class CL2 {}
 class CL3 {}
 class CL4 : CL3 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,18): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0.implicit operator CL1(CL0 x)'.
@@ -24604,7 +24697,7 @@ class C
 class CL0<T>
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,26): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
@@ -24643,7 +24736,7 @@ class C
         y3 = x3!;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,25): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         A<object?> y1 = x1;
@@ -24708,7 +24801,7 @@ class C
         y3 = x3!;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,26): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
                 //         IA<object?> y1 = x1;
@@ -24761,7 +24854,7 @@ class C
         IOut<object> y = x;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,26): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
                 //         IOut<object> y = x;
@@ -24784,7 +24877,7 @@ class C
         IIn<object> y = x;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,26): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
                 //         IIn<object?> y = x;
@@ -24808,7 +24901,7 @@ class C
         IOut<object> y = x;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,26): warning CS8619: Nullability of reference types in value of type 'A<string?>' doesn't match target type 'IOut<object>'.
                 //         IOut<object> y = x;
@@ -24840,7 +24933,7 @@ class C
         z = b2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29897: Report the base types that did not match
             // rather than the derived or implementing type. For instance, report `'IIn<object>'
             // doesn't match ... 'IIn<object?>'` rather than `'A<string>' doesn't match ...`.
@@ -24883,7 +24976,7 @@ class C
         G(z); // ok
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29898: Several issues with implicit user-defined conversions and
             // nested nullability: should report `'A<object?>' doesn't match ... 'A<object>'` rather than
             // `'A<object>' doesn't match ... 'A<object?>'`; should report warning for `G(y)` only, not `G(z)`
@@ -24922,7 +25015,7 @@ class C
         IBoth<object, object> d2 = w2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,25): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         I<object?> a1 = x1;
@@ -24977,7 +25070,7 @@ class C
         d2 = w2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,14): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         a1 = x1;
@@ -25017,7 +25110,7 @@ class C
         F(x, y, z);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(I<object?> x, IIn<object?> y, IOut<object?> z)'.
                 //         G(x, y, z);
@@ -25051,7 +25144,7 @@ class C
         F(out x, out y, out z);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,15): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(out I<object?> x, out IIn<object?> y, out IOut<object?> z)'.
                 //         G(out x, out y, out z);
@@ -25085,7 +25178,7 @@ class C
         F(ref x, ref y, ref z);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,15): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(ref I<object?> x, ref IIn<object?> y, ref IOut<object?> z)'.
                 //         G(ref x, ref y, ref z);
@@ -25125,7 +25218,7 @@ class C
         F(in x, in y, in z);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(in I<object?> x, in IIn<object?> y, in IOut<object?> z)'.
                 //         G(in x, in y, in z);
@@ -25187,7 +25280,7 @@ static class E
     static void F4A(this IOut<object?> o) { }
     static void F4B(this IOut<object> o) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.F1B(object o)'.
                 //         y.F1B(); // 1
@@ -25240,7 +25333,7 @@ class B
         F2(w!, w).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         F1(x, x!).ToString();
@@ -25277,7 +25370,7 @@ class C
     }
     object this[I<string> x, I<object?> y] => new object();
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,16): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'object C.this[I<string> x, I<object?> y]'.
                 //             y: y, // warn 1
@@ -25351,7 +25444,7 @@ class CL1
         return new CL1();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
             c.VerifyDiagnostics(
                 // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
                 //         CL0? u1 = ++x1;
@@ -25458,7 +25551,7 @@ class CL1
         return new CL1();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -25571,7 +25664,7 @@ class X4
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,21): warning CS8604: Possible null reference argument for parameter 'x' in 'CL0 CL0.operator ++(CL0 x)'.
@@ -25641,7 +25734,7 @@ class C
         dynamic u5 = --x5;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (16,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -25692,7 +25785,7 @@ class C : A
 class B : A
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'C? A.operator ++(A x)'.
@@ -25742,7 +25835,7 @@ class C : A
 class B : A
 {
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,16): warning CS8601: Possible null reference assignment.
@@ -25793,7 +25886,7 @@ class Convertible
         return new Convertible();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,29): warning CS8604: Possible null reference argument for parameter 'c' in 'Convertible.implicit operator int(Convertible c)'.
@@ -25838,7 +25931,7 @@ class CL1
         return new CL0();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -25886,7 +25979,7 @@ class CL1
         return new CL0();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,25): warning CS8604: Possible null reference argument for parameter 'y' in 'CL1 CL0.operator +(CL0 x, CL0 y)'.
@@ -25954,7 +26047,7 @@ class CL1
         return new CL0();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1 CL0.operator +(CL0 x, CL0? y)'.
@@ -26050,7 +26143,7 @@ class CL1
         return new CL0();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -26126,7 +26219,7 @@ class Test
         dynamic u4 = x4 += y4;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 );
@@ -26176,7 +26269,7 @@ class CL1
         return new CL0();
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -26255,7 +26348,7 @@ class CL3
         set { }
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,19): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
@@ -26301,7 +26394,7 @@ class C
         y += c;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // https://github.com/dotnet/roslyn/issues/29900: Report WRN_NullabilityMismatchInAssignment for compound assignment.
                 //// (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
@@ -26374,7 +26467,7 @@ class Test
         E2 += x7;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
@@ -26434,7 +26527,7 @@ struct TS1
         y3 = z3.E1 ?? x3;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (16,28): hidden CS8607: Expression is probably never null.
@@ -26478,7 +26571,7 @@ struct TS2
     }
 }
 
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (16,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -26518,7 +26611,7 @@ class CL0
     }
 }
 
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,28): error CS0029: Cannot implicitly convert type 'void' to 'System.Action'
@@ -26553,7 +26646,7 @@ class Test
         System.Action v1 = x1.E1;
     }
 }
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (12,28): warning CS8602: Possible dereference of a null reference.
@@ -26609,7 +26702,7 @@ class Test
 }
 
 class CL1 {}
-", NonNullTypesTrue });
+" }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                  // (10,21): hidden CS8607: Expression is probably never null.
@@ -26665,7 +26758,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(new[] { source, NonNullTypesTrue }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                  // (10,20): hidden CS8607: Expression is probably never null.
                  //         object x = await new D() ?? new object();
                  Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "await new D()").WithLocation(10, 20)
@@ -26701,7 +26794,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(new[] { source, NonNullTypesTrue }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                  // (10,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                  //         object x = await new D();
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "await new D()").WithLocation(10, 20)
@@ -26754,9 +26847,9 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source, NonNullTypesTrue },
+            var compilation = CreateCompilationWithMscorlib45(new[] { source },
                                                 new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
-                                                options: TestOptions.DebugExe);
+                                                options: WithNonNullTypesTrue(TestOptions.DebugExe));
 
             compilation.VerifyDiagnostics(
                  // (15,14): hidden CS8607: Expression is probably never null.
@@ -26793,7 +26886,7 @@ class C<T> {}
 class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var b = compilation.GetTypeByMetadataName("B");
             Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
@@ -26849,7 +26942,7 @@ public class C<T> {}
 public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (5,33): warning CS0067: The event 'B.E1' is never used
@@ -26893,7 +26986,7 @@ public class CL0
 
     public object? P1 { get; set;}
 }
-", NonNullTypesTrue }, options: TestOptions.DebugDll);
+" }, options: WithNonNullTypesTrue(TestOptions.DebugDll));
 
             string source = @"
 class C 
@@ -26923,12 +27016,12 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2.P1").WithLocation(15, 14)
             };
 
-            CSharpCompilation c = CreateCompilation(new[] { source, NonNullTypesTrue },
+            CSharpCompilation c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.EmitToImageReference() });
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { source, NonNullTypesTrue },
+            c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.ToMetadataReference() });
             c.VerifyDiagnostics(expected);
@@ -26942,7 +27035,7 @@ public class CL0
 {
     public object F1;
 }
-", NonNullTypesTrue }, options: TestOptions.DebugDll);
+" }, options: WithNonNullTypesTrue(TestOptions.DebugDll));
 
             string source = @"
 class C 
@@ -26964,12 +27057,12 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(10, 17)
             };
 
-            CSharpCompilation c = CreateCompilation(new[] { source, NonNullTypesTrue },
+            CSharpCompilation c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.EmitToImageReference() });
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { source, NonNullTypesTrue },
+            c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.ToMetadataReference() });
             c.VerifyDiagnostics(expected);
@@ -26998,7 +27091,7 @@ public class C<T> {}
 [Nullable] public class F : C<F>
 {}
 ";
-            var compilation = CreateCompilation(new[] { source, NullableAttributeDefinition, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source, NullableAttributeDefinition }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
                 // (7,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
@@ -27059,19 +27152,19 @@ partial class C
         public event Action E1;
         public event Action? E2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         void Test13(Action x13)
         {
             x13 = E2;
@@ -27087,7 +27180,7 @@ partial class C
 {
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -27095,7 +27188,7 @@ partial class C
             c.M3(x21);
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -27103,7 +27196,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2;
@@ -27142,35 +27235,31 @@ partial class C
         [Fact]
         public void NonNullTypes_02()
         {
-            string moduleAttributes = @"
-[module:System.Runtime.CompilerServices.NonNullTypes(false)]
-";
-
             string lib =
 @"#pragma warning disable 8618
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class CL0 
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public class CL1 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action F1;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? F2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action P1 { get; set; }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? P2 { get; set; }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action M1() { throw new System.NotImplementedException(); }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? M2() { return null; }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public void M3(Action x3) {}
     }
 }
@@ -27186,24 +27275,24 @@ partial class C
 
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action E1;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action? E2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test13(Action x13)
         {
             x13 = E2;
@@ -27216,13 +27305,13 @@ partial class C
 @"#pragma warning disable 8618
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 partial class C 
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -27230,7 +27319,7 @@ partial class C
             c.M3(x21);
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -27238,7 +27327,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2;
@@ -27249,9 +27338,9 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesFalse());
 
             c.VerifyDiagnostics(
                 // (18,18): warning CS8601: Possible null reference assignment.
@@ -27292,9 +27381,9 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { lib },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesFalse());
 
             c1.VerifyDiagnostics();
 
@@ -27328,15 +27417,15 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesFalse());
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesFalse());
 
             c.VerifyDiagnostics(expected);
         }
@@ -27344,10 +27433,6 @@ partial class C
         [Fact]
         public void NonNullTypes_03()
         {
-            string moduleAttributes = @"
-[module:System.Runtime.CompilerServices.NonNullTypes(false)]
-";
-
             string lib = @"
 using System;
 
@@ -27355,21 +27440,21 @@ public class CL0
 {
     public class CL1
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action F1 = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? F2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action P1 { get; set; } = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? P2 { get; set; }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action M1() { throw new System.NotImplementedException(); }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? M2() { return null; }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public void M3(Action x3) {}
     }
 }
@@ -27384,11 +27469,11 @@ partial class C
 
     partial class B
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action E1;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action? E2;
-
+" + NonNullTypesOff() + @"
         void Test11(Action? x11) // 1
         {
             E1 = x11; // 2
@@ -27438,9 +27523,9 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesFalse());
 
             c.VerifyDiagnostics(
                 // (15,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -27475,9 +27560,9 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { lib },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesFalse());
 
             c1.VerifyDiagnostics();
 
@@ -27505,15 +27590,15 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19)
                 };
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesFalse());
 
             c.VerifyDiagnostics(expectedDiagnostics);
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesFalse());
 
             c.VerifyDiagnostics(expectedDiagnostics);
         }
@@ -27521,33 +27606,29 @@ partial class C
         [Fact]
         public void NonNullTypes_04()
         {
-            string moduleAttributes = @"
-[module:System.Runtime.CompilerServices.NonNullTypes(true)]
-";
-
             string lib = @"
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public class CL0 
 {
     public class CL1 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action F1 = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? F2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action P1 { get; set; } = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? P2 { get; set; }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action M1() { throw new System.NotImplementedException(); }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? M2() { return null; }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public void M3(Action x3) {}
     }
 }
@@ -27560,9 +27641,9 @@ partial class C
 {
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action E1;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action? E2;
 
         void Test11(Action? x11) // 1
@@ -27586,7 +27667,7 @@ partial class C
             string source2 = @"
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 partial class C 
 {
     partial class B 
@@ -27615,14 +27696,11 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                // (13,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         void Test11(Action? x11) // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 27),
                 // (9,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 38),
@@ -27649,12 +27727,15 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(19, 19),
                 // (20,19): hidden CS8607: Expression is probably never null.
                 //             x22 = c.M1() ?? x22; // 10 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(20, 19)
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(20, 19),
+                // (25,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x13 = E2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "E2").WithLocation(25, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { lib },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c1.VerifyDiagnostics();
 
@@ -27683,15 +27764,15 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(20, 19)
             };
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(expected);
         }
@@ -27699,34 +27780,30 @@ partial class C
         [Fact]
         public void NonNullTypes_05()
         {
-            string moduleAttributes = @"
-[module:System.Runtime.CompilerServices.NonNullTypes(true)]
-";
-
             string lib = @"
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 public class CL0 
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public class CL1 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action F1 = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? F2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action P1 { get; set; } = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? P2 { get; set; }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action M1() { throw new System.NotImplementedException(); }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public Action? M2() { return null; }
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public void M3(Action x3) {}
     }
 }
@@ -27739,9 +27816,9 @@ partial class C
 {
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action E1;
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         public event Action? E2;
 
         void Test11(Action? x11) // 1
@@ -27765,10 +27842,10 @@ partial class C
             string source2 = @"
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 partial class C 
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     partial class B 
     {
         void Test21(CL0.CL1 c, Action? x21) // 4
@@ -27795,14 +27872,11 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                // (13,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         void Test11(Action? x11) // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 27),
                 // (10,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 38),
@@ -27829,12 +27903,15 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(20, 19),
                 // (21,19): hidden CS8607: Expression is probably never null.
                 //             x22 = c.M1() ?? x22; // 10 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19)
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19),
+                // (25,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x13 = E2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "E2").WithLocation(25, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { lib },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c1.VerifyDiagnostics();
 
@@ -27863,15 +27940,15 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19)
             };
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(expected);
         }
@@ -27879,34 +27956,30 @@ partial class C
         [Fact]
         public void NonNullTypes_06()
         {
-            string moduleAttributes = @"
-[module:System.Runtime.CompilerServices.NonNullTypes(true)]
-";
-
             string lib = @"
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 public class CL0 
 {
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public class CL1 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public Action F1 = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public Action? F2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public Action P1 { get; set; } = null!;
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public Action? P2 { get; set; }
 
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public Action M1() { throw new System.NotImplementedException(); }
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public Action? M2() { return null; }
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public void M3(Action x3) {}
     }
 }
@@ -27915,30 +27988,30 @@ public class CL0
             string source1 = @"
 using System;
 
-[System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 partial class C 
 {
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public event Action E1;
-        [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
         public event Action? E2;
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test13(Action x13)
         {
             x13 = E2; // warn 1
@@ -27954,7 +28027,7 @@ partial class C
 {
     partial class B 
     {
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -27962,7 +28035,7 @@ partial class C
             c.M3(x21);
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -27970,7 +28043,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-        [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2; // warn 2
@@ -27981,9 +28054,9 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (13,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -28012,9 +28085,9 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(29, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { lib },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c1.VerifyDiagnostics(
                 // (13,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -28028,9 +28101,9 @@ partial class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(23, 22)
                 );
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (27,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -28044,9 +28117,9 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(29, 19)
                 );
 
-            c = CreateCompilation(new[] { moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: TestOptions.ReleaseDll);
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (27,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -29901,7 +29974,7 @@ class C
     static I<object> F4(I<string?> i) => i;
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,42): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
@@ -29925,7 +29998,7 @@ class C
     static I<string> F4(I<object?> i) => i;
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,42): warning CS8619: Nullability of reference types in value of type 'I<string>' doesn't match target type 'I<string?>'.
@@ -29961,7 +30034,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,20): warning CS8622: Nullability of reference types in type of parameter 's' of 'void C.F1(string s)' doesn't match the target delegate 'D<string?>'.
@@ -29997,7 +30070,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,19): warning CS8621: Nullability of reference types in return type of 'string? C.F2()' doesn't match the target delegate 'D<object>'.
@@ -30055,9 +30128,9 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { source, NonNullTypesTrue },
+            CSharpCompilation c = CreateCompilation(new[] { source },
                                                                 parseOptions: TestOptions.Regular8,
-                                                                options: TestOptions.ReleaseDll);
+                                                                options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
                 // (15,9): warning CS8602: Possible dereference of a null reference.
@@ -30102,7 +30175,7 @@ class C : I
 {
     void I.M<T>(T? x) { }
 }";
-            var compilation = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             var method = compilation.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
             var implementations = method.ExplicitInterfaceImplementations;
             Assert.Equal(new[] { "void I.M<T>(T? x)" }, implementations.SelectAsArray(m => m.ToTestDisplayString()));
@@ -30163,7 +30236,7 @@ struct S
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -30199,7 +30272,7 @@ class Program
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -30266,7 +30339,7 @@ static class Extensions
 }";
 
             var comp = CreateCompilationWithMscorlib45(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -30329,7 +30402,7 @@ class Program
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -30392,7 +30465,7 @@ class Program
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,27): warning CS8603: Possible null reference return.
@@ -30491,7 +30564,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(9, 12));
 
             comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -30515,7 +30588,7 @@ class Program
     static void G(C o) { }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -30542,7 +30615,7 @@ static class E
     internal static void F(this object[] o) { }
 }";
             var comp = CreateCompilationWithMscorlib45(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,17): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
@@ -30582,7 +30655,7 @@ class C<T>
     internal void F() { }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,17): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
@@ -30619,7 +30692,7 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(/* ... */);
         }
@@ -30640,7 +30713,7 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8604: Possible null reference argument for parameter 't' in 'T? C<T>.F(T t)'.
@@ -30674,7 +30747,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8626: No best nullability for operands of conditional expression 'C<object>' and 'C<object?>'.
@@ -30742,7 +30815,7 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,23): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
@@ -30805,7 +30878,7 @@ class C<T>
         var a4 = new[] { x!, y! }; // 4
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var a1 = new[] { x, y }; // 1
@@ -30837,7 +30910,7 @@ class C<T>
         C<object?> c4 = x!; // 5
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,25): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         C<object>? c1 = y; // 1
@@ -30872,7 +30945,7 @@ class C<T>
         var c4 = (C<object?>)x!;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var c1 = (C<object>?)y;
@@ -30907,7 +30980,7 @@ class C<T>
         _ = new C<int>() { X = y!, Y = x! };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         _ = new C<int>() { X = y, Y = x };
@@ -30953,7 +31026,7 @@ class D<T> : IEnumerable
         _ = new D<int>() { y!,  y! }; // warn 7 and 8
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,28): warning CS8620: Nullability of reference types in argument of type 'D<object?>' doesn't match target type 'D<object>' for parameter 'key' in 'void D<int>.Add(D<object>? key, params D<object>?[] value)'.
                 //         _ = new D<int>() { y,  y }; // warn 5 and 6 
@@ -31006,7 +31079,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
 
@@ -31044,7 +31117,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'I<object>'.
@@ -31084,7 +31157,7 @@ static class E
     internal static void F2(this I<object?> o) { }
 }";
             var comp = CreateCompilationWithMscorlib45(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8620: Nullability of reference types in argument of type 'C<object?>' doesn't match target type 'I<object>' for parameter 'o' in 'void E.F1(I<object> o)'.
@@ -31124,7 +31197,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,14): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
@@ -31161,7 +31234,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
@@ -31197,9 +31270,9 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source },
                 parseOptions: TestOptions.Regular8,
-                options: TestOptions.ReleaseExe);
+                options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             comp.VerifyDiagnostics(
                 // (10,15): warning CS8604: Possible null reference argument for parameter 's' in 'void C.F(ref string s, ref string? t)'.
                 //         F(ref s, ref t);
@@ -31230,7 +31303,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,15): warning CS8604: Possible null reference argument for parameter 'a' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)'.
@@ -31284,7 +31357,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,15): error CS0165: Use of unassigned local variable 'b'
@@ -31348,7 +31421,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,22): warning CS8601: Possible null reference assignment.
@@ -31388,9 +31461,9 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source },
                 parseOptions: TestOptions.Regular8,
-                options: TestOptions.ReleaseExe);
+                options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             comp.VerifyDiagnostics(
                 // (15,19): error CS1525: Invalid expression term ','
                 //         F(out (s)!, out (t)!); // errors
@@ -31428,9 +31501,9 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source },
                 parseOptions: TestOptions.Regular8,
-                options: TestOptions.ReleaseExe);
+                options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8601: Possible null reference assignment.
                 //         t! = s;
@@ -31464,7 +31537,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,14): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator B(A a)'.
@@ -31492,7 +31565,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,16): warning CS8624: The suppression operator (!) can only be applied to reference types.
@@ -31530,7 +31603,7 @@ struct S2<T>
 
             // Feature enabled.
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,11): error CS8624: The suppression operator (!) can only be applied to reference types.
@@ -31628,7 +31701,7 @@ struct S2<T>
     static S<object> F(S<object?> s) => s!/*T:S<object?>*/;
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,41): error CS8624: The suppression operator (!) can only be applied to reference types.
@@ -31656,7 +31729,7 @@ struct S2<T>
 }";
 
             // Feature enabled.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8624: The suppression operator (!) can only be applied to reference types.
                 //         _ = tStruct!;
@@ -31733,7 +31806,7 @@ struct S2<T>
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
@@ -31815,7 +31888,7 @@ class B5 : A<int>
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             // https://github.com/dotnet/roslyn/issues/29907: Report error for `default!`.
             comp.VerifyDiagnostics(
@@ -31850,7 +31923,7 @@ class B5 : A<int>
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -31872,7 +31945,7 @@ class B5 : A<int>
     object P { set { } }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,11): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
@@ -31894,7 +31967,7 @@ class B5 : A<int>
         var a = new object[] { new object(), F! };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,46): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         var a = new object[] { new object(), F! };
@@ -31937,9 +32010,9 @@ End Class";
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source },
                 new[] { ref0 },
-                parseOptions: TestOptions.Regular8);
+                parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,20): error CS0856: Indexed property 'A.P' has non-optional arguments which must be provided
                 //             return a.P!;
@@ -31972,7 +32045,7 @@ End Class";
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -31999,7 +32072,7 @@ End Class";
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,17): warning CS8603: Possible null reference return.
                 //     object P => null;
@@ -32022,7 +32095,7 @@ End Class";
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -32051,7 +32124,7 @@ class C
         F(new S());
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         i.F();
@@ -32078,7 +32151,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue },
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
@@ -32102,7 +32175,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,18): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         if (o is F)
@@ -32124,7 +32197,7 @@ class C
         F(s is var o);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -32146,7 +32219,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -32181,7 +32254,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (18,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
                 //                 F(x); // null
@@ -32199,7 +32272,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking"));
             comp.VerifyDiagnostics(
                 // (3,26): warning CS8603: Possible null reference return.
@@ -32210,7 +32283,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
 
             comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "0"));
             comp.VerifyDiagnostics(
                 // (3,26): warning CS8603: Possible null reference return.
@@ -32221,7 +32294,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
 
             comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "1"));
             comp.VerifyDiagnostics(
                 // (3,26): warning CS8603: Possible null reference return.
@@ -32235,11 +32308,17 @@ class C
         [Fact]
         public void AllowMemberOptOut()
         {
-            var source =
-@"class C
+            var source1 =
+@"partial class C
 {
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     static void F(object o) { }
+}";
+            var source2 =
+@"partial class C
+{
+
+
     static void G(object o) { }
     static void M(object? o)
     {
@@ -32249,7 +32328,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source },
+                new[] { source1, source2 },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,25): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
@@ -32258,7 +32337,7 @@ class C
                 );
 
             comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source1, source2 }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.G(object o)'.
@@ -32285,7 +32364,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -32322,7 +32401,7 @@ class C
         var a = new[] { F(a) };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,27): error CS0841: Cannot use local variable 'a' before it is declared
                 //         var a = new[] { F(a) };
@@ -32343,7 +32422,7 @@ static T F<T>(IEnumerable<T> e)
     throw new NotImplementedException();
 }
 var a = new[] { F(a) };";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue },
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
             comp.VerifyDiagnostics(
                 // (7,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -32369,7 +32448,7 @@ class C
         var b = a;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,27): error CS0841: Cannot use local variable 'b' before it is declared
                 //         var a = new[] { F(b) };
@@ -32395,7 +32474,7 @@ class C
         F(v).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,21): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 //         d.F(out var v);
@@ -32441,7 +32520,7 @@ F(v).ToString();";
     }
 }";
             var comp0 = CreateCompilation(
-                new[] { source0, NonNullTypesTrue },
+                new[] { source0 }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics(
                 // (3,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -32459,7 +32538,7 @@ F(v).ToString();";
     }
 }";
             var comp1 = CreateCompilation(
-                new[] { source1, NonNullTypesTrue },
+                new[] { source1 }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
             comp1.VerifyDiagnostics(
@@ -32478,7 +32557,7 @@ F(v).ToString();";
     {
     }
 }";
-            var comp = CreateCompilation( new[] { source0, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -32512,7 +32591,7 @@ F(v).ToString();";
         F0(string.Empty);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static void F0(string s = null) { }
@@ -32563,7 +32642,7 @@ F(v).ToString();";
         F2(null!, null);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (14,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F1(x: null);
@@ -32686,7 +32765,7 @@ class P
         F6<T, U>(default); // 6
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29910: Duplicate WRN_NullAsNonNullable diagnoistics at some locations
             comp.VerifyDiagnostics(
                 // (6,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -32779,11 +32858,12 @@ class P
                 );
 
             // No warnings with C#7.3.
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
                 );
         }
 
@@ -32814,7 +32894,11 @@ class P
 }
 ";
             var comp = CreateCompilationWithIL(NonNullTypesTrue, il);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "System.Runtime.CompilerServices.NonNullTypes(true)").WithLocation(1, 10)
+                );
 
             // Injected NNT type silently wins
             var tree = comp.SyntaxTrees.Single();
@@ -32828,25 +32912,25 @@ class P
         public void NonNullTypesInCSharp7_InSource()
         {
             var source = @"
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 public class C
 {
     public static string field;
 }
 public class D
 {
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string field;
 
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string Method(string s) => throw null;
 
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string Property { get; set; }
 
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static event System.Action Event;
-
+" + NonNullTypesOff() + @"
     void M()
     {
         C.field = null;
@@ -32858,22 +32942,23 @@ public class D
 }
 ";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes pragma for old language version
             comp.VerifyDiagnostics(
-                // (2,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(2, 2),
-                // (12,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //     [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(12, 6),
-                // (15,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //     [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(15, 6),
-                // (18,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //     [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(18, 6),
-                // (9,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //     [System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
+                //// (2,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [System.Runtime.CompilerServices.NonNullTypes]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(2, 2),
+                //// (12,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                ////     [System.Runtime.CompilerServices.NonNullTypes]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(12, 6),
+                //// (15,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                ////     [System.Runtime.CompilerServices.NonNullTypes]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(15, 6),
+                //// (18,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                ////     [System.Runtime.CompilerServices.NonNullTypes]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(18, 6),
+                //// (9,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                ////     [System.Runtime.CompilerServices.NonNullTypes]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
                 );
         }
 
@@ -32881,23 +32966,23 @@ public class D
         public void NonNullTypesInCSharp7_FromMetadata()
         {
             var libSource = @"
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 public class C
 {
     public static string field;
 }
 public class D
 {
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string field;
 
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string Method(string s) => throw null;
 
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static string Property { get; set; }
 
-    [System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
     public static event System.Action Event;
 }
 ";
@@ -32953,7 +33038,7 @@ class Client
         G();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,34): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //     static partial void G(object x = null, object? y = null) { }
@@ -32981,7 +33066,7 @@ class Client
     static string F(string s) => s + throw new System.Exception();
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,38): error CS1525: Invalid expression term 'throw'
@@ -32999,7 +33084,7 @@ class Program
     static IEnumerator<T> M<T>() => default(T);
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,37): error CS0266: Cannot implicitly convert type 'T' to 'System.Collections.Generic.IEnumerator<T>'. An explicit conversion exists (are you missing a cast?)
@@ -33019,7 +33104,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,22): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
@@ -33049,7 +33134,7 @@ class C<T>
         return f?.Invoke();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29916: WRN_NullabilityMismatchInAssignment is cascading, caused by the binding error.
             comp.VerifyDiagnostics(
                 // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -33076,7 +33161,7 @@ struct S : I
     int I.P => 0;
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -33097,7 +33182,7 @@ struct S : I
     event Func<int> I.E { add => throw null; remove => throw null; }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -33112,7 +33197,7 @@ class A : System.Attribute
     string P => null;
 }";
             var comp = CreateCompilation(
-                 new[] { source, NonNullTypesTrue },
+                 new[] { source }, options: WithNonNullTypesTrue(),
                  parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (1,4): error CS0120: An object reference is required for the non-static field, method, or property 'A.P'
@@ -33142,7 +33227,7 @@ class A : System.Attribute
         c.ToString(); // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29954: Should not report warning for
             // c.ToString(); // 3
             comp.VerifyDiagnostics(
@@ -33171,7 +33256,7 @@ class A : System.Attribute
         c.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,20): error CS0269: Use of unassigned out parameter 'c'
                 //         object o = c.F;
@@ -33201,7 +33286,7 @@ class A : System.Attribute
         s.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,20): error CS0170: Use of possibly unassigned field 'F'
                 //         object o = s.F;
@@ -33229,7 +33314,7 @@ struct S
 {
     internal C? F;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,13): error CS0170: Use of possibly unassigned field 'F'
                 //         c = s.F;
@@ -33266,7 +33351,7 @@ struct S
     internal object? F;
     internal object? G;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (14,17): error CS0170: Use of possibly unassigned field 'F'
                 //             o = s.F;
@@ -33294,7 +33379,7 @@ struct S
 {
     internal C? P { get => null; }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = s.P;
@@ -33317,7 +33402,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8601: Possible null reference assignment.
                 //         o = P;
@@ -33340,7 +33425,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8601: Possible null reference assignment.
                 //         o = P;
@@ -33363,7 +33448,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8601: Possible null reference assignment.
                 //         o = P;
@@ -33386,7 +33471,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): error CS8079: Use of possibly unassigned auto-implemented property 'P'
                 //         o = P;
@@ -33410,7 +33495,7 @@ struct S
         object z = y.F;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object z = y.F;
@@ -33431,7 +33516,7 @@ struct S
         object z = y.F;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object z = y.F;
@@ -33451,7 +33536,7 @@ struct S
         S.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
                 //         S.F.ToString();
@@ -33501,7 +33586,7 @@ namespace System
         public ObsoleteAttribute(string message) => throw null;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (16,22): warning CS8602: Possible dereference of a null reference.
                 //             _value = _f.GetHashCode();
@@ -33520,7 +33605,7 @@ namespace System
         *p = 0;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(TestOptions.UnsafeReleaseDll));
             comp.VerifyDiagnostics();
         }
 
@@ -33543,7 +33628,7 @@ class C
     static Task<T>? G3<T>() { return default; }
     static Task<T?>? G6<T>() where T : class => null;
 }";
-            var comp = CreateCompilationWithMscorlib46(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib46(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,25): warning CS8603: Possible null reference return.
                 //     static Task F0() => null;
@@ -33591,7 +33676,7 @@ class C
     static async Task<T>? G3<T>() { return default; }
     static async Task<T?>? G6<T>() where T : class => null;
 }";
-            var comp = CreateCompilationWithMscorlib46(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib46(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,30): error CS1997: Since 'C.F0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
                 //     static async Task F0() { return null; }
@@ -33657,7 +33742,7 @@ class C
         s.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,15): error CS0037: Cannot convert null to 'S' because it is a non-nullable value type
                 //         S s = (S)null;
@@ -33687,7 +33772,7 @@ class C
         w?.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,11): warning CS8602: Possible dereference of a null reference.
                 //         w?.F.ToString();
@@ -33706,7 +33791,7 @@ class Program
         var items = from i in Enumerable.Range(0, 3) group (long)i by i;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -33729,7 +33814,7 @@ class C
         (new[]{ c })[0].F<object>(string.Empty);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -33753,7 +33838,7 @@ class C
         c = y; // (ImplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
                 //         c = x; // (ImplicitUserDefined)(ImplicitReference)
@@ -33778,7 +33863,7 @@ class C
         A a = c; // (ImplicitReference)(ImplicitUserDefined)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         A a = c; // (ImplicitReference)(ImplicitUserDefined)
@@ -33797,7 +33882,7 @@ class C
         S<object> s = true; // (ImplicitUserDefined)(Boxing)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -33813,7 +33898,7 @@ class C
         bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,18): error CS0266: Cannot implicitly convert type 'S<object>' to 'bool'. An explicit conversion exists (are you missing a cast?)
                 //         bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
@@ -33846,7 +33931,7 @@ class C
         c = (C?)b2; // (ExplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
                 //         c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
@@ -33904,7 +33989,7 @@ class P
         d = (D?)(A?)b2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = (C)a1; // (ExplicitUserDefined)
@@ -33969,7 +34054,7 @@ class C
         s = (S?)b; // (ImplicitNullable)(ExplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator S(A a)'.
                 //         s = (S)b; // (ExplicitUserDefined)(ImplicitReference)
@@ -34007,7 +34092,7 @@ class C
         a.F();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29960: Should only report one WRN_ConvertingNullableToNonNullable
             // warning for `B b2 = (B)s;` and `A a = (B)s;`.
             comp.VerifyDiagnostics(
@@ -34057,7 +34142,7 @@ class C
         c = y; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
@@ -34083,7 +34168,7 @@ class C
         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,17): warning CS0219: The variable 't' is assigned but its value is never used
                 //         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
@@ -34166,7 +34251,7 @@ static class E
         (object?, object?) w5 = (default(T), u);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29966: Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (12,31): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)'.
@@ -34278,7 +34363,7 @@ static class E
         (object?, object?)? w5 = (default(T), u);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,32): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)?'.
                 //         (string, string)? t1 = (x, y); // 1
@@ -34353,7 +34438,7 @@ class D
         (object?, object?) w5 = a5;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,31): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(string, string)'.
                 //         (string, string) t1 = a1; // 1
@@ -34428,7 +34513,7 @@ class D
         var w5 = ((object?, object?))(default(T), t);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string? y)' doesn't match target type '(string, string)'.
                 //         var t1 = ((string, string))(x, y); // 1
@@ -34512,7 +34597,7 @@ class D
         var w5 = ((object?, object?)?)(default(T), t);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,41): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var t1 = ((string, string)?)(x, y); // 1
@@ -34599,7 +34684,7 @@ class D
         var w5 = ((object?, object?))default((T, T));
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8619: Nullability of reference types in value of type '(string x, string?)' doesn't match target type '(string, string)'.
                 //         var t1 = ((string, string))a1; // 1
@@ -34672,7 +34757,7 @@ static class E
     static void F4A(this (IOut<object>, IOut<object>) t) { }
     static void F4B(this (IOut<object?>, IOut<object?>) t) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29966: Report WRN_NullabilityMismatchInArgument rather than ...Assignment.
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8620: Nullability of reference types in argument of type '(object x, object? y)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1A((object, object) t)'.
@@ -34733,7 +34818,7 @@ static class E
     static void F4A(this (IOut<object>, IOut<object>) t) { }
     static void F4B(this (IOut<object?>, IOut<object?>) t) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8620: Nullability of reference types in argument of type '(string x, string?)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1A((object, object) t)'.
                 //         t1.F1A(); // 1
@@ -34790,7 +34875,7 @@ static class E
     static void F4A(this (IOut<object?>, IOut<object?>)? t) { }
     static void F4B(this (IOut<object>, IOut<object>)? t) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8620: Nullability of reference types in argument of type '(string, string)?' doesn't match target type '(string?, string?)?' for parameter 't' in 'void E.F1A((string?, string?)? t)'.
                 //         t1.F1A(); // 1
@@ -34822,7 +34907,7 @@ static class E
     static void FA(this (object, (string?, string?)?) t) { }
     static void FB(this (object, (string, string)?) t) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8620: Nullability of reference types in argument of type '(string, (string, string)?)' doesn't match target type '(object, (string?, string?)?)' for parameter 't' in 'void E.FA((object, (string?, string?)?) t)'.
                 //         t.FA(); // 1
@@ -34844,7 +34929,7 @@ static class E
         F((y, y)).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         F((x, y)).Item2.ToString();
@@ -34872,7 +34957,7 @@ static class E
         F((y, y)).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>((T, T?))'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         F((y, x)).Item2.ToString();
@@ -34903,7 +34988,7 @@ static class E
         F(w).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>((T, T?))'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         F(z).ToString();
@@ -34938,7 +35023,7 @@ static class E
         F(ref t4).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(ref (string, string?) t)'.
                 //         F(ref t1).ToString();
@@ -34975,7 +35060,7 @@ static class E
         F(out (string?, string?) t4).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(out (string, string?) t)'.
                 //         F(out (string, string) t1).ToString();
@@ -35031,7 +35116,7 @@ class C
         F(w).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8620: Nullability of reference types in argument of type 'I<(string, string)>' doesn't match target type 'I<(string, string?)>' for parameter 't' in 'string C.F<string>(I<(string, string?)> t)'.
                 //         F(x).ToString();
@@ -35110,7 +35195,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29970: Should not report warning for
             // `t.Item1.Item2`, `t.Item2`, `t.Item1.y`, or `t.z`.
             comp.VerifyDiagnostics(
@@ -35154,7 +35239,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29970: Should not report warning for `t._9` or `t.Rest.Item2`.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
@@ -35190,7 +35275,7 @@ class C
         c = new C((y, y)); // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,19): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string x, string? y)' for parameter 't' in 'C.C((string x, string? y) t)'.
                 //         c = new C((y, x)); // 1
@@ -35217,7 +35302,7 @@ class C
         o = c[(y, y)]; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,15): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string x, string? y)' for parameter 't' in 'object? C.this[(string x, string? y) t]'.
                 //         o = c[(y, x)]; // 1
@@ -35245,7 +35330,7 @@ class C
         };
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8620: Nullability of reference types in argument of type '(string? y, string x)' doesn't match target type '(string, string?)' for parameter 'item' in 'void List<(string, string?)>.Add((string, string?) item)'.
                 //             (y, x), // 1
@@ -35294,7 +35379,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, targetFramework: TargetFramework.Mscorlib46);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), targetFramework: TargetFramework.Mscorlib46);
             comp.VerifyDiagnostics(
                 // (27,11): error CS0070: The event '(object, object).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object, object)')
                 //         y.E2?.Invoke().ToString(); // 3
@@ -35355,7 +35440,7 @@ class C
         z.Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, targetFramework: TargetFramework.Mscorlib46);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), targetFramework: TargetFramework.Mscorlib46);
             comp.VerifyDiagnostics(
                 // (29,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.ToString();
@@ -35426,7 +35511,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 22)
                 );
 
-            var comp2 = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp2 = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
                 // (44,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.ToString();
@@ -35462,7 +35547,7 @@ class C
                 //         c.F((o, -1)).x.ToString();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
@@ -35488,7 +35573,7 @@ class C
         c.F((o, -1)).x.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object?, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object?, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
@@ -35518,7 +35603,7 @@ class C
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35541,7 +35626,7 @@ class C
         c.F((x, y)).Item1.G();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35565,7 +35650,7 @@ class C
         i.F(d).G();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,9): error CS1929: 'I<object>' does not contain a definition for 'F' and the best extension method overload 'E.F<T>(I<T>, T)' requires a receiver of type 'I<T>'
                 //         i.F(d).G();
@@ -35585,7 +35670,7 @@ struct S
         return (ushort)(s?.F ?? 0);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35602,7 +35687,7 @@ class P
     static int F(S? x, int y) => x ?? y;
     static int G(S x, int? y) => y ?? x;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35615,7 +35700,7 @@ class P
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35628,7 +35713,7 @@ class P
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35640,7 +35725,7 @@ class P
 {
     static object F() => new sbyte[] { -1 };
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -35665,7 +35750,7 @@ class P
         y.ToString(); // 6
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
@@ -35704,7 +35789,7 @@ class C
         c.P.ToString(); // 6
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         c.F = null;
@@ -35749,7 +35834,7 @@ class C
         c.P.ToString();
     }
 }";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: new[] { comp0.EmitToImageReference() });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: new[] { comp0.EmitToImageReference() });
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         c.F.ToString(); // 1
@@ -35825,7 +35910,7 @@ class P
         c.P = y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object x1 = null;
@@ -35924,7 +36009,7 @@ class C
         ((A<string>)y4).F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T>
@@ -36040,7 +36125,7 @@ class C
         o = (A<object?>)y2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
                 //         o = (B<object?>)x1; // 1
@@ -36117,7 +36202,7 @@ class D
         o = (C<object?>)y6;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -36182,7 +36267,7 @@ class D
         o = (C<object?>)y6;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
                 //         o = (I<object?>)x1; // 1
@@ -36266,7 +36351,7 @@ class C
         b = ((B?)y4)/*T:B!*/;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (23,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         b = ((B)x1)/*T:B?*/;
@@ -36320,7 +36405,7 @@ class C
         var z2 = (A<string>)x2;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (14,18): warning CS8619: Nullability of reference types in value of type 'A<string?>' doesn't match target type 'A<string>'.
                 //         var z1 = (A<string>)x1; // 1
@@ -36364,7 +36449,7 @@ class C<T> where T : class
         y = ((B<T>)y2)/*T:B<T!>*/;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,14): warning CS8619: Nullability of reference types in value of type 'B<T?>' doesn't match target type 'B<T>'.
                 //         y = ((B<T>)x1)/*T:B<T!>*/;
@@ -36390,7 +36475,7 @@ class C<T> where T : class
     static object F(object? x) => (C)x;
     static object? G(object? y) => (C?)y;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,35): error CS0716: Cannot convert to static type 'C'
                 //     static object F(object? x) => (C)x;
@@ -36431,7 +36516,7 @@ class C
             z.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -36460,7 +36545,7 @@ class C
             z.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (15,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
@@ -36541,7 +36626,7 @@ class C
             w.ToString();
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateEmptyCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (50,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
@@ -36582,7 +36667,7 @@ class C
             z.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
@@ -36606,7 +36691,7 @@ class C
             y.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -36635,7 +36720,7 @@ class P
             w.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
@@ -36695,7 +36780,7 @@ class P
             w2.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (25,34): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'S<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
                 //         foreach (var x2 in new S<T?>())
@@ -36758,7 +36843,7 @@ static class C
             b3.P.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Possible dereference of a null reference.
                 //             a1.P.ToString();
@@ -36790,7 +36875,7 @@ class C
             b2.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             a1.ToString();
@@ -36843,7 +36928,7 @@ class C
 }";
             // https://github.com/dotnet/roslyn/issues/29971: Should report WRN_NullabilityMismatchInAssignment
             // for `A<object> a3 in c` and `B b1 in c`.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
                 //             a1.F.ToString();
@@ -36880,7 +36965,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29971: Location of WRN_NullabilityMismatchInAssignment should be `y` rather than `B`.
             //                                                Reword WRN_NullabilityMismatchInAssignment since there is not an explicit assignment.
             comp.VerifyDiagnostics(
@@ -36917,7 +37002,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,27): error CS0186: Use of null is not valid in this context
                 //         foreach (var x in (IEnumerable?)null) // 1
@@ -36974,7 +37059,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,27): warning CS8602: Possible dereference of a null reference.
                 //         foreach (var x in c1) // 1
@@ -37024,7 +37109,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,27): warning CS8602: Possible dereference of a null reference.
                 //         foreach (var x in t1) // 1
@@ -37080,7 +37165,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,27): warning CS8602: Possible dereference of a null reference.
                 //         foreach (var x in t1) // 1
@@ -37121,7 +37206,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29972: Should report WRN_NullReferenceReceiver using Enumerable.GetEnumerator. 
             comp.VerifyDiagnostics();
         }
@@ -37139,7 +37224,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -37158,7 +37243,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(T?)'. There is no implicit reference conversion from 'B' to 'A'.
@@ -37184,7 +37269,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8602: Possible dereference of a null reference.
@@ -37219,7 +37304,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,22): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
@@ -37272,7 +37357,7 @@ public class B
         F(z, z)/*T:A*/.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -37305,7 +37390,7 @@ public class B
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8634: The type 'C?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(T, T?)'. Nullability of type argument 'C?' doesn't match 'class' constraint.
@@ -37338,7 +37423,7 @@ public class B
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
@@ -37367,7 +37452,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
@@ -37397,7 +37482,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,14): warning CS8620: Nullability of reference types in argument of type 'C<A?, B>' doesn't match target type 'C<A, B?>' for parameter 'y' in 'void C.F<C<A, B?>>(C<A, B?> x, C<A, B?> y)'.
@@ -37458,7 +37543,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (13,11): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'x' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
@@ -37534,7 +37619,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
@@ -37601,7 +37686,7 @@ public class NotNull
 {
     public A<object> A3;
 }";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
@@ -37646,7 +37731,7 @@ public class NotNull
         F(x9.A3, y9.A3)/*T:A<object!>!*/.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0, ref1 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (14,9): warning CS8602: Possible dereference of a null reference.
@@ -37696,7 +37781,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (1,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class C<T>
@@ -37725,7 +37810,7 @@ class C
         F(y: y, x: x).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y: y, x: x).ToString();
@@ -37750,7 +37835,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8602: Possible dereference of a null reference.
@@ -37774,7 +37859,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -37798,7 +37883,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -37822,7 +37907,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
@@ -37845,7 +37930,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -37866,7 +37951,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): error CS0411: The type arguments for method 'C.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
@@ -37894,7 +37979,7 @@ class C
         F(t).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(t).Item2.ToString();
@@ -37922,7 +38007,7 @@ class C
         F(u).b.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(t).Item2.ToString();
@@ -37952,7 +38037,7 @@ class C
         t.y.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         t.y.ToString();
@@ -37972,7 +38057,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -37991,7 +38076,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -38012,7 +38097,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
@@ -38033,7 +38118,7 @@ class C
     }
 }";
             var comp = CreateCompilation(
-                new[] { source, NonNullTypesTrue },
+                new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,11): hidden CS8607: Expression is probably never null.
@@ -38070,7 +38155,7 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(a.F);
@@ -38098,7 +38183,7 @@ class C<T>
         if (b.field != null) b.field.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         a.field.ToString();
@@ -38131,7 +38216,7 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(a.P);
@@ -38163,7 +38248,7 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(a.P);
@@ -38199,7 +38284,7 @@ class B : A
         if (base.P != null) F(base.P);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,11): warning CS8604: Possible null reference argument for parameter 's' in 'void A.F(string s)'.
                 //         F(this.P);
@@ -38227,7 +38312,7 @@ class C
         c.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         c.F.ToString();
@@ -38272,7 +38357,7 @@ class Program
         o = c.B.A; // 6
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (24,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = c.B.A; // 2
@@ -38342,7 +38427,7 @@ class Program
         o = c.B.F; // 5
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //         o = c.A.A; // 1
@@ -38415,7 +38500,7 @@ class Program
         o = c.B.P; // 5
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //         o = c.A.A; // 1
@@ -38481,7 +38566,7 @@ class Program
         o = b.A.F; // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (23,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = b.A.F; // 2
@@ -38516,7 +38601,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -38543,7 +38628,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -38574,7 +38659,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -38597,7 +38682,7 @@ class C
         o = P; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = P; // 1
@@ -38625,7 +38710,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -38664,7 +38749,7 @@ class Program
         o = b.Q.P; // 5
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29975: Should report warnings.
             comp.VerifyDiagnostics(/*...*/);
         }
@@ -38700,7 +38785,7 @@ class Program
         b.G.F2.ToString(); // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         b.G.F2.ToString(); // 1
@@ -38747,7 +38832,7 @@ class Program
         b.G.F2.ToString(); // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         b.G.F2.ToString(); // 1
@@ -38794,7 +38879,7 @@ class Program
         b.Q.P2.ToString(); // 3
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         b.Q.P2.ToString(); // 1
@@ -38827,7 +38912,7 @@ class C
         c.E.Invoke();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         c.E.Invoke(); // warning
@@ -38865,7 +38950,7 @@ class Program
         a.F.ToString(); // 4
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 2
@@ -38913,7 +38998,7 @@ class Program
         a.F.ToString(); // 4
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (17,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 1
@@ -38936,7 +39021,7 @@ class Program
         F.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         F.F.ToString();
@@ -38957,7 +39042,7 @@ class Program
         F.F.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F.F.F.ToString();
@@ -38979,7 +39064,7 @@ class Program
         y.F.F.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.F.ToString();
@@ -39005,7 +39090,7 @@ class C
         s.G.S = s;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -39038,7 +39123,7 @@ class C
         s.P.F.ToString(); // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         s.P.F.ToString(); // 1
@@ -39060,7 +39145,7 @@ class C
         c.Select(o => new { E = o.E ?? F });
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,10): warning CS0649: Field 'C.E' is never assigned to, and will always have its default value 
                 //     int? E;
@@ -39106,7 +39191,7 @@ class B
         t5 = default; // 16
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29978: Various differences from expected warnings.
             comp.VerifyDiagnostics(
                 // (29,41): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
@@ -39172,7 +39257,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -39190,7 +39275,7 @@ class B
                 var f2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
                 Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class?", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
                 Assert.Equal("void B.F2<T2>(T2 t2) where T2 : class", f2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints.
-                                                                                                WithMiscellaneousOptions(SymbolDisplayFormat.TestFormatWithConstraints.MiscellaneousOptions & 
+                                                                                                WithMiscellaneousOptions(SymbolDisplayFormat.TestFormatWithConstraints.MiscellaneousOptions &
                                                                                                                             (~SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))));
                 TypeParameterSymbol t2 = f2.TypeParameters[0];
                 Assert.True(t2.ReferenceTypeConstraintIsNullable);
@@ -39222,7 +39307,7 @@ class B<T2> where T2 : class?
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -39272,7 +39357,7 @@ class B
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -39372,12 +39457,15 @@ class B<T1> where T1 : class?
             };
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(expected.Concat(new[] {
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-            }).ToArray());
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
+            comp.VerifyDiagnostics(expected
+                //.Concat(new[] {
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                //}).ToArray()
+                );
         }
 
         [Fact]
@@ -39399,7 +39487,7 @@ class B<T1> where T1 : class?
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>(T2? t2) where T2 : class?
@@ -39432,7 +39520,7 @@ class B
     public static void F4<T41, T42>(T42? t1) where T41 : B where T42 : T41?
     {}
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T11, T12>(T12? t1) where T11 : class where T12 : T11
@@ -39462,7 +39550,7 @@ class B<T11, T12> where T12 : T11?
     public static void F4<T4>() where T4 : T4?
     {}
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // class B<T11, T12> where T12 : T11?
@@ -39502,7 +39590,7 @@ class B
 class Node<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,49): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : Node<T3?>?
@@ -39530,7 +39618,7 @@ class B
 class Node<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,51): error CS0450: 'Node<T2?>': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F2<T2>() where T2 : class, Node<T2?>
@@ -39564,7 +39652,7 @@ class B
 class Node<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,52): error CS0450: 'Node<T2?>': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F2<T2>() where T2 : class?, Node<T2?>
@@ -39604,7 +39692,7 @@ class B
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,50): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T2>() where T2 : INode<T2?>
@@ -39635,7 +39723,7 @@ class B
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
         }
@@ -39660,7 +39748,7 @@ class B
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,58): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T3>() where T3 : class?, INode<T3?>?
@@ -39694,7 +39782,7 @@ interface INode
 interface INode<T>
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,89): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F3<T31, T32>() where T31 : INode? where T32 : class?, T31, INode<T32?>?
@@ -39728,7 +39816,7 @@ class B
 interface INode
 {}
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,37): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F2<T21, T22>(T22? t2) where T21 : INode? where T22 : class?, T21
@@ -39802,7 +39890,7 @@ class B : A<int>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -39869,7 +39957,7 @@ public class A<T>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
             var source2 =
 @"
@@ -39885,7 +39973,7 @@ class B : A<int>
 }
 ";
 
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
 
             CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
             void symbolValidator(ModuleSymbol m)
@@ -39933,7 +40021,7 @@ public class A<T>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
             var comp2 = CreateCompilation(NullableAttributeDefinition);
 
@@ -39951,7 +40039,7 @@ class B : A<int>
 }
 ";
 
-            var comp3 = CreateCompilation(new[] { source3, NonNullTypesTrue },
+            var comp3 = CreateCompilation(new[] { source3 }, options: WithNonNullTypesTrue(),
                                           references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() },
                                           parseOptions: TestOptions.Regular8);
 
@@ -40000,7 +40088,7 @@ public class A<T>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
             var source2 =
 @"
@@ -40086,7 +40174,7 @@ class B : A<int>
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (15,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void F1<T11>(T11? t1) where T11 : class?
@@ -40196,7 +40284,7 @@ class D : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source2, source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source2, source1 }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA.F1<T1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<T11>() where T11 : class
@@ -40250,7 +40338,7 @@ class D : IA
                 Assert.Equal("void B.F4<T44>() where T44 : C1<C2>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
-            var comp2 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
             );
 
@@ -40278,7 +40366,7 @@ class D : IA
 
             var comp4 = CreateCompilation(new[] { source1 });
 
-            var comp5 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp4.ToMetadataReference() });
+            var comp5 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp4.ToMetadataReference() });
             comp5.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA.F1<T1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<T11>() where T11 : class
@@ -40311,8 +40399,8 @@ class B : IA
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue },
-                                         options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilation(new[] { source },
+                                         options: WithNonNullTypesTrue(TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)));
             comp.VerifyDiagnostics(
             );
 
@@ -40354,7 +40442,7 @@ public interface IA
     void F2<T2>() where T2 : class?;
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
             var source2 =
 @"
@@ -40369,8 +40457,8 @@ class B : IA
     }
 }
 ";
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue },
-                                          options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var comp2 = CreateCompilation(new[] { source2 },
+                                          options: WithNonNullTypesTrue(TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)),
                                           references: new[] { comp1.EmitToImageReference() });
 
             CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
@@ -40414,7 +40502,7 @@ public interface IA
     void F2<T2>() where T2 : class?;
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
             var comp2 = CreateCompilation(NullableAttributeDefinition);
 
@@ -40431,8 +40519,8 @@ class B : IA
     }
 }
 ";
-            var comp3 = CreateCompilation(new[] { source3, NonNullTypesTrue },
-                                          options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            var comp3 = CreateCompilation(new[] { source3 },
+                                          options: WithNonNullTypesTrue(TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)),
                                           references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() });
             comp3.VerifyDiagnostics(
             );
@@ -40477,7 +40565,7 @@ public interface IA
     void F2<T2>() where T2 : class?;
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
             var source2 =
 @"
@@ -40558,7 +40646,7 @@ class B : IA
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     void IA.F1<T11>(T11? t1) where T11 : class?
@@ -40590,7 +40678,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -40622,7 +40710,7 @@ class B
 class B<T2> where T2 : class?
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -40662,7 +40750,7 @@ class B
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -40713,18 +40801,21 @@ class B<T1> where T1 : struct?
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(expected.Concat(new[] { 
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-            }).ToArray());
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
+            comp.VerifyDiagnostics(expected
+                //.Concat(new[] { 
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                //}).ToArray()
+                );
         }
 
         [Fact]
@@ -40741,7 +40832,7 @@ class C<TC> where TC : IA<object>, IA<object?>
 class B<TB> where TB : IA<object?>, IA<object>
 { }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,36): error CS0405: Duplicate constraint 'IA<object>' for type parameter 'TC'
                 // class C<TC> where TC : IA<object>, IA<object?>
@@ -40766,7 +40857,7 @@ class B<TB> where TB : IA<object>?, IA<object>
 class C<TC> where TC : IA<object>, IA<object>?
 { }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,37): error CS0405: Duplicate constraint 'IA<object>' for type parameter 'TB'
                 // class B<TB> where TB : IA<object>?, IA<object>
@@ -40854,7 +40945,7 @@ class D : IA<string>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source2, source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source2, source1 }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA<string>.F1<T1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<T11>() where T11 : class
@@ -40908,7 +40999,7 @@ class D : IA<string>
                 Assert.Equal("void B.F4<T44>() where T44 : C1<C2>?", bf4.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             }
 
-            var comp2 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
             );
 
@@ -40936,7 +41027,7 @@ class D : IA<string>
 
             var comp4 = CreateCompilation(new[] { source1 });
 
-            var comp5 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp4.ToMetadataReference() });
+            var comp5 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp4.ToMetadataReference() });
             comp5.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA<string>.F1<T1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<T11>() where T11 : class
@@ -41012,9 +41103,9 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
-            var comp2 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new [] { comp1.ToMetadataReference() } );
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.ToMetadataReference() });
 
             var expected = new[]
             {
@@ -41028,16 +41119,16 @@ class B : IA
 
             comp2.VerifyDiagnostics(expected);
 
-            var comp3 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp1.EmitToImageReference() });
+            var comp3 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
             comp3.VerifyDiagnostics(expected);
 
-            var comp4 = CreateCompilation(new[] { source2, NonNullTypesFalse }, references: new[] { comp1.ToMetadataReference() });
+            var comp4 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesFalse(), references: new[] { comp1.ToMetadataReference() });
             comp4.VerifyDiagnostics();
 
-            var comp5 = CreateCompilation(new[] { source2, NonNullTypesFalse }, references: new[] { comp1.EmitToImageReference() });
+            var comp5 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesFalse(), references: new[] { comp1.EmitToImageReference() });
             comp5.VerifyDiagnostics();
 
-            var comp6 = CreateCompilation(new[] { source1, NonNullTypesFalse });
+            var comp6 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesFalse());
             comp6.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
                 // (7,55): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     void F4<T41, T42>() where T41 : class where T42 : T41?, IB, IC?;
@@ -41047,10 +41138,10 @@ class B : IA
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T61?").WithLocation(9, 55)
                 );
 
-            var comp7 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp6.ToMetadataReference() });
+            var comp7 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp6.ToMetadataReference() });
             comp7.VerifyDiagnostics(expected);
 
-            var comp9 = CreateCompilation(new[] { source2, NonNullTypesFalse }, references: new[] { comp6.ToMetadataReference() });
+            var comp9 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesFalse(), references: new[] { comp6.ToMetadataReference() });
             comp9.VerifyDiagnostics();
         }
 
@@ -41117,7 +41208,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (55,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
                 //     public void F9<T991, T992>() where T991 : class? where T992 : T991, IB?, IC
@@ -41194,7 +41285,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (7,52): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     void F4<T41, T42>() where T41 : ID where T42 : T41?, IB, IC?;
@@ -41277,7 +41368,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (38,63): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public void F4<T441, T442>() where T441 : ID where T442 : T441?, IB, IC?
@@ -41360,7 +41451,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (58,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
                 //     public void F9<T991, T992>() where T991 : D where T992 : T991, IB, IC
@@ -41437,7 +41528,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (58,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
                 //     public void F9<T991, T992>() where T991 : D? where T992 : T991, IB?, IC
@@ -41511,7 +41602,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (55,17): warning CS8633: Nullability in constraints for type parameter 'T991' of method 'B.F9<T991, T992>()' doesn't match the constraints for type parameter 'T91' of interface method 'IA.F9<T91, T92>()'. Consider using an explicit interface implementation instead.
                 //     public void F9<T991, T992>() where T991 : class? where T992 : T991, IB?, IC?
@@ -41567,7 +41658,7 @@ class B : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (25,67): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public void F9<T991, T992>() where T991 : class? where T992 : T991?, IB?, IC?
@@ -41649,7 +41740,7 @@ class D : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source2, source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source2, source1 }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA.F1<T1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<T11>() where T11 : class, IB?
@@ -41685,7 +41776,7 @@ class D : IA
                 Assert.True(t44.IsNotNullableIfReferenceType);
             }
 
-            var comp2 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
             );
 
@@ -41722,7 +41813,7 @@ class D : IA
 
             var comp4 = CreateCompilation(new[] { source1 });
 
-            var comp5 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp4.ToMetadataReference() });
+            var comp5 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp4.ToMetadataReference() });
             comp5.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T11' of method 'B.F1<T11>()' doesn't match the constraints for type parameter 'T1' of interface method 'IA.F1<T1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<T11>() where T11 : class, IB?
@@ -41782,7 +41873,7 @@ class D : IA
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source2, source1, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source2, source1 }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
                 // (4,17): warning CS8633: Nullability in constraints for type parameter 'T22' of method 'B.F2<T22>()' doesn't match the constraints for type parameter 'T2' of interface method 'IA.F2<T2>()'. Consider using an explicit interface implementation instead.
                 //     public void F2<T22>() where T22 : class?, IB?
@@ -41804,7 +41895,7 @@ class D : IA
                 Assert.True(t333.IsNotNullableIfReferenceType);
             }
 
-            var comp2 = CreateCompilation(new[] { source1, NonNullTypesTrue });
+            var comp2 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
             );
 
@@ -41833,7 +41924,7 @@ class D : IA
 
             var comp4 = CreateCompilation(new[] { source1 });
 
-            var comp5 = CreateCompilation(new[] { source2, NonNullTypesTrue }, references: new[] { comp4.ToMetadataReference() });
+            var comp5 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp4.ToMetadataReference() });
             comp5.VerifyDiagnostics(
             );
 
@@ -41861,7 +41952,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -41937,7 +42028,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T1>(T1? t1) where T1 : object?
@@ -42016,13 +42107,16 @@ class B
                 Assert.Empty(t2.GetAttributes());
             }
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
 
-            comp.VerifyDiagnostics(expected.Concat(new[] {
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-            }).ToArray());
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
+            comp.VerifyDiagnostics(expected
+            //.Concat(new[] {
+            //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+            //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+            //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+            //}).ToArray()
+            );
 
             {
                 var m = comp.SourceModule;
@@ -42058,7 +42152,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T1>(T1? t1) where T1 : object
@@ -42084,7 +42178,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,58): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F2<T2>(T2? t2) where T2 : struct, System.Object
@@ -42126,7 +42220,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,57): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 //     public static void F1<T1>(T1? t1) where T1 : class, object
@@ -42168,7 +42262,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             Assert.False(((MethodSymbol)comp.SourceModule.GlobalNamespace.GetMember("B.F1")).TypeParameters[0].IsNotNullableIfReferenceType);
 
@@ -42215,7 +42309,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
@@ -42257,7 +42351,7 @@ class B : I<object?>
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -42326,7 +42420,7 @@ class B : I<A?>
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -42395,7 +42489,7 @@ class B : I<object?>
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -42451,7 +42545,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,53): error CS0406: The class type constraint 'object' must come before any other constraints
                 //     public static void F1<T1>(T1? t1) where T1 : B, object
@@ -42478,7 +42572,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T1>(T1? t1) where T1 : B?, object
@@ -42508,7 +42602,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,31): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public static void F1<T1>(T1? t1) where T1 : object, B
@@ -42538,7 +42632,7 @@ class B
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,50): error CS0702: Constraint cannot be special class 'object?'
                 //     public static void F1<T1>(T1? t1) where T1 : object?, B
@@ -42576,7 +42670,7 @@ class B : I<object?>
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -42643,7 +42737,7 @@ class B : I<object?, B?>
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
             );
 
@@ -42759,7 +42853,7 @@ class A : I1
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (25,17): warning CS8633: Nullability in constraints for type parameter 'TF1A' of method 'A.F1<TF1A>()' doesn't match the constraints for type parameter 'TF1' of interface method 'I1.F1<TF1>()'. Consider using an explicit interface implementation instead.
                 //     public void F1<TF1A>() where TF1A : object
@@ -42784,7 +42878,7 @@ class A : I1
         {
             var source =
 @"
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 interface I1
 {
     void F1<TF1>();
@@ -42796,11 +42890,11 @@ interface I1
     void F8<TF8>() where TF8 : object, I3;
     void F9<TF9>() where TF9 : object, I3;
 }
-
+" + NonNullTypesOn() + @"
 public interface I3
 {
 }
-
+" + NonNullTypesOn() + @"
 class A : I1
 {
     public void F1<TF1A>() where TF1A : object
@@ -42821,7 +42915,7 @@ class A : I1
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29980: unexpected warning
             comp.VerifyDiagnostics(
                 // (21,17): warning CS8633: Nullability in constraints for type parameter 'TF1A' of method 'A.F1<TF1A>()' doesn't match the constraints for type parameter 'TF1' of interface method 'I1.F1<TF1>()'. Consider using an explicit interface implementation instead.
@@ -42851,7 +42945,7 @@ public interface I3
 {
 }
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 class A : I1
 {
     public void F1<TF1A>() where TF1A : object
@@ -42872,7 +42966,7 @@ class A : I1
     {}
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29980: unexpected warning
             comp.VerifyDiagnostics(
                 // (23,17): warning CS8633: Nullability in constraints for type parameter 'TF2A' of method 'A.F2<TF2A>()' doesn't match the constraints for type parameter 'TF2' of interface method 'I1.F2<TF2>()'. Consider using an explicit interface implementation instead.
@@ -42907,7 +43001,7 @@ class A
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         y3.ToString();
@@ -42931,7 +43025,7 @@ class B
         T1? x;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
                 // (7,9): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
@@ -42987,7 +43081,7 @@ class B
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
@@ -43057,7 +43151,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
                 // (18,12): warning CS8634: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
@@ -43116,7 +43210,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
             );
         }
@@ -43159,7 +43253,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
             );
         }
@@ -43210,7 +43304,7 @@ class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
@@ -43275,7 +43369,7 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
                 // (21,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
@@ -43330,7 +43424,7 @@ class B<TB2, TB3> where TB2 : ID<string>? where TB3 : ID<string>
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics();
         }
@@ -43375,7 +43469,7 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics();
         }
 
@@ -43385,11 +43479,11 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
             var source =
 @"
 #pragma warning disable CS0168
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IA<TA> where TA : ID<string>
 {
 }
-
+" + NonNullTypesOn() + @"
 public interface IC : IA<ID<string>?> 
 {}
 
@@ -43406,10 +43500,10 @@ class B
         IA<ID<string>?> y1;
         IA<ID<string>> z1;
     }
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public void M1<TM1>(TM1 x) where TM1: ID<string>
     {}
-
+" + NonNullTypesOn() + @"
     public void Test2(ID<string> b2, ID<string>? c2)
     {
         M1(b2); 
@@ -43420,7 +43514,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
             );
         }
@@ -43431,11 +43525,11 @@ class B
             var source =
 @"
 #pragma warning disable CS0168
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IA<TA> where TA : class
 {
 }
-
+" + NonNullTypesOn() + @"
 public interface IB : IA<string?>
 {}
 
@@ -43449,10 +43543,10 @@ class B
         IA<string?> x1;
         IA<string> z1;
     }
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public void M1<TM1>(TM1 x) where TM1: class
     {}
-
+" + NonNullTypesOn() + @"
     public void Test2(string? a2, string b2)
     {
         M1(a2);
@@ -43464,7 +43558,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
             );
         }
@@ -43479,31 +43573,31 @@ class B
 public interface IA<TA> where TA : ID<string>
 {
 }
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IB<TIB> : IA<TIB> where TIB : ID<string?> // 1
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IC<TIC> : IA<TIC> where TIC : ID<string>? // 2
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IE<TIE> : IA<TIE> where TIE : ID<string> // 3
 {}
-
+" + NonNullTypesOn() + @"
 public interface ID<T>
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
-class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3 : ID<string>
-{   [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOff() + @"
+class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3 : ID<string> {
+" + NonNullTypesOn() + @"
     public void Test1()
     {
         IA<TB1> x1; // 4
         IA<TB2> y1; // 5
         IA<TB3> z1; // 6
     }
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M1<TM1>(TM1 x) where TM1: ID<string>
     {}
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB3 b2, TB2 c2)
     {
         M1(a2); // 7
@@ -43515,7 +43609,7 @@ class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
@@ -43559,27 +43653,27 @@ class B<TB1, TB2, TB3> where TB1 : ID<string?> where TB2 : ID<string>? where TB3
 public interface IA<TA> where TA : class
 {
 }
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IB<TIB> : IA<TIB> where TIB : C? // 1
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IC<TIC> : IA<TIC> where TIC : C // 2
 {}
-
+" + NonNullTypesOn() + @"
 public class C
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
-class B<TB1, TB2> where TB1 : C? where TB2 : C
-{   [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOff() + @"
+class B<TB1, TB2> where TB1 : C? where TB2 : C {
+" + NonNullTypesOn() + @"
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M1<TM1>(TM1 x) where TM1: class
     {}
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -43589,7 +43683,7 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
                 // (21,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
@@ -43650,7 +43744,7 @@ class B<TB1, TB2> where TB1 : class? where TB2 : class
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
                 // (18,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
@@ -43702,7 +43796,7 @@ class B<TB1, TB2> where TB1 : class? where TB2 : class
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics();
         }
 
@@ -43716,24 +43810,24 @@ class B<TB1, TB2> where TB1 : class? where TB2 : class
 public interface IA<TA> where TA : class
 {
 }
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IB<TIB> : IA<TIB> where TIB : class? // 1
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IC<TIC> : IA<TIC> where TIC : class // 2
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
-class B<TB1, TB2> where TB1 : class? where TB2 : class
-{   [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOff() + @"
+class B<TB1, TB2> where TB1 : class? where TB2 : class {
+" + NonNullTypesOn() + @"
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M1<TM1>(TM1 x) where TM1: class
     {}
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -43743,7 +43837,7 @@ class B<TB1, TB2> where TB1 : class? where TB2 : class
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
                 // (18,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
@@ -43825,7 +43919,7 @@ public interface IE
 public interface IF
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
@@ -43856,11 +43950,11 @@ public interface IF
             var source =
 @"
 #pragma warning disable CS0168
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IA<TA> where TA : IE?, ID<string>, IF?
 {
 }
-
+" + NonNullTypesOn() + @"
 public interface IB<TIB> : IA<TIB> where TIB : IE?, ID<string?>, IF?
 {}
 
@@ -43887,10 +43981,10 @@ class B<TB1, TB2, TB3, TB4>
         IA<TB4> u1;
     }
 
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public void M1<TM1>(TM1 x) where TM1: IE?, ID<string>, IF?
     {}
-
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB3 b2, TB2 c2, TB4 d2)
     {
         M1(a2); 
@@ -43909,7 +44003,7 @@ public interface IE
 public interface IF
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify();
         }
@@ -43925,29 +44019,29 @@ public interface IA<TA> where TA : IE?, ID<string>, IF?
 {
 }
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IB<TIB> : IA<TIB> where TIB : IE?, ID<string?>, IF? // 1
 {}
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IC<TIC> : IA<TIC> where TIC : IE?, ID<string>?, IF? // 2
 {}
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IE<TIE> : IA<TIE> where TIE : IE?, ID<string>, IF? // 3
 {}
-
+" + NonNullTypesOn() + @"
 public interface ID<T>
 {}
 
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 class B<TB1, TB2, TB3, TB4> 
     where TB1 : IE?, ID<string?>, IF? 
     where TB2 : IE?, ID<string>?, IF? 
     where TB3 : IE?, ID<string>, IF?
     where TB4 : IE, ID<string>?, IF?
 {
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test1()
     {
         IA<TB1> x1; // 4
@@ -43956,11 +44050,11 @@ class B<TB1, TB2, TB3, TB4>
         IA<TB4> u1; // 7
     }
 
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M1<TM1>(TM1 x) where TM1: IE?, ID<string>, IF?
     {}
 
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB3 b2, TB2 c2, TB4 d2)
     {
         M1(a2); // 8
@@ -43979,7 +44073,7 @@ public interface IE
 public interface IF
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
@@ -44056,7 +44150,7 @@ public interface IB
 public interface IC
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (12,12): warning CS8634: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match 'class' constraint.
@@ -44109,7 +44203,7 @@ class B<TB1> where TB1 : class, IB?
 public interface IB
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
@@ -44141,7 +44235,7 @@ class B<TB1> where TB1 : class?, IB
 public interface IB
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
@@ -44158,11 +44252,11 @@ public interface IB
         {
             var source =
 @"
-class B<TB1> where TB1 : class, IB? 
-{   [System.Runtime.CompilerServices.NonNullTypes(false)]
+class B<TB1> where TB1 : class, IB? {
+" + NonNullTypesOff() + @"
     public void M1<TM1, TM2>(TM1 x, TM2 y) where TM2 : TM1
     {}
-
+" + NonNullTypesOn() + @"
     public void Test2(TB1? a2, TB1 b2)
     {
         M1(b2, a2); // 1
@@ -44173,7 +44267,7 @@ class B<TB1> where TB1 : class, IB?
 public interface IB
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
@@ -44211,7 +44305,7 @@ public interface IB
 public interface IC
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
@@ -44228,11 +44322,11 @@ public interface IC
         {
             var source =
 @"
-class B<TB1> where TB1 : A?, IB, IC? 
-{   [System.Runtime.CompilerServices.NonNullTypes(false)]
+class B<TB1> where TB1 : A?, IB, IC? {
+" + NonNullTypesOff() + @"
     public void M1<TM1, TM2>(TM1 x, TM2 y) where TM2 : TM1
     {}
-
+" + NonNullTypesOn() + @"
     public void Test2(TB1? a2, TB1 b2)
     {
         M1(b2, a2); // 1
@@ -44249,7 +44343,7 @@ public interface IB
 public interface IC
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
@@ -44300,7 +44394,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
                 // (18,12): warning CS8631: The type 'string?' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'string?' doesn't match constraint type 'object'.
@@ -44324,11 +44418,11 @@ class B
             var source =
 @"
 #pragma warning disable CS0168
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IA<TA> where TA : object
 {
 }
-
+" + NonNullTypesOn() + @"
 public interface IB : IA<string?>
 {}
 
@@ -44342,10 +44436,10 @@ class B
         IA<string?> x1;
         IA<string> z1;
     }
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     public void M1<TM1>(TM1 x) where TM1: object
     {}
-
+" + NonNullTypesOn() + @"
     public void Test2(string? a2, string b2)
     {
         M1(a2);
@@ -44357,7 +44451,7 @@ class B
     
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp1.VerifyDiagnostics(
             );
         }
@@ -44373,27 +44467,27 @@ class B
 public interface IA<TA> where TA : object
 {
 }
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IB<TIB> : IA<TIB> where TIB : C? // 1
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IC<TIC> : IA<TIC> where TIC : C // 2
 {}
 
 public class C
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
-class B<TB1, TB2> where TB1 : C? where TB2 : C
-{   [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOff() + @"
+class B<TB1, TB2> where TB1 : C? where TB2 : C {
+" + NonNullTypesOn() + @"
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M1<TM1>(TM1 x) where TM1: object
     {}
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -44403,7 +44497,7 @@ class B<TB1, TB2> where TB1 : C? where TB2 : C
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             // https://github.com/dotnet/roslyn/issues/30214 The following warning is unexpected:
             // (22,12): warning CS8631: The type 'TB2' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB2' doesn't match constraint type 'object'.
@@ -44467,7 +44561,7 @@ class B<TB1, TB2> where TB2 : object
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.VerifyDiagnostics(
                 // (18,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
@@ -44492,24 +44586,24 @@ class B<TB1, TB2> where TB2 : object
 public interface IA<TA> where TA : object
 {
 }
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IB<TIB> : IA<TIB> // 1
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 public interface IC<TIC> : IA<TIC> where TIC : object // 2
 {}
-[System.Runtime.CompilerServices.NonNullTypes(false)]
-class B<TB1, TB2> where TB2 : object
-{   [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOff() + @"
+class B<TB1, TB2> where TB2 : object {
+" + NonNullTypesOn() + @"
     public void Test1()
     {
         IA<TB1> x1; // 3
         IA<TB2> z1; // 4
     }
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void M1<TM1>(TM1 x) where TM1: object
     {}
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     public void Test2(TB1 a2, TB2 b2)
     {
         M1(a2); // 5
@@ -44519,7 +44613,7 @@ class B<TB1, TB2> where TB2 : object
     }
 }
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
             comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
                 // (18,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
@@ -44577,7 +44671,7 @@ public interface IB
 public interface IC
 {}
 ";
-            var comp1 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             comp1.VerifyDiagnostics(
                 // (12,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
@@ -44676,7 +44770,7 @@ interface I
 class A
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29981: missing warnings
             comp.VerifyDiagnostics(
                 // (45,23): warning CS8603: Possible null reference return.
@@ -44782,7 +44876,7 @@ interface I
 class A
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
                 //         F(t1);
@@ -44837,7 +44931,7 @@ class A
         y3 = (object)new T3();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y1 = (object)x1; // warn: T1 may be null
@@ -44871,7 +44965,7 @@ class A
     static object? F15<T, U>(U u) where U : struct, T => (object?)u;
     static object? F16<T, U>(U u) where U : T, new() => (object?)u;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -44898,7 +44992,7 @@ class A
     static object F15<T, U>(U u) where U : struct, T => (object)u;
     static object F16<T, U>(U u) where U : T, new() => (object)u;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (3,34): warning CS8603: Possible null reference return.
                 //     static object F01<T>(T t) => t;
@@ -44966,7 +45060,7 @@ class A
     static U F20<T, U>(T t) where U : T, new() => (U)t;
     static U F21<T, U>(T t) => (U)(object)t;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             // https://github.com/dotnet/roslyn/issues/29981: There should be a warning for F17
 
@@ -44998,7 +45092,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,9): error CS0165: Use of unassigned local variable 't'
                 //         t.ToString(); // 1
@@ -45023,7 +45117,7 @@ class C
 ";
 
             // https://github.com/dotnet/roslyn/issues/29981: there should be a warning for F5
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,39): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static void F1<T>(out T t) => t = default; // 1
@@ -45073,7 +45167,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             t1 = default; // 1
@@ -45126,7 +45220,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29983: Should not report warning for `x6.ToString()`.
             comp.VerifyDiagnostics(
                 // (29,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
@@ -45161,7 +45255,7 @@ class C
     static U F5<T, U>(T t) where T : struct => (U)(object)t;
 }";
 
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29993: Errors are different than expected.
             comp.VerifyDiagnostics(
                 // (4,34): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -45225,7 +45319,7 @@ class C
         return y4;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T).ToString(); // warn 1
@@ -45267,7 +45361,7 @@ class C
         if (t2 != null) F((object)t2);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F((object)t1);
@@ -45300,7 +45394,7 @@ class P
     static void F4(D<object, object, object> o) { }
     static void F5(E<object, object, object> o) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,22): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // interface IB<T> : IA<T?> { }
@@ -45330,7 +45424,7 @@ class B
 {
     static void F<T, U>() where U : A<T?> { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (1,29): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // interface I<T, U> where U : T? { }
@@ -45364,7 +45458,7 @@ class B<T>
     event EventHandler<T?> E;
     public static explicit operator A<T?>(B<T> t) => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29995: Report error for `const object c = default(T?[]);`.
             comp.VerifyDiagnostics(
                 // (5,10): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
@@ -45423,7 +45517,7 @@ class C
     static U?[] F6<T, U>() where T : I where U : T => throw null; // error
     static U?[] F7<T, U>() where T : A where U : T => throw null;
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (16,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F2<T, U>() where T : class where U : T => throw null;
@@ -45479,7 +45573,7 @@ class B : A
     internal override void F6<U>(U? u) { } // error
     internal override void F7<U>(U? u) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal abstract void F1<T>(T? t); // error
@@ -45515,7 +45609,7 @@ class C
     static void F1<T>(A<T?>.I  i) { }
     static void F2<T>(A<T?>.E[] e) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static void F2<T>(A<T?>.E[] e) { }
@@ -45541,7 +45635,7 @@ class C<T>
         o = new U?[0];
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         T? t;
@@ -45571,7 +45665,7 @@ class C
         F((T? t) => { });
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         F((T? t) => { });
@@ -45594,7 +45688,7 @@ class C
         void L2<T>(T?[] t) { }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         T? L1() => throw null;
@@ -45732,7 +45826,7 @@ class B<T> where T : T? { }
 class C<T> where T : class, T? { }
 class D<T> where T : struct, T? { }
 class E<T> where T : A, T? { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,30): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 // class D<T> where T : struct, T? { }
@@ -45780,7 +45874,7 @@ class E<T, U>
     where U : T?
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,15): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     where U : T?
@@ -45817,7 +45911,7 @@ delegate void D2<T2, U2>()
 delegate void D3<T3, U3>()
     where T3 : class
     where U3 : T3, T3?;";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (1,25): error CS0405: Duplicate constraint 'T' for type parameter 'T'
                 // class A<T> where T : T, T? { }
@@ -45881,7 +45975,7 @@ class B
     static void F6<T, U>() where T : class where U : T? { }
     static void F7<T, U>() where T : struct where U : T? { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,20): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //     static void F2<T>() where T : class, T? { }
@@ -45925,7 +46019,7 @@ class B
         void F7<T, U>() where T : struct where U : T? { }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         void F1<T>() where T : T? { }
@@ -45972,7 +46066,7 @@ class B
         void F5<U>() where U : T? { }
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -46006,7 +46100,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
     where T : class
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Should report warnings that `T?`
             // does not satisfy `where T : class` constraint or `where U : T` constraint.
             comp.VerifyDiagnostics();
@@ -46040,7 +46134,7 @@ class B4<T> : A<T?, T?>, I<T?, T?>
         o = new C<object>(); // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source1, NonNullTypesTrue }, new[] { ref0 });
+            var comp = CreateCompilation(new[] { source1 }, new[] { ref0 }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,19): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //         o = new C<object?>(); // 1
@@ -46086,13 +46180,13 @@ class B4<T> : A<T?, T?>, I<T?, T?>
 
             MetadataReference ref0 = comp.ToMetadataReference();
 
-            comp = CreateCompilation(new[] { source1, NonNullTypesTrue }, new[] { ref0 });
+            comp = CreateCompilation(new[] { source1 }, new[] { ref0 }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             ref0 = comp.EmitToImageReference();
 
-            comp = CreateCompilation(new[] { source1, NonNullTypesTrue }, new[] { ref0 });
+            comp = CreateCompilation(new[] { source1 }, new[] { ref0 }, options: WithNonNullTypesTrue());
 
             var c = comp.GetTypeByMetadataName("C`2");
             Assert.IsAssignableFrom<PENamedTypeSymbol>(c);
@@ -46119,7 +46213,7 @@ class C
     static void F1<T>() where T : class, I<T?> { }
     static void F2<T>() where T : I<dynamic?> { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,35): error CS1968: Constraint cannot be a dynamic type 'I<dynamic>'
                 //     static void F2<T>() where T : I<dynamic?> { }
@@ -46142,7 +46236,7 @@ class C<T> where T : class
     static void F7<U>() where U : I<T?>, I<T> { }
     static void F8<U>() where U : I<T?>, I<T?> { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
                 //     static void F1<U>() where U : T, T { }
@@ -46191,7 +46285,7 @@ partial class B<T, U>
 }";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -46202,7 +46296,7 @@ partial class B<T, U>
 @"class A { }
 partial class B<T> where T : A { }
 partial class B<T> where T : A? { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,15): error CS0265: Partial declarations of 'B<T>' have inconsistent constraints for type parameter 'T'
                 // partial class B<T> where T : A { }
@@ -46218,7 +46312,7 @@ class C1<T, U> : I<T>, I<U> { }
 class C2<T, U> : I<T>, I<U?> { }
 class C3<T, U> : I<T?>, I<U> { }
 class C4<T, U> : I<T?>, I<U?> { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> { }
@@ -46256,7 +46350,7 @@ class C1<T, U> : I<T>, I<U> where T : struct { }
 class C2<T, U> : I<T>, I<U?> where T : struct { }
 class C3<T, U> : I<T?>, I<U> where T : struct { }
 class C4<T, U> : I<T?>, I<U?> where T : struct { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : struct { }
@@ -46288,7 +46382,7 @@ class C1<T, U> : I<T>, I<U> where T : class { }
 class C2<T, U> : I<T>, I<U?> where T : class { }
 class C3<T, U> : I<T?>, I<U> where T : class { }
 class C4<T, U> : I<T?>, I<U?> where T : class { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : class { }
@@ -46320,7 +46414,7 @@ class C1<T, U> : I<T>, I<U> where T : struct where U : class { }
 class C2<T, U> : I<T>, I<U?> where T : struct where U : class { }
 class C3<T, U> : I<T?>, I<U> where T : struct where U : class { }
 class C4<T, U> : I<T?>, I<U?> where T : struct where U : class { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // Constraints are ignored when unifying types.
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
@@ -46346,7 +46440,7 @@ class C1<T, U> : I<T>, I<U> where T : class where U : class { }
 class C2<T, U> : I<T>, I<U?> where T : class where U : class { }
 class C3<T, U> : I<T?>, I<U> where T : class where U : class { }
 class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (2,7): error CS0695: 'C1<T, U>' cannot implement both 'I<T>' and 'I<U>' because they may unify for some type parameter substitutions
                 // class C1<T, U> : I<T>, I<U> where T : class where U : class { }
@@ -46381,7 +46475,7 @@ class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }";
         (z2 = y2).ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,10): warning CS8602: Possible dereference of a null reference.
                 //         (z1 = x1).ToString();
@@ -46410,7 +46504,7 @@ class C4<T, U> : I<T?>, I<U?> where T : class where U : class { }";
 {
     public override void F(int? i) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics();
         }
 
@@ -46433,7 +46527,7 @@ class B2 : A<int>
 {
     public override void F(int? t) { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics();
         }
 
@@ -46469,7 +46563,7 @@ public class C : I<C>
         I<C> b = y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics();
         }
 
@@ -46505,7 +46599,7 @@ public class C : A<C>
         A<C> b = y;
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics();
         }
 
@@ -46538,7 +46632,7 @@ class Program
         i2.F(y); // warn
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (11,14): warning CS8604: Possible null reference argument for parameter 't' in 'void I<object>.F(object t)'.
                 //         i2.F(y); // warn
@@ -46574,7 +46668,7 @@ class Program
         B2.F(y); // warn
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (11,14): warning CS8604: Possible null reference argument for parameter 't' in 'void A<object>.F(object t)'.
                 //         B2.F(y); // warn
@@ -46604,7 +46698,7 @@ public class B2<T> where T : A2<object> { }";
         new B2<A2<object>>();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics();
             var typeParameters = comp.GetMember<NamedTypeSymbol>("B1").TypeParameters;
             Assert.Equal("A1", typeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
@@ -46616,19 +46710,21 @@ public class B2<T> where T : A2<object> { }";
         public void UnannotatedConstraint_02()
         {
             var source0 =
-@"using System.Runtime.CompilerServices;
+@"
 public class A1 { }
 public class A2<T> { }
-[NonNullTypes(false)] public class B1<T, U> where T : A1 where U : A1? { }
-[NonNullTypes(false)] public class B2<T, U> where T : A2<object> where U : A2<object?> { }";
+" + NonNullTypesOff() + @"
+public class B1<T, U> where T : A1 where U : A1? { }
+" + NonNullTypesOff() + @"
+public class B2<T, U> where T : A2<object> where U : A2<object?> { }";
             var comp0 = CreateCompilation(new[] { source0 });
             comp0.VerifyDiagnostics(
-                // (4,70): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                // [NonNullTypes(false)] public class B1<T, U> where T : A1 where U : A1? { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 70),
-                // (5,85): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                // [NonNullTypes(false)] public class B2<T, U> where T : A2<object> where U : A2<object?> { }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 85)
+                // (5,48): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // public class B1<T, U> where T : A1 where U : A1? { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 48),
+                // (7,63): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // public class B2<T, U> where T : A2<object> where U : A2<object?> { }
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 63)
                 );
             var ref0 = comp0.EmitToImageReference();
 
@@ -46643,7 +46739,7 @@ public class A2<T> { }
         new B2<A2<object?>, A2<object>>();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (8,29): warning CS8631: The type 'A2<object>' cannot be used as type parameter 'U' in the generic type or method 'B2<T, U>'. Nullability of type argument 'A2<object>' doesn't match constraint type 'A2<object?>'.
                 //         new B2<A2<object?>, A2<object>>();
@@ -46660,40 +46756,44 @@ public class A2<T> { }
         public void UnannotatedConstraint_Override()
         {
             var source0 =
-@"using System.Runtime.CompilerServices;
+@"
 public interface I<T> { }
 public abstract class A<T> where T : class
 {
-    [NonNullTypes(false)] public abstract void F1<U>() where U : T, I<T>;
-    [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-    [NonNullTypes(true)] public abstract void F3<U>() where U : T, I<T>;
-    [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
+" + NonNullTypesOff() + @"
+    public abstract void F1<U>() where U : T, I<T>;
+" + NonNullTypesOff() + @"
+    public abstract void F2<U>() where U : T?, I<T?>;
+" + NonNullTypesOn() + @"
+    public abstract void F3<U>() where U : T, I<T>;
+" + NonNullTypesOn() + @"
+    public abstract void F4<U>() where U : T?, I<T?>;
 }";
             var comp0 = CreateCompilation(new[] { source0 });
             comp0.VerifyDiagnostics(
-                // (6,67): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 67),
-                // (6,66): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(6, 66),
-                // (6,73): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 73),
-                // (6,72): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(6, 72),
-                // (8,65): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 65),
-                // (8,71): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     [NonNullTypes(true)] public abstract void F4<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 71)
+                // (8,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 45),
+                // (8,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 44),
+                // (8,51): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 51),
+                // (8,50): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 50),
+                // (12,44): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public abstract void F4<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 44),
+                // (12,50): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public abstract void F4<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 50)
                 );
 
             var source =
-@"using System.Runtime.CompilerServices;
-[NonNullTypes(false)]
+@"
+" + NonNullTypesOff() + @"
 class B1 : A<string>
 {
     public override void F1<U>() { }
@@ -46701,7 +46801,7 @@ class B1 : A<string>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }
-[NonNullTypes(false)]
+" + NonNullTypesOff() + @"
 class B2 : A<string?>
 {
     public override void F1<U>() { }
@@ -46709,7 +46809,7 @@ class B2 : A<string?>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 class B3 : A<string>
 {
     public override void F1<U>() { }
@@ -46717,7 +46817,7 @@ class B3 : A<string>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 class B4 : A<string?>
 {
     public override void F1<U>() { }
@@ -46725,7 +46825,7 @@ class B4 : A<string?>
     public override void F3<U>() { }
     public override void F4<U>() { }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { new CSharpCompilationReference(comp0) });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { new CSharpCompilationReference(comp0) });
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B2 : A<string?>
@@ -46733,17 +46833,17 @@ class B4 : A<string?>
                 );
             verifyAllConstraintTypes();
 
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             comp0.VerifyDiagnostics(
-                // (6,67): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 67),
-                // (6,73): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //     [NonNullTypes(false)] public abstract void F2<U>() where U : T?, I<T?>;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 73)
+                // (8,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 45),
+                // (8,51): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     public abstract void F2<U>() where U : T?, I<T?>;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 51)
                 );
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { new CSharpCompilationReference(comp0) });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { new CSharpCompilationReference(comp0) });
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B2 : A<string?>
@@ -46751,7 +46851,7 @@ class B4 : A<string?>
                 );
             verifyAllConstraintTypes();
 
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { comp0.EmitToImageReference() });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { comp0.EmitToImageReference() });
             comp.VerifyDiagnostics(
                 // (11,20): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B2 : A<string?>
@@ -46787,12 +46887,12 @@ class B4 : A<string?>
         }
 
         [Fact]
-        public void Constraint_LocalFunction()
+        public void Constraint_LocalFunction_01()
         {
             var source = @"
 class C
 {
-    [System.Runtime.CompilerServices.NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M1()
     {
         local(new C(), new C(), new C(), null);
@@ -46802,7 +46902,7 @@ class C
             x!.ToString();
         }
     }
-    [System.Runtime.CompilerServices.NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     void M2()
     {
         local(new C(), new C(), new C(), null);
@@ -46810,15 +46910,6 @@ class C
         {
             T? x = t; // warn 1
             x!.ToString();
-        }
-    }
-    void M3()
-    {
-        local(new C(), new C(), new C(), null);
-        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
-        {
-            T? x = t; // warn 2
-            x!.ToString(); // warn 3
         }
     }
 }";
@@ -46842,28 +46933,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(20, 13),
                 // (20,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //             T? x = t; // warn 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 14),
-                // (27,56): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(27, 56),
-                // (27,85): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(27, 85),
-                // (27,99): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(27, 99),
-                // (27,98): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(27, 98),
-                // (29,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
-                //             T? x = t; // warn 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(29, 14),
-                // (29,13): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //             T? x = t; // warn 2
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(29, 13),
-                // (30,14): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
-                //             x!.ToString(); // warn 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(30, 14)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 14)
                 );
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -46872,7 +46942,62 @@ class C
 
             verifyLocalFunction(localSyntaxes.ElementAt(0), "C.M1.local", new[] { "C!" });
             verifyLocalFunction(localSyntaxes.ElementAt(1), "C.M2.local", new[] { "C" });
-            verifyLocalFunction(localSyntaxes.ElementAt(2), "C.M3.local", new[] { "C" });
+
+            void verifyLocalFunction(LocalFunctionStatementSyntax localSyntax, string expectedName, string[] expectedConstraintTypes)
+            {
+                var localSymbol = (LocalFunctionSymbol)model.GetDeclaredSymbol(localSyntax);
+                var constraintTypes = localSymbol.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics;
+                AssertEx.Equal(expectedConstraintTypes, constraintTypes.SelectAsArray(t => t.ToTestDisplayString(true)));
+            }
+        }
+
+        [Fact]
+        public void Constraint_LocalFunction_02()
+        {
+            var source = @"
+class C
+{
+    void M3()
+    {
+        local(new C(), new C(), new C(), null);
+        void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+        {
+            T? x = t; // warn 2
+            x!.ToString(); // warn 3
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source });
+
+            comp.VerifyDiagnostics(
+                // (7,56): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 56),
+                // (7,85): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 85),
+                // (7,99): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 99),
+                // (7,98): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         void local<T, T2, T3>(T t, T2 t2, T3 t3, string? s) where T : C where T2 : C? where T3 : T?
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 98),
+                // (9,14): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //             T? x = t; // warn 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 14),
+                // (9,13): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //             T? x = t; // warn 2
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(9, 13),
+                // (10,14): warning CS8629: The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.
+                //             x!.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContext, "!").WithLocation(10, 14)
+                );
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var localSyntaxes = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>();
+
+            verifyLocalFunction(localSyntaxes.ElementAt(0), "C.M3.local", new[] { "C" });
 
             void verifyLocalFunction(LocalFunctionStatementSyntax localSyntax, string expectedName, string[] expectedConstraintTypes)
             {
@@ -46910,7 +47035,7 @@ class C
         t = typeof(A<B2?>);
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (10,22): warning CS8631: The type 'B2' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. Nullability of type argument 'B2' doesn't match constraint type 'I<B2>'.
                 //         t = typeof(A<B2>); // 1
@@ -46943,7 +47068,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics();
         }
 
@@ -46960,11 +47085,14 @@ public class B0<T> where T : A { }";
             var source =
 @"#pragma warning disable 0169
 #pragma warning disable 8618
-using System.Runtime.CompilerServices;
+
 class B1<T> where T : A? { }
 class B2<T> where T : A { }
-[NonNullTypes] class B3<T> where T : A? { }
-[NonNullTypes] class B4<T> where T : A { }
+" + NonNullTypesOn() + @"
+class B3<T> where T : A? { }
+" + NonNullTypesOn() + @"
+class B4<T> where T : A { }
+" + NonNullTypesOff() + @"
 class C
 {
     B0<A?> F1; // 1
@@ -46978,7 +47106,7 @@ class C
     B4<A?> F9; // 5 and 6
     B4<A> F10;
 }
-[NonNullTypes]
+" + NonNullTypesOn() + @"
 class D
 {
     B0<A?> G1;
@@ -46997,27 +47125,27 @@ class D
                 // (4,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B1<T> where T : A? { }
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 24),
-                // (18,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                // (21,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //     B4<A?> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(18, 8),
-                // (12,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(21, 8),
+                // (15,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B1<A?> F3; // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 9),
-                // (14,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 9),
+                // (17,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B2<A?> F5; // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 9),
-                // (16,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 9),
+                // (19,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B3<A?> F7; // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(16, 9),
-                // (18,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 9),
+                // (21,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B4<A?> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 9),
-                // (10,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 9),
+                // (13,9): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B0<A?> F1; // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 9),
-                // (32,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 9),
+                // (35,8): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //     B4<A?> G9; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(32, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A?").WithArguments("B4<T>", "A", "T", "A?").WithLocation(35, 8)
                 );
         }
 
@@ -47034,11 +47162,14 @@ public class B0<T> where T : A<object> { }";
             var source =
 @"#pragma warning disable 0169
 #pragma warning disable 8618
-using System.Runtime.CompilerServices;
+
 class B1<T> where T : A<object?> { }
 class B2<T> where T : A<object> { }
-[NonNullTypes] class B3<T> where T : A<object?> { }
-[NonNullTypes] class B4<T> where T : A<object> { }
+" + NonNullTypesOn() + @"
+class B3<T> where T : A<object?> { }
+" + NonNullTypesOn() + @"
+class B4<T> where T : A<object> { }
+" + NonNullTypesOff() + @"
 class C
 {
     B0<A<object?>> F1; // 1
@@ -47052,7 +47183,7 @@ class C
     B4<A<object?>> F9; // 5 and 6
     B4<A<object>> F10;
 }
-[NonNullTypes]
+" + NonNullTypesOn() + @"
 class D
 {
     B0<A<object?>> G1;
@@ -47071,33 +47202,33 @@ class D
                 // (4,31): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 // class B1<T> where T : A<object?> { }
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 31),
-                // (12,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (15,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B1<A<object?>> F3; // 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 16),
-                // (14,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 16),
+                // (17,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B2<A<object?>> F5; // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 16),
-                // (16,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 16),
+                // (19,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B3<A<object?>> F7; // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(16, 16),
-                // (18,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 16),
+                // (21,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 16),
-                // (10,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 16),
+                // (13,16): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
                 //     B0<A<object?>> F1; // 1
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 16),
-                // (27,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 16),
+                // (30,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B1<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
                 //     B1<A<object>> G4; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(27, 8),
-                // (31,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B1<T>", "A<object?>", "T", "A<object>").WithLocation(30, 8),
+                // (34,8): warning CS8631: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B3<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
                 //     B3<A<object>> G8; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(31, 8),
-                // (32,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object>").WithArguments("B3<T>", "A<object?>", "T", "A<object>").WithLocation(34, 8),
+                // (35,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
                 //     B4<A<object?>> G9; // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(32, 8),
-                // (18,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(35, 8),
+                // (21,8): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'T' in the generic type or method 'B4<T>'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
                 //     B4<A<object?>> F9; // 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(18, 8)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("B4<T>", "A<object>", "T", "A<object?>").WithLocation(21, 8)
                 );
         }
 
@@ -47115,16 +47246,18 @@ public class A2<T, U>
     where U : class, T?
 {
 }";
-            var comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            var comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var source =
-@"using System.Runtime.CompilerServices;
+@"
 class B1<T> where T : A1<T, T?> { } // 1
 class B2<T> where T : A2<T?, T> { } // 2
-[NonNullTypes] class B3<T> where T : A1<T, T?> { }
-[NonNullTypes] class B4<T> where T : A2<T?, T> { }";
+" + NonNullTypesOn() + @"
+class B3<T> where T : A1<T, T?> { }
+" + NonNullTypesOn() + @"
+class B4<T> where T : A2<T?, T> { }";
             var comp = CreateCompilation(new[] { source }, references: new[] { ref0 });
 
             comp.VerifyDiagnostics(
@@ -47216,7 +47349,7 @@ class B : A
         FOut2<SOut2>();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (22,9): warning CS8627: The type 'S2' cannot be used as type parameter 'T' in the generic type or method 'B.F1<T>()'. Nullability of type argument 'S2' doesn't match constraint type 'I<object?>'.
                 //         F1<S2>(); // 1
@@ -47286,7 +47419,7 @@ public class A
         FOut2<U>();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (14,9): warning CS8627: The type 'U' cannot be used as type parameter 'T' in the generic type or method 'B.F1<T>()'. Nullability of type argument 'U' doesn't match constraint type 'I<object?>'.
                 //         F1<U>(); // 1
@@ -47334,7 +47467,7 @@ public class B
         F1(x); // 2
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, references: new[] { ref0 });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'C.F1<T>(T)'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //         F1(y); // 1
@@ -47378,7 +47511,7 @@ class B : A
 }";
             // https://github.com/dotnet/roslyn/issues/29999: Should not report warning for
             // dereference of `this.F` or `base.F` after assignment.
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,21): warning CS8602: Possible dereference of a null reference.
                 //             int n = this.F.Length; // 1
@@ -47409,7 +47542,7 @@ class Program
         new B<A>();
     }
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             var diagnostics = comp.GetDiagnostics();
             diagnostics.Verify(
                 // (8,15): warning CS8631: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A' doesn't match constraint type 'I<A?>'.
@@ -47476,7 +47609,7 @@ public class A6<T> where T : IEquatable<int?> { }";
             verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
 
             // [NullNullTypes(false)]
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesFalse });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesFalse());
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -47488,7 +47621,7 @@ public class A6<T> where T : IEquatable<int?> { }";
             verifyTypeParameterConstraint("A6", "System.IEquatable<System.Int32?>");
 
             // [NullNullTypes(true)]
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
             // https://github.com/dotnet/roslyn/issues/30001: Should report a nullability mismatch warning for A0<string?>().
@@ -47559,7 +47692,7 @@ public class A2<T> where T : class, IEquatable<T?> { }
             verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
 
             // [NullNullTypes(false)]
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesFalse });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesFalse());
             comp0.VerifyDiagnostics(
                 // (2,48): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 // public class A2<T> where T : class, IEquatable<T?> { }
@@ -47579,7 +47712,7 @@ public class A2<T> where T : class, IEquatable<T?> { }
             verifyTypeParameterConstraint("A2", "System.IEquatable<T?>");
 
             // [NullNullTypes(true)]
-            comp0 = CreateCompilation(new[] { source0, NonNullTypesTrue });
+            comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
             // https://github.com/dotnet/roslyn/issues/30003: Should report a nullability mismatch warning for A2<string>().
@@ -47619,7 +47752,7 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-            comp = CreateCompilation(new[] { source, NonNullTypesTrue });
+            comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
 
@@ -47635,7 +47768,7 @@ class B<T> where T : A { }
 class C
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesFalse });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
             comp.VerifyDiagnostics(
                 // (4,15): error CS1503: Argument 1: cannot convert from 'System.Type' to 'bool'
                 // [NonNullTypes(typeof(B<A>))]
@@ -47661,23 +47794,36 @@ class C
 class D
 {
 }";
-            var comp = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                // (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10),
+                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
+                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
+                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10),
+                // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes(B<A>.True)]
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
                 // (7,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 // [NonNullTypes(B<A>.True)]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "NonNullTypes(B<A>.True)").WithArguments("8.0").WithLocation(7, 2),
                 // (11,18): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(11, 18),
+                // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes(B<A?>.True)]
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2),
                 // (11,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "NonNullTypes(B<A?>.True)").WithArguments("8.0").WithLocation(11, 2));
 
-            var comp2 = CreateCompilation(new[] { source, NonNullTypesTrue });
+            var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
+                // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes(B<A>.True)]
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
+                // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes(B<A?>.True)]
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2),
                 // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B<A?>").WithArguments("B<T>", "A", "T", "A?").WithLocation(11, 15));
@@ -47688,8 +47834,8 @@ class D
         public void AttributeArgumentCycle_Nullable()
         {
             var source0 =
-@"using System.Runtime.CompilerServices;
-[module: NonNullTypes]
+@"
+
 namespace System
 {
     public class Object { }
@@ -47721,7 +47867,7 @@ struct S : INullable<object?> { }
 class C
 {
 }";
-            var comp = CreateEmptyCompilation(new[] { source0, source });
+            var comp = CreateEmptyCompilation(new[] { source0, source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8631: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. Nullability of type argument 'S' doesn't match constraint type 'System.INullable<object>'.
                 // [A(typeof(S?))]
@@ -47734,17 +47880,17 @@ class C
         {
             var source =
 @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 class A<T1, T2> where T1 : class where T2 : class
 {
     T1 F;
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     class B : A<T1, T2>
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void M1()
         {
             F = null; // 1
@@ -47756,30 +47902,30 @@ class A<T1, T2> where T1 : class where T2 : class
         F = null; // 2
     }
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     class C : A<C, C>
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void M3()
         {
             F = null; // 3
         }
     }
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     class D : A<T1, D>
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void M4()
         {
             F = null; // 4
         }
     }
 
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     class E : A<T2, T2>
     {
-        [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
         void M5()
         {
             F = null; // 5
@@ -47821,15 +47967,15 @@ class A<T1, T2> where T1 : class where T2 : class
         {
             var source =
 @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 class A<T1, T2> where T1 : class where T2 : class
 {
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     T1 F;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class B : A<T1, T2>
     {
         void M1()
@@ -47838,13 +47984,13 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M2()
     {
         F = null; // 2
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class C : A<C, C>
     {
         void M3()
@@ -47853,7 +47999,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class D : A<T1, D>
     {
         void M4()
@@ -47862,7 +48008,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class E : A<T2, T2>
     {
         void M5()
@@ -47895,10 +48041,7 @@ class A<T1, T2> where T1 : class where T2 : class
         public void GenericSubstitution_03()
         {
             var source =
-@"
-using System.Runtime.CompilerServices;
-
-[NonNullTypes(false)]
+NonNullTypesOff() + @"
 class A<T> where T : class
 {
     class B : A<T>
@@ -47918,10 +48061,7 @@ class A<T> where T : class
         public void GenericSubstitution_04()
         {
             var source =
-@"
-using System.Runtime.CompilerServices;
-
-[NonNullTypes(true)]
+NonNullTypesOn() + @"
 class A<T> where T : class
 {
     class B : A<T>
@@ -47942,14 +48082,14 @@ class A<T> where T : class
         {
             var source =
 @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 class A<T1, T2> where T1 : class where T2 : class
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     T1 F;
-
+" + NonNullTypesOn() + @"
     class B : A<T1, T2>
     {
         void M1()
@@ -48016,14 +48156,14 @@ class A<T1, T2> where T1 : class where T2 : class
         {
             var source =
 @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 class A<T1, T2> where T1 : class where T2 : class
 {
     T1 F;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class B : A<T1, T2>
     {
         void M1()
@@ -48032,13 +48172,13 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M2()
     {
         F = null; // 2
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class C : A<C, C>
     {
         void M3()
@@ -48047,7 +48187,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class D : A<T1, D>
     {
         void M3()
@@ -48056,7 +48196,7 @@ class A<T1, T2> where T1 : class where T2 : class
         }
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     class E : A<T2, T2>
     {
         void M3()
@@ -48095,10 +48235,10 @@ using System.Runtime.CompilerServices;
 
 class A
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     B[] F1;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     C[] F2;
 }
 
@@ -48138,9 +48278,9 @@ $@"
 "
 +
 @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(false)]
+
+" + NonNullTypesOff() + @"
 class A<T1, T2, T3> where T2 : class where T3 : object
 {
     T1 F1;
@@ -48148,7 +48288,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
     T3 F3;
     B F4;
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M1()
     {
         F1 = default;
@@ -48157,7 +48297,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
         F4 = default;
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M2()
     {
         T1 x2 = default;
@@ -48165,7 +48305,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
         T3 z2 = default;
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M3()
     {
         C.Test<T1>();
@@ -48173,7 +48313,7 @@ class A<T1, T2, T3> where T2 : class where T3 : object
         C.Test<T3>();
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M4()
     {
         D.Test(F1);
@@ -48185,14 +48325,14 @@ class A<T1, T2, T3> where T2 : class where T3 : object
 
 class B {}
 
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 class C
 {
     public static void Test<T>() where T : object
     {}
 }
 
-[NonNullTypes(true)]
+" + NonNullTypesOn() + @"
 class D
 {
     public static void Test<T>(T x) where T : object
@@ -48241,17 +48381,17 @@ $@"
 "
 +
 @"
-using System.Runtime.CompilerServices;
 
-[NonNullTypes(true)]
+
+" + NonNullTypesOn() + @"
 class A<T1> where T1 : class
 {
-    [NonNullTypes(false)]
+" + NonNullTypesOff() + @"
     class B<T2> where T2 : T1 
     {
     }
 
-    [NonNullTypes(true)]
+" + NonNullTypesOn() + @"
     void M1()
     {
         B<T1> a1;
@@ -48274,6 +48414,165 @@ class C {}
                 //         A<C>.B<C?> f1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C?").WithArguments("A<C>.B<T2>", "C", "T2", "C?").WithLocation(22, 16)
                 );
+        }
+
+        [Fact]
+        public void NonNullTypes_27()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+
+[module: NonNullTypes] // 1
+
+[NonNullTypes] // 2
+class A 
+{
+    [NonNullTypes] // 3
+    string F1;
+
+    [NonNullTypes] // 4
+    string P1 {get; set;}
+
+    [NonNullTypes] // 5
+    void M1() {}
+
+    [NonNullTypes] // 6
+    event System.Action E1;
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [module: NonNullTypes] // 1
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(3, 10),
+                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes] // 2
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(5, 2),
+                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes] // 3
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(8, 6),
+                // (9,12): warning CS0169: The field 'A.F1' is never used
+                //     string F1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
+                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes] // 4
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(11, 6),
+                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes] // 5
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(14, 6),
+                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes] // 6
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(17, 6),
+                // (18,25): warning CS0067: The event 'A.E1' is never used
+                //     event System.Action E1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(18, 25)
+);
+        }
+
+        [Fact]
+        public void NonNullTypes_28()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+
+[module: NonNullTypes(false)] // 1
+
+[NonNullTypes(false)] // 2
+class A 
+{
+    [NonNullTypes(false)] // 3
+    string F1;
+
+    [NonNullTypes(false)] // 4
+    string P1 {get; set;}
+
+    [NonNullTypes(false)] // 5
+    void M1() {}
+
+    [NonNullTypes(false)] // 6
+    event System.Action E1;
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [module: NonNullTypes(false)] // 1
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(3, 10),
+                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes(false)] // 2
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(5, 2),
+                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(false)] // 3
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(8, 6),
+                // (9,12): warning CS0169: The field 'A.F1' is never used
+                //     string F1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
+                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(false)] // 4
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(11, 6),
+                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(false)] // 5
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(14, 6),
+                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(false)] // 6
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(17, 6),
+                // (18,25): warning CS0067: The event 'A.E1' is never used
+                //     event System.Action E1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(18, 25)
+);
+        }
+
+        [Fact]
+        public void NonNullTypes_29()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+
+[module: NonNullTypes(true)] // 1
+
+[NonNullTypes(true)] // 2
+class A 
+{
+    [NonNullTypes(true)] // 3
+    string F1;
+
+    [NonNullTypes(true)] // 4
+    string P1 {get; set;}
+
+    [NonNullTypes(true)] // 5
+    void M1() {}
+
+    [NonNullTypes(true)] // 6
+    event System.Action E1;
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [module: NonNullTypes(true)] // 1
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(3, 10),
+                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [NonNullTypes(true)] // 2
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(5, 2),
+                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(true)] // 3
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(8, 6),
+                // (9,12): warning CS0169: The field 'A.F1' is never used
+                //     string F1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
+                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(true)] // 4
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(11, 6),
+                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(true)] // 5
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(14, 6),
+                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                //     [NonNullTypes(true)] // 6
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(17, 6),
+                // (18,25): warning CS0067: The event 'A.E1' is never used
+                //     event System.Action E1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("A.E1").WithLocation(18, 25)
+);
         }
     }
 }
