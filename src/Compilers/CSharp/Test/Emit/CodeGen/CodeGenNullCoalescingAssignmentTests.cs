@@ -191,7 +191,7 @@ In GetInt
 ");
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/11036")]
         public void IndexerLvalue()
         {
             CompileAndVerify(@"
