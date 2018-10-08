@@ -32,6 +32,7 @@ steps:
     feed: '8f470c7e-ac49-4afe-a6ee-cf784e438b93'
 
 - task: CmdLine@1
+  displayName: Create output directory
   inputs:
     filename: mkdir
     arguments: 'Binaries\$(BuildConfiguration)'

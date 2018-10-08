@@ -20,6 +20,7 @@ phases:
 
   steps:
     - script: build/scripts/cibuild.cmd -$(_configuration) -testDesktop -$(_testKind)
+      displayName: Build and Test
 
     - task: PublishTestResults@1
       inputs:
@@ -50,6 +51,7 @@ phases:
 
   steps:
     - script: build/scripts/cibuild.cmd -$(_configuration) -testCoreClr -buildCoreClr
+      displayName: Build and Test
 
     - task: PublishTestResults@1
       inputs:
@@ -73,6 +75,7 @@ phases:
     timeoutInMinutes: 90
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
+      displayName: Build - Validate determinism
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -88,6 +91,7 @@ phases:
     timeoutInMinutes: 90
   steps:
     - script: build/scripts/test-build-correctness.cmd -cibuild -configuration Release
+      displayName: Build - Validate correctness
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -111,7 +115,9 @@ phases:
         _name: Mono
   steps:
     - script: ./build/scripts/cibuild.sh $(_args)
+      displayName: Build and Test
     - script: ./build/scripts/dockerstop.sh
+      displayName: Stop Docker
       condition: eq(variables['_name'], 'Mono')
     - task: PublishTestResults@1
       inputs:
