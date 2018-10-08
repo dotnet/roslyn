@@ -250,6 +250,14 @@ d.cs
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
         }
 
+        [Fact]
+        public void WhiteSpaceBaseDirectoryAddedToKeyFileSearchPaths()
+        {
+            var baseDir = "\u200A";
+            var parser = CSharpCommandLineParser.Default.Parse(new string[0], baseDir, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create(baseDir), parser.KeyFileSearchPaths);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {

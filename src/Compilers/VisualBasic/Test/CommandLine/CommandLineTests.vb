@@ -3185,6 +3185,13 @@ print Goodbye, World"
             AssertEx.Equal(ImmutableArray.Create(Of String)(), args.KeyFileSearchPaths)
         End Sub
 
+        <Fact>
+        Public Sub WhiteSpaceBaseDirectoryAddedToKeyFileSearchPaths()
+            Dim baseDir = "\u200A"
+            Dim args = VisualBasicCommandLineParser.Default.Parse(New String() {}, baseDir, RuntimeEnvironment.GetRuntimeDirectory())
+            AssertEx.Equal(ImmutableArray.Create(baseDir), args.KeyFileSearchPaths)
+        End Sub
+
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapPdbDeterminism()
