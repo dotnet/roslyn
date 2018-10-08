@@ -12,6 +12,7 @@ usage()
     echo ""
     echo "Options"
     echo "  --configuration       Build configuration ('Debug' or 'Release')"
+    echo "  --ci                  Building in CI"
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
     echo "  --pack                Build nuget packages"
@@ -49,6 +50,7 @@ use_mono=false
 build_bootstrap=false
 use_bootstrap=false
 stop_vbcscompiler=false
+ci=false
 
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set
 # so it doesn't output warnings to the console.
@@ -79,6 +81,9 @@ do
             build_configuration=$2
             args="$args $1"
             shift
+            ;;
+        --ci)
+            ci=true
             ;;
         --restore|-r)
             restore=true
@@ -171,6 +176,11 @@ fi
 if [[ "${use_bootstrap}" == true ]]
 then
     build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
+fi
+
+if [[ "${ci}" == true ]]
+then
+    build_args+=" /p:ContinuousIntegrationBuild=true"
 fi
 
 # https://github.com/dotnet/roslyn/issues/23736

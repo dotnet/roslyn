@@ -31,4 +31,4 @@ echo "Building this commit:"
 git show --no-patch --pretty=raw HEAD
 
 
-. "$scriptroot/build.sh" --restore --bootstrap --build --pack --stop-vbcscompiler --test "$@"
+. "$scriptroot/build.sh" --restore --bootstrap --build --pack --stop-vbcscompiler --test --ci "$@"
