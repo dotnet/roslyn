@@ -23,26 +23,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
             private const int MaxInterproceduralCallChain = 1;
-            private readonly ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
+            private readonly ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
             private INamedTypeSymbol DeserializerTypeSymbol;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                Debug.Assert(analysisContext.OwningSymbol.Kind == SymbolKind.Method);
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<IInvocationOperation, PropertySetAbstractValue>();
+                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<OperationMethodKey, PropertySetAbstractValue>();
 
                 this.WellKnownTypeProvider.TryGetKnownType(analysisContext.TypeToTrackMetadataName, out this.DeserializerTypeSymbol);
             }
 
             public override int GetHashCode()
             {
-                return HashUtilities.Combine(_hazardousUsageBuilder?.GetHashCode() ?? 0, base.GetHashCode());
+                return HashUtilities.Combine(_hazardousUsageBuilder.GetHashCode(), base.GetHashCode());
             }
 
-            public ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue> HazardousUsages
+            public ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue> HazardousUsages
             {
                 get
                 {
@@ -177,19 +176,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         }
                     }
 
-
+                    OperationMethodKey key = new OperationMethodKey(originalOperation, method);
                     if (hasFlagged && !hasMaybeFlagged)
                     {
-                        this._hazardousUsageBuilderOpt.Add(
-                            (IInvocationOperation) originalOperation,
-                            PropertySetAbstractValue.Flagged);
+                        this._hazardousUsageBuilder.Add(key, PropertySetAbstractValue.Flagged);
                     }
                     else if ((hasFlagged || hasMaybeFlagged)
-                        && !this._hazardousUsageBuilder.ContainsKey(originalOperation))   // Keep existing value, if there is one.
+                        && !this._hazardousUsageBuilder.ContainsKey(key))   // Keep existing value, if there is one.
                     {
-                        this._hazardousUsageBuilderOpt.Add(
-                            (IInvocationOperation) originalOperation, 
-                            PropertySetAbstractValue.MaybeFlagged);
+                        this._hazardousUsageBuilder.Add(key, PropertySetAbstractValue.MaybeFlagged);
                     }
                 }
 

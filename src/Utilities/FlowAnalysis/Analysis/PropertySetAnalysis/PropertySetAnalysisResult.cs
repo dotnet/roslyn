@@ -14,12 +14,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     {
         public PropertySetAnalysisResult(
             DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> parameterValidationAnalysisResult,
-            ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue> hazardousUsages)
+            ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue> hazardousUsages)
             : base(parameterValidationAnalysisResult)
         {
             this.HazardousUsages = hazardousUsages;
         }
 
-        public ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue> HazardousUsages { get; }
+        public ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue> HazardousUsages { get; }
     }
 }

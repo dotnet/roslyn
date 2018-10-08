@@ -29,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        public static ImmutableDictionary<IInvocationOperation, PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
+        public static ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
@@ -67,19 +67,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PropertySetAnalysisContext analysisContext,
             DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> dataFlowAnalysisResult)
         {
-            //analysisContext = analysisContext.WithTrackHazardousParameterUsages();
-            //var newOperationVisitor = new BinaryFormatterDataFlowOperationVisitor(analysisContext);
-            //var resultBuilder = new DataFlowAnalysisResultBuilder<BinaryFormatterAnalysisData>();
-            //foreach (var block in analysisContext.ControlFlowGraph.Blocks)
-            //{
-            //    var data = BinaryFormatterAnalysisDomainInstance.Clone(dataFlowAnalysisResult[block].InputData);
-            //    data = Flow(newOperationVisitor, block, data);
-            //}
-
-            //return new BinaryFormatterAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousUsages);
-
-            // Hey Manish, is it okay to just look at this.OperationVisitor?
-
             return new PropertySetAnalysisResult(
                 dataFlowAnalysisResult,
                 ((PropertySetDataFlowOperationVisitor) this.OperationVisitor).HazardousUsages);
