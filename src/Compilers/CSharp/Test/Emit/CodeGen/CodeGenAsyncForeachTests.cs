@@ -167,7 +167,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (7,33): error CS9003: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
+                // (7,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         foreach await (int i in new C())
                 Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(7, 33)
                 );
@@ -188,7 +188,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -216,7 +216,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -247,7 +247,7 @@ class C
                 // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator()' is either static or not public.
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator()").WithLocation(6, 33),
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -322,7 +322,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -349,7 +349,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -385,7 +385,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -415,7 +415,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -443,7 +443,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -476,7 +476,7 @@ class C
                 // (6,33): error CS0122: 'C.Enumerator.Current' is inaccessible due to its protection level
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "new C()").WithArguments("C.Enumerator.Current").WithLocation(6, 33),
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -507,7 +507,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -537,7 +537,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -573,7 +573,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -609,7 +609,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -645,7 +645,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -1081,7 +1081,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (6,33): error CS9006: Cannot use a collection of dynamic type in an asynchronous foreach
+                // (6,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
                 //         foreach await (var i in (dynamic)new C())
                 Diagnostic(ErrorCode.ERR_BadDynamicAsyncForEach, "(dynamic)new C()").WithLocation(6, 33));
         }
@@ -1107,7 +1107,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (12,33): error CS9001: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
+                // (12,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAsyncEnumerator").WithLocation(12, 33)
                 );
@@ -1143,7 +1143,7 @@ class C
                 // (18,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'Current'
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "Current").WithLocation(18, 33),
-                // (18,33): error CS9002: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()").WithLocation(18, 33)
                 );
@@ -1179,7 +1179,7 @@ class C
                 // (18,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'MoveNextAsync'
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "MoveNextAsync").WithLocation(18, 33),
-                // (18,33): error CS9002: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()").WithLocation(18, 33)
                 );
@@ -1210,7 +1210,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -1282,7 +1282,7 @@ public static class Extensions
                 // (6,33): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(6, 33),
-                // (6,33): error CS9002: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -1351,7 +1351,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -1378,7 +1378,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,27): error CS9004: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
                 );
@@ -1400,7 +1400,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,27): error CS9004: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (7,27): error CS8414: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetEnumerator").WithLocation(7, 27)
                 );
@@ -1422,7 +1422,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,33): error CS9005: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
+                // (7,33): error CS8415: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
                 //         foreach await (var i in collection)
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
                 // (7,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
@@ -1454,7 +1454,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,27): error CS9004: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
                 );
@@ -1483,7 +1483,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9005: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
+                // (6,33): error CS8415: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -1629,7 +1629,7 @@ class D
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9001: Async foreach statement cannot operate on variables of type 'D' because 'D' does not contain a public definition for 'GetAsyncEnumerator'
+                // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'D' because 'D' does not contain a public definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in new D())
                 Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new D()").WithArguments("D", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
@@ -1669,7 +1669,7 @@ class D
                 // (6,33): error CS0122: 'D.Enumerator.MoveNextAsync()' is inaccessible due to its protection level
                 //         foreach await (var i in new D())
                 Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.MoveNextAsync()").WithLocation(6, 33),
-                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new D())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -1706,7 +1706,7 @@ class D
                 // (6,33): error CS0122: 'D.Enumerator.Current' is inaccessible due to its protection level
                 //         foreach await (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.Current").WithLocation(6, 33),
-                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -1740,7 +1740,7 @@ class D
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,33): error CS9002: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
+                // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
                 //         foreach await (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
@@ -2488,7 +2488,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,33): error CS9003: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
+                // (7,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(7, 33)
                 );
@@ -2518,7 +2518,7 @@ class C : Base, IAsyncEnumerable<int>
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (13,33): error CS9003: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
+                // (13,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         foreach await (var i in new C())
                 Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(13, 33)
                 );
@@ -3509,7 +3509,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,27): error CS9004: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (7,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                 );

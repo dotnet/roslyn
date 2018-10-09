@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   2) Enumerator type
         ///   3) Element type
         ///   
-        /// The implementation details are a bit difference.  If we're iterating over a string or an array, then we don't need to record anything
+        /// The implementation details are a bit different.  If we're iterating over a string or an array, then we don't need to record anything
         /// but the inferredType (in case the iteration variable is implicitly typed).  If we're iterating over anything else, then we want the 
         /// inferred type plus a ForEachEnumeratorInfo.Builder with:
         ///   1) Collection type

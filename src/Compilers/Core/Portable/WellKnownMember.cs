@@ -445,7 +445,6 @@ namespace Microsoft.CodeAnalysis
         System_IAsyncDisposable__DisposeAsync,
         System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
         System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
-        System_Collections_Generic_IAsyncEnumerator_T__Current,
         System_Collections_Generic_IAsyncEnumerator_T__get_Current,
 
         System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,

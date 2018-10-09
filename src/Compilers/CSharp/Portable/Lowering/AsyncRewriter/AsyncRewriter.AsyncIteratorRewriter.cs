@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.VerifyPresenceOfRequiredAPIs(bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync, bag);
-                EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__Current, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current, bag);
                 EnsureWellKnownMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync, bag);
                 EnsureWellKnownMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor, bag);
