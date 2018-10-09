@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             offset = position - line.Start;
         }
 
+        public static int GetOffset(this SourceText text, int position)
+        {
+            GetLineAndOffset(text, position, out _, out var offset);
+            return offset;
+        }
+
         public static void GetLinesAndOffsets(
             this SourceText text,
             TextSpan textSpan,

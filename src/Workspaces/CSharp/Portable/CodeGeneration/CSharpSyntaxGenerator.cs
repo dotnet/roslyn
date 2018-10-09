@@ -2574,14 +2574,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration)
         {
             var list = GetParameterList(declaration);
-            if (list != null)
-            {
-                return list.Parameters;
-            }
-            else
-            {
-                return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
-            }
+            return list != null
+                ? list.Parameters
+                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2657,6 +2652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Token(token.Kind()).WithTriviaFrom(rewrittenToken);
             }
         }
+
+        internal override SyntaxNode GetParameterListNode(SyntaxNode declaration)
+            => GetParameterList(declaration);
 
         internal static BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {

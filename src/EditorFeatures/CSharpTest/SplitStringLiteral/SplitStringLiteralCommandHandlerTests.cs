@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 var commandHandler = new SplitStringLiteralCommandHandler(
                     undoHistoryRegistry,
                     workspace.GetService<IEditorOperationsFactoryService>());
-                
+
                 if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
                 {
                     callback();

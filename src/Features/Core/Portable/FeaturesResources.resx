@@ -1451,4 +1451,37 @@ This version used in: {2}</value>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
   </data>
+  <data name="arguments" xml:space="preserve">
+    <value>arguments</value>
+  </data>
+  <data name="Indent_all_0" xml:space="preserve">
+    <value>Indent all {0}</value>
+  </data>
+  <data name="parameters" xml:space="preserve">
+    <value>parameters</value>
+  </data>
+  <data name="Unwrap_all_0" xml:space="preserve">
+    <value>Unwrap all {0}</value>
+  </data>
+  <data name="Unwrap_and_indent_all_0" xml:space="preserve">
+    <value>Unwrap and indent all {0}</value>
+  </data>
+  <data name="Wrap_every_0" xml:space="preserve">
+    <value>Wrap every {0}</value>
+  </data>
+  <data name="Wrap_long_0" xml:space="preserve">
+    <value>Wrap long {0}</value>
+  </data>
+  <data name="Align_wrapped_0" xml:space="preserve">
+    <value>Align wrapped {0}</value>
+  </data>
+  <data name="Indent_wrapped_0" xml:space="preserve">
+    <value>Indent wrapped {0}</value>
+  </data>
+  <data name="parameter_list" xml:space="preserve">
+    <value>parameter list</value>
+  </data>
+  <data name="Unwrap_0" xml:space="preserve">
+    <value>Unwrap {0}</value>
+  </data>
 </root>

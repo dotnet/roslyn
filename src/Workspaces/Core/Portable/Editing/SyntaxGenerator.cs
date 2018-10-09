@@ -1082,6 +1082,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
 
+        internal abstract SyntaxNode GetParameterListNode(SyntaxNode declaration);
+
         /// <summary>
         /// Inserts the parameters at the specified index into the declaration.
         /// </summary>

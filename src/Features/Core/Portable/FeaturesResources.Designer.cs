@@ -493,6 +493,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Align wrapped {0}.
+        /// </summary>
+        internal static string Align_wrapped_0 {
+            get {
+                return ResourceManager.GetString("Align_wrapped_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
         internal static string All_lowercase {
@@ -572,6 +581,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Argument_cannot_have_a_null_element {
             get {
                 return ResourceManager.GetString("Argument_cannot_have_a_null_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to arguments.
+        /// </summary>
+        internal static string arguments {
+            get {
+                return ResourceManager.GetString("arguments", resourceCulture);
             }
         }
         
@@ -1829,6 +1847,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indent all {0}.
+        /// </summary>
+        internal static string Indent_all_0 {
+            get {
+                return ResourceManager.GetString("Indent_all_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped {0}.
+        /// </summary>
+        internal static string Indent_wrapped_0 {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer_ {
@@ -2542,6 +2578,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string parameter {
             get {
                 return ResourceManager.GetString("parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to parameter list.
+        /// </summary>
+        internal static string parameter_list {
+            get {
+                return ResourceManager.GetString("parameter_list", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to parameters.
+        /// </summary>
+        internal static string parameters {
+            get {
+                return ResourceManager.GetString("parameters", resourceCulture);
             }
         }
         
@@ -3474,6 +3528,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap {0}.
+        /// </summary>
+        internal static string Unwrap_0 {
+            get {
+                return ResourceManager.GetString("Unwrap_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap all {0}.
+        /// </summary>
+        internal static string Unwrap_all_0 {
+            get {
+                return ResourceManager.GetString("Unwrap_all_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all {0}.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_0 {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating &apos;{0}&apos; will prevent the debug session from continuing..
         /// </summary>
         internal static string Updating_0_will_prevent_the_debug_session_from_continuing {
@@ -4057,6 +4138,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_Method_overrides_symbol_from_metadata {
             get {
                 return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap every {0}.
+        /// </summary>
+        internal static string Wrap_every_0 {
+            get {
+                return ResourceManager.GetString("Wrap_every_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long {0}.
+        /// </summary>
+        internal static string Wrap_long_0 {
+            get {
+                return ResourceManager.GetString("Wrap_long_0", resourceCulture);
             }
         }
         

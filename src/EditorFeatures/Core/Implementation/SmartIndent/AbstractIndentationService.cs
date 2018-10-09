@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
