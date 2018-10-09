@@ -106,7 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileChangeWatcher = fileChangeWatcherProvider.Watcher;
             System.Threading.Tasks.Task.Run(async () =>
                 {
-                    var fileChangeService = (IVsFileChangeEx)await asyncServiceProvider.GetServiceAsync(typeof(SVsFileChangeEx)).ConfigureAwait(false);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    var fileChangeService = (IVsFileChangeEx)ServiceProvider.GlobalProvider.GetService(typeof(SVsFileChangeEx));
                     fileChangeWatcherProvider.SetFileChangeService(fileChangeService);
                 });
         }
