@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
         }
 
-        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly)
+        protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
         {
             return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }

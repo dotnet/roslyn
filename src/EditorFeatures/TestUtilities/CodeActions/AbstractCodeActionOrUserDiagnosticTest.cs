@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly CompilationOptions compilationOptions;
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
+            internal readonly bool fixableDiagnosticsOnly;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 IDictionary<OptionKey, object> options = null,
                 object fixProviderData = null,
                 int index = 0,
-                CodeActionPriority? priority = null)
+                CodeActionPriority? priority = null,
+                bool fixableDiagnosticsOnly = true)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.fixProviderData = fixProviderData;
                 this.index = index;
                 this.priority = priority;
+                this.fixableDiagnosticsOnly = fixableDiagnosticsOnly;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
@@ -106,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task TestDiagnosticMissingAsync(
-            string initialMarkup, TestParameters parameters = default, bool fixableDiagnosticsOnly = true)
+            string initialMarkup, TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters, fixableDiagnosticsOnly);
+                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
                 Assert.Equal(0, diagnostics.Length);
             }
         }
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace, TestParameters parameters);
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
-            TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly);
+            TestWorkspace workspace, TestParameters parameters);
 
         protected Task TestSmartTagTextAsync(string initialMarkup, string displayText, int index)
             => TestSmartTagTextAsync(initialMarkup, displayText, new TestParameters(index: index));

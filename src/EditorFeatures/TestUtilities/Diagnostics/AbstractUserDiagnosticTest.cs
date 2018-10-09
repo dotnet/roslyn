@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
         internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly);
+            TestWorkspace workspace, TestParameters parameters);
 
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters, fixableDiagnosticsOnly: true);
+            var (_, actions, actionToInvoke) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return (actions, actionToInvoke);
         }
 
         protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
-            TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly)
+            TestWorkspace workspace, TestParameters parameters)
         {
-            var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters, fixableDiagnosticsOnly);
+            var (dxs, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
             return dxs;
         }
 
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var (_, actions, _) = await GetDiagnosticAndFixesAsync(workspace, parameters, fixableDiagnosticsOnly: true);
+                var (_, actions, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
                 Assert.Equal(count, actions.Length);
             }
         }
@@ -317,8 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup,
             int index = 0,
             string diagnosticId = null,
-            TestParameters parameters = default,
-            bool fixableDiagnosticsOnly = true)
+            TestParameters parameters = default)
         {
             MarkupTestFile.GetSpans(initialMarkup, out var unused, out ImmutableArray<TextSpan> spansList);
 
@@ -328,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 ISet<TextSpan> actualTextSpans;
                 if (diagnosticId == null)
                 {
-                    var (diagnostics, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters, fixableDiagnosticsOnly);
+                    var (diagnostics, _, _) = await GetDiagnosticAndFixesAsync(workspace, parameters);
                     actualTextSpans = diagnostics.Select(d => d.Location.SourceSpan).ToSet();
                 }
                 else
@@ -386,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     defaultNamespace: defaultNamespace);
 
                 var testOptions = new TestParameters();
-                var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions, fixableDiagnosticsOnly: true);
+                var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(testState.Workspace, testOptions);
                 var generateTypeDiagFixes = diagnostics.SingleOrDefault(df => GenerateTypeTestState.FixIds.Contains(df.Id));
 
                 if (isMissing)
