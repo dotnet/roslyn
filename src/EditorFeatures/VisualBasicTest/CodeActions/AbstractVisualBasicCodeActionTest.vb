@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional parseOptions As ParseOptions = Nothing) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
-            If parseOptions = Nothing Then
+            If parseOptions Is Nothing Then
                 Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions, index:=index)
             Else
                 Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=parseOptions, compilationOptions:=_compilationOptions, index:=index)
