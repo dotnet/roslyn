@@ -98,8 +98,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Use_default_expression">
-        <source>Use default expression</source>
-        <target state="new">Use default expression</target>
+        <source>Use 'default' expression</source>
+        <target state="new">Use 'default' expression</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

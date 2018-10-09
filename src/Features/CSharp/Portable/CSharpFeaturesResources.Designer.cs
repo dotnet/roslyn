@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use default expression.
+        ///   Looks up a localized string similar to Use &apos;default&apos; expression.
         /// </summary>
         internal static string Use_default_expression {
             get {
