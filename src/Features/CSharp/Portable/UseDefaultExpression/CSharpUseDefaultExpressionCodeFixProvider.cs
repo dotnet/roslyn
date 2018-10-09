@@ -43,27 +43,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultExpression
                 token.IsKind(SyntaxKind.DefaultKeyword) &&
                 token.Parent.IsKind(SyntaxKind.DefaultLiteralExpression))
             {
+                var defaultLiteral = (LiteralExpressionSyntax)token.Parent;
+                var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+
+                var type = semanticModel.GetTypeInfo(defaultLiteral, context.CancellationToken).ConvertedType;
+                if (type == null || type.TypeKind == TypeKind.Error)
+                {
+                    return;
+                }
+
+                if (type.IsAnonymousType)
+                {
+                    type = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+                }
+
                 // If there happens to be more than 1 diagnostic (for example a default literal in a case label in C# 7.0),
                 // we will fix all of them, so pass in context.Diagnostics, not just the first one.
                 context.RegisterCodeFix(new MyCodeAction(
-                    c => FixAsync(context.Document, context.Span, c)),
+                    c => FixAsync(context.Document, context.Span, type, c)),
                     context.Diagnostics);
             }
         }
 
-        private static async Task<Document> FixAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private static async Task<Document> FixAsync(Document document, TextSpan span, ITypeSymbol type, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var defaultToken = syntaxRoot.FindToken(span.Start);
             var defaultLiteral = (LiteralExpressionSyntax)defaultToken.Parent;
-
-            var type = semanticModel.GetTypeInfo(defaultLiteral, cancellationToken).ConvertedType;
-            if (type == null || type.IsAnonymousType)
-            {
-                type = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
-            }
 
             var typeSyntax = type.GenerateTypeSyntax(allowVar: false);
 

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseDefaultExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
@@ -168,19 +169,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         [Fact]
         public async Task TestCSharp7_1_InCaseSwitchLabel_InvalidType()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         switch () { case [||]default: }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        switch () { case default(object): }
     }
 }", parameters: s_csharp7_1);
         }
@@ -275,19 +269,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         [Fact]
         public async Task TestCSharp7_1_InCasePatternSwitchLabel_InvalidType()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         switch () { case [||]default when true: }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        switch () { case default(object) when true: }
     }
 }", parameters: s_csharp7_1);
         }
@@ -382,19 +369,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         [Fact]
         public async Task TestCSharp7_1_InIsPattern_InvalidType1()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         if (null is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (null is default(object)) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -402,19 +382,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         [Fact]
         public async Task TestCSharp7_1_InIsPattern_InvalidType2()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         if (default is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (default is default(object)) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -422,19 +395,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         [Fact]
         public async Task TestCSharp7_1_InIsPattern_InvalidType3()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         if (() => { } is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        if (() => { } is default(object)) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -611,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression()
+        public async Task TestCSharp7_0_InsideExpression_Assignment()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -631,41 +597,139 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_InvalidType()
+        public async Task TestCSharp7_0_InsideExpression_Assignment_InvalidType()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         var v = [||]default;
     }
-}",
+}", parameters: s_csharp7_0);
+        }
+
+        [WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Conditional()
+        {
+            // This should be offered as default(int), but is not due to a bug in the compiler.
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
-        var v = default(object);
+        var v = true ? 1 : [||]default;
     }
 }", parameters: s_csharp7_0);
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_AmbiguousType()
+        public async Task TestCSharp7_0_InsideExpression_Conditional_InvalidType()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var v = true ? null : [||]default;
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Cast()
+        {
+            // This should be offered as default(string), but is not due to a bug in the compiler.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var v = (string)[||]default;
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Cast_InvalidType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var v = (String)[||]default;
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Return()
+        {
+            // This should be offered as default(int), but is not due to a bug in the compiler.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        return [||]default;
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Return_InvalidType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        return [||]default;
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Argument()
+        {
+            // This should be offered as default(string), but is not due to a bug in the compiler.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(string s)
+    {
+        M([||]default);
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Argument_InvalidType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        M([||]default);
+    }
+}", parameters: s_csharp7_0);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_0_InsideExpression_Argument_AmbiguousType()
+        {
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
         System.Console.WriteLine([||]default);
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        System.Console.WriteLine(default(object));
     }
 }", parameters: s_csharp7_0);
         }
