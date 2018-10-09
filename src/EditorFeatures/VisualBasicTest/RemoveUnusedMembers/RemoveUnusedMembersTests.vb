@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMember
             Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(), New VisualBasicRemoveUnusedMembersCodeFixProvider())
         End Function
 
+        ' Ensure that we explicitly test missing IDE0052, which has no corresponding code fix (non-fixable diagnostic).
         Private Overloads Function TestDiagnosticMissingAsync(initialMarkup As String) As Task
             Return TestDiagnosticMissingAsync(initialMarkup, New TestParameters(fixableDiagnosticsOnly:=False))
         End Function
