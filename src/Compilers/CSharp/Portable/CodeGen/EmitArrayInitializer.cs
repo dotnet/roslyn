@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArrayInitializers(ArrayTypeSymbol arrayType, BoundArrayInitialization inits)
         {
             var initExprs = inits.Initializers;
-            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType, initExprs);
+            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType.TypeSymbol, initExprs);
 
             if (initializationStyle == ArrayInitializerStyle.Element)
             {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.EnumUnderlyingType();
+                elementType = arrayType.ElementType.TypeSymbol.EnumUnderlyingType();
 
                 // NB: we cannot use this approach for element types larger than one byte
                 //     the issue is that metadata stores blobs in little-endian format
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (EnablePEVerifyCompat())
+                if (IsPeVerifyCompatEnabled())
                 {
                     return false;
                 }

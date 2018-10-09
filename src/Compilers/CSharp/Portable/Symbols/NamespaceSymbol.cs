@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override sealed bool IsImplicitlyDeclared
+        public override bool IsImplicitlyDeclared
         {
             get
             {

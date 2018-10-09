@@ -14,6 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string IL_KEYWORD_MODOPT = "modopt";
         private const string IL_KEYWORD_MODREQ = "modreq";
 
+        private void VisitFieldType(IFieldSymbol symbol)
+        {
+            var fieldSymbol = symbol as FieldSymbol;
+            if ((object)fieldSymbol == null)
+            {
+                symbol.Type.Accept(this.NotFirstVisitor);
+            }
+            else
+            {
+                VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
+            }
+        }
+
         public override void VisitField(IFieldSymbol symbol)
         {
             AddAccessibilityIfRequired(symbol);
@@ -24,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.isFirstSymbolVisited &&
                 !IsEnumMember(symbol))
             {
-                symbol.Type.Accept(this.NotFirstVisitor);
+                VisitFieldType(symbol);
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.CustomModifiers);
@@ -71,7 +84,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var propertySymbol = symbol as PropertySymbol;
+                if ((object)propertySymbol == null)
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(propertySymbol.Type);
+                }
+
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
@@ -143,7 +165,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
+                var eventSymbol = symbol as EventSymbol;
+
+                if ((object)eventSymbol == null)
+                {
                 symbol.Type.Accept(this.NotFirstVisitor);
+                }
+                else
+                {
+                    VisitTypeSymbolWithAnnotations(eventSymbol.Type); 
+                }
+
                 AddSpace();
             }
 
@@ -254,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (symbol.ReturnType != null)
                             {
-                                symbol.ReturnType.Accept(this.NotFirstVisitor);
+                                AddReturnType(symbol);
                             }
 
                             AddSpace();
@@ -416,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                         AddKeyword(SyntaxKind.OperatorKeyword);
                         AddSpace();
-                        symbol.ReturnType.Accept(this.NotFirstVisitor);
+                        AddReturnType(symbol);
                     }
                     break;
 
@@ -426,9 +458,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isAccessor)
             {
-                AddTypeArguments(symbol.TypeArguments);
+                AddTypeArguments(symbol, default(ImmutableArray<ImmutableArray<CustomModifier>>));
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
+            }
+        }
+
+        private void AddReturnType(IMethodSymbol symbol)
+        {
+            var methodSymbol = symbol as MethodSymbol;
+
+            if ((object)methodSymbol == null)
+            {
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+            }
+            else
+            {
+                VisitTypeSymbolWithAnnotations(methodSymbol.ReturnType);
             }
         }
 
@@ -481,7 +527,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var parameter = symbol as ParameterSymbol;
+                if ((object)parameter != null)
+                {
+                    VisitTypeSymbolWithAnnotations(parameter.Type);
+                }
+                else
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 

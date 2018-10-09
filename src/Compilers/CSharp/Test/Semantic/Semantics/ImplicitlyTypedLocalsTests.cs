@@ -23,7 +23,7 @@ class C
             var fieldA = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             var typeVar = compilation.GlobalNamespace.GetMember<TypeSymbol>("var");
 
-            Assert.Equal(typeVar, fieldA.Type);
+            Assert.Equal(typeVar, fieldA.Type.TypeSymbol);
         }
 
         [Fact]

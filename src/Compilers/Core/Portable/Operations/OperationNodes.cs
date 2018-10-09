@@ -3790,6 +3790,69 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation WhenNull => SetParentOperation(_lazyWhenNull.Value, this);
     }
 
+    internal abstract partial class BaseCoalesceAssignmentOperation : Operation, ICoalesceAssignmentOperation
+    {
+        protected BaseCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.CoalesceAssignment, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        public abstract IOperation Target { get; }
+        public abstract IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Target != null)
+                {
+                    yield return Target;
+                }
+                if (Value != null)
+                {
+                    yield return Value;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitCoalesceAssignment(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitCoalesceAssignment(this, argument);
+        }
+    }
+
+    internal sealed class CoalesceAssignmentOperation : BaseCoalesceAssignmentOperation
+    {
+        public CoalesceAssignmentOperation(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Target = SetParentOperation(target, this);
+            Value = SetParentOperation(value, this);
+        }
+
+        public override IOperation Target { get; }
+        public override IOperation Value { get; }
+    }
+
+    internal sealed class LazyCoalesceAssignmentOperation : BaseCoalesceAssignmentOperation
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+        private readonly Lazy<IOperation> _lazyWhenNull;
+        public LazyCoalesceAssignmentOperation(Lazy<IOperation> lazyTarget, Lazy<IOperation> lazyValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyTarget = lazyTarget;
+            _lazyWhenNull = lazyValue;
+        }
+
+        public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyWhenNull.Value, this);
+    }
+
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>

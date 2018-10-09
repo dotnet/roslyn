@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             Debug.Assert((object)localType != null); //otherwise, there wouldn't be a conversion to IDisposable
 
             BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);

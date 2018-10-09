@@ -23,4 +23,13 @@
     <FileSignInfo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftSHA1Win8WinBlue"/>
     <FileSignInfo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.dll" PublicKeyToken="31bf3856ad364e35" TargetFramework=".NETFramework,Version=v2.0" CertificateName="MicrosoftSHA1Win8WinBlue"/>
   </ItemGroup>
+
+  <!--
+     Add CoreXT packages to the set of packages to sign.
+     The toolset already includes NuGet and VSIX packages built to standard output directories.
+  -->
+  <ItemGroup>
+    <ItemsToSign Include="$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\*.nupkg" />
+  </ItemGroup>
+
 </Project>

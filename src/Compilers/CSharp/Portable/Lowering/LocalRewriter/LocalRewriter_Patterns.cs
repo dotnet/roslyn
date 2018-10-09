@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeIsDeclarationPattern(BoundDeclarationPattern loweredPattern, BoundExpression loweredInput)
         {
             Debug.Assert(((object)loweredPattern.Variable == null && loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression) ||
-                         loweredPattern.Variable.GetTypeOrReturnType() == loweredPattern.DeclaredType.Type);
+                         loweredPattern.Variable.GetTypeOrReturnType().TypeSymbol == loweredPattern.DeclaredType.Type);
 
             if (loweredPattern.IsVar)
             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.MakeSequence(loweredInput, result);
                 }
 
-                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType().TypeSymbol, TypeCompareKind.AllIgnoreOptions));
 
                 var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);

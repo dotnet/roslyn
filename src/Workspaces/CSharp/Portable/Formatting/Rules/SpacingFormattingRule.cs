@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // No space after $" and $@" at the start of an interpolated string
+            // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
                 previousKind == SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
