@@ -25,5 +25,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.InteractiveWindow.ShowWindow();
             VisualStudio.InteractiveWindow.Reset();
         }
+
+        public override Task DisposeAsync()
+        {
+            VisualStudio.InteractiveWindow.CloseInteractiveWindow();
+            return base.DisposeAsync();
+        }
     }
 }
