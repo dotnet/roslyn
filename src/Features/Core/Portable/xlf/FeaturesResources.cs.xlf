@@ -32,6 +32,11 @@
         <target state="new">Change namespace to '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="new">Change to global namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
         <target state="new">Code Quality</target>

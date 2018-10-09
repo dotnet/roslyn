@@ -1448,4 +1448,7 @@ This version used in: {2}</value>
   <data name="Move_file_to_project_root_folder" xml:space="preserve">
     <value>Move file to project root folder</value>
   </data>
+  <data name="Change_to_global_namespace" xml:space="preserve">
+    <value>Change to global namespace</value>
+  </data>
 </root>

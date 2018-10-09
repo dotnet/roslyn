@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         protected override SyntaxNode CreateUsingDirective(ImmutableArray<string> namespaceParts)
         {
             var name = CreateNameSyntax(namespaceParts, aliasQualifier: null, namespaceParts.Length - 1);
-            return SyntaxFactory.UsingDirective(alias: null, name: name);
+            return SyntaxFactory.UsingDirective(alias: null, name: name).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected override string EscapeIdentifier(string identifier)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
                 var shouldTrigger = namespaceDeclaration != null 
                     && namespaceDeclaration.Name.Span.IntersectsWith(position) 
-                    && namespaceDeclaration.GetDiagnostics().All(diag => diag.Severity != DiagnosticSeverity.Error)
+                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.Severity != DiagnosticSeverity.Error)
                     && !ContainsPartialDeclaration(document, namespaceDeclaration, cancellationToken);
                 return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
             }
@@ -178,8 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 return root;
             }
 
-            //TODO: handle trivia
-
             // Move everything from global namespace to a namespace declaration
             if (declaredNamespaceParts.Length == 1 && declaredNamespaceParts[0].Length == 0)
             {
@@ -197,12 +195,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             // Move everything to global namespace
             if (targetNamespaceParts.Length == 1 && targetNamespaceParts[0].Length == 0)
             {
+                var triviaFromNamespaceDecl = GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDeclaration);
+
+                var members = namespaceDeclaration.Members;
+                var eofToken = compilationUnit.EndOfFileToken;
+
+                // Try to preserve trivia from original namesapce declaration.
+                // If there's any member inside the declaration, we attach them to the first and last member,
+                // otherwise, simply attach all to the EOF token.
+                if (members.Count > 0)
+                {
+                    var first = members.First();
+                    var firstWithTrivia = first.WithPrependedLeadingTrivia(triviaFromNamespaceDecl.openingTrivia);
+                    members = members.Replace(first, firstWithTrivia);
+
+                    var last = members.Last();
+                    var lastWithTrivia = last.WithAppendedTrailingTrivia(triviaFromNamespaceDecl.closingTrivia);
+                    members = members.Replace(last, lastWithTrivia);
+                }
+                else
+                {
+                    eofToken = eofToken.WithPrependedLeadingTrivia(triviaFromNamespaceDecl.openingTrivia.Concat(triviaFromNamespaceDecl.closingTrivia));
+                }
+
                 return compilationUnit.Update(
                     compilationUnit.Externs.AddRange(namespaceDeclaration.Externs), 
                     compilationUnit.Usings.AddRange(namespaceDeclaration.Usings), 
                     compilationUnit.AttributeLists, 
-                    namespaceDeclaration.Members,
-                    compilationUnit.EndOfFileToken).WithAdditionalAnnotations(Formatter.Annotation);
+                    members,
+                    eofToken).WithAdditionalAnnotations(Formatter.Annotation);
             }
             // Change namespace name
             else
@@ -212,6 +233,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                         CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithTriviaFrom(namespaceDeclaration.Name)));
             }
+        }
+
+        /// <summary>
+        /// return trivia attached to namespace declaration. 
+        /// Leading trivia of the node and trivia around opening brace, as well as
+        /// trivia around closing brace are concatenated together respectively.
+        /// </summary>
+        private static (List<SyntaxTrivia> openingTrivia, List<SyntaxTrivia> closingTrivia) GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
+        {
+            var openingTrivia = namespaceDeclaration.GetLeadingTrivia().ToList();
+            openingTrivia.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+            openingTrivia.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+
+            var closingTrivia = namespaceDeclaration.CloseBraceToken.LeadingTrivia.ToList();
+            closingTrivia.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
+
+            return (openingTrivia, closingTrivia);
         }
     }
 }
