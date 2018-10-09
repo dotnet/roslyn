@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [Conditional("DEBUG")]
-            void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol> dependentSymbols)
+            private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol> dependentSymbols)
             {
                 if (_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols))
                 {
