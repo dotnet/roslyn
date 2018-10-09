@@ -55,18 +55,5 @@ namespace Microsoft.CodeAnalysis.PasteTracking
                 textBuffer.Properties.RemoveProperty(_pastedTextSpanKey);
             }
         }
-
-        private bool TryGetTextBuffer(Document document, out ITextBuffer textBuffer)
-        {
-            if (document == null ||
-                !document.TryGetText(out var text))
-            {
-                textBuffer = null;
-                return false;
-            }
-
-            textBuffer = text.Container.TryGetTextBuffer();
-            return textBuffer != null;
-        }
     }
 }
