@@ -529,20 +529,19 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/29908")]
         public void Script_NoHostNamespaces()
         {
-            var runner = CreateRunner(input: "nameof(Microsoft.CodeAnalysis)");
+            var runner = CreateRunner(input: "nameof(Microsoft.Missing)");
 
             runner.RunInteractive();
-
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{s_logoAndHelpPrompt}
-> nameof(Microsoft.CodeAnalysis)
+> nameof(Microsoft.Missing)
 «Red»
-(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }
 «Gray»
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                $"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }",
+                $"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
                 runner.Console.Error.ToString());
         }
 

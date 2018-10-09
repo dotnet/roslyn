@@ -642,6 +642,8 @@ End Module
 <compilation name="AccessCheckApi1">
     <file name="a.vb">
 Imports System.Collections.Generic
+Imports AliasA = A
+
 Class A
     Shared Private priv As Integer
     Shared Public pub As Integer
@@ -669,10 +671,15 @@ Class ADerived2
 End Class
     </file>
 </compilation>)
+            Dim compilation As Compilation = c
             Dim globalNS As NamespaceSymbol = c.GlobalNamespace
             Dim sourceAssem As AssemblySymbol = c.SourceModule.ContainingAssembly
             Dim mscorlibAssem As AssemblySymbol = c.GetReferencedAssemblySymbol(c.References(0))
             Dim classA As NamedTypeSymbol = TryCast(globalNS.GetMembers("A").[Single](), NamedTypeSymbol)
+            Dim tree = c.SyntaxTrees(0)
+            Dim model = c.GetSemanticModel(tree)
+            Dim importsClause = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SimpleImportsClause, 2).AsNode(), SimpleImportsClauseSyntax)
+            Dim aliasA = DirectCast(model.GetDeclaredSymbol(importsClause), AliasSymbol)
             Dim classADerived As NamedTypeSymbol = TryCast(globalNS.GetMembers("ADerived").[Single](), NamedTypeSymbol)
             Dim classADerived2 As NamedTypeSymbol = TryCast(globalNS.GetMembers("ADerived2").[Single](), NamedTypeSymbol)
             Dim classB As NamedTypeSymbol = TryCast(globalNS.GetMembers("B").[Single](), NamedTypeSymbol)
@@ -687,27 +694,55 @@ End Class
             Dim unknownType As TypeSymbol = (TryCast(classA.GetMembers("unknowntype").[Single](), FieldSymbol)).[Type]
             Dim semanticModel = c.GetSemanticModel(c.SyntaxTrees(0))
             Assert.True(Symbol.IsSymbolAccessible(classA, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(classA, classB))
+            Assert.True(Symbol.IsSymbolAccessible(aliasA, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(aliasA, classB))
             Assert.True(Symbol.IsSymbolAccessible(pubField, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(pubField, classB))
             Assert.False(Symbol.IsSymbolAccessible(privField, classB))
+            Assert.False(compilation.IsSymbolAccessibleWithin(privField, classB))
             Assert.False(Symbol.IsSymbolAccessible(karrayType, classB))
+            Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, classB))
             Assert.True(Symbol.IsSymbolAccessible(aarrayType, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, classB))
             Assert.False(Symbol.IsSymbolAccessible(kenumType, classB))
+            Assert.False(compilation.IsSymbolAccessibleWithin(kenumType, classB))
             Assert.True(Symbol.IsSymbolAccessible(aenumType, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(aenumType, classB))
             Assert.True(Symbol.IsSymbolAccessible(unknownType, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, classB))
             Assert.True(Symbol.IsSymbolAccessible(globalNS, classB))
+            Assert.True(compilation.IsSymbolAccessibleWithin(globalNS, classB))
             Assert.True(Symbol.IsSymbolAccessible(protField, classA))
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA))
             Assert.True(Symbol.IsSymbolAccessible(protField, classA, classADerived))
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA, classADerived))
             Assert.False(Symbol.IsSymbolAccessible(protField, classB))
+            Assert.False(compilation.IsSymbolAccessibleWithin(protField, classB))
             Assert.False(Symbol.IsSymbolAccessible(protField, classB, classADerived))
+            Assert.False(compilation.IsSymbolAccessibleWithin(protField, classB, classADerived))
             Assert.True(Symbol.IsSymbolAccessible(protField, classA))
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classA))
             Assert.True(Symbol.IsSymbolAccessible(protField, classADerived, classADerived))
+            Assert.True(compilation.IsSymbolAccessibleWithin(protField, classADerived, classADerived))
             Assert.False(Symbol.IsSymbolAccessible(protField, classADerived, classADerived2))
+            Assert.False(compilation.IsSymbolAccessibleWithin(protField, classADerived, classADerived2))
             Assert.True(Symbol.IsSymbolAccessible(classA, sourceAssem))
+            Assert.True(compilation.IsSymbolAccessibleWithin(classA, sourceAssem))
+            Assert.True(Symbol.IsSymbolAccessible(aliasA, sourceAssem))
+            Assert.True(compilation.IsSymbolAccessibleWithin(aliasA, sourceAssem))
             Assert.True(Symbol.IsSymbolAccessible(aarrayType, sourceAssem))
+            Assert.True(compilation.IsSymbolAccessibleWithin(aarrayType, sourceAssem))
             Assert.False(Symbol.IsSymbolAccessible(karrayType, sourceAssem))
+            Assert.False(compilation.IsSymbolAccessibleWithin(karrayType, sourceAssem))
             Assert.False(Symbol.IsSymbolAccessible(classA, mscorlibAssem))
+            Assert.False(compilation.IsSymbolAccessibleWithin(classA, mscorlibAssem))
+            Assert.False(Symbol.IsSymbolAccessible(aliasA, mscorlibAssem))
+            Assert.False(compilation.IsSymbolAccessibleWithin(aliasA, mscorlibAssem))
             Assert.True(Symbol.IsSymbolAccessible(unknownType, sourceAssem))
+            Assert.True(compilation.IsSymbolAccessibleWithin(unknownType, sourceAssem))
             Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem, sourceAssem))
+            Assert.True(compilation.IsSymbolAccessibleWithin(mscorlibAssem, sourceAssem))
             Assert.False(sourceAssem.IsInteractive)
             Assert.Equal(ImmutableArray.Create(Of SyntaxReference)(), sourceAssem.DeclaringSyntaxReferences)
             Assert.Equal(5, sourceAssem.TypeNames.Count)
@@ -2137,6 +2172,77 @@ BC30389: 'C1.D(i As Integer)' is not accessible in this context because it is 'P
                 ~
 </expected>)
 
+        End Sub
+
+        <Fact>
+        Public Sub InaccessibleToUnnamedExe_01()
+            Dim sourceA =
+"Class A
+End Class"
+            Dim comp = CreateCompilation(sourceA)
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"Class B
+    Shared Sub Main()
+        Dim a = New A()
+    End Sub
+End Class"
+            ' Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:=Nothing)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+
+            ' Named assembly.
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:="B")
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub InaccessibleToUnnamedExe_02()
+            Dim sourceA =
+"<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""B"")>
+Class A
+End Class"
+            Dim comp = CreateCompilation(sourceA)
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"Class B
+    Shared Sub Main()
+        Dim a = New A()
+    End Sub
+End Class"
+            ' Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:=Nothing)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
+
+            ' Named assembly.
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:="B")
+            comp.AssertTheseDiagnostics()
+
+            ' Named assembly (distinct).
+            comp = CreateCompilation(sourceB, references:={refA}, options:=TestOptions.ReleaseExe, assemblyName:="B2")
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30389: 'A' is not accessible in this context because it is 'Friend'.
+        Dim a = New A()
+                    ~
+</expected>)
         End Sub
 
     End Class

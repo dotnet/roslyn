@@ -3,11 +3,8 @@
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(underlyingMethod.ConstructedFrom == (object)underlyingMethod);
             _containingType = container;
 
-            TypeMap.Empty.WithAlphaRename(underlyingMethod, this, out _typeParameters);
-            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArguments);
+            TypeMap.Empty.WithAlphaRename(underlyingMethod, this, nonNullTypesContext: underlyingMethod.OriginalDefinition, out _typeParameters);
+            _underlyingMethod = underlyingMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypesContext: this));
         }
 
         public override bool IsTupleMethod
@@ -113,19 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
                 return _underlyingMethod.ReturnType;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return _underlyingMethod.ReturnTypeCustomModifiers;
             }
         }
 
@@ -137,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return GetTypeParametersAsTypeArguments(nonNullTypesContext: this);
             }
         }
 
@@ -182,6 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MergeUseSiteDiagnostics(ref result, _underlyingMethod.GetUseSiteDiagnostic());
             return result;
         }
+
+        public override bool? NonNullTypes => false;
 
         public override int GetHashCode()
         {

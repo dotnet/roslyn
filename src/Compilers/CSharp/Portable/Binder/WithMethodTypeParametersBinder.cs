@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodSymbol = methodSymbol;
         }
 
+        protected override bool InExecutableBinder => false;
+
         internal override Symbol ContainingMemberOrLambda
         {
             get
