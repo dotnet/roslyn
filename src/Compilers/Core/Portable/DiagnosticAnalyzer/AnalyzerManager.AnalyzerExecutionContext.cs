@@ -139,7 +139,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             lock (_gate)
                             {
                                 _lazyPendingMemberSymbolsMapOpt = _lazyPendingMemberSymbolsMapOpt ?? new Dictionary<ISymbol, HashSet<ISymbol>>();
-                                _lazyPendingMemberSymbolsMapOpt.Add(symbol, dependentSymbols);
+
+                                // Guard against entry added from another thread.
+                                if (!_lazyPendingMemberSymbolsMapOpt.ContainsKey(symbol))
+                                {
+                                    _lazyPendingMemberSymbolsMapOpt.Add(symbol, dependentSymbols);
+                                }
+                                else
+                                {
+                                    Debug.Assert(dependentSymbols.SetEquals(_lazyPendingMemberSymbolsMapOpt[symbol]));
+                                }
                             }
                         }
 
