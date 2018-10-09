@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis
 
             var reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
-            var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
-
-            var comp = CreateCompilation(code, references: new[] { reference });
+            var comp = CreateCompilation("", options: WithNonNullTypesTrue(), references: new[] { reference });
             comp.VerifyEmitDiagnostics(
                 // error CS0101: The namespace 'Microsoft.CodeAnalysis' already contains a definition for 'EmbeddedAttribute'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("EmbeddedAttribute", "Microsoft.CodeAnalysis").WithLocation(1, 1)
@@ -95,10 +93,10 @@ namespace System.Runtime.CompilerServices
     internal class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
 }
 
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 internal class TestType1 { }
 
-[System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
+" + NonNullTypesOff() + @"
 internal class TestType2 { }
 ";
 
@@ -106,6 +104,17 @@ internal class TestType2 { }
             comp.VerifyEmitDiagnostics();
             Assert.True(comp.GetMember("TestType1").NonNullTypes);
             Assert.False(comp.GetMember("TestType2").NonNullTypes);
+
+            CompileAndVerify(comp, symbolValidator:
+                (m) =>
+                {
+                    Assert.Same(m, m.GlobalNamespace.GetMember("TestType1").GetAttributes().Single().AttributeClass.ContainingModule);
+                    Assert.Same(m, m.GlobalNamespace.GetMember("TestType2").GetAttributes().Single().AttributeClass.ContainingModule);
+                    Assert.True(m.GlobalNamespace.GetMember("TestType1").NonNullTypes);
+                    Assert.False(m.GlobalNamespace.GetMember("TestType2").NonNullTypes);
+                }
+                );
+
         }
 
         [Fact]
@@ -118,21 +127,36 @@ namespace System.Runtime.CompilerServices
     internal class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
 }
 
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 internal class TestType1 { }
 
-[System.Runtime.CompilerServices.NonNullTypesAttribute]
+" + NonNullTypesOn() + @"
 internal class TestType2 { }
 ");
-            Assert.False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
-            Assert.False(reference.GetMember("TestType2").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.Empty(reference.GetMember("TestType1").GetAttributes());
+            Assert.Empty(reference.GetMember("TestType2").GetAttributes());
 
-            var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
+            CompileAndVerify(reference, symbolValidator:
+                (m) =>
+                {
+                    Assert.Same(m, m.GlobalNamespace.GetMember("TestType1").GetAttributes().Single().AttributeClass.ContainingModule);
+                    Assert.Same(m, m.GlobalNamespace.GetMember("TestType2").GetAttributes().Single().AttributeClass.ContainingModule);
+                }
+                );
 
             // NonNullTypesAttribute from referenced assembly is ignored, and we use the injected one instead
-            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() }, assemblyName: "Source");
+            var comp = CreateCompilation("", options: WithNonNullTypesTrue(), references: new[] { reference.ToMetadataReference() }, assemblyName: "Source");
             comp.VerifyDiagnostics();
-            Assert.True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.Empty(comp.SourceModule.GetAttributes());
+            Assert.True(comp.SourceModule.NonNullTypes);
+
+            CompileAndVerify(comp, symbolValidator:
+                (m) =>
+                {
+                    Assert.Same(m, m.GetAttributes().Single().AttributeClass.ContainingModule);
+                    Assert.True(m.NonNullTypes);
+                }
+                );
 
             var system = (INamespaceSymbol)comp.GlobalNamespace.GetMember("System");
             Assert.Equal(NamespaceKind.Compilation, system.NamespaceKind);
@@ -147,7 +171,7 @@ namespace System.Runtime.CompilerServices
     internal class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
 }
 
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 internal class TestType1 { }
 ", options: TestOptions.ReleaseModule);
 
@@ -156,10 +180,8 @@ internal class TestType1 { }
             var system = (INamespaceSymbol)module.GlobalNamespace.GetMember("System");
             Assert.Equal(NamespaceKind.Compilation, system.NamespaceKind);
 
-            var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
-
             // NonNullTypesAttribute from module conflicts with injected symbol
-            var comp = CreateCompilation(code, references: new[] { reference });
+            var comp = CreateCompilation("", references: new[] { reference }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // error CS0101: The namespace 'System.Runtime.CompilerServices' already contains a definition for 'NonNullTypesAttribute'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("NonNullTypesAttribute", "System.Runtime.CompilerServices").WithLocation(1, 1)
@@ -178,22 +200,33 @@ namespace System.Runtime.CompilerServices
     public class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
 }
 
-[System.Runtime.CompilerServices.NonNullTypes]
+" + NonNullTypesOn() + @"
 public class TestType1 { }
 
-[System.Runtime.CompilerServices.NonNullTypesAttribute(false)]
+" + NonNullTypesOff() + @"
 public class TestType2 { }
 ");
-            Assert.False(reference.GetMember("TestType1").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
-            Assert.False(reference.GetMember("TestType2").GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.Empty(reference.GetMember("TestType1").GetAttributes());
+            Assert.Empty(reference.GetMember("TestType2").GetAttributes());
 
-            var code = "[module: System.Runtime.CompilerServices.NonNullTypes]";
+            CompileAndVerify(reference, symbolValidator:
+            (m) =>
+            {
+                Assert.Same(m, m.GlobalNamespace.GetMember("TestType1").GetAttributes().Single().AttributeClass.ContainingModule);
+                Assert.Same(m, m.GlobalNamespace.GetMember("TestType2").GetAttributes().Single().AttributeClass.ContainingModule);
+            });
 
             // NonNullTypesAttribute from referenced assembly is ignored, and we use the injected one instead
-            var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference() });
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation("", references: new[] { reference.ToMetadataReference() }, options: WithNonNullTypesTrue());
 
-            Assert.True(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.Empty(comp.SourceModule.GetAttributes());
+
+            CompileAndVerify(comp, symbolValidator:
+            (m) =>
+            {
+                Assert.Same(m, m.GetAttributes().Single().AttributeClass.ContainingModule);
+                Assert.True(m.NonNullTypes);
+            });
         }
 
         [Fact]
@@ -219,30 +252,41 @@ class C
 }
 ";
 
-            // NonNullTypesAttribute from referenced assembly is used via extern alias and it takes effect to turn the nullability feature on
             var comp = CreateCompilation(code, references: new[] { reference.ToMetadataReference(aliases: ImmutableArray.Create("Reference")) });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // [module: Reference::System.Runtime.CompilerServices.NonNullTypes]
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "Reference::System.Runtime.CompilerServices.NonNullTypes").WithLocation(3, 10),
+                // (6,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     string? M() => throw null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 11)
+                );
 
             Assert.False(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
-            Assert.True(comp.SourceModule.NonNullTypes);
+            Assert.Null(comp.SourceModule.NonNullTypes);
         }
 
         [Fact]
         public void NonNullTypesAttributeInSourceCanBeUsed()
         {
             var code = @"
-// This should trigger generating another NonNullTypesAttribute
-[module: System.Runtime.CompilerServices.NonNullTypes]
-
 namespace System.Runtime.CompilerServices
 {
     public class NonNullTypesAttribute : System.Attribute { public NonNullTypesAttribute(bool flag = true) { } }
 }";
 
-            var comp = CreateCompilation(code);
+            var comp = CreateCompilation(code, options: WithNonNullTypesTrue());
             comp.VerifyEmitDiagnostics();
             Assert.True(comp.SourceModule.NonNullTypes);
-            Assert.False(comp.SourceModule.GetAttributes().Single().AttributeClass.IsImplicitlyDeclared);
+            Assert.Empty(comp.SourceModule.GetAttributes());
+            Assert.True(comp.SourceModule.NonNullTypes);
+
+            CompileAndVerify(comp, symbolValidator:
+                (m) =>
+                {
+                    Assert.Same(m, m.GetAttributes().Single().AttributeClass.ContainingModule);
+                    Assert.True(m.NonNullTypes);
+                });
         }
 
         [Fact]
@@ -278,13 +322,15 @@ namespace System.Runtime.CompilerServices
             var code = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(System.Runtime.CompilerServices.NonNullTypesAttribute))]
 
-// This should trigger generating another NonNullTypesAttribute
-[module: System.Runtime.CompilerServices.NonNullTypes]
+
+
 class Test
 {
 }";
 
-            CreateCompilation(code, references: new[] { reference }).VerifyEmitDiagnostics(
+            CreateCompilation(code, references: new[] { reference },
+                options: WithNonNullTypesTrue() // This should trigger generating another NonNullTypesAttribute
+                ).VerifyEmitDiagnostics(
                 // (2,12): error CS0729: Type 'NonNullTypesAttribute' is defined in this assembly, but a type forwarder is specified for it
                 // [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(System.Runtime.CompilerServices.NonNullTypesAttribute))]
                 Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(System.Runtime.CompilerServices.NonNullTypesAttribute))").WithArguments("System.Runtime.CompilerServices.NonNullTypesAttribute").WithLocation(2, 12));
@@ -302,10 +348,9 @@ public class C { }
 ").ToMetadataReference();
 
             var code = @"
-[module: System.Runtime.CompilerServices.NonNullTypes]
 public class D : C { }";
 
-            CompileAndVerify(code, references: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, options: WithNonNullTypesTrue(), references: new[] { reference }, symbolValidator: module =>
             {
                 var attributeName = AttributeDescription.NonNullTypesAttribute.FullName;
 
@@ -323,15 +368,17 @@ public class D : C { }";
         public void SynthesizingAttributeRequiresSystemAttribute_NoSystemAttribute()
         {
             var code = @"
-// This should trigger generating NonNullTypesAttribute
-[module: System.Runtime.CompilerServices.NonNullTypes]
+
+
 namespace System
 {
     public class Object {}
     public class Void {}
 }";
 
-            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+            CreateEmptyCompilation(code,
+                options: WithNonNullTypesTrue() // This should trigger generating NonNullTypesAttribute
+                ).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Boolean").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -350,15 +397,17 @@ namespace System
         public void SynthesizingAttributeRequiresSystemAttribute_NoSystemObject()
         {
             var code = @"
-// This should trigger generating NonNullTypesAttribute
-[module: System.Runtime.CompilerServices.NonNullTypes]
+
+
 namespace System
 {
     public class Attribute {}
     public class Void {}
 }";
 
-            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+            CreateEmptyCompilation(code,
+                options: WithNonNullTypesTrue() // This should trigger generating NonNullTypesAttribute
+                ).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // (6,18): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object").WithLocation(6, 18),
@@ -377,18 +426,17 @@ namespace System
         public void SynthesizingAttributeRequiresSystemAttribute_NoSystemVoid()
         {
             var code = @"
-// This should trigger generating NonNullTypesAttribute
-[module: System.Runtime.CompilerServices.NonNullTypes]
+
+
 namespace System
 {
     public class Attribute {}
     public class Object {}
 }";
 
-            CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // (3,10): error CS0518: Predefined type 'System.Void' is not defined or imported
-                // [module: System.Runtime.CompilerServices.NonNullTypes]
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("System.Void").WithLocation(3, 10),
+            CreateEmptyCompilation(code,
+                options: WithNonNullTypesTrue() // This should trigger generating NonNullTypesAttribute
+                ).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
                 // (6,18): error CS0518: Predefined type 'System.Void' is not defined or imported
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Void").WithLocation(6, 18));

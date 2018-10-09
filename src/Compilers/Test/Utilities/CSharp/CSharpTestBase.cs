@@ -127,7 +127,7 @@ namespace System.Runtime.CompilerServices
             return $"#pragma warning disable {(int)ErrorCode.WRN_PragmaNonNullTypes}";
         }
 
-        protected static string NonNullTypesOn()
+        internal static string NonNullTypesOn()
         {
             return $"#pragma warning restore {(int)ErrorCode.WRN_PragmaNonNullTypes}";
         }
