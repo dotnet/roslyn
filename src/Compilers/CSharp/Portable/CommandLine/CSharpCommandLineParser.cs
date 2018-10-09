@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>a commandlinearguments object representing the parsed command line.</returns>
         public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null)
         {
+            Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
+
             List<Diagnostic> diagnostics = new List<Diagnostic>();
             List<string> flattenedArgs = new List<string>();
             List<string> scriptArgs = IsScriptCommandLineParser ? new List<string>() : null;
