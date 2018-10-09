@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal abstract class AbstractFormattingAnalyzer
         : AbstractCodeStyleDiagnosticAnalyzer
     {
-        internal const string FormattingDiagnosticId = "IDE0054";
-
         static AbstractFormattingAnalyzer()
         {
             AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected AbstractFormattingAnalyzer()
             : base(
-                FormattingDiagnosticId,
+                IDEDiagnosticIds.FormattingDiagnosticId,
                 new LocalizableResourceString(nameof(CodeStyleResources.Formatting_analyzer_title), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)),
                 new LocalizableResourceString(nameof(CodeStyleResources.Formatting_analyzer_message), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)))
         {

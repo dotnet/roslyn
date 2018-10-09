@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal class FormattingCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(AbstractFormattingAnalyzer.FormattingDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider()
         {
@@ -50,11 +51,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
                 text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
-
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await Formatter.FormatAsync(document, spanToFormat, options, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Provide an optimized Fix All implementation that runs
+        /// <see cref="Formatter.FormatAsync(Document, Options.OptionSet, CancellationToken)"/> on the document(s)
+        /// included in the Fix All scope.
+        /// </summary>
         private class FixAll : DocumentBasedFixAllProvider
         {
             protected override string CodeActionTitle => CodeStyleFixesResources.Formatting_analyzer_code_fix;
