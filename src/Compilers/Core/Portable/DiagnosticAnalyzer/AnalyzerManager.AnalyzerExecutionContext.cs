@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         foreach (var member in members)
                         {
-                            if (!member.IsImplicitlyDeclared && member.HasSourceLocation())
+                            if (!member.IsImplicitlyDeclared && member.IsInSource())
                             {
                                 memberSet = memberSet ?? new HashSet<ISymbol>();
                                 memberSet.Add(member);

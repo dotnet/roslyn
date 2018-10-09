@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsNetModule(this IAssemblySymbol assembly) =>
             assembly is ISourceAssemblySymbol sourceAssembly && sourceAssembly.Compilation.Options.OutputKind.IsNetModule();
 
-        internal static bool HasSourceLocation(this ISymbol symbol)
+        internal static bool IsInSource(this ISymbol symbol)
         {
             foreach (var location in symbol.Locations)
             {
