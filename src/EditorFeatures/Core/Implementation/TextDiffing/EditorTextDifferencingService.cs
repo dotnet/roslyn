@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
             var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType())
                 ?? _differenceSelectorService.DefaultTextDifferencingService;
 
-            var differenceOptions = new StringDifferenceOptions()
-            {
-                DifferenceType = (StringDifferenceTypes)preferredDifferenceType
-            };
+            var differenceOptions = GetDifferenceOptions(preferredDifferenceType);
 
             var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
             var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
@@ -52,6 +49,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
                 new TextChange(
                     diffResult.LeftDecomposition.GetSpanInOriginal(d.Left).ToTextSpan(),
                     newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
+        }
+
+        private StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)
+        {
+            StringDifferenceTypes stringDifferenceTypes = default;
+
+            if (differenceTypes.HasFlag(TextDifferenceTypes.Line))
+            {
+                stringDifferenceTypes |= StringDifferenceTypes.Line;
+            }
+
+            if (differenceTypes.HasFlag(TextDifferenceTypes.Word))
+            {
+                stringDifferenceTypes |= StringDifferenceTypes.Word;
+            }
+
+            if (differenceTypes.HasFlag(TextDifferenceTypes.Character))
+            {
+                stringDifferenceTypes |= StringDifferenceTypes.Character;
+            }
+
+            return new StringDifferenceOptions()
+            {
+                DifferenceType = stringDifferenceTypes
+            };
         }
     }
 }
