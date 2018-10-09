@@ -698,8 +698,9 @@ class Program
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markup, "S");
-            await VerifyItemIsAbsentAsync(markup, "D");
+            // Can't use S={3}, but the object initializer syntax S={} is still valid
+            await VerifyItemExistsAsync(markup, "S");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
         [WorkItem(13158, "https://github.com/dotnet/roslyn/issues/13158")]
@@ -884,7 +885,8 @@ internal class Example
     }
 }";
 
-            await VerifyNoItemsExistAsync(markup);
+            await VerifyItemExistsAsync(markup, "Target");
+            await VerifyItemExistsAsync(markup, "Method");
         }
 
         [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
@@ -935,6 +937,174 @@ class d
 
             await VerifyItemIsAbsentAsync(markup, "new");
             await VerifyItemIsAbsentAsync(markup, "this");
+        }
+
+        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers1()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public int Prop { get; set; }
+}
+
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropB");
+        }
+
+        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers2()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public C PropC { get; }
+}
+
+class C
+{
+    public int P { get; set; }
+}
+
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropB");
+        }
+
+        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers3()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public C PropC { get; }
+}
+
+class C
+{
+    public SupportsAdd P { get; set; }
+}
+
+public class SupportsAdd : IEnumerable
+{
+    public void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropB");
+        }
+
+        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers4()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public C PropC { get; }
+}
+
+class C
+{
+    public int P;
+}
+
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropB");
+        }
+
+        [WorkItem(15205, "https://github.com/dotnet/roslyn/issues/15205")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NestedPropertyInitializers5()
+        {
+            var markup = @"
+class A
+{
+    public B PropB { get; }
+}
+
+class B
+{
+    public C PropC { get; }
+}
+
+class C
+{
+    public int P { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new A { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "PropB");
         }
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)

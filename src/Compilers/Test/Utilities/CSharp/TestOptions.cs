@@ -11,19 +11,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         // Disable diagnosing documentation comments by default so that we don't need to
         // document every public member of every test input.
-        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse).WithLanguageVersion(LanguageVersion.Latest);
+        // https://github.com/dotnet/roslyn/issues/29819 revert explicit C# 8 langversion
+        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse, languageVersion: LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
         public static readonly CSharpParseOptions Regular7_2 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions Regular7_3 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_3);
+        public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
-            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Latest).WithFeatures(s_experimentalFeatures);
+            // https://github.com/dotnet/roslyn/issues/29819 revert explicit C# 8 langversion
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp8).WithFeatures(s_experimentalFeatures);
 
         // Enable pattern-switch translation even for switches that use no new syntax. This is used
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
@@ -81,9 +84,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
-        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
+        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
-            return options;
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
+        }
+
+        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
+        {
+            if (features.Length == 0)
+            {
+                throw new InvalidOperationException("Need at least one feature to enable");
+            }
+
+            var list = new List<KeyValuePair<string, string>>();
+            foreach (var feature in features)
+            {
+                var name = feature.RequiredFeature();
+                if (name == null)
+                {
+                    throw new InvalidOperationException($"{feature} is not a valid experimental feature");
+                }
+                list.Add(new KeyValuePair<string, string>(name, "true"));
+            }
+
+            return options.WithFeatures(options.Features.Concat(list));
         }
     }
 }

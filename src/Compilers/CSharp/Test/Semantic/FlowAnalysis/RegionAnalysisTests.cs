@@ -2244,6 +2244,57 @@ class Main
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
         }
 
+        [Fact]
+        public void NullCoalescingAssignment()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowMultipleExpressions(@"
+public class C
+{
+    public static void Main()
+    {
+        C c;
+        c ??= new C();
+
+        object x1;
+        object y1;
+        /*<bind0>*/GetC(x1 = 1).Prop ??= (y1 = 2)/*</bind0>*/;
+        x1.ToString();
+        y1.ToString();
+
+        object x2;
+        object y2;
+        /*<bind1>*/GetC(x2 = 1).Field ??= (y2 = 2)/*</bind1>*/;
+        x2.ToString();
+        y2.ToString();
+    }
+    static C GetC(object i) => null;
+    object Prop { get; set; }
+    object Field;
+}
+");
+
+            var propertyDataFlowAnalysis = dataFlowAnalysisResults.First();
+            var fieldDataFlowAnalysis = dataFlowAnalysisResults.Skip(1).Single();
+
+            assertAllInfo(propertyDataFlowAnalysis, "x1", "y1", "x2", "y2");
+            assertAllInfo(fieldDataFlowAnalysis, "x2", "y2", "x1", "y1");
+
+            void assertAllInfo(DataFlowAnalysis dataFlowAnalysis, string currentX, string currentY, string otherX, string otherY)
+            {
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared));
+                Assert.Equal(currentX, GetSymbolNamesJoined(dataFlowAnalysis.AlwaysAssigned));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn));
+                Assert.Equal($"{currentX}, {currentY}", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.ReadInside));
+                Assert.Equal("c, x1, y1, x2, y2", GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside));
+                Assert.Equal($"{currentX}, {currentY}", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside));
+                Assert.Equal($"c, {otherX}, {otherY}", GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.Captured));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.CapturedInside));
+                Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysis.CapturedOutside));
+            }
+        }
+
         #endregion
 
         #region "Statements"

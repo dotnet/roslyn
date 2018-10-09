@@ -101,7 +101,8 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.17</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>15.8.414-preview</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>15.8.27812-alpha</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>14.3.26930</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>15.0.26730-alpha</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImagingVersion>15.8.27828</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>15.8.414-preview</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
@@ -155,7 +156,7 @@
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63127-02</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-06</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
@@ -268,7 +269,6 @@
   <ItemGroup>
     <PrivateVisualStudioPackage Include="EnvDTE"/>
     <PrivateVisualStudioPackage Include="EnvDTE80"/>
-    <PrivateVisualStudioPackage Include="Microsoft.CodeAnalysis.Elfie" />
     <PrivateVisualStudioPackage Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.MSXML"/>
@@ -283,7 +283,6 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel"/>
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.InteractiveWindow"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ImageCatalog"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging"/>

@@ -273,7 +273,7 @@ function Build-InsertionItems() {
 }
 
 function Build-Installer () {
-    #  Copying Artifacts
+    ## Copying Artifacts
     $installerDir = Join-Path $configDir "Installer"
     if (Test-Path $installerDir) {
         Remove-Item -Path $installerDir -Recurse -Force
@@ -338,11 +338,6 @@ function Test-Determinism() {
 }
 
 function Test-XUnitCoreClr() {
-    Write-Host "Publishing ILAsm.csproj"
-    $toolsDir = Join-Path $binariesDir "Tools"
-    $ilasmDir = Join-Path $toolsDir "ILAsm"
-    Exec-Console $dotnet "publish src\Tools\ILAsm --no-restore --runtime win-x64 --self-contained -o $ilasmDir"
-
     $unitDir = Join-Path $configDir "UnitTests"
     $tf = "netcoreapp2.1"
     $xunitResultDir = Join-Path $unitDir "xUnitResults"

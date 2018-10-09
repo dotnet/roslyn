@@ -581,7 +581,7 @@ public ref struct S1{}
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertReferencedIsByRefLike(property.Type);
+                AssertReferencedIsByRefLike(property.Type.TypeSymbol);
             });
 
             var code = @"
@@ -611,7 +611,7 @@ class User
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertNotReferencedIsByRefLikeAttribute(property.Type.GetAttributes());
+                AssertNotReferencedIsByRefLikeAttribute(property.Type.TypeSymbol.GetAttributes());
             }
         }
 

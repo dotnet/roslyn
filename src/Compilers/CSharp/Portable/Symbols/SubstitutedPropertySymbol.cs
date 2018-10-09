@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -13,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         internal SubstitutedPropertySymbol(SubstitutedNamedTypeSymbol containingType, PropertySymbol originalDefinition)
@@ -22,16 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
-                if ((object)_lazyType == null)
+                if (_lazyType.IsNull)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type).Type, null);
+                    _lazyType.InterlockedInitialize(_containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type));
                 }
 
-                return _lazyType;
+                return _lazyType.ToType();
             }
         }
 
@@ -62,11 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return OriginalDefinition.GetAttributes();
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.Type, OriginalDefinition.TypeCustomModifiers); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
