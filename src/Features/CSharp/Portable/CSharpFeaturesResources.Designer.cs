@@ -1235,11 +1235,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use &apos;default&apos; expression.
+        ///   Looks up a localized string similar to Use &apos;default({0})&apos;.
         /// </summary>
-        internal static string Use_default_expression {
+        internal static string Use_default_0 {
             get {
-                return ResourceManager.GetString("Use_default_expression", resourceCulture);
+                return ResourceManager.GetString("Use_default_0", resourceCulture);
             }
         }
         

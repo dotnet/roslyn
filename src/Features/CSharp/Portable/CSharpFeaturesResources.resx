@@ -569,7 +569,7 @@
   <data name="Remove_unused_variables" xml:space="preserve">
     <value>Remove unused variables</value>
   </data>
-  <data name="Use_default_expression" xml:space="preserve">
-    <value>Use 'default' expression</value>
+  <data name="Use_default_0" xml:space="preserve">
+    <value>Use 'default({0})'</value>
   </data>
 </root>

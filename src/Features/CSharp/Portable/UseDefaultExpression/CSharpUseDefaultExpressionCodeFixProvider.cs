@@ -59,8 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultExpression
 
                 // If there happens to be more than 1 diagnostic (for example a default literal in a case label in C# 7.0),
                 // we will fix all of them, so pass in context.Diagnostics, not just the first one.
-                context.RegisterCodeFix(new MyCodeAction(
-                    c => FixAsync(context.Document, context.Span, type, c)),
+                context.RegisterCodeFix(
+                    new MyCodeAction(
+                        c => FixAsync(context.Document, context.Span, type, c),
+                        type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)),
                     context.Diagnostics);
             }
         }
@@ -87,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultExpression
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Use_default_expression, createChangedDocument, CSharpFeaturesResources.Use_default_expression)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string type)
+                : base(string.Format(CSharpFeaturesResources.Use_default_0, type), createChangedDocument, CSharpFeaturesResources.Use_default_0)
             {
             }
         }
