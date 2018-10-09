@@ -2,13 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -82,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private CompilationUnitSyntax Parse(string text, SourceCodeKind kind, params string[] defines)
         {
             var options = this.GetOptions(kind, defines);
+            return Parse(text, options);
+        }
+
+        private CompilationUnitSyntax Parse(string text, CSharpParseOptions options)
+        {
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
         }
@@ -211,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         break;
                     case SyntaxKind.LineDirectiveTrivia:
-                        var ld = dt as LineDirectiveTriviaSyntax;
+                        var ld = (LineDirectiveTriviaSyntax)dt;
 
                         // default number = 0 - no number
                         if (exp.Number == -1)
@@ -242,6 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
                             Assert.Equal(exp.Text, ld.File.Value);
+                        }
+                        break;
+                    case SyntaxKind.NonNullDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((NonNullDirectiveTriviaSyntax)dt).DisableOrRestoreKeyword.ValueText);
                         }
                         break;
                     default:
@@ -3967,6 +3977,123 @@ class A
                 Status = NodeStatus.IsActive,
                 Text = "bogus"
             });
+        }
+
+        #endregion
+
+        #region #nonnull
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullCSharp7_3()
+        {
+            var text = @"#nonnull restore";
+            var node = Parse(text, options: TestOptions.Regular7_3);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullRestore()
+        {
+            var text = @"#nonnull restore";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullDisable()
+        {
+            var text = @"#nonnull disable // comment";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullWithoutDisableOrRestore()
+        {
+            var text = @"#nonnull";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullExtraToken()
+        {
+            var text = @"#nonnull disable true";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_EndOfPPLineExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullNotDisableOrRestore()
+        {
+            var text = @"#nonnull disabled";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullNotDisableOrRestoreExtraToken()
+        {
+            var text = @"#nonnull disabled true";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullExcluded()
+        {
+            var text =
+@"#nonnull restore
+#if false
+#nonnull restore
+#endif
+#nonnull disable
+";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "restore" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NonNullExcludedNotDisableOrRestore()
+        {
+            var text =
+@"#if false
+#nonnull restored
+#endif
+";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
         #endregion

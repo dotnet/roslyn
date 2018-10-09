@@ -1033,6 +1033,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ExclamationToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
+        
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NonNullDirectiveTriviaSyntax GenerateNonNullDirectiveTrivia()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.NonNullDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.HashToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.NonNullKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DisableKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+        }
         #endregion Green Generators
         
         #region Green Factory and Property Tests
@@ -3632,6 +3637,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
             Assert.Equal(SyntaxKind.ExclamationToken, node.ExclamationToken.Kind);
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
+            Assert.Equal(new bool(), node.IsActive);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestNonNullDirectiveTriviaFactoryAndProperties()
+        {
+            var node = GenerateNonNullDirectiveTrivia();
+            
+            Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
+            Assert.Equal(SyntaxKind.NonNullKeyword, node.NonNullKeyword.Kind);
+            Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
             
@@ -8969,6 +8988,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Same(oldNode, newNode);
         }
+        
+        [Fact]
+        public void TestNonNullDirectiveTriviaTokenDeleteRewriter()
+        {
+            var oldNode = GenerateNonNullDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestNonNullDirectiveTriviaIdentityRewriter()
+        {
+            var oldNode = GenerateNonNullDirectiveTrivia();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
         #endregion Green Rewriters
     }
     
@@ -9998,6 +10043,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ShebangDirectiveTriviaSyntax GenerateShebangDirectiveTrivia()
         {
             return SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+        }
+        
+        private static NonNullDirectiveTriviaSyntax GenerateNonNullDirectiveTrivia()
+        {
+            return SyntaxFactory.NonNullDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NonNullKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
         }
         #endregion Red Generators
         
@@ -12601,6 +12651,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithExclamationToken(node.ExclamationToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestNonNullDirectiveTriviaFactoryAndProperties()
+        {
+            var node = GenerateNonNullDirectiveTrivia();
+            
+            Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind());
+            Assert.Equal(SyntaxKind.NonNullKeyword, node.NonNullKeyword.Kind());
+            Assert.Equal(SyntaxKind.DisableKeyword, node.DisableOrRestoreKeyword.Kind());
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
+            Assert.Equal(new bool(), node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithNonNullKeyword(node.NonNullKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
         #endregion Red Factory and Property Tests
@@ -17930,6 +17994,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestShebangDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateShebangDirectiveTrivia();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestNonNullDirectiveTriviaTokenDeleteRewriter()
+        {
+            var oldNode = GenerateNonNullDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestNonNullDirectiveTriviaIdentityRewriter()
+        {
+            var oldNode = GenerateNonNullDirectiveTrivia();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
