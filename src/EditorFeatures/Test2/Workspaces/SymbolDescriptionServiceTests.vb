@@ -581,6 +581,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Function
 
         <Fact>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Option Strict On
+            Class Goo
+                Dim x = Nothin$$g
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, "Class System.Object")
+        End Function
+
+        <Fact>
         Public Async Function TestTrueKeyword() As Task
             Dim workspace =
 <Workspace>
