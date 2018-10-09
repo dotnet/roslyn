@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal class FormattingDiagnosticAnalyzer
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public FormattingDiagnosticAnalyzer()
             : base(

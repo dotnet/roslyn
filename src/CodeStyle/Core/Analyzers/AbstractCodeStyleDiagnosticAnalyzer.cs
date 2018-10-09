@@ -62,12 +62,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessageFormat,
-                WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry);
+                DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get;
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
             => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags);
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             return new DiagnosticDescriptor(
                 id, title, messageFormat,
-                CodeStyleResources.Style,
+                DiagnosticCategory.Style,
                 DiagnosticSeverity.Hidden,
                 isEnabledByDefault: true,
                 customTags: customTags);
