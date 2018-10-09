@@ -508,7 +508,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestBasicAsync(workspace, "Structure System.DateTime")
         End Function
 
-        ''' Design change from Dev10
         <Fact>
         Public Async Function TestNothingLiteral() As Task
             Dim workspace =
@@ -523,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "")
+            Await TestBasicAsync(workspace, "Class System.Object")
         End Function
 
         <Fact>
