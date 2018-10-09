@@ -46,7 +46,7 @@ param (
     # Special test options
     [switch]$testDeterminism = $false,
 
-    [parameter(ValueFromRemainingArguments=$true)][String[]]$properties)
+    [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
