@@ -141,14 +141,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 _lazyPendingMemberSymbolsMapOpt = _lazyPendingMemberSymbolsMapOpt ?? new Dictionary<ISymbol, HashSet<ISymbol>>();
 
                                 // Guard against entry added from another thread.
-                                if (!_lazyPendingMemberSymbolsMapOpt.ContainsKey(symbol))
-                                {
-                                    _lazyPendingMemberSymbolsMapOpt.Add(symbol, dependentSymbols);
-                                }
-                                else
-                                {
-                                    Debug.Assert(dependentSymbols.SetEquals(_lazyPendingMemberSymbolsMapOpt[symbol]));
-                                }
+                                Debug.Assert(!_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols) ||
+                                    dependentSymbols.SetEquals(existingDependentSymbols));
+                                _lazyPendingMemberSymbolsMapOpt[symbol] = dependentSymbols;
                             }
                         }
 
