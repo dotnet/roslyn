@@ -1,18 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class FixAllContextHelper
     {
-        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            FixAllContext fixAllContext,
+            IProgressTracker progressTrackerOpt,
+            Func<Document, CancellationToken, bool> isGeneratedCode)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
+
             var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
             var projectsToFix = ImmutableArray<Project>.Empty;
 
@@ -22,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
-                    if (document != null)
+                    if (document != null && !isGeneratedCode(document, cancellationToken))
                     {
                         var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                         return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty.SetItem(document, documentDiagnostics);
@@ -32,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
                 case FixAllScope.Project:
                     projectsToFix = ImmutableArray.Create(project);
-                    allDiagnostics = await GetAllDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
+                    allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                     break;
 
                 case FixAllScope.Solution:
@@ -40,22 +47,29 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                         .Where(p => p.Language == project.Language)
                         .ToImmutableArray();
 
-                    var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
+                    progressTrackerOpt?.AddItems(projectsToFix.Length);
+
+                    var diagnostics = new ConcurrentBag<Diagnostic>();
                     var tasks = new Task[projectsToFix.Length];
                     for (var i = 0; i < projectsToFix.Length; i++)
                     {
-                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                        cancellationToken.ThrowIfCancellationRequested();
                         var projectToFix = projectsToFix[i];
-                        tasks[i] = Task.Run(
-                            async () =>
+                        tasks[i] = Task.Run(async () =>
+                        {
+                            var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
+                            foreach (var diagnostic in projectDiagnostics)
                             {
-                                var projectDiagnostics = await GetAllDiagnosticsAsync(fixAllContext, projectToFix).ConfigureAwait(false);
-                                diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
-                            }, fixAllContext.CancellationToken);
+                                cancellationToken.ThrowIfCancellationRequested();
+                                diagnostics.Add(diagnostic);
+                            }
+
+                            progressTrackerOpt?.ItemCompleted();
+                        }, cancellationToken);
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
-                    allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value.Where(x => fixAllContext.DiagnosticIds.Contains(x.Id))));
+                    allDiagnostics = allDiagnostics.AddRange(diagnostics);
                     break;
             }
 
@@ -64,20 +78,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
             }
 
-            return await GetDocumentDiagnosticsToFixAsync(allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Gets all <see cref="Diagnostic"/> instances within a specific <see cref="Project"/> which are relevant to a
-        /// <see cref="FixAllContext"/>.
-        /// </summary>
-        /// <param name="fixAllContext">The context for the Fix All operation.</param>
-        /// <param name="project">The project.</param>
-        /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous operation. When the task completes
-        /// successfully, the <see cref="Task{TResult}.Result"/> will contain the requested diagnostics.</returns>
-        private static async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(FixAllContext fixAllContext, Project project)
-        {
-            return await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+            return await GetDocumentDiagnosticsToFixAsync(
+                allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(

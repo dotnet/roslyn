@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
         {
-            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null, (document, cancellationToken) => false).ConfigureAwait(false);
             if (!documentDiagnosticsToFix.TryGetValue(fixAllContext.Document, out var diagnostics))
             {
                 return fixAllContext.Document;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext, ImmutableArray<Document> documents)
         {
-            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null, (document, cancellationToken) => false).ConfigureAwait(false);
 
             var solution = fixAllContext.Solution;
             var newDocuments = new List<Task<SyntaxNode>>(documents.Length);
