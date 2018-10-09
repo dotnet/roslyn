@@ -353,7 +353,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             GetAnalyzerExecutionContext(analyzer).MarkSymbolEndAnalysisComplete(symbol);
         }
 
-        [Conditional("DEBUG")]
+        // https://github.com/dotnet/roslyn/issues/30309 tracks enabling the below debug verification.
+        [Conditional("DEBUG_30309")]
         public void VerifyAllSymbolEndActionsExecuted()
         {
             foreach (var analyzerExecutionContext in _analyzerExecutionContextMap.Values)
