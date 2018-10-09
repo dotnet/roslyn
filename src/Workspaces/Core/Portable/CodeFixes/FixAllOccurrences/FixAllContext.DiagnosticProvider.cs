@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -70,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     switch (fixAllContext.Scope)
                     {
                         case FixAllScope.Document:
-                            if (document != null && !document.IsGeneratedCode(cancellationToken))
+                            if (document != null)
                             {
                                 var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                                 var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(document, documentDiagnostics));
@@ -138,11 +135,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var document = documentAndDiagnostics.Key;
-                    if (!document.IsGeneratedCode(cancellationToken))
-                    {
-                        var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
-                        builder.Add(document, diagnosticsForDocument);
-                    }
+                    var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
+                    builder.Add(document, diagnosticsForDocument);
                 }
 
                 return builder.ToImmutable();
