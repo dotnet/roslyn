@@ -1548,8 +1548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">foreach requiere que el tipo de valor devuelto '{0}' de '{1}' tenga un método MoveNext público y una propiedad Current pública adecuados</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="needs-review-translation">foreach requiere que el tipo de valor devuelto '{0}' de '{1}' tenga un método MoveNext público y una propiedad Current pública adecuados</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -4266,8 +4266,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'{0}' no tiene ningún método Main estático adecuado</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="needs-review-translation">'{0}' no tiene ningún método Main estático adecuado</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -5969,8 +5969,8 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'await' requiere que el tipo {0} tenga un método GetAwaiter adecuado</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="needs-review-translation">'await' requiere que el tipo {0} tenga un método GetAwaiter adecuado</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5979,13 +5979,13 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'await' requiere que el tipo de valor devuelto '{0}' de '{1}.GetAwaiter()' tenga unos miembros IsCompleted, OnCompleted y GetResult adecuados, e implemente INotifyCompletion o ICriticalNotifyCompletion</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="needs-review-translation">'await' requiere que el tipo de valor devuelto '{0}' de '{1}.GetAwaiter()' tenga unos miembros IsCompleted, OnCompleted y GetResult adecuados, e implemente INotifyCompletion o ICriticalNotifyCompletion</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'await' requiere que el tipo '{0}' tenga un método GetAwaiter adecuado. ¿Falta alguna directiva using para 'System'?</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="needs-review-translation">'await' requiere que el tipo '{0}' tenga un método GetAwaiter adecuado. ¿Falta alguna directiva using para 'System'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -8325,8 +8325,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">No se encontró ninguna instancia de deconstrucción o método de extensión adecuado para el tipo "{0}", con {1} parámetros out y un tipo de valor devuelto void.</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="needs-review-translation">No se encontró ninguna instancia de deconstrucción o método de extensión adecuado para el tipo "{0}", con {1} parámetros out y un tipo de valor devuelto void.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8810,8 +8810,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</source>
-        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</target>
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">

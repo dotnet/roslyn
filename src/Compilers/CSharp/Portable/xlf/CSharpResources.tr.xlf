@@ -1548,8 +1548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">foreach, '{1}' öğesinin '{0}' döndürme türünde uygun bir ortak MoveNext yönteminin veya ortak Current özelliğinin olmasını gerektirir</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="needs-review-translation">foreach, '{1}' öğesinin '{0}' döndürme türünde uygun bir ortak MoveNext yönteminin veya ortak Current özelliğinin olmasını gerektirir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -4266,8 +4266,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'{0}' uygun bir statik Main yöntemine sahip değil</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="needs-review-translation">'{0}' uygun bir statik Main yöntemine sahip değil</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -5969,8 +5969,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'await' {0} türünün uygun bir GetAwaiter yöntemi olmasını gerektirir</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="needs-review-translation">'await' {0} türünün uygun bir GetAwaiter yöntemi olmasını gerektirir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5979,13 +5979,13 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'await', '{1}.GetAwaiter()' öğesinin '{0}' dönüş türünün uygun IsCompleted, OnCompleted ve GetResult üyeleri olmasını ve INotifyCompletion veya ICriticalNotifyCompletion uygulanmasını gerektirir.</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="needs-review-translation">'await', '{1}.GetAwaiter()' öğesinin '{0}' dönüş türünün uygun IsCompleted, OnCompleted ve GetResult üyeleri olmasını ve INotifyCompletion veya ICriticalNotifyCompletion uygulanmasını gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'await' '{0}' türünün uygun bir GetAwaiter yöntemi olmasını gerektirir. 'System' için using yönergesi eksik olabilir mi?</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="needs-review-translation">'await' '{0}' türünün uygun bir GetAwaiter yöntemi olmasını gerektirir. 'System' için using yönergesi eksik olabilir mi?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -8339,8 +8339,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">{0}' türü için {1} out parametresi ve void dönüş türü içeren uygun Deconstruct örneği veya genişletme metodu bulunamadı.</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="needs-review-translation">{0}' türü için {1} out parametresi ve void dönüş türü içeren uygun Deconstruct örneği veya genişletme metodu bulunamadı.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8824,8 +8824,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</source>
-        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</target>
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">

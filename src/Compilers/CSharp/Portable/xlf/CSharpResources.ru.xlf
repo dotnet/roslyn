@@ -1548,8 +1548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">Оператор foreach требует, чтобы возвращаемый тип "{0}" для "{1}" имел соответствующий открытый метод MoveNext и открытое свойство Current.</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="needs-review-translation">Оператор foreach требует, чтобы возвращаемый тип "{0}" для "{1}" имел соответствующий открытый метод MoveNext и открытое свойство Current.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -4266,8 +4266,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'{0}" не имеет подходящего статического метода Main.</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="needs-review-translation">'{0}" не имеет подходящего статического метода Main.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -5969,8 +5969,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'Для применения оператора "await" у типа {0} должен быть подходящий метод GetAwaiter.</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="needs-review-translation">'Для применения оператора "await" у типа {0} должен быть подходящий метод GetAwaiter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5979,13 +5979,13 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'Для использования оператора "Await" необходимо, чтобы у возвращаемого типа "{0}" метода "{1}.GetAwaiter()" были соответствующие члены IsCompleted, OnCompleted и GetResult и чтобы этот тип реализовывал интерфейс INotifyCompletion или ICriticalNotifyCompletion.</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="needs-review-translation">'Для использования оператора "Await" необходимо, чтобы у возвращаемого типа "{0}" метода "{1}.GetAwaiter()" были соответствующие члены IsCompleted, OnCompleted и GetResult и чтобы этот тип реализовывал интерфейс INotifyCompletion или ICriticalNotifyCompletion.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'Для применения оператора "await" у типа "{0}" должен быть подходящий метод GetAwaiter. Возможно отсутствует директива using для "System".</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="needs-review-translation">'Для применения оператора "await" у типа "{0}" должен быть подходящий метод GetAwaiter. Возможно отсутствует директива using для "System".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -8333,8 +8333,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">Для типа "{0}" не найден подходящий экземпляр деконструкции или метод расширения с типом возвращаемого значения void и следующим числом параметров out: {1}.</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="needs-review-translation">Для типа "{0}" не найден подходящий экземпляр деконструкции или метод расширения с типом возвращаемого значения void и следующим числом параметров out: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8818,8 +8818,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</source>
-        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</target>
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">

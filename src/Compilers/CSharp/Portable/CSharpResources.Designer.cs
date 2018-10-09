@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the type {0} have a suitable GetAwaiter method.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the type {0} have a suitable &apos;GetAwaiter&apos; method.
         /// </summary>
         internal static string ERR_BadAwaitArg {
             get {
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the type &apos;{0}&apos; have a suitable GetAwaiter method. Are you missing a using directive for &apos;System&apos;?.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the type &apos;{0}&apos; have a suitable &apos;GetAwaiter&apos; method. Are you missing a using directive for &apos;System&apos;?.
         /// </summary>
         internal static string ERR_BadAwaitArg_NeedSystem {
             get {
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the return type &apos;{0}&apos; of &apos;{1}.GetAwaiter()&apos; have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the return type &apos;{0}&apos; of &apos;{1}.GetAwaiter()&apos; have suitable &apos;IsCompleted&apos;, &apos;OnCompleted&apos;, and &apos;GetResult&apos; members, and implement &apos;INotifyCompletion&apos; or &apos;ICriticalNotifyCompletion&apos;.
         /// </summary>
         internal static string ERR_BadAwaiterPattern {
             get {
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public MoveNextAsync method and public Current property.
+        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNextAsync&apos; method and public &apos;Current&apos; property.
         /// </summary>
         internal static string ERR_BadGetAsyncEnumerator {
             get {
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public MoveNext method and public Current property.
+        ///   Looks up a localized string similar to foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNext&apos; method and public &apos;Current&apos; property.
         /// </summary>
         internal static string ERR_BadGetEnumerator {
             get {
@@ -6569,7 +6569,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No suitable Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
+        ///   Looks up a localized string similar to No suitable &apos;Deconstruct&apos; instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
         /// </summary>
         internal static string ERR_MissingDeconstruct {
             get {
@@ -7199,7 +7199,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a suitable static Main method.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a suitable static &apos;Main&apos; method.
         /// </summary>
         internal static string ERR_NoMainInClass {
             get {

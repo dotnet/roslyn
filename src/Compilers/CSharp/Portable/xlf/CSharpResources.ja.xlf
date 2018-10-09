@@ -1548,8 +1548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">foreach では、戻り値の型 '{1}' の '{0}' に適切なパブリック MoveNext メソッドおよびパブリック Current プロパティが含まれている必要があります。</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="needs-review-translation">foreach では、戻り値の型 '{1}' の '{0}' に適切なパブリック MoveNext メソッドおよびパブリック Current プロパティが含まれている必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -4266,8 +4266,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'{0}' は適切な静的 Main メソッドを含んでいません。</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="needs-review-translation">'{0}' は適切な静的 Main メソッドを含んでいません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -5969,8 +5969,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'await' では、型 {0} に適切な GetAwaiter メソッドがあることが必要です</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="needs-review-translation">'await' では、型 {0} に適切な GetAwaiter メソッドがあることが必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5979,13 +5979,13 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'await' では、'{1}.GetAwaiter()' の戻り値の型 '{0}' に適切な IsCompleted、OnCompleted、GetResult メンバーがあり、INotifyCompletion または ICriticalNotifyCompletion を実装する必要があります。</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="needs-review-translation">'await' では、'{1}.GetAwaiter()' の戻り値の型 '{0}' に適切な IsCompleted、OnCompleted、GetResult メンバーがあり、INotifyCompletion または ICriticalNotifyCompletion を実装する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'await' では、型 '{0}' に適切な GetAwaiter メソッドが必要です。'System' に使用中のディレクティブは指定されていますか?</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="needs-review-translation">'await' では、型 '{0}' に適切な GetAwaiter メソッドが必要です。'System' に使用中のディレクティブは指定されていますか?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -8351,8 +8351,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">{1} out パラメーターと void 戻り値の型を持つ、型 '{0}' の適切な分解インスタンスまたは拡張メソッドが見つかりませんでした。</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="needs-review-translation">{1} out パラメーターと void 戻り値の型を持つ、型 '{0}' の適切な分解インスタンスまたは拡張メソッドが見つかりませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8836,8 +8836,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</source>
-        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNextAsync method and public Current property</target>
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
