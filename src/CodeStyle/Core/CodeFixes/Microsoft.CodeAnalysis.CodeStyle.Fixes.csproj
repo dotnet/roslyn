@@ -9,6 +9,7 @@
     <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Features\Core\Portable\CodeFixes\PredefinedCodeFixProviderNames.cs" Link="PredefinedCodeFixProviderNames.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Utilities\IProgressTracker.cs" Link="IProgressTracker.cs" />
   </ItemGroup>
   <ItemGroup>

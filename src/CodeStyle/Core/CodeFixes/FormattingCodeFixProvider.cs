@@ -8,11 +8,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "FixFormatting")]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.FixFormatting)]
     [Shared]
     internal class FormattingCodeFixProvider : CodeFixProvider
     {
@@ -31,28 +30,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         CodeStyleFixesResources.Formatting_analyzer_code_fix,
-                        c => FixOneAsync(context.Document, diagnostic, c),
+                        c => FormattingCodeFixHelper.FixOneAsync(context.Document, diagnostic, c),
                         nameof(FormattingCodeFixProvider)),
                     diagnostic);
             }
 
             return Task.CompletedTask;
-        }
-
-        protected async Task<Document> FixOneAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            // The span to format is the full line(s) containing the diagnostic
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-            var diagnosticLinePositionSpan = text.Lines.GetLinePositionSpan(diagnosticSpan);
-            var spanToFormat = TextSpan.FromBounds(
-                text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
-                text.Lines[diagnosticLinePositionSpan.End.Line].End);
-
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await Formatter.FormatAsync(document, spanToFormat, options, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
