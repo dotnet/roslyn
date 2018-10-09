@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal interface IAddImportFeatureService : ILanguageService
     {
         Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
         Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
-            Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics,
+            Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 

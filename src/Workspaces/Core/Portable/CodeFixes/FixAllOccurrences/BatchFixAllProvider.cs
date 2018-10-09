@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             var currentChanges = await differenceService.GetTextChangesAsync(
-                oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                oldDocument, newDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
             {

@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.AddImport
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
-        private const int MaxResults = 3;
-
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -80,13 +78,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             return await GetFixesInCurrentProcessAsync(
-                document, span, diagnosticId, placeSystemNamespaceFirst,
+                document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
                 symbolSearchService, searchReferenceAssemblies,
                 packageSources, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
-            Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         {
                             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
-                                document, semanticModel, diagnosticId, node, symbolSearchService,
+                                document, semanticModel, diagnosticId, node, maxResults, symbolSearchService,
                                 searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
 
                             // Nothing found at all. No need to proceed.
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
-            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, ISymbolSearchService symbolSearchService,
+            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, int maxResults, ISymbolSearchService symbolSearchService,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             // Caches so we don't produce the same data multiple times while searching 
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 searchReferenceAssemblies, packageSources, cancellationToken);
 
             // Look for exact matches first:
-            var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (exactReferences.Length > 0)
             {
                 return exactReferences;
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return ImmutableArray<Reference>.Empty;
             }
 
-            var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, maxResults, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             return fuzzyReferences;
         }
 
@@ -170,14 +168,14 @@ namespace Microsoft.CodeAnalysis.AddImport
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
-            Project project, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+            Project project, int maxResults, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             var allReferences = ArrayBuilder<Reference>.GetInstance();
 
             // First search the current project to see if any symbols (source or metadata) match the 
             // search string.
             await FindResultsInAllSymbolsInStartingProjectAsync(
-                allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+                allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
             // Only bother doing this for host workspaces.  We don't want this for 
             // things like the Interactive workspace as we can't even add project
@@ -187,10 +185,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 // Now search unreferenced projects, and see if they have any source symbols that match
                 // the search string.
-                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+                await FindResultsInUnreferencedProjectSourceSymbolsAsync(projectToAssembly, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
                 // Finally, check and see if we have any metadata symbols that match the search string.
-                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, finder, exact, cancellationToken).ConfigureAwait(false);
+                await FindResultsInUnreferencedMetadataSymbolsAsync(referenceToCompilation, project, allReferences, maxResults, finder, exact, cancellationToken).ConfigureAwait(false);
 
                 // We only support searching NuGet in an exact manner currently. 
                 if (exact)
@@ -203,20 +201,21 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder,
+            ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
-            AddRange(allSymbolReferences, references);
+            AddRange(allSymbolReferences, references, maxResults);
         }
 
         private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-            Project project, ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
+            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults, 
+            SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
             // in any unreferenced projects.
-            if (allSymbolReferences.Count >= MaxResults)
+            if (allSymbolReferences.Count >= maxResults)
             {
                 return;
             }
@@ -241,14 +240,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                         projectToAssembly, unreferencedProject, exact, linkedTokenSource.Token));
                 }
 
-                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+                await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task FindResultsInUnreferencedMetadataSymbolsAsync(
             ConcurrentDictionary<PortableExecutableReference, Compilation> referenceToCompilation,
-            Project project, ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, bool exact,
-            CancellationToken cancellationToken)
+            Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
+            bool exact, CancellationToken cancellationToken)
         {
             if (allSymbolReferences.Count > 0)
             {
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     }
                 }
 
-                await WaitForTasksAsync(allSymbolReferences, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
+                await WaitForTasksAsync(allSymbolReferences, maxResults, findTasks, nestedTokenSource, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -325,6 +324,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private async Task WaitForTasksAsync(
             ArrayBuilder<Reference> allSymbolReferences,
+            int maxResults,
             HashSet<Task<ImmutableArray<SymbolReference>>> findTasks,
             CancellationTokenSource nestedTokenSource,
             CancellationToken cancellationToken)
@@ -341,10 +341,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     findTasks.Remove(doneTask);
 
                     // Add its results to the final result set we're keeping.
-                    AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false));
+                    AddRange(allSymbolReferences, await doneTask.ConfigureAwait(false), maxResults);
 
                     // Once we get enough, just stop.
-                    if (allSymbolReferences.Count >= MaxResults)
+                    if (allSymbolReferences.Count >= maxResults)
                     {
                         return;
                     }
@@ -429,10 +429,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             return viableProjects;
         }
 
-        private void AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences)
+        private void AddRange<TReference>(ArrayBuilder<Reference> allSymbolReferences, ImmutableArray<TReference> proposedReferences, int maxResults)
             where TReference : Reference
         {
-            allSymbolReferences.AddRange(proposedReferences.Take(MaxResults - allSymbolReferences.Count));
+            allSymbolReferences.AddRange(proposedReferences.Take(maxResults - allSymbolReferences.Count));
         }
 
         protected bool IsViableExtensionMethod(IMethodSymbol method, ITypeSymbol receiver)
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
-            Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics,
+            Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -487,8 +487,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             foreach (var diagnostic in diagnostics)
             {
                 var fixes = await GetFixesAsync(
-                    document, span, diagnostic.Id, placeSystemNamespaceFirst,
-                    symbolSearchService, searchReferenceAssemblies,
+                    document, span, diagnostic.Id, maxResultsPerDiagnostic, 
+                    placeSystemNamespaceFirst, symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 fixesForDiagnosticBuilder.Add((diagnostic, fixes));

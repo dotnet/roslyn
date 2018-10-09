@@ -62,11 +62,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var packageSources = ImmutableArray<PackageSource>.Empty;
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
+            // We only need to recieve 2 results back per diagnostic to determine that the fix is ambiguous.
             var getFixesForDiagnosticsTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => addImportService
                     .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
-                        symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
+                        maxResultsPerDiagnostic: 2, symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
 
             var fixes = ArrayBuilder<AddImportFixData>.GetInstance();
             foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
@@ -128,11 +129,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             newProject = newProject.AddMetadataReferences(allAddedMetaDataReferences);
             newProject = newProject.AddProjectReferences(allAddedProjectReferences);
 
-            // Although it doesn't affect the location the changes are inserted at,
-            // new imports should be alphabetized.
-            var orderedTextChanges = allTextChanges.OrderBy(change => change.NewText);
+            // Only consider insertion changes to reduce the chance of producing a
+            // badly merged final document. Alphabetize the new imports, this will not
+            // change the insertion point but will give a more correct result. The user
+            // may still need to use organize imports afterwards.
+            var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
+                .OrderBy(change => change.NewText);
+
             var text = await document.GetTextAsync(cancellationToken);
-            var newText = text.WithChanges(orderedTextChanges);
+            var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
 
             return newDocument;
@@ -149,8 +154,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
             var newDocument = newSolution.GetDocument(document.Id);
 
+            // Use Line differencing to reduce the possibility of changes that overwrite existing code.
             var textChanges = await textDiffingService.GetTextChangesAsync(
-                document, newDocument, cancellationToken).ConfigureAwait(false);
+                document, newDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
             var projectChanges = newDocument.Project.GetChanges(document.Project);
 
             return (projectChanges, textChanges);
