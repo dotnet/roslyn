@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
                     progressTrackerOpt?.AddItems(projectsToFix.Length);
 
-                    var diagnostics = new ConcurrentBag<Diagnostic>();
+                    var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
                     var tasks = new Task[projectsToFix.Length];
                     for (var i = 0; i < projectsToFix.Length; i++)
                     {
@@ -58,18 +58,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                         tasks[i] = Task.Run(async () =>
                         {
                             var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
-                            foreach (var diagnostic in projectDiagnostics)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                diagnostics.Add(diagnostic);
-                            }
-
+                            diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
                             progressTrackerOpt?.ItemCompleted();
                         }, cancellationToken);
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
-                    allDiagnostics = allDiagnostics.AddRange(diagnostics);
+                    allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
                     break;
             }
 
