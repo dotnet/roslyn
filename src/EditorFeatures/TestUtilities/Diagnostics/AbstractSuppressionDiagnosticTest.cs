@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 

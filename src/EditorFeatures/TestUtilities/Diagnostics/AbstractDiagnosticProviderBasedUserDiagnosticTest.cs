@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
-            TestWorkspace workspace, TestParameters parameters)
+            TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
 
@@ -143,8 +143,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-            return await GetDiagnosticAndFixesAsync(
+            var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
                 dxs, provider, fixer, testDriver, document, span, annotation, parameters.index);
+            if (!fixableDiagnosticsOnly)
+            {
+                resultDiagnostics = diagnostics;
+            }
+
+            return (resultDiagnostics, codeActions, actionToInvoke);
         }
 
         protected async Task TestDiagnosticInfoAsync(

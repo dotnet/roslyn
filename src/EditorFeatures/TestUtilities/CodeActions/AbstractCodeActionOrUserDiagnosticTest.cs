@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task TestDiagnosticMissingAsync(
-            string initialMarkup, TestParameters parameters = default)
+            string initialMarkup, TestParameters parameters = default, bool fixableDiagnosticsOnly = true)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
+                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters, fixableDiagnosticsOnly);
                 Assert.Equal(0, diagnostics.Length);
             }
         }
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace, TestParameters parameters);
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
-            TestWorkspace workspace, TestParameters parameters);
+            TestWorkspace workspace, TestParameters parameters, bool fixableDiagnosticsOnly);
 
         protected Task TestSmartTagTextAsync(string initialMarkup, string displayText, int index)
             => TestSmartTagTextAsync(initialMarkup, displayText, new TestParameters(index: index));
