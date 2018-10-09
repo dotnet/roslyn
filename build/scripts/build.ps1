@@ -121,12 +121,16 @@ function Process-Arguments() {
     $script:test32 = -not $test64
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true, [switch]$warnAsError = $true) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$configuration ";
+    $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
+
+    if ($warnAsError) {
+        $args += " /warnaserror"
+    }
 
     if ($summary) {
         $args += " /consoleloggerparameters:Verbosity=minimal;summary"
@@ -252,7 +256,8 @@ function Build-Artifacts() {
     }
 
     if ($cibuild) {
-        Run-MSBuild "build\Targets\RepoToolset\Publish.proj" "/t:Publish"
+        # Symbol Uploader currently reports a warning for some files (https://github.com/dotnet/symstore/issues/76)
+        Run-MSBuild "build\Targets\RepoToolset\Publish.proj" "/t:Publish" -warnAsError:$false
     }
 }
 
