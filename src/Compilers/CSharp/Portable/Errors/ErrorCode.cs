@@ -1585,14 +1585,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
         WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
 
-        // PROTOTYPE(async-streams) Compact error IDs
-        ERR_NoConvToIAsyncDisp = 9000,
-        ERR_AsyncForEachMissingMember = 9001,
-        ERR_BadGetAsyncEnumerator = 9002,
-        ERR_MultipleIAsyncEnumOfT = 9003,
-        ERR_ForEachMissingMemberWrongAsync = 9004,
-        ERR_AsyncForEachMissingMemberWrongAsync = 9005,
-        ERR_BadDynamicAsyncForEach = 9006,
+        ERR_NoConvToIAsyncDisp = 8410,
+        ERR_AsyncForEachMissingMember = 8411,
+        ERR_BadGetAsyncEnumerator = 8412,
+        ERR_MultipleIAsyncEnumOfT = 8413,
+        ERR_ForEachMissingMemberWrongAsync = 8414,
+        ERR_AsyncForEachMissingMemberWrongAsync = 8415,
+        ERR_BadDynamicAsyncForEach = 8416,
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)

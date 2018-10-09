@@ -1079,8 +1079,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult lookupResult = LookupResult.GetInstance();
             try
             {
-                // PROTOTYPE(async-streams): Test the subtelties in the rest of this method in async case
-
                 // If we searched for the accessor directly, we could reuse FindForEachPatternMethod and we
                 // wouldn't have to mangle CurrentPropertyName.  However, Dev10 searches for the property and
                 // then extracts the accessor, so we should do the same (in case of accessors with non-standard
