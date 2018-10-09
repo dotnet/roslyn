@@ -73,6 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            Debug.Assert(baseDirectory Is Nothing OrElse PathUtilities.IsAbsolute(baseDirectory))
+
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
