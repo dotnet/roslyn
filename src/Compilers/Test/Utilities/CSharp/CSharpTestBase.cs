@@ -132,7 +132,6 @@ namespace System.Runtime.CompilerServices
             return $"#pragma warning restore {(int)ErrorCode.WRN_PragmaNonNullTypes}";
         }
 
-
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
