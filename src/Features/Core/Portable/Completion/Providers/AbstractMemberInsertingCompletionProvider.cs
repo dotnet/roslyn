@@ -15,7 +15,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractMemberInsertingCompletionProvider : CommonCompletionProvider, IFeaturesCustomCommitCompletionProvider
+    internal abstract partial class AbstractMemberInsertingCompletionProvider : CommonCompletionProvider
     {
         private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
         private readonly SyntaxAnnotation _otherAnnotation = new SyntaxAnnotation();

@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         /// We will be able to cancel later in TryCommit based on VSCompletionItem item, e.g. based on CompletionItemRules.
         /// </summary>
         public bool ShouldCommitCompletion(
-            IAsyncCompletionSession session, 
-            SnapshotPoint location, 
-            char typedChar, 
+            IAsyncCompletionSession session,
+            SnapshotPoint location,
+            char typedChar,
             CancellationToken cancellationToken)
             => s_commitChars.Contains(typedChar);
 
         public AsyncCompletionData.CommitResult TryCommit(
-            IAsyncCompletionSession session, 
+            IAsyncCompletionSession session,
             ITextBuffer subjectBuffer,
-            VSCompletionItem item, 
-            char typeChar, 
+            VSCompletionItem item,
+            char typeChar,
             CancellationToken cancellationToken)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -76,26 +76,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            if (completionService.GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider featuresCustomCommitCompletionProvider)
+            var provider = completionService.GetProvider(roslynItem);
+            if (provider != null && item.Properties.TryGetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot, out var triggerSnapshot))
             {
                 // Custom commit provider assumes that null is provided is case of invoke. VS provides '\0' in the case.
                 char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
-                var commitBehavior = CustomCommit(document, featuresCustomCommitCompletionProvider, session.TextView, 
-                    subjectBuffer, roslynItem, session.ApplicableToSpan, commitChar, cancellationToken);
+                var commitBehavior = Commit(document, provider, session.TextView, subjectBuffer, roslynItem, commitChar, triggerSnapshot, cancellationToken);
 
                 return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
             }
 
-            // TODO Remove language specific code: https://github.com/dotnet/roslyn/issues/30276
-            if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
-            {
-                return new AsyncCompletionData.CommitResult(isHandled: false, 
-                    AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
-            }
-
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new AsyncCompletionData.CommitResult(isHandled: false, 
+                return new AsyncCompletionData.CommitResult(isHandled: false,
                     AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
@@ -141,14 +134,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return s_commitChars.Contains(typeChar);
         }
 
-        private AsyncCompletionData.CommitBehavior CustomCommit(
+        private AsyncCompletionData.CommitBehavior Commit(
             Document document,
-            IFeaturesCustomCommitCompletionProvider provider,
+            CompletionProvider provider,
             ITextView view,
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
-            ITrackingSpan applicableSpan,
             char? commitCharacter,
+            ITextSnapshot triggerSnapshot,
             CancellationToken cancellationToken)
         {
             bool includesCommitCharacter;
@@ -167,25 +160,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             using (var edit = subjectBuffer.CreateEdit())
             {
-                var currentViewSpan = applicableSpan.GetSpan(applicableSpan.TextBuffer.CurrentSnapshot);
-                var spans = view.BufferGraph.MapDownToBuffer(currentViewSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
-
-                // There can be no spans in case of projections but must be less than 2 spans.
-                // 1 span is a regular case.
-                // 0 spans means the a span is in anoter projection.
-                // We do not expect more than 1 span, and do not support this case.
-                System.Diagnostics.Debug.Assert(spans.Count < 2);
-                if (spans.Any())
-                {
-                    var currentBufferSpan = spans[0].TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-                    edit.Delete(currentBufferSpan);
-                }
-
                 var change = provider.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                // Note that we use here a snapshot created in GetCompletionContextAsync. Be sure it is up-to-date.
-                // TODO: add a telemetry event if delete and replace spans overloap: https://github.com/dotnet/roslyn/issues/30277
-                edit.Replace(change.TextChange.Span.ToSpan(), change.TextChange.NewText);
+                var textChange = change.TextChange;
+
+                var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
+                var mappedSpan = triggerSnapshotSpan.TranslateTo(
+                    subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                edit.Replace(mappedSpan.Span, change.TextChange.NewText);
                 edit.Apply();
 
                 if (change.NewPosition.HasValue)
@@ -196,9 +179,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 includesCommitCharacter = change.IncludesCommitCharacter;
             }
 
-            return includesCommitCharacter
-                ? AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers 
-                : AsyncCompletionData.CommitBehavior.None;
+            if (includesCommitCharacter) return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+
+            // TODO Remove language specific code: https://github.com/dotnet/roslyn/issues/30276
+            if (commitCharacter == '\n' && document.Project.Language == LanguageNames.VisualBasic) return AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers;
+            return AsyncCompletionData.CommitBehavior.None;
         }
     }
 }

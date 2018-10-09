@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             return TryGetRoslynTrigger(trigger, characterRemoved, out roslynTrigger);
         }
+
         internal static bool TryGetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, char c, out RoslynTrigger roslynTrigger)
         {
             switch (trigger.Reason)

@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
         Inherits AbstractKeywordCompletionProvider(Of VisualBasicSyntaxContext)
-        Implements IFeaturesCustomCommitCompletionProvider
 
         Public Sub New()
             MyBase.New(GetKeywordRecommenders())
@@ -190,10 +189,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
             Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
-        End Function
-
-        Private Function IFeaturesCustomCommitCompletionProvider_GetChangeAsync(document As Document, item As CompletionItem, Optional commitKey As Char? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
-            Return MyBase.GetChangeAsync(document, item, commitKey, cancellationToken)
         End Function
     End Class
 End Namespace

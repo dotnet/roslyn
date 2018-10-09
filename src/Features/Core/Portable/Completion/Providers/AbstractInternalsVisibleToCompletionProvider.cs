@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider, IFeaturesCustomCommitCompletionProvider
+    internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 

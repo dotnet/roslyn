@@ -232,8 +232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None)
-            Return displayText.All(Function(v) items.Items.Any(
-                                       Function(i) i.DisplayText = v))
+            Return displayText.All(Function(v) items.Items.Any(Function(i) i.DisplayText = v))
         End Function
 
         Public Overrides Function CompletionItemsContainsAny(displayText As String()) As Boolean

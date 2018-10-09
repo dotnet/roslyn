@@ -4201,31 +4201,8 @@ public class Program
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Modern)> ' New test: improves the behavior comparing with the legacy implementation
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMRUKeepsTwoRecentlyUsedItems(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>
-class C
-{
-    public double Ma(double m) => m;
-
-    public void Test()
-    {    
-        $$
-    }
-}
-                              </Document>)
-
-                state.SendTypeChars("M(M(M(M(")
-                Await state.AssertNoCompletionSession()
-                Assert.Equal("        Ma(m:(Ma(m:(", state.GetLineTextFromCaretPosition())
-            End Using
-        End Function
-
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
-            Implements IFeaturesCustomCommitCompletionProvider
 
             Private _text As String
             Private _caretPosition As Integer
@@ -4247,10 +4224,6 @@ class C
             End Function
 
             Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
-                Return IFeaturesCustomCommitCompletionProvider_GetChangeAsync(document, item, commitKey, cancellationToken)
-            End Function
-
-            Private Function IFeaturesCustomCommitCompletionProvider_GetChangeAsync(document As Document, item As CompletionItem, Optional commitKey As Char? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of CompletionChange) Implements IFeaturesCustomCommitCompletionProvider.GetChangeAsync
                 Dim newText =
 "using NewUsing;
 using System;

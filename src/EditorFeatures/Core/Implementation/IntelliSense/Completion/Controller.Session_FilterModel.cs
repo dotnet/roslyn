@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return true;
             }
 
-            private  bool IsHardSelection(
+            private bool IsHardSelection(
                 Model model,
                 CompletionItem bestFilterMatch,
                 SnapshotPoint caretPosition,
