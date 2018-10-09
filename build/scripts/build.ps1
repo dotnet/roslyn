@@ -252,7 +252,7 @@ function Build-Artifacts() {
     }
 
     if ($cibuild) {
-        Run-MSBuild "build\RepoToolset\Publish.proj" "/t:Publish"
+        Run-MSBuild "build\Targets\RepoToolset\Publish.proj" "/t:Publish"
     }
 }
 
