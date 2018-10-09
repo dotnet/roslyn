@@ -77,7 +77,7 @@ try
 }
 finally
 {
-    // clean up e
+    await e.DisposeAsync();
 }
 ```
 

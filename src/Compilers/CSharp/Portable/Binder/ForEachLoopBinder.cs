@@ -730,13 +730,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isAsync && IsIEnumerable(collectionExprType))
             {
                 // This indicates a problem with the special IEnumerable type - it should have satisfied the GetEnumerator pattern.
-                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType, isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
                 return EnumeratorResult.FailedAndReported;
             }
             if (isAsync && IsIAsyncEnumerable(collectionExprType))
             {
                 // This indicates a problem with the well-known IAsyncEnumerable type - it should have satisfied the GetAsyncEnumerator pattern.
-                diagnostics.Add(ErrorCode.ERR_AsyncForEachMissingMember, _syntax.Expression.Location, collectionExprType, isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_AsyncForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetAsyncEnumeratorMethodName);
                 return EnumeratorResult.FailedAndReported;
             }
 
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
-                    BadMoveNextMethod(moveNextMethodCandidate, isAsync))
+                    IsInvalidMoveNextMethod(moveNextMethodCandidate, isAsync))
                 {
                     return false;
                 }
@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool BadMoveNextMethod(MethodSymbol moveNextMethodCandidate, bool isAsync)
+        private bool IsInvalidMoveNextMethod(MethodSymbol moveNextMethodCandidate, bool isAsync)
         {
             if (isAsync)
             {

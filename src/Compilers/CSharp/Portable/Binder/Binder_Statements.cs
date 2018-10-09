@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckRequiredLangVersionForAsyncIteratorMethods(DiagnosticBag diagnostics)
         {
-            var symbol = this.ContainingMemberOrLambda as MethodSymbol;
-            if (symbol.IsAsync)
+            var method = (MethodSymbol)this.ContainingMemberOrLambda;
+            if (method.IsAsync)
             {
-                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, symbol.Locations[0]);
+                MessageID.IDS_FeatureAsyncStreams.CheckFeatureAvailability(availableVersion: Compilation.LanguageVersion, diagnostics, method.Locations[0]);
             }
         }
 
