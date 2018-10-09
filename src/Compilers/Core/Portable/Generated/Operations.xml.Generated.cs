@@ -6991,37 +6991,79 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
-    /// <summary>
-    /// PROTOTYPE: shouldn't this file be generated (and be partial)?
-    /// Represents an operation with two optional index operands that produce a range.
-    /// PROTOTYPE: operands should be lazily materialized
-    /// </summary>
-    internal sealed class RangeOperation : Operation, IRangeOperation
+    internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
-        public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand) :
+        protected BaseFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
+                    base(OperationKind.FromEndIndex, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
+        {
+            IsLifted = isLifted;
+            Symbol = symbol;
+        }
+
+        public abstract IOperation Operand { get; }
+        public bool IsLifted { get; }
+        public IMethodSymbol Symbol { get; }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                IOperation operand = Operand;
+                if (operand != null)
+                {
+                    yield return operand;
+                }
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitFromEndIndexOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFromEndIndexOperation(this, argument);
+        }
+    }
+
+    internal sealed class FromEndIndexOperation : BaseFromEndIndexOperation
+    {
+        public FromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            Operand = Operation.SetParentOperation(operand, this);
+        }
+
+        public override IOperation Operand { get; }
+    }
+
+    internal sealed class LazyFromEndIndexOperation : BaseFromEndIndexOperation
+    {
+        private Lazy<IOperation> _operand;
+
+        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Lazy<IOperation> operand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            _operand = new Lazy<IOperation>(() => Operation.SetParentOperation(operand.Value, this));
+        }
+
+        public override IOperation Operand => this._operand.Value;
+    }
+
+    internal abstract class BaseRangeOperation : Operation, IRangeOperation
+    {
+        protected BaseRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) :
                     base(OperationKind.Range, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
         {
             IsLifted = isLifted;
-            LeftOperand = Operation.SetParentOperation(leftOperand, this);
-            RightOperand = Operation.SetParentOperation(rightOperand, this);
+            Method = symbol;
         }
 
-        /// <summary>
-        /// Left operand.
-        /// </summary>
-        public IOperation LeftOperand { get; }
-        /// <summary>
-        /// Right operand.
-        /// </summary>
-        public IOperation RightOperand { get; }
-
-        /// <summary>
-        /// <code>true</code> if this is a 'lifted' range operation.  When there is an 
-        /// operator that is defined to work on a value type, 'lifted' operators are 
-        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
-        /// value types.
-        /// </summary>
+        public abstract IOperation LeftOperand { get; }
+        public abstract IOperation RightOperand { get; }
         public bool IsLifted { get; }
+        public IMethodSymbol Method { get; }
 
         public sealed override IEnumerable<IOperation> Children
         {
@@ -7050,5 +7092,34 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitRangeOperation(this, argument);
         }
+    }
+
+    internal sealed class RangeOperation : BaseRangeOperation
+    {
+        public RangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation leftOperand, IOperation rightOperand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            LeftOperand = Operation.SetParentOperation(leftOperand, this);
+            RightOperand = Operation.SetParentOperation(rightOperand, this);
+        }
+
+        public override IOperation LeftOperand { get; }
+        public override IOperation RightOperand { get; }
+    }
+
+    internal sealed class LazyRangeOperation : BaseRangeOperation
+    {
+        private Lazy<IOperation> _leftOperand;
+        private Lazy<IOperation> _rightOperand;
+
+        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, IMethodSymbol symbol) :
+                    base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+        {
+            _leftOperand = new Lazy<IOperation>(() => Operation.SetParentOperation(leftOperand.Value, this));
+            _rightOperand = new Lazy<IOperation>(() => Operation.SetParentOperation(rightOperand.Value, this));
+        }
+
+        public override IOperation LeftOperand => this._leftOperand.Value;
+        public override IOperation RightOperand => this._rightOperand.Value;
     }
 }

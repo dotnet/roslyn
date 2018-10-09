@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -205,11 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // No built-in operator true or operator false
                     ImmutableArray<UnaryOperatorSignature>.Empty,
                     ImmutableArray<UnaryOperatorSignature>.Empty,
-                    GetSignaturesFromUnaryOperatorKinds(new []
-                    {
-                        (int)UnaryOperatorKind.IntIndex,
-                        (int)UnaryOperatorKind.LiftedIntIndex,
-                    }),
                 };
 
                 Interlocked.CompareExchange(ref _builtInUnaryOperators, allOperators, null);
@@ -239,18 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw ExceptionUtilities.UnexpectedValue(kind.OperandTypes());
             }
 
-            TypeSymbol returnType = kind.Operator() == UnaryOperatorKind.Index ? _compilation.GetWellKnownType(WellKnownType.System_Index) : opType;
-
             if (kind.IsLifted())
             {
-                // PROTOTYPE: check if  type is nonnullable struct, and if it can be used here. report accourdingly. (this change will be undone anyways)
-                NamedTypeSymbol nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
-
-                opType = nullable.Construct(opType);
-                returnType = nullable.Construct(returnType);
+                opType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(opType);
             }
 
-            return new UnaryOperatorSignature(kind, opType, returnType);
+            return new UnaryOperatorSignature(kind, opType, opType);
         }
 
         // PERF: Use int instead of BinaryOperatorKind so the compiler can use array literal initialization.

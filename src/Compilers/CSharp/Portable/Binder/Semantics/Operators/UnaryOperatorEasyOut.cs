@@ -42,58 +42,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
             private static readonly UnaryOperatorKind[] s_increment =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  CHR,  I08,  I16,  I32,  I64,  U08,  U16,  U32,  U64,  R32,  R64,  DEC,
-                /* lifted: */ ERR,  LCHR, LI08, LI16, LI32, LI64, LU08, LU16, LU32, LU64, LR32, LR64, LDEC };
+                //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
+                { ERR, ERR, ERR, CHR,  I08,  I16,  I32,  I64,  U08,  U16,  U32,  U64,  R32,  R64,  DEC,
+               /* lifted */ ERR, LCHR, LI08, LI16, LI32, LI64, LU08, LU16, LU32, LU64, LR32, LR64, LDEC };
 
             private static readonly UnaryOperatorKind[] s_plus =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  I32,  I32,  I32,  I32,  I64,  I32,  I32,  U32,  U64,  R32,  R64,  DEC,
-                /* lifted: */ ERR,  LI32, LI32, LI32, LI32, LI64, LI32, LI32, LU32, LU64, LR32, LR64, LDEC };
+                //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
+                { ERR, ERR, ERR, I32,  I32,  I32,  I32,  I64,  I32,  I32,  U32,  U64,  R32,  R64,  DEC,
+               /* lifted */ ERR, LI32, LI32, LI32, LI32, LI64, LI32, LI32, LU32, LU64, LR32, LR64, LDEC };
 
             private static readonly UnaryOperatorKind[] s_minus =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  I32,  I32,  I32,  I32,  I64,  I32,  I32,  I64,  ERR,  R32,  R64,  DEC,
-                /* lifted: */ ERR,  LI32, LI32, LI32, LI32, LI64, LI32, LI32, LI64, ERR,  LR32, LR64, LDEC };
+                //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
+                { ERR, ERR, ERR, I32,  I32,  I32,  I32,  I64,  I32,  I32,  I64,  ERR,  R32,  R64,  DEC,
+               /* lifted */ ERR, LI32, LI32, LI32, LI32, LI64, LI32, LI32, LI64, ERR,  LR32, LR64, LDEC };
 
             private static readonly UnaryOperatorKind[] s_logicalNegation =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  BOL,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,
-                /* lifted: */ LBOL, ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR };
+                //obj  str  bool  chr  i08  i16  i32  i64  u08  u16  u32  u64  r32  r64  dec  
+                { ERR, ERR, BOL,  ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR,
+               /* lifted */ LBOL, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR, ERR };
 
             private static readonly UnaryOperatorKind[] s_bitwiseComplement =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  I32,  I32,  I32,  I32,  I64,  I32,  I32,  U32,  U64,  ERR,  ERR,  ERR,
-                /* lifted: */ ERR,  LI32, LI32, LI32, LI32, LI64, LI32, LI32, LU32, LU64, ERR,  ERR,  ERR  };
-
-            private static readonly UnaryOperatorKind[] s_true =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,
-                /* lifted: */ ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR  };
-
-            private static readonly UnaryOperatorKind[] s_false =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,
-                /* lifted: */ ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR  };
-
-            private static readonly UnaryOperatorKind[] s_index =
-                //obj   str   bool  chr   i08   i16   i32   i64   u08   u16   u32   u64   r32   r64   dec  
-                { ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  I32,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,
-                /* lifted: */ ERR,  ERR,  ERR,  ERR,  LI32, ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR,  ERR  };
+                //obj  str  bool chr   i08   i16   i32   i64   u08   u16   u32   u64   r32  r64  dec  
+                { ERR, ERR, ERR, I32,  I32,  I32,  I32,  I64,  I32,  I32,  U32,  U64,  ERR, ERR, ERR,
+               /* lifted */ ERR, LI32, LI32, LI32, LI32, LI64, LI32, LI32, LU32, LU64, ERR, ERR, ERR  };
 
             private static readonly UnaryOperatorKind[][] s_opkind =
             {
-                /* ++    */ s_increment,
-                /* --    */ s_increment,
-                /* ++    */ s_increment,
-                /* --    */ s_increment,
-                /* +     */ s_plus,
-                /* -     */ s_minus,
-                /* !     */ s_logicalNegation,
-                /* ~     */ s_bitwiseComplement,
-                /* true  */ s_true,
-                /* false */ s_false,
-                /* ^     */ s_index,
+                /* ++ */  s_increment,
+                /* -- */  s_increment,
+                /* ++ */  s_increment,
+                /* -- */  s_increment,
+                /* +  */  s_plus,
+                /* -  */  s_minus,
+                /* !  */  s_logicalNegation,
+                /* ~  */  s_bitwiseComplement
             };
 
             // UNDONE: This code is repeated in a bunch of places.

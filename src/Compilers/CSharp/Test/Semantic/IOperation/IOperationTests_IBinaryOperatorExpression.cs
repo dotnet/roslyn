@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -7911,7 +7912,8 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7935,12 +7937,13 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..^1')
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   RightOperand: 
-    IUnaryOperation (UnaryOperatorKind.Index) (OperationKind.UnaryOperator, Type: System.Index) (Syntax: '^1')
+    IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^1')
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7967,7 +7970,8 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -7994,7 +7998,8 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '1..')
     null
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8018,7 +8023,8 @@ IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '..')
     null
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.All()", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8048,7 +8054,8 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
         IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8072,12 +8079,13 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
       Operand: 
         IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'start')
   RightOperand: 
-    IUnaryOperation (UnaryOperatorKind.Index, IsLifted) (OperationKind.UnaryOperator, Type: System.Index?) (Syntax: '^end')
+    IFromEndIndexOperation (IsLifted) (OperationKind.FromEndIndex, Type: System.Index?) (Syntax: '^end')
       Operand: 
         IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8104,7 +8112,8 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
         IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", operation.Method.ToTestDisplayString());
         }
 
         [Fact]
@@ -8131,7 +8140,8 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?) (Syntax: '
     null
 ";
 
-            VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            var operation = (IRangeOperation)VerifyOperationTreeForTest<RangeExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", operation.Method.ToTestDisplayString());
         }
     }
 }

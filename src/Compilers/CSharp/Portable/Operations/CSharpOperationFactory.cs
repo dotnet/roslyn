@@ -253,6 +253,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
+                case BoundKind.FromEndIndexExpression:
+                    return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
 
@@ -2056,17 +2058,29 @@ namespace Microsoft.CodeAnalysis.Operations
                                         isImplicit: boundNode.WasCompilerGenerated);
         }
 
+        private IOperation CreateFromEndIndexExpressionOperation(BoundFromEndIndexExpression boundIndex)
+        {
+            return new LazyFromEndIndexOperation(
+                isLifted: boundIndex.Type.IsNullableType(),
+                isImplicit: boundIndex.WasCompilerGenerated,
+                _semanticModel,
+                boundIndex.Syntax,
+                boundIndex.Type,
+                operand: new Lazy<IOperation>(() => Create(boundIndex.Operand)),
+                symbol: boundIndex.MethodOpt);
+        }
+
         private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
         {
-            bool isLifted = boundRange.Type.IsNullableType();
-            return new RangeOperation(
-                isLifted,
+            return new LazyRangeOperation(
+                isLifted: boundRange.Type.IsNullableType(),
                 isImplicit: boundRange.WasCompilerGenerated,
                 _semanticModel,
                 boundRange.Syntax,
                 boundRange.Type,
-                leftOperand: Create(boundRange.LeftOperand),
-                rightOperand: Create(boundRange.RightOperand));
+                leftOperand: new Lazy<IOperation>(() => Create(boundRange.LeftOperand)),
+                rightOperand: new Lazy<IOperation>(() => Create(boundRange.RightOperand)),
+                symbol: boundRange.MethodOpt);
         }
     }
 }

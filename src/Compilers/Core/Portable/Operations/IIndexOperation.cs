@@ -3,29 +3,24 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a range operation.
+    /// Represents a from end index operation.
     /// <para>
     /// Current Usage:
-    ///  (1) C# range expressions
+    ///  (1) C# from end index expressions
     /// </para>
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to change it in the future.
     /// </remarks>
-    public interface IRangeOperation : IOperation
+    public interface IFromEndIndexOperation : IOperation
     {
         /// <summary>
-        /// Left operand.
+        /// The operand.
         /// </summary>
-        IOperation LeftOperand { get; }
+        IOperation Operand { get; }
 
         /// <summary>
-        /// Right operand.
-        /// </summary>
-        IOperation RightOperand { get; }
-
-        /// <summary>
-        /// <code>true</code> if this is a 'lifted' range operation.  When there is an 
+        /// <code>true</code> if this is a 'lifted' from end index operation.  When there is an 
         /// operator that is defined to work on a value type, 'lifted' operators are 
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.
@@ -33,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsLifted { get; }
 
         /// <summary>
-        /// Factory method used to create this Range value. Can be null if appropriate
-        /// symbol was not found.
+        /// Constructor symbol that's called to create this Index value.
+        /// Can be null if appropriate symbol was not found.
         /// </summary>
-        IMethodSymbol Method { get; }
+        IMethodSymbol Symbol { get; }
     }
 }

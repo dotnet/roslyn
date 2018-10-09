@@ -206,6 +206,8 @@ namespace Microsoft.CodeAnalysis
         FlowAnonymousFunction = 0x60,
         /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
         Range = 0x61,
+        /// <summary>Indicates an <see cref="IFromEndIndexOperation"/>.</summary>
+        FromEndIndex = 0x62,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

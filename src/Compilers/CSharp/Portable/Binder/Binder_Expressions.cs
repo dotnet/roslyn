@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.IndexExpression:
-                    return BindIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    return BindFromEndIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.RangeExpression:
                     return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
@@ -1886,22 +1886,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
         }
 
-        private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindFromEndIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE: move this check to parser?
+            Debug.Assert(node.OperatorToken.IsKind(SyntaxKind.CaretToken));
+
             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
 
-            GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
+            // Used in lowering as the second argument to the constructor. Example: new Index(value, fromEnd: true)
+            GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
 
-            return BindUnaryOperator(node, diagnostics);
+            BoundExpression boundOperand = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+
+            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
+            {
+                // Used in lowering to construct the nullable
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                if (!indexType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, node, nullableType, nullableType.TypeParameters.Single(), indexType);
+                }
+
+                intType = nullableType.Construct(intType);
+                indexType = nullableType.Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, intType, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, node, conversion, boundOperand, intType);
+            }
+
+            BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
+            MethodSymbol symbolOpt = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
+
+            return new BoundFromEndIndexExpression(node, boundConversion, symbolOpt, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
 
             TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
+            MethodSymbol symbolOpt = null;
 
             if (!rangeType.IsErrorType())
             {
@@ -1916,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
                 }
 
-                GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node);
+                symbolOpt = GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node) as MethodSymbol;
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
@@ -1924,11 +1957,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
             {
-                // PROTOTYPE: check if range type is nonnullable struct, and if it can be used here. report accordingly.
-                rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
+                // Used in lowering to construct the nullable
+                GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                if (!rangeType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, node, nullableType, nullableType.TypeParameters.Single(), rangeType);
+                }
+
+                rangeType = nullableType.Construct(rangeType);
             }
 
-            return new BoundRangeExpression(node, left, right, rangeType);
+            return new BoundRangeExpression(node, left, right, symbolOpt, rangeType);
         }
 
         private BoundExpression BindRangeExpressionOperand(ExpressionSyntax operand, DiagnosticBag diagnostics)
@@ -1941,10 +1983,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
 
-            if (boundOperand.Type.IsNullableType())
+            if (boundOperand.Type?.IsNullableType() == true)
             {
-                // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accordingly.
-                indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
+                // Used in lowering to construct the nullable
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, operand);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand);
+
+                if (!indexType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, operand, nullableType, nullableType.TypeParameters.Single(), indexType);
+                }
+
+                indexType = nullableType.Construct(indexType);
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -6678,12 +6728,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert(arguments != null);
 
-            BoundExpression prototypeExtensionIndexerAccess = GetPrototypeExtensionIndexerOpt(node, expr, arguments, diagnostics);
-            if (prototypeExtensionIndexerAccess != null)
-            {
-                return prototypeExtensionIndexerAccess;
-            }
-
             // For an array access, the primary-no-array-creation-expression of the element-access
             // must be a value of an array-type. Furthermore, the argument-list of an array access
             // is not allowed to contain named arguments.The number of expressions in the
@@ -6865,77 +6909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        /// <summary>
-        /// PROTOTYPE: remove this method before shipping (this is for demo purposes only)
-        /// </summary>
-        private BoundExpression GetPrototypeExtensionIndexerOpt(ExpressionSyntax syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
-        {
-            // can only have one unnamed argument, with no ref kind.
-            if (analyzedArguments.Arguments.Count != 1
-                || analyzedArguments.Argument(0).Type is null
-                || analyzedArguments.RefKinds.Any()
-                || analyzedArguments.Names.Any())
-            {
-                return null;
-            }
-
-            HashSet<DiagnosticInfo> unused = null;
-            BoundExpression argument = analyzedArguments.Argument(0);
-
-            // argument must be a range or an index
-            if (argument.Type != GetWellKnownType(WellKnownType.System_Index,ref unused)
-                && argument.Type != GetWellKnownType(WellKnownType.System_Range, ref unused))
-            {
-                return null;
-            }
-
-            // receiver must be a string, a span, or an array
-            if (!receiver.Type.IsStringType()
-                && !receiver.Type.IsArray()
-                && receiver.Type.ConstructedFrom() != GetWellKnownType(WellKnownType.System_Span_T, ref unused))
-            {
-                return null;
-            }
-
-            const string methodName = "get_IndexerExtension";
-
-            var resolution = BindExtensionMethod(syntax, methodName, analyzedArguments, receiver, typeArguments: default, isMethodGroupConversion: false, returnRefKind: RefKind.None, returnType: null);
-            if (resolution.IsExtensionMethodGroup && resolution.OverloadResolutionResult.Succeeded)
-            {
-                MethodSymbol method = resolution.OverloadResolutionResult.BestResult.Member;
-
-                if (method.Arity == 0 && method.Parameters.All(p => p.RefKind == RefKind.None))
-                {
-                    diagnostics.AddRange(resolution.Diagnostics);
-
-                    return new BoundCall(
-                        syntax,
-                        receiver,
-                        method,
-                        arguments: ImmutableArray.Create(receiver, argument),
-                        argumentNamesOpt: default,
-                        argumentRefKindsOpt: default,
-                        isDelegateCall: false,
-                        expanded: false,
-                        invokedAsExtensionMethod: true,
-                        argsToParamsOpt: default,
-                        resultKind: LookupResultKind.Viable,
-                        binderOpt: default,
-                        type: method.ReturnType);
-                }
-            }
-
-            return null;
-        }
-
         private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
-            BoundExpression prototypeExtensionIndexerAccess = GetPrototypeExtensionIndexerOpt(node, expr, analyzedArguments, diagnostics);
-            if (prototypeExtensionIndexerAccess != null)
-            {
-                return prototypeExtensionIndexerAccess;
-            }
-
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
             Debug.Assert((object)expr.Type != null);
