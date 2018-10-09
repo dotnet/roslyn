@@ -16,28 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NullableReferenceTypesTests : CSharpTestBase
     {
-        private static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
-        {
-            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
-                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Error) });
-        }
-
-        private static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
-        {
-            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
-                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Suppress) });
-        }
-
-        private static string NonNullTypesOff()
-        {
-            return $"#pragma warning disable {(int)ErrorCode.WRN_PragmaNonNullTypes}";
-        }
-
-        private static string NonNullTypesOn()
-        {
-            return $"#pragma warning restore {(int)ErrorCode.WRN_PragmaNonNullTypes}";
-        }
-
         [Fact]
         public void Test0()
         {
@@ -91,7 +69,7 @@ class C
 }
 ";
 
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             c.VerifyDiagnostics();
         }
 
@@ -115,7 +93,7 @@ class C
 }
 ";
 
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
                 //             o.ToString(); // 1
@@ -143,7 +121,7 @@ class C
 }
 ";
 
-            var c = CreateCompilation(new[] { source, NonNullTypesTrue }, parseOptions: TestOptions.Regular8);
+            var c = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             c.VerifyDiagnostics(
                 // (12,13): warning CS8602: Possible dereference of a null reference.
                 //             t.ToString(); // 1
@@ -32893,7 +32871,7 @@ class P
     }
 }
 ";
-            var comp = CreateCompilationWithIL(NonNullTypesTrue, il);
+            var comp = CreateCompilationWithIL("[module: System.Runtime.CompilerServices.NonNullTypes(true)]", il);
             comp.VerifyDiagnostics(
                 // (1,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: System.Runtime.CompilerServices.NonNullTypes(true)]

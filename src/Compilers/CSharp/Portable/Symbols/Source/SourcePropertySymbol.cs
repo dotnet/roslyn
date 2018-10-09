@@ -1536,7 +1536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
                 return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
             }
         }
