@@ -145,9 +145,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             {
                 if (expectedSourceOriginal != null)
                 {
-                    Assert.True(workspace.Documents.Count == 1 || 
-                        workspace.Documents.Count == 2 && expectedSourceReference != null);
-
                     var originalDocument = workspace.Documents.Single(doc => !doc.SelectedSpans.IsEmpty());
                     var originalDocumentId = originalDocument.Id;
 
@@ -164,9 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     Assert.True(expectedSourceReference == null || changedDocumentIds.Contains(refDocumentId), "reference document was not changed.");
 
                     var modifiedOriginalDocument = newSolution.GetDocument(originalDocumentId);
-                    var text = await modifiedOriginalDocument.GetTextAsync();
-                    var fullstring = (await modifiedOriginalDocument.GetSyntaxRootAsync()).ToFullString();
-                    Assert.Equal(expectedSourceOriginal, (await modifiedOriginalDocument.GetTextAsync()).ToString());
+                    var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
+                    Assert.Equal(expectedSourceOriginal, actualText);
 
                     if (expectedSourceReference != null)
                     {

@@ -119,6 +119,30 @@ namespace [||]NS1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task NoAction_InvalidNamespaceIdentifier()
+        {
+            var folders = new[] { "A", "B" };
+            var documentPath = CreateDocumentFilePath(folders);
+
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace="""" CommonReferences=""true"">
+        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+namespace [||]
+{{
+    class Class1
+    {{
+    }}
+}}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task NoAction_MatchingNamespace_InGlobalNamespace()
         {
             var folders = Array.Empty<string>();
