@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var members = symbol.GetMembers().WhereAsArray(m => !IsInvalidCompletionMethodKind(m));
+                var members = symbol.GetMembers();
 
                 // We're going to create a entry for each one, including the signature
                 var namePosition = name.SpanStart;
@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
+                    if (IsInvalidCompletionMethodKind(member))
+                    {
+                        continue;
+                    }
+
                     var displayText = member.ToMinimalDisplayString(
                         semanticModel, namePosition, s_signatureDisplayFormat);
                     var insertionText = displayText;
@@ -117,10 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsInvalidCompletionMethodKind(ISymbol symbol)
         {
-            if (symbol.Kind is SymbolKind.Method)
+            if (symbol is IMethodSymbol)
             {
-                var methodSymbol = symbol as IMethodSymbol;
-                return s_invalidCodeCompletionMethodKind.Contains(methodSymbol.MethodKind);
+                return s_invalidCodeCompletionMethodKind.Contains(((IMethodSymbol)symbol).MethodKind);
             }
 
             return false;

@@ -102,7 +102,6 @@ class Bar : IGoo
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(19947, "https://github.com/dotnet/roslyn/issues/19947")]
-        [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
         public async Task ExplicitInterfaceMemberCompletionContainsOnlyValidValues()
         {
             var markup = @"
@@ -115,7 +114,6 @@ interface I2 : I1
 {
     void Goo2();
     int Prop { get; }
-    event EventHandler TestEvent;
 }
 
 class Bar : I2
@@ -128,11 +126,34 @@ class Bar : I2
             await VerifyItemIsAbsentAsync(markup, "GetHashCode()");
             await VerifyItemIsAbsentAsync(markup, "GetType()");
             await VerifyItemIsAbsentAsync(markup, "ToString()");
+
+            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Prop");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(26595, "https://github.com/dotnet/roslyn/issues/26595")]
+        public async Task ExplicitInterfaceMemberCompletionDoesNotContainAccessors()
+        {
+            var markup = @"
+
+interface I1
+{
+    void Foo();
+    int Prop { get; }
+    event EventHandler TestEvent;
+}
+
+class Bar : I1
+{
+     void I1.$$
+}";
+
             await VerifyItemIsAbsentAsync(markup, "Prop.get");
             await VerifyItemIsAbsentAsync(markup, "TestEvent.add");
             await VerifyItemIsAbsentAsync(markup, "TestEvent.remove");
 
-            await VerifyItemExistsAsync(markup, "Goo2()");
+            await VerifyItemExistsAsync(markup, "Foo()");
             await VerifyItemExistsAsync(markup, "Prop");
             await VerifyItemExistsAsync(markup, "TestEvent");
         }
