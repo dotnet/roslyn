@@ -37,7 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundExpression rangeCreation = MakeCall(node.Syntax, rewrittenReceiver: null, node.MethodOpt, operands, node.MethodOpt.ReturnType);
+                BoundExpression rangeCreation = MakeCall(
+                    node.Syntax,
+                    rewrittenReceiver: null,
+                    node.MethodOpt,
+                    operands,
+                    node.MethodOpt.ReturnType.TypeSymbol);
 
                 if (node.Type.IsNullableType())
                 {
@@ -116,7 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(condition != null);
 
             // method(left.GetValueOrDefault(), right.GetValueOrDefault())
-            BoundExpression rangeCall = MakeCall(node.Syntax, rewrittenReceiver: null, node.MethodOpt, arguments.ToImmutableArray(), node.MethodOpt.ReturnType);
+            BoundExpression rangeCall = MakeCall(
+                node.Syntax,
+                rewrittenReceiver: null,
+                node.MethodOpt,
+                arguments.ToImmutableArray(),
+                node.MethodOpt.ReturnType.TypeSymbol);
 
             if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {

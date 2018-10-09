@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a constructed named type symbol if 'type' is generic, otherwise just returns 'type'
         /// </summary>
-        public static NamedTypeSymbol ConstructIfGeneric(this NamedTypeSymbol type, ImmutableArray<TypeWithModifiers> typeArguments)
+        public static NamedTypeSymbol ConstructIfGeneric(this NamedTypeSymbol type, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             Debug.Assert(type.TypeParameters.IsEmpty == (typeArguments.Length == 0));
             return type.TypeParameters.IsEmpty ? type : type.Construct(typeArguments, unbound: false);
@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var item = array[i];
                 if ((object)item != null && item.Kind == kind)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool Any(this ImmutableArray<TypeSymbolWithAnnotations> array, SymbolKind kind)
+        {
+            for (int i = 0, n = array.Length; i < n; i++)
+            {
+                var item = array[i];
+                if (!item.IsNull && item.Kind == kind)
                 {
                     return true;
                 }
@@ -86,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
+        }
+
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbolWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }
@@ -346,23 +364,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return csSymbol;
         }
 
-        internal static ImmutableArray<TypeSymbol> ToTypes(this ImmutableArray<TypeWithModifiers> typesWithModifiers, out bool hasModifiers)
-        {
-            hasModifiers = typesWithModifiers.Any(a => !a.CustomModifiers.IsDefaultOrEmpty);
-            return typesWithModifiers.SelectAsArray(a => a.Type);
-        }
-
-        internal static TypeSymbol GetTypeOrReturnType(this Symbol symbol)
+        internal static TypeSymbolWithAnnotations GetTypeOrReturnType(this Symbol symbol)
         {
             RefKind refKind;
-            TypeSymbol returnType;
+            TypeSymbolWithAnnotations returnType;
             ImmutableArray<CustomModifier> customModifiers_Ignored;
-            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored, out customModifiers_Ignored);
+            GetTypeOrReturnType(symbol, out refKind, out returnType, out customModifiers_Ignored);
             return returnType;
         }
 
-        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbol returnType, 
-                                                 out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+        internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeSymbolWithAnnotations returnType,
                                                  out ImmutableArray<CustomModifier> refCustomModifiers)
         {
             switch (symbol.Kind)
@@ -371,36 +382,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     FieldSymbol field = (FieldSymbol)symbol;
                     refKind = RefKind.None;
                     returnType = field.Type;
-                    returnTypeCustomModifiers = field.CustomModifiers;
                     refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)symbol;
                     refKind = method.RefKind;
                     returnType = method.ReturnType;
-                    returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
                     refCustomModifiers = method.RefCustomModifiers;
                     break;
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)symbol;
                     refKind = property.RefKind;
                     returnType = property.Type;
-                    returnTypeCustomModifiers = property.TypeCustomModifiers;
                     refCustomModifiers = property.RefCustomModifiers;
                     break;
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)symbol;
                     refKind = RefKind.None;
                     returnType = @event.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 case SymbolKind.Local:
                     LocalSymbol local = (LocalSymbol)symbol;
                     refKind = local.RefKind;
                     returnType = local.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Parameter:
+                    ParameterSymbol parameter = (ParameterSymbol)symbol;
+                    refKind = parameter.RefKind;
+                    returnType = parameter.Type;
+                    refCustomModifiers = parameter.RefCustomModifiers;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);

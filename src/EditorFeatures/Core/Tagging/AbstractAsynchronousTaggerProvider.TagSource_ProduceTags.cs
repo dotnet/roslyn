@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (Workspace.TryGetWorkspace(container, out var dummy))
                 {
                     // if the buffer is part of our workspace, it must be the latest.
-                    Contract.Assert(snapshot.Version.Next == null, "should be on latest snapshot");
+                    Debug.Assert(snapshot.Version.Next == null, "should be on latest snapshot");
                 }
             }
 

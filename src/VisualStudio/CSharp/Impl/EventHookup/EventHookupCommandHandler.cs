@@ -44,9 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         [ImportingConstructor]
         public EventHookupCommandHandler(
+            IThreadingContext threadingContext,
             IInlineRenameService inlineRenameService,
             IAsynchronousOperationListenerProvider listenerProvider,
             EventHookupSessionManager eventHookupSessionManager)
+            : base(threadingContext)
         {
             _inlineRenameService = inlineRenameService;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);

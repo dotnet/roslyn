@@ -558,12 +558,13 @@ class C
             var comp = CreateCompilation(@"
 class C
 {
-    public void M<T>(T value) where T : object { }
+    public void M<T>(T value) where T : class, object { }
 }");
             comp.VerifyDiagnostics(
-                // (4,41): error CS0702: Constraint cannot be special class 'object'
-                //     public void M<T>(T value) where T : object { }
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 41));
+                // (4,48): error CS0450: 'object': cannot specify both a constraint class and the 'class' or 'struct' constraint
+                //     public void M<T>(T value) where T : class, object { }
+                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "object").WithArguments("object").WithLocation(4, 48)
+                );
         }
 
         [Fact]
@@ -3751,7 +3752,7 @@ class C<T>
             public int SomeGlobal => 42;
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideMethod()
         {
             var source = @"
@@ -3767,7 +3768,7 @@ void Method()
                 .VerifyEmitDiagnostics();
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/28001")]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CanAccessScriptGlobalsFromInsideLambda()
         {
             var source = @"

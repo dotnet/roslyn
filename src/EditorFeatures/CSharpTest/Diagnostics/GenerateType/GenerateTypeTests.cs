@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5217,9 +5218,9 @@ class C
 
 internal class Class
 {{
-    private global::System.Object method;
+    private System.Object method;
 
-    public Class(global::System.Object method)
+    public Class(System.Object method)
     {{
         this.method = method;
     }}

@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_3:
                     return "7.3";
                 case LanguageVersion.CSharp8:
-                    return "8";
+                    return "8.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _variable = variable;
 
             // Verify all type parameters are substituted.
-            Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.Type));
+            Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.Type.TypeSymbol));
         }
 
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _variable.ContainingSymbol; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
-            get { return _variable.Type; }
+            get { return TypeSymbolWithAnnotations.Create(_variable.Type); }
         }
 
         internal override bool IsPinned

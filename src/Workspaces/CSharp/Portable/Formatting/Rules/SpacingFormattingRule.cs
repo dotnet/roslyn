@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // No space after $" and $@" at the start of an interpolated string
+            // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
                 previousKind == SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 

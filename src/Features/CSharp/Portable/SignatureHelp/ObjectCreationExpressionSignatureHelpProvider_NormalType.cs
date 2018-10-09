@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private IList<SignatureHelpItem> GetNormalTypeConstructors(
+        private (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
             Document document,
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
@@ -31,8 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                                                    .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                                    .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
-            return accessibleConstructors.SelectAsArray(c =>
+            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken);
+            var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
+
+            var items = accessibleConstructors.SelectAsArray(c =>
                 ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
+
+            return (items, selectedItem);
         }
 
         private SignatureHelpItem ConvertNormalTypeConstructor(

@@ -331,7 +331,7 @@ class C
             await TestInRegularAndScript1Async(
 @"class C
 {
-    void M(int arg1, int arg2) 
+    void M(int arg1, int arg2)
         => M(1 [||]+ 2, 2);
 }",
 @"class C

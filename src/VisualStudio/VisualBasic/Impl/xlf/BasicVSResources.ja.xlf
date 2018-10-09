@@ -257,6 +257,11 @@
         <target state="translated">文字が入力された後に入力候補一覧を表示する(_S)</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="new">VB Coding Conventions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' のチェック中:</target>

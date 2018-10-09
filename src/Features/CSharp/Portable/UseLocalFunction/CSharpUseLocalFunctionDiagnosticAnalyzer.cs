@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
-                delegateType.DelegateInvokeMethod == null)
+                delegateType.DelegateInvokeMethod == null || 
+                !CanReplaceDelegateWithLocalFunction(delegateType, localDeclaration, semanticModel, cancellationToken))
             {
                 return;
             }
@@ -365,6 +367,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             localDeclaration = null;
             return false;
+        }
+
+        private static bool CanReplaceDelegateWithLocalFunction(
+            INamedTypeSymbol delegateType, 
+            LocalDeclarationStatementSyntax localDeclaration,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var delegateContainingType = delegateType.ContainingType;
+            if (delegateContainingType is null || !delegateContainingType.IsGenericType)
+            {
+                return true;
+            }
+
+            var delegateTypeParamNames = delegateType.GetAllTypeParameters().Select(p => p.Name).ToImmutableHashSet();
+            var localEnclosingSymbol = semanticModel.GetEnclosingSymbol(localDeclaration.SpanStart, cancellationToken);
+            while (localEnclosingSymbol != null)
+            {
+                if (localEnclosingSymbol.Equals(delegateContainingType))
+                {
+                    return true;
+                }
+
+                var typeParams = localEnclosingSymbol.GetTypeParameters();
+                if (typeParams.Any())
+                {
+                    if (typeParams.Any(p => delegateTypeParamNames.Contains(p.Name)))
+                    {
+                        return false;
+                    }
+                }
+
+                localEnclosingSymbol = localEnclosingSymbol.ContainingType;
+            }
+
+            return true;
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

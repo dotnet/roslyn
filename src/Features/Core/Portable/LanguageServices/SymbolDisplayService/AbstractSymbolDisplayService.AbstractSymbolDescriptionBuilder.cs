@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     miscellaneousOptions:
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new SymbolDisplayFormat(
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 // the tree, a source symbol is defined in, doesn't exist in universe
                 // how this can happen?
-                Contract.Requires(false, "How?");
+                Debug.Assert(false, "How?");
                 return null;
             }
 

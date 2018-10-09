@@ -13,20 +13,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.
         /// </summary>
-        private class LazyToolTip
+        private class LazyToolTip : ForegroundThreadAffinitizedObject
         {
-            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly IThreadingContext _threadingContext;
             private readonly Func<DisposableToolTip> _createToolTip;
             private readonly FrameworkElement _element;
 
             private DisposableToolTip _disposableToolTip;
 
             private LazyToolTip(
+                IThreadingContext threadingContext,
                 FrameworkElement element,
                 Func<DisposableToolTip> createToolTip)
+                : base(threadingContext, assertIsForeground: true)
             {
-                _foregroundObject.AssertIsForeground();
-
+                _threadingContext = threadingContext;
                 _element = element;
                 _createToolTip = createToolTip;
 
@@ -42,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 element.ToolTipClosing += this.OnToolTipClosing;
             }
 
-            public static void AttachTo(FrameworkElement element, Func<DisposableToolTip> createToolTip)
+            public static void AttachTo(FrameworkElement element, IThreadingContext threadingContext, Func<DisposableToolTip> createToolTip)
             {
-                new LazyToolTip(element, createToolTip);
+                new LazyToolTip(threadingContext, element, createToolTip);
             }
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {
-                _foregroundObject.AssertIsForeground();
+                AssertIsForeground();
 
                 Debug.Assert(_element.ToolTip == this);
                 Debug.Assert(_disposableToolTip == null);
@@ -60,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private void OnToolTipClosing(object sender, ToolTipEventArgs e)
             {
-                _foregroundObject.AssertIsForeground();
+                AssertIsForeground();
 
                 Debug.Assert(_disposableToolTip != null);
                 Debug.Assert(_element.ToolTip == _disposableToolTip.ToolTip);
