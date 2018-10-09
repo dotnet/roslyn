@@ -27,7 +27,7 @@ End Class
                 Region("span", "Select (goo) ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSelectBlock2() As Task
             Const code = "
 Class C
@@ -73,7 +73,7 @@ End Class
             Region("span6", "Case Else", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSelectBlock3() As Task
             Const code = "
 Class C

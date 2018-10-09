@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-
     ''' <summary>
     ''' Acts as base class for <see cref="BlockStructureProvider"/>'s that also
     ''' supplies outlinings of the internal structure.
@@ -48,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
 #Region " Implementers"
+
 #Region "  MustOverride"
 
         ''' <summary>
@@ -75,7 +75,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Friend MustOverride Function EndOfBlockStatement(fullBlock As TFullBlock) As TEndOfBlockStatement
 
 #End Region
+
 #Region "  Overridable"
+
         ''' <summary>
         ''' Return the Epilogue of the block structure.
         ''' </summary>
@@ -91,7 +93,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return Nothing
         End Function
 #End Region
+
 #End Region
+
 #Region " Implementation"
         ' Full Block
         ''' <summary>

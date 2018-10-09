@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class CommentTests
         Inherits AbstractSyntaxTriviaStructureProviderTests
+
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
             Return New CommentTriviaStructureProvider()
         End Function

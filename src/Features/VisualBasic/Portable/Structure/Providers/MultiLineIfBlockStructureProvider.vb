@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
-    Friend NotInheritable Class MultiLineIfBlockStructureProvider
+    Friend Class MultiLineIfBlockStructureProvider
         Inherits InternalStructureBlockStructureProvider(Of
             MultiLineIfBlockSyntax,
             IfStatementSyntax,
@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return ifBlock.ElseIfBlocks
         End Function
 
-        Friend Overrides Function InnerBlock_Text([ElseIf] As ElseIfBlockSyntax) As String
-            Return [ElseIf].ElseIfStatement.ToString
+        Friend Overrides Function InnerBlock_Text(elseIfBlock As ElseIfBlockSyntax) As String
+            Return elseIfBlock.ElseIfStatement.ToString
         End Function
 
         Friend Overrides Function Epilogue(ifBlock As MultiLineIfBlockSyntax) As ElseBlockSyntax

@@ -31,7 +31,7 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining), Trait(Traits.Feature, Traits.Features.AdditionalInternalStructureOutlinings)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestSwitchStatement2()
         {
             const string code = @"

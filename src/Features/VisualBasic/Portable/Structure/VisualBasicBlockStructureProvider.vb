@@ -87,7 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim builder = ImmutableDictionary.CreateBuilder(Of Integer, ImmutableArray(Of AbstractSyntaxStructureProvider))()
 
             builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New DisabledTextTriviaStructureProvider()))
-
             builder.Add(SyntaxKind.CommentTrivia, ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New CommentTriviaStructureProvider()))
 
             Return builder.ToImmutable()
