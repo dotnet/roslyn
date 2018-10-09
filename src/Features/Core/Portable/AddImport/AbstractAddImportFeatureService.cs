@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     document.Id,
                     span,
                     diagnosticId,
+                    maxResults,
                     placeSystemNamespaceFirst,
                     searchReferenceAssemblies,
                     packageSources
