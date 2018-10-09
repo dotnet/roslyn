@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 _lazyPendingMemberSymbolsMapOpt = _lazyPendingMemberSymbolsMapOpt ?? new Dictionary<ISymbol, HashSet<ISymbol>>();
 
                                 // Guard against entry added from another thread.
-                                Debug.Assert(!_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols) ||
-                                    dependentSymbols.SetEquals(existingDependentSymbols));
+                                VerifyNewEntryForPendingMemberSymbolsMap(symbol, dependentSymbols);
                                 _lazyPendingMemberSymbolsMapOpt[symbol] = dependentSymbols;
                             }
                         }
@@ -183,6 +182,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 processMembers(typeMember.GetMembers());
                             }
                         }
+                    }
+                }
+            }
+
+            [Conditional("DEBUG")]
+            void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol> dependentSymbols)
+            {
+                if (_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols))
+                {
+                    if (existingDependentSymbols == null)
+                    {
+                        Debug.Assert(dependentSymbols == null);
+                    }
+                    else
+                    {
+                        Debug.Assert(dependentSymbols != null);
+                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols));
                     }
                 }
             }
