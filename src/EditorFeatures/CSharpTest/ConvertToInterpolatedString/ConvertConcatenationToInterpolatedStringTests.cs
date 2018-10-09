@@ -544,42 +544,28 @@ public class C
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestWithSelectionOnEntireToBeInterpolatedString()
+        public async Task TestMissingWithSelectionOnEntireToBeInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
     {
         var v = [|""string"" + 1|];
     }
-}",
-@"public class C
-{
-    void M()
-    {
-        var v = $""string{1}"";
-    }
 }");
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestWithSelectionOnPartOfToBeInterpolatedString()
+        public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"public class C
 {
     void M()
     {
         var v = [|""string"" + 1|] + ""string"";
-    }
-}",
-@"public class C
-{
-    void M()
-    {
-        var v = $""string{1}string"";
     }
 }");
         }

@@ -22,6 +22,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            // Currently only supported if there is no selection, to prevent possible confusion when
+            // selecting part of what would become an interpolated string
+            if (context.Span.Length > 0)
+            {
+                return;
+            }
+
             var cancellationToken = context.CancellationToken;
 
             var document = context.Document;
@@ -32,8 +39,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // The string literal has to at least be contained in a concatenation of some form.
-            // i.e.  "goo" + a      or     a + "goo".  However, those concats could be in larger
+            // The token has to at least be contained in a concatenation of some form.
+            // i.e.  "goo" + a      or    3 + 1 + "goo".  However, those concats could be in larger
             // concats as well.  Walk to the top of that entire chain.
             var literalExpression = token.Parent;
             var top = literalExpression;
