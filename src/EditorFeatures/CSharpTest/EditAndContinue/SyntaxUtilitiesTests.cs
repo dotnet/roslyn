@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
 using SyntaxUtilities = Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxUtilities;
 
@@ -77,7 +78,7 @@ class C
     }
 }
 ").GetRoot();
-            var leftPosition = 121; // 0 within Console.WriteLine(0)
+            var leftPosition = leftRoot.DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(2).SpanStart; // 0 within Console.WriteLine(0)
             var rightRoot = SyntaxFactory.ParseSyntaxTree(@"
 using System;
 
@@ -124,7 +125,7 @@ class C
 }
 ").GetRoot();
 
-            var leftPosition = 226; // 3 within Console.WriteLine(3)
+            var leftPosition = leftRoot.DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(5).SpanStart; // 3 within Console.WriteLine(3)
             var rightRoot = SyntaxFactory.ParseSyntaxTree(@"
 using System;
 

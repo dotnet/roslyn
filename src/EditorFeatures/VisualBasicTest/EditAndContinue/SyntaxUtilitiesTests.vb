@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports SyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
@@ -61,7 +62,7 @@ Class C
     End Sub
 End Class
 ").GetRoot()
-            Dim leftPosition = 103 '0 within Console.WriteLine(0)
+            Dim leftPosition = leftRoot.DescendantNodes().OfType(Of LiteralExpressionSyntax).ElementAt(2).SpanStart '0 within Console.WriteLine(0)
             Dim rightRoot = SyntaxFactory.ParseSyntaxTree("
 Imports System;
 
@@ -102,7 +103,7 @@ Class C
 End Class
 ").GetRoot()
 
-            Dim leftPosition = 205 '3 within Console.WriteLine(3)
+            Dim leftPosition = leftRoot.DescendantNodes().OfType(Of LiteralExpressionSyntax).ElementAt(5).SpanStart '3 within Console.WriteLine(3)
             Dim rightRoot = SyntaxFactory.ParseSyntaxTree("
 Imports System;
 

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             rightNodeOpt = rightRoot;
             while (true)
             {
-                if (rightNodeOpt != null &&  leftNode.RawKind != rightNodeOpt.RawKind)
+                if (rightNodeOpt != null && leftNode.RawKind != rightNodeOpt.RawKind)
                 {
                     rightNodeOpt = null;
                 }
