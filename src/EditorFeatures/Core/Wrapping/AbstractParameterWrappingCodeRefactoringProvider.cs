@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
         protected abstract TListSyntax GetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
-        protected abstract bool PositionIsApplicable(int position, TListSyntax listSyntax);
+        protected abstract bool PositionIsApplicable(
+            SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 return;
             }
 
-            if (!PositionIsApplicable(position, listSyntax))
+            if (!PositionIsApplicable(root, position, declaration, listSyntax))
             {
                 return;
             }

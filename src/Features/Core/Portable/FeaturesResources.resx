@@ -1484,4 +1484,10 @@ This version used in: {2}</value>
   <data name="Unwrap_0" xml:space="preserve">
     <value>Unwrap {0}</value>
   </data>
+  <data name="argument" xml:space="preserve">
+    <value>argument</value>
+  </data>
+  <data name="argument_list" xml:space="preserve">
+    <value>argument list</value>
+  </data>
 </root>

@@ -182,6 +182,16 @@
         <target state="new">Wrap long {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="argument">
+        <source>argument</source>
+        <target state="new">argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="argument_list">
+        <source>argument list</source>
+        <target state="new">argument list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="arguments">
         <source>arguments</source>
         <target state="new">arguments</target>

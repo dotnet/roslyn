@@ -25,10 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
         protected override BaseParameterListSyntax GetApplicableList(SyntaxNode node)
             => CSharpSyntaxGenerator.GetParameterList(node);
 
-        protected override bool PositionIsApplicable(int position, BaseParameterListSyntax listSyntax)
+        protected override bool PositionIsApplicable(
+            SyntaxNode root, int position, SyntaxNode declaration, BaseParameterListSyntax listSyntax)
         {
-            var declaration = listSyntax.Parent;
-
             var generator = CSharpSyntaxGenerator.Instance;
             var attributes = generator.GetAttributes(declaration);
 

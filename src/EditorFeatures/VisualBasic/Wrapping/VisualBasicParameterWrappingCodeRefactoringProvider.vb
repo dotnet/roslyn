@@ -24,8 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping
             Return VisualBasicSyntaxGenerator.GetParameterList(node)
         End Function
 
-        Protected Overrides Function PositionIsApplicable(position As Integer, listSyntax As ParameterListSyntax) As Boolean
-            Dim declaration = listSyntax.Parent
+        Protected Overrides Function PositionIsApplicable(
+                root As SyntaxNode, position As Integer,
+                declaration As SyntaxNode, listSyntax As ParameterListSyntax) As Boolean
 
             Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim attributes = generator.GetAttributes(declaration)

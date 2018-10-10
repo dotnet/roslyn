@@ -567,6 +567,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to argument.
+        /// </summary>
+        internal static string argument {
+            get {
+                return ResourceManager.GetString("argument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string Argument_cannot_be_empty {
@@ -581,6 +590,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Argument_cannot_have_a_null_element {
             get {
                 return ResourceManager.GetString("Argument_cannot_have_a_null_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to argument list.
+        /// </summary>
+        internal static string argument_list {
+            get {
+                return ResourceManager.GetString("argument_list", resourceCulture);
             }
         }
         
