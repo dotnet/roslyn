@@ -4016,6 +4016,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Changing namespace may produce invalid code and change code meaning..
+        /// </summary>
+        internal static string Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" +
+                        "", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Collection may be modified during iteration..
         /// </summary>
         internal static string Warning_colon_Collection_may_be_modified_during_iteration {

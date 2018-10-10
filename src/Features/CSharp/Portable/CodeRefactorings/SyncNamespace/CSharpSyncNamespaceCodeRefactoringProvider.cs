@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -66,10 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 else
                 {
                     var aliasQualifier = GetAliasQualifierOpt(outerMostNode);
-                    var qualifiedNamespaceName = CreateNameSyntax(namespaceParts, aliasQualifier, namespaceParts.Length - 1);
 
-                    // We might lose some trivia associated with nodes within `outerMostNode`.  
-                    @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef).WithTriviaFrom(outerMostNode);
+                    if (namespaceParts.Length == 1 && namespaceParts[0].Length == 0)
+                    {
+                        // If new namespace is "", then name will be declared in global namespace.
+                        // We will replace qualified reference with simple name.
+                        @new = nameRef;
+                    }
+                    else
+                    {
+                        var qualifiedNamespaceName = CreateNameSyntax(namespaceParts, aliasQualifier, namespaceParts.Length - 1);
+                        @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef);
+                    }
+                    // We might lose some trivia associated with children of `outerMostNode`.  
+                    @new = @new.WithTriviaFrom(outerMostNode);
                 } 
                 return true;
             }
@@ -123,13 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
         protected override async Task<(bool, NamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            
-            var namespaceDeclarationCount = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Count();
+            var compilationUnit = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;            
+            var namespaceDeclarationCount = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Count();
 
-            if (namespaceDeclarationCount == 1)
+            if (namespaceDeclarationCount == 1 && compilationUnit.Members.Count == 1)
             {
-                var token = root.FindToken(position);
+                var token = compilationUnit.FindToken(position);
                 if (token.Kind() == SyntaxKind.EndOfFileToken)
                 {
                     token = token.GetPreviousToken();
@@ -139,12 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
                 var shouldTrigger = namespaceDeclaration != null 
                     && namespaceDeclaration.Name.Span.IntersectsWith(position) 
-                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.Severity != DiagnosticSeverity.Error)
+                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error)
                     && !ContainsPartialDeclaration(document, namespaceDeclaration, cancellationToken);
                 return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
             }
 
-            if (namespaceDeclarationCount == 0 && root is CompilationUnitSyntax compilationUnit)
+            if (namespaceDeclarationCount == 0)
             {
                 // Should trigger if cursor is on the name of first member declaration in the 
                 // compilation unit when there's no namespace decalration in the document.
@@ -182,8 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             if (declaredNamespaceParts.Length == 1 && declaredNamespaceParts[0].Length == 0)
             {
                 var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
-                    name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1),
-                    externs: default, usings: default,
+                    name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
+                    .WithAdditionalAnnotations(
+                        WarningAnnotation.Create(FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning)),
+                    externs: default, 
+                    usings: default,
                     members: compilationUnit.Members);
                 return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
                     .WithAdditionalAnnotations(Formatter.Annotation);
@@ -198,7 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 var triviaFromNamespaceDecl = GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDeclaration);
 
                 var members = namespaceDeclaration.Members;
-                var eofToken = compilationUnit.EndOfFileToken;
+                var eofToken = compilationUnit.EndOfFileToken
+                    .WithAdditionalAnnotations(
+                    WarningAnnotation.Create(FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning));
 
                 // Try to preserve trivia from original namesapce declaration.
                 // If there's any member inside the declaration, we attach them to the first and last member,
@@ -231,7 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 return root.ReplaceNode(namespaceDeclaration, 
                     namespaceDeclaration.WithName(
                         CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                        .WithTriviaFrom(namespaceDeclaration.Name)));
+                        .WithTriviaFrom(namespaceDeclaration.Name)
+                        .WithAdditionalAnnotations(
+                            WarningAnnotation.Create(FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning))));
             }
         }
 

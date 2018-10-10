@@ -142,6 +142,11 @@
         <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">универсальная перегрузка</target>

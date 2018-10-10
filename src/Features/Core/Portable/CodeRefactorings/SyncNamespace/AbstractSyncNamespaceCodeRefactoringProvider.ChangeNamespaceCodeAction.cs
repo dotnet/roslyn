@@ -193,6 +193,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     cancellationToken);
 
                 document = await Simplifier.ReduceAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
+
+                // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
+                // just ones that fully matche the old or new namespace.
+                // For example, if we are changing namespace `Foo.Bar` to `A.B`, the using of name `Bar` below would remain 
+                // untouched:
+                //
+                //      namespace Foo
+                //      {
+                //          using Bar;
+                //          ~~~~~~~~~
+                //      }
+                //
                 return await RemoveUnnecessaryImportsAsync(document, ImmutableArray.Create(oldImport, newImport), optionSet, cancellationToken).ConfigureAwait(false);
             }
 

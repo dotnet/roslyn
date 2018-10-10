@@ -50,15 +50,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             return builder.ToImmutableAndFree();
         }
         /// <summary>
-        /// Try to get a replacement node for given node which is a reference to a top-level type declared inside the namespce to be renamed.
-        /// If this reference is the right side of a qualified name, the replacement node returned would be the entire qualified name.
-        /// If <paramref name="namespaceParts"/> is specified, the replacement node will be qualified with given namespace instead.
+        /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespce to be changed.
+        /// If this reference is the right side of a qualified name, the new node returned would be the entire qualified name. Depends on 
+        /// whether <paramref name="newNamespaceParts"/> is provided, the name in the new node might be qualified with this new namespace instead.
         /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be renamed, which is calculated based on results from `SymbolFinder.FindReferencesAsync`.</param>
-        /// <param name="namespaceParts">If specified, the namespace of original reference will be replaced with given namespace in the replacement node.</param>
-        /// <param name="old">The original reference node to be replaced.</param>
+        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated based on results from `SymbolFinder.FindReferencesAsync`.</param>
+        /// <param name="newNamespaceParts">If specified, the namespace of original reference will be replaced with given namespace in the replacement node.</param>
+        /// <param name="old">The node to be replaced. This might be an ancestor of original </param>
         /// <param name="new">The replacement node.</param>
-        abstract protected bool TryGetReplacementSyntax(SyntaxNode reference, ImmutableArray<string> namespaceParts, out SyntaxNode old, out SyntaxNode @new);
+        abstract protected bool TryGetReplacementSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
 
         abstract protected ImmutableArray<ISymbol> GetDeclaredSymbolsInContainer(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 

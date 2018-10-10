@@ -1451,4 +1451,7 @@ This version used in: {2}</value>
   <data name="Change_to_global_namespace" xml:space="preserve">
     <value>Change to global namespace</value>
   </data>
+  <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
+    <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
+  </data>
 </root>
