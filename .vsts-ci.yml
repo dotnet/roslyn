@@ -37,15 +37,13 @@ steps:
     filename: mkdir
     arguments: 'Binaries\$(BuildConfiguration)'
 
-- task: PowerShell@2
+- script: build\scripts\cibuild.cmd
+            -configuration $(BuildConfiguration) -official -testDesktop -procdump
+            /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+            /p:DotNetSignType=$(PB_SignType)
+            /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+            /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
   displayName: Build
-  inputs:
-    filePath: 'build\scripts\cibuild.cmd'
-    arguments: -configuration $(BuildConfiguration) -official -testDesktop -procdump -deployExtensions:$false
-      /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
-      /p:DotNetSignType=$(PB_SignType)
-      /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-      /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
   condition: succeeded()
 
 - task: PowerShell@2

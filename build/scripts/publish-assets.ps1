@@ -143,7 +143,7 @@ function Normalize-BranchName([string]$branchName) {
 }
 
 try {
-    . (Join-Path $PSScriptRoot "..\..\..\build\scripts\build-utils.ps1")
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
     $dotnet = Ensure-DotnetSdk
     $configDir = Join-Path $binariesDir $config
     $nugetDir = Join-Path $configDir "NuGet"
