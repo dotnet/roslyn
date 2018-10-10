@@ -1620,7 +1620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
-        ERR_TripleDotNotAllowed = 8400,
+        ERR_TripleDotNotAllowed = 8635,
 
         #endregion diagnostics introduced for C# 8.0
     }

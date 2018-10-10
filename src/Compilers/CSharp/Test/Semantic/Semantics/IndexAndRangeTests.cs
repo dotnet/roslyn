@@ -201,9 +201,9 @@ class Test
         var x = ^1;
     }
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (6,17): error CS8370: Feature 'index operator' is not available in C# 7.3. Please use language version 8 or greater.
+                // (6,17): error CS8370: Feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var x = ^1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17));
         }
         
         [Fact]
@@ -660,18 +660,18 @@ class Test
         var d = ..;
     }
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (6,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8 or greater.
+                // (6,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var a = 1..2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..2").WithArguments("range operator", "8").WithLocation(6, 17),
-                // (7,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..2").WithArguments("range operator", "8.0").WithLocation(6, 17),
+                // (7,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var b = 1..;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..").WithArguments("range operator", "8").WithLocation(7, 17),
-                // (8,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..").WithArguments("range operator", "8.0").WithLocation(7, 17),
+                // (8,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var c = ..2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..2").WithArguments("range operator", "8").WithLocation(8, 17),
-                // (9,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..2").WithArguments("range operator", "8.0").WithLocation(8, 17),
+                // (9,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var d = ..;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17));
         }
 
         [Fact]
