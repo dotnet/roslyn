@@ -117,6 +117,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                 return indentString;
             }
 
+            private string GetIndentationString(bool indentFirst, bool alignWithFirst)
+            {
+                if (indentFirst)
+                {
+                    return _singleIndentionOpt;
+                }
+
+                if (!alignWithFirst)
+                {
+                    return _singleIndentionOpt;
+                }
+
+                return _afterOpenTokenIndentation;
+            }
+
             private async Task<CodeAction> CreateCodeActionAsync(
                 HashSet<string> seenDocuments, ImmutableArray<TextChange> edits,
                 string parentTitle, string title, CancellationToken cancellationToken)
@@ -190,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                 codeActions.AddIfNotNull(await GetWrapEveryTopLevelCodeActionAsync(
                     seenDocuments, cancellationToken).ConfigureAwait(false));
 
-                codeActions.AddIfNotNull(await GetUnwrapTopLevelCodeActionsAsync(
+                codeActions.AddIfNotNull(await GetUnwrapAllTopLevelCodeActionsAsync(
                     seenDocuments, cancellationToken).ConfigureAwait(false));
 
                 codeActions.AddIfNotNull(await GetWrapLongTopLevelCodeActionAsync(
@@ -198,6 +213,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 
                 return SortActionsByMRU(codeActions.ToImmutableAndFree());
             }
+
+            #region unwrap all
+
+            private async Task<CodeAction> GetUnwrapAllTopLevelCodeActionsAsync(
+                HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            {
+                var unwrapActions = ArrayBuilder<CodeAction>.GetInstance();
+
+                var parentTitle = string.Format(FeaturesResources.Unwrap_0, FeaturesResources.parameter_list);
+
+                // 1. Unwrap:
+                //      MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                //
+                // 2. Unwrap with indent:
+                //      MethodName(
+                //          int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: false, cancellationToken).ConfigureAwait(false));
+                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: true, cancellationToken).ConfigureAwait(false));
+
+                var sorted = SortActionsByMRU(unwrapActions.ToImmutableAndFree());
+                if (sorted.Length == 0)
+                {
+                    return null;
+                }
+
+                return sorted.Length == 1
+                    ? sorted[0]
+                    : new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: true);
+            }
+
+            private Task<CodeAction> GetUnwrapAllCodeActionAsync(
+                HashSet<string> seenDocuments, string parentTitle,
+                bool indentFirst, CancellationToken cancellationToken)
+            {
+                if (indentFirst && _singleIndentionOpt == null)
+                {
+                    return null;
+                }
+
+                var edits = GetUnwrapAllEdits(indentFirst);
+                var title = indentFirst
+                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, FeaturesResources.parameters)
+                    : string.Format(FeaturesResources.Unwrap_all_0, FeaturesResources.parameters);
+                
+                return CreateCodeActionAsync(seenDocuments, edits, parentTitle, title, cancellationToken);
+            }
+
+            private ImmutableArray<TextChange> GetUnwrapAllEdits(bool indentFirst)
+            {
+                var result = ArrayBuilder<TextChange>.GetInstance();
+
+                AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
+                DeleteAroundCommas(_parameterList, result);
+                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
+
+                return result.ToImmutableAndFree();
+            }
+
+            #endregion
+
+            #region wrap long line
 
             private async Task<CodeAction> GetWrapLongTopLevelCodeActionAsync(
                 HashSet<string> seenDocuments, CancellationToken cancellationToken)
@@ -234,122 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                 }
 
                 return new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: false);
-            }
-
-            private async Task<CodeAction> GetWrapEveryTopLevelCodeActionAsync(HashSet<string> seenDocuments, CancellationToken cancellationToken)
-            {
-                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, FeaturesResources.parameter);
-
-                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-
-                // Wrap each parameter, indent all parameters
-                //      MethodName(
-                //          int a,
-                //          int b,
-                //          ...
-                //          int j)
-                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: true, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
-
-                // Wrap each parameter. indent wrapped parameters:
-                //      MethodName(int a,
-                //          int b,
-                //          ...
-                //          int j)
-                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
-
-                // Wrap each parameter, align with first parameter
-                //      MethodName(int a,
-                //                 int b,
-                //                 ...
-                //                 int j);
-                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
-
-                var sorted = SortActionsByMRU(codeActions.ToImmutableAndFree());
-                if (sorted.Length == 0)
-                {
-                    return null;
-                }
-
-                return new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: false);
-            }
-
-            private async Task<CodeAction> GetUnwrapTopLevelCodeActionsAsync(
-                HashSet<string> seenDocuments, CancellationToken cancellationToken)
-            {
-                var unwrapActions = ArrayBuilder<CodeAction>.GetInstance();
-
-                var parentTitle = string.Format(FeaturesResources.Unwrap_0, FeaturesResources.parameter_list);
-
-                // 1. Unwrap:
-                //      MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                //
-                // 2. Unwrap with indent:
-                //      MethodName(
-                //          int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: false, cancellationToken).ConfigureAwait(false));
-                unwrapActions.AddIfNotNull(await GetUnwrapAllCodeActionAsync(seenDocuments, parentTitle, indentFirst: true, cancellationToken).ConfigureAwait(false));
-
-                var sorted = SortActionsByMRU(unwrapActions.ToImmutableAndFree());
-                if (sorted.Length == 0)
-                {
-                    return null;
-                }
-
-                return sorted.Length == 1
-                    ? sorted[0]
-                    : new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: true);
-            }
-
-            #region unwrap all
-
-            private Task<CodeAction> GetUnwrapAllCodeActionAsync(
-                HashSet<string> seenDocuments, string parentTitle,
-                bool indentFirst, CancellationToken cancellationToken)
-            {
-                if (indentFirst && _singleIndentionOpt == null)
-                {
-                    return null;
-                }
-
-                var edits = GetUnwrapAllEdits(indentFirst);
-                var title = indentFirst
-                    ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, FeaturesResources.parameters)
-                    : string.Format(FeaturesResources.Unwrap_all_0, FeaturesResources.parameters);
-                
-                return CreateCodeActionAsync(seenDocuments, edits, parentTitle, title, cancellationToken);
-            }
-
-            private ImmutableArray<TextChange> GetUnwrapAllEdits(bool indentFirst)
-            {
-                var result = ArrayBuilder<TextChange>.GetInstance();
-
-                AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
-                DeleteAroundCommas(_parameterList, result);
-                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
-
-                return result.ToImmutableAndFree();
-            }
-
-            #endregion
-
-            #region wrap long line
-
-            private string GetIndentationString(bool indentFirst, bool alignWithFirst)
-            {
-                if (indentFirst)
-                {
-                    return _singleIndentionOpt;
-                }
-
-                if (!alignWithFirst)
-                {
-                    return _singleIndentionOpt;
-                }
-
-                return _afterOpenTokenIndentation;
             }
 
             private Task<CodeAction> GetWrapLongLineCodeActionAsync(
@@ -413,7 +373,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 
             #endregion
 
-            #region wrap each
+            #region wrap every
+
+            private async Task<CodeAction> GetWrapEveryTopLevelCodeActionAsync(HashSet<string> seenDocuments, CancellationToken cancellationToken)
+            {
+                var parentTitle = string.Format(FeaturesResources.Wrap_every_0, FeaturesResources.parameter);
+
+                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
+
+                // Wrap each parameter, indent all parameters
+                //      MethodName(
+                //          int a,
+                //          int b,
+                //          ...
+                //          int j)
+                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
+                    seenDocuments, parentTitle, indentFirst: true, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+
+                // Wrap each parameter. indent wrapped parameters:
+                //      MethodName(int a,
+                //          int b,
+                //          ...
+                //          int j)
+                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
+                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
+
+                // Wrap each parameter, align with first parameter
+                //      MethodName(int a,
+                //                 int b,
+                //                 ...
+                //                 int j);
+                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
+                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+
+                var sorted = SortActionsByMRU(codeActions.ToImmutableAndFree());
+                if (sorted.Length == 0)
+                {
+                    return null;
+                }
+
+                return new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: false);
+            }
 
             private Task<CodeAction> GetWrapEveryNestedCodeActionAsync(
                 HashSet<string> seenDocuments, string parentTitle, 
