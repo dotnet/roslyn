@@ -92,6 +92,62 @@ namespace NS2
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnNamespace()
+        {
+            var folders = new[] { "A", "B" };
+            var documentPath = CreateDocumentFilePath(folders);
+
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+namespace [||]NS1
+{{   
+    class Class1
+    {{
+    }}
+}} 
+
+class Class2
+{{
+}}
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnFirstGlobalMember()
+        {
+            var folders = new[] { "A", "B" };
+            var documentPath = CreateDocumentFilePath(folders);
+
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
+class [||]Class1
+{{
+}}
+
+namespace NS1
+{{   
+    class Class2
+    {{
+    }}
+}} 
+        </Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task NoAction_NestedNamespaceDeclarations()
         {
             var folders = new[] { "A", "B" };
@@ -233,32 +289,6 @@ namespace [||]NS
 </Workspace>";
 
             await TestMissingInRegularAndScriptAsync(code);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task SyncNamespace_ActionCounts_MoveOnly()
-        {
-            var folders = new[] { "A", "3B" };
-            var documentPath = CreateDocumentFilePath(folders);
-
-            var code =
-$@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""NS1"" CommonReferences=""true"">
-        <Document Folders=""{documentPath.folder}"" FilePath=""{documentPath.filePath}""> 
-namespace [||]NS1.NS2.NS3
-{{    
-    class Class1
-    {{
-    }}
-}}  
-        </Document>
-    </Project>
-</Workspace>";
-
-            // Fixes offered will be move file to matching folder.
-            // No rename namespace action since the folder name is invalid identifier.
-            await TestActionCountAsync(code, count: 1);
         }
     }
 }

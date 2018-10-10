@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
     public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_NoAction_MoveFile()
+        public async Task MoveFile_DeclarationNotContainedInDefaultNamespace()
         {
             // No "move file" action because default namespace is not container of declared namespace
             var defaultNamespace = "A";
@@ -39,7 +39,7 @@ namespace [||]{declaredNamespace}
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_SingleAction1_MoveFile()
+        public async Task MoveFile_SingleAction1()
         {
             // current path is <root>\
             // expected new path is <root>\B\C\
@@ -69,7 +69,7 @@ namespace [||]{declaredNamespace}
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_SingleAction2_MoveFile()
+        public async Task MoveFile_SingleAction2()
         {
             // current path is <root>\
             // expected new path is <root>\B\C\D\E\
@@ -108,7 +108,7 @@ namespace Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_MoveToRoot_MoveFile()
+        public async Task MoveFile_MoveToRoot()
         {
             // current path is <root>\A\B\C\
             // expected new path is <root>
@@ -138,7 +138,7 @@ class Class2
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_MultipleAction1_MoveFile()
+        public async Task MoveFile_MultipleAction1()
         {
             // current path is <root>\
             // expected new paths are"
@@ -180,7 +180,7 @@ namespace Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_MultipleAction2_MoveFile()
+        public async Task MoveFile_MultipleAction2()
         {
             // current path is <root>\
             // expected new paths are:
@@ -233,7 +233,7 @@ namespace Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_FromOneFolderToAnother1_MoveFile()
+        public async Task MoveFile_FromOneFolderToAnother1()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
@@ -271,7 +271,7 @@ namespace Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task Mismatch_FromOneFolderToAnother2_MoveFile()
+        public async Task MoveFile_FromOneFolderToAnother2()
         {
             var defaultNamespace = "A";
             var declaredNamespace = "A.B.C.D.E";
