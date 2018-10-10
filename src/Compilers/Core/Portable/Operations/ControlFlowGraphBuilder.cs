@@ -6502,25 +6502,27 @@ oneMoreTime:
 
         public override IOperation VisitReDim(IReDimOperation operation, int? argument)
         {
+            StartVisitingStatement(operation);
+
             // We split the ReDim clauses into separate ReDim operations to ensure that we preserve the evaluation order,
             // i.e. each ReDim clause operand is re-allocated prior to evaluating the next clause.
-            
+
             // Mark the split ReDim operations as implicit if we have more than one ReDim clause.
             bool isImplicit = operation.Clauses.Length > 1 || IsImplicit(operation);
 
             foreach (var clause in operation.Clauses)
             {
                 EvalStackFrame frame = PushStackFrame();
-                var visitedReDimClause = VisitReDimClause(clause);
+                var visitedReDimClause = visitReDimClause(clause);
                 var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
-                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit: isImplicit || IsImplicit(clause));
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit);
                 AddStatement(visitedReDimOperation);
                 PopStackFrameAndLeaveRegion(frame);
             }
 
-            return null;
+            return FinishVisitingStatement(operation);
 
-            IReDimClauseOperation VisitReDimClause(IReDimClauseOperation clause)
+            IReDimClauseOperation visitReDimClause(IReDimClauseOperation clause)
             {
                 PushOperand(Visit(clause.Operand));
                 var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
