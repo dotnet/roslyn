@@ -37,11 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            if (!token.Span.Contains(position))
-            {
-                return;
-            }
-
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
             var declaration = token.Parent.GetAncestors()
