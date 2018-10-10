@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>a commandlinearguments object representing the parsed command line.</returns>
         public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null)
         {
+            Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
+
             List<Diagnostic> diagnostics = new List<Diagnostic>();
             List<string> flattenedArgs = new List<string>();
             List<string> scriptArgs = IsScriptCommandLineParser ? new List<string>() : null;
@@ -1214,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // add additional reference paths if specified
-            if (!string.IsNullOrWhiteSpace(additionalReferenceDirectories))
+            if (!string.IsNullOrEmpty(additionalReferenceDirectories))
             {
                 ParseAndResolveReferencePaths(null, additionalReferenceDirectories, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
             }
@@ -1225,14 +1227,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Dev11 searches for the key file in the current directory and assembly output directory.
             // We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory);
-            if (baseDirectory != outputDirectory)
+            if (!string.IsNullOrEmpty(baseDirectory))
+            {
+                keyFileSearchPaths.Add(baseDirectory);
+            }
+
+            if (!string.IsNullOrEmpty(outputDirectory) && baseDirectory != outputDirectory)
             {
                 keyFileSearchPaths.Add(outputDirectory);
             }
 
             // Public sign doesn't use the legacy search path settings
-            if (publicSign && !string.IsNullOrWhiteSpace(keyFileSetting))
+            if (publicSign && !string.IsNullOrEmpty(keyFileSetting))
             {
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
