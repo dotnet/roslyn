@@ -137,7 +137,7 @@ class C
             Assert.True(m.IsIterator);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AttributesSynthesized()
         {
             string source = @"
@@ -647,7 +647,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void CallingMoveNextAsyncTwice()
         {
             string source = @"
@@ -1113,7 +1113,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithGenericReturnFromContainingType()
         {
             string source = @"
@@ -1146,7 +1146,7 @@ class D
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithParameter()
         {
             string source = @"
@@ -1178,7 +1178,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithThis()
         {
             string source = @"
@@ -1232,7 +1232,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithAwaitCompletedAndOneYieldAndOneInvocation()
         {
             string source = @"
@@ -1262,7 +1262,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithAwaitCompletedAndTwoYields()
         {
             string source = @"
@@ -1293,7 +1293,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithYieldAndAwait()
         {
             string source = @"
@@ -1322,7 +1322,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithAwaitCompletedAndYieldBreak()
         {
             string source = @"
@@ -1351,7 +1351,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 Done");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithAwaitCompletedAndYieldBreakAndYieldReturn()
         {
             string source = @"
@@ -1385,7 +1385,7 @@ label2:
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithCustomCode()
         {
             verify(new[] { AwaitSlow, Write, Yield, AwaitSlow });
@@ -1499,7 +1499,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithAwaitAndYieldAndAwait()
         {
             string source = @"
@@ -1549,7 +1549,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithYieldReturnOnly()
         {
             string source = @"
@@ -1576,7 +1576,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithYieldBreakOnly()
         {
             string source = @"

@@ -95,7 +95,7 @@ class D
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithUIntToIntConversion()
         {
             string source = @"
@@ -734,7 +734,7 @@ class Element
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithExplicitlyConvertibleElementType()
         {
             string source = @"
@@ -793,7 +793,7 @@ class Element
                 verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithCaptureOfIterationVariable()
         {
             string source = @"
@@ -835,7 +835,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithGenericIterationVariable()
         {
             string source = @"
@@ -893,7 +893,7 @@ class C<T> where T : IntContainer, new()
                 verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithThrowingGetAsyncEnumerator()
         {
             string source = @"
@@ -933,7 +933,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "exception", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithThrowingMoveNextAsync()
         {
             string source = @"
@@ -976,7 +976,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "dispose exception", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithThrowingCurrent()
         {
             string source = @"
@@ -1023,7 +1023,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "wait dispose exception", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithThrowingDisposeAsync()
         {
             string source = @"
@@ -1751,7 +1751,7 @@ class D
             Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPattern_RefStruct()
         {
             string source = @"
@@ -1798,7 +1798,7 @@ public ref struct S
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPattern_RefReturningCurrent()
         {
             string source = @"
@@ -1880,7 +1880,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPattern_WithStruct_MoveNextAsyncReturnsTask()
         {
             string source = @"
@@ -1934,7 +1934,7 @@ class C
                 verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPattern_MoveNextAsyncReturnsValueTask()
         {
             string source = @"
@@ -1997,7 +1997,7 @@ class C
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPattern_WithUnsealed()
         {
             string source = @"
@@ -2359,7 +2359,7 @@ public class C
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_interfaces);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPattern_WithIAsyncDisposable()
         {
             string source = @"
@@ -2524,7 +2524,7 @@ class C : Base, IAsyncEnumerable<int>
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterface()
         {
             string source = @"
@@ -2596,7 +2596,7 @@ class C : IAsyncEnumerable<int>
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterface_WithEarlyCompletion1()
         {
             string source = @"
@@ -2648,7 +2648,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterface_WithBreakAndContinue()
         {
             string source = @"
@@ -2704,7 +2704,7 @@ class C : IAsyncEnumerable<int>
                 verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterface_WithGoto()
         {
             string source = @"
@@ -2761,7 +2761,7 @@ class C : IAsyncEnumerable<int>
                 verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterface_WithStruct()
         {
             string source = @"
@@ -2866,7 +2866,7 @@ class C : IAsyncEnumerable<int>
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithNullCollection()
         {
             string source = @"
@@ -2906,7 +2906,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Success", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestInCatch()
         {
             string source = @"
@@ -2999,7 +2999,7 @@ class C : IAsyncEnumerable<int>
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithConversionToElement()
         {
             string source = @"
@@ -3080,7 +3080,7 @@ class Element
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithNullableCollection()
         {
             string source = @"
@@ -3153,7 +3153,7 @@ struct C : IAsyncEnumerable<int>
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithNullableCollection2()
         {
             string source = @"
@@ -3187,7 +3187,7 @@ struct C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Success", verify: Verification.Skipped);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterfaceAndDeconstruction()
         {
             string source = @"
@@ -3291,7 +3291,7 @@ public static class Extensions
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithPatternAndDeconstructionOfTuple()
         {
             string source = @"
@@ -3357,7 +3357,7 @@ class C : IAsyncEnumerable<(string, int)>
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithInterfaceAndDeconstruction_ManualIteration()
         {
             string source = @"
@@ -3515,7 +3515,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithGenericCollection()
         {
             string source = @"
