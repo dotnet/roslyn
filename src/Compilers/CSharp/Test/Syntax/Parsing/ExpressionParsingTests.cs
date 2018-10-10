@@ -259,10 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestPrefixUnary(SyntaxKind.AsteriskToken);
         }
 
-        private void TestPostfixUnary(SyntaxKind kind)
+        private void TestPostfixUnary(SyntaxKind kind, ParseOptions options = null)
         {
             var text = "a" + SyntaxFacts.GetText(kind);
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options: options);
 
             Assert.NotNull(expr);
             var opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestPostfixUnary(SyntaxKind.PlusPlusToken);
             TestPostfixUnary(SyntaxKind.MinusMinusToken);
+            TestPostfixUnary(SyntaxKind.ExclamationToken, TestOptions.Regular8);
         }
 
         private void TestBinary(SyntaxKind kind)

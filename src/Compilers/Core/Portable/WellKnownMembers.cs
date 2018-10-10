@@ -2890,6 +2890,21 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                // System_Runtime_CompilerServices_NullableAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_NullableAttribute - WellKnownType.ExtSentinel),                                       // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                // System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_NullableAttribute - WellKnownType.ExtSentinel),                                       // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+
                 // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                                                                  // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ReferenceAssemblyAttribute - WellKnownType.ExtSentinel),  // DeclaringTypeId
@@ -3030,6 +3045,13 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
+
+                // Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
+                (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute - WellKnownType.ExtSentinel),                   // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                 // System_IAsyncDisposable__DisposeAsync
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                              // Flags
@@ -3554,6 +3576,8 @@ namespace Microsoft.CodeAnalysis
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
 
+                ".ctor",                                    // System_Runtime_CompilerServices_NullableAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
                 ".ctor",                                    // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
@@ -3573,6 +3597,7 @@ namespace Microsoft.CodeAnalysis
                 "Ceiling",                                  // System_Math__CeilingDouble
                 "Floor",                                    // System_Math__FloorDouble
                 "Truncate",                                 // System_Math__TruncateDouble
+                ".ctor",                                    // Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
 
                 "DisposeAsync",                             // System_IAsyncDisposable__DisposeAsync
                 "GetAsyncEnumerator",                       // System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator

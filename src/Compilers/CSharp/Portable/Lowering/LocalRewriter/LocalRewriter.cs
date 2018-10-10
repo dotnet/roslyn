@@ -238,9 +238,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            if (node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+            var typeParameters = node.Symbol.TypeParameters;
+            if (typeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
+            }
+
+            bool hasConstraintsWithNullableReferenceTypes = typeParameters.Any(
+               typeParameter => typeParameter.ReferenceTypeConstraintIsNullable == true ||
+                                typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
+                                    typeConstraint => typeConstraint.ContainsNullableReferenceTypes()));
+
+            bool hasReturnTypeWithNullableReferenceTypes = node.Symbol.ReturnType.ContainsNullableReferenceTypes();
+            bool hasParametersWithNullableReferenceTypes = node.Symbol.ParameterTypes.Any(parameter => parameter.ContainsNullableReferenceTypes());
+
+            if (hasConstraintsWithNullableReferenceTypes || hasReturnTypeWithNullableReferenceTypes || hasParametersWithNullableReferenceTypes)
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureNullableAttributeExists();
             }
 
             var oldContainingSymbol = _factory.CurrentFunction;

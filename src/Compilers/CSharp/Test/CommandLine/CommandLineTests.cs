@@ -1315,6 +1315,7 @@ d.cs
         [Theory]
         [InlineData("iso-3")]
         [InlineData("iso1")]
+        [InlineData("8.1")]
         [InlineData("9")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
@@ -1381,7 +1382,8 @@ d.cs
                 .Except(new[] { LanguageVersion.Default, LanguageVersion.Latest })
                 .Select(v => v.GetErrorCode());
 
-            var errorCodes = new[] {
+            var errorCodes = new[]
+            {
                 ErrorCode.ERR_FeatureNotAvailableInVersion1,
                 ErrorCode.ERR_FeatureNotAvailableInVersion2,
                 ErrorCode.ERR_FeatureNotAvailableInVersion3,
@@ -6555,7 +6557,7 @@ public class C
             // Bug#15021: breaking change - empty source no error with /nostdlib
             src.WriteAllText("namespace System { }");
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/langversion:8", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -6695,12 +6697,12 @@ namespace System
             src.WriteAllText(source + mslib);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
             string OriginalSource = src.Path;
@@ -6708,7 +6710,7 @@ namespace System
             src = Temp.CreateFile("NoStdLib02b.cs");
             src.WriteAllText(mslib);
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -9557,7 +9559,7 @@ public class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
+                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "/langversion:7", "a.cs" });
 
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9673,7 +9675,7 @@ class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
+                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/langversion:7", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);

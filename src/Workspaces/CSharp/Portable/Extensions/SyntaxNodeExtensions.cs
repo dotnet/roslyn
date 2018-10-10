@@ -105,6 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6;
         }
 
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6, SyntaxKind kind7, SyntaxKind kind8, SyntaxKind kind9, SyntaxKind kind10, SyntaxKind kind11)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.Kind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6 || csharpKind == kind7 || csharpKind == kind8 || csharpKind == kind9 || csharpKind == kind10 || csharpKind == kind11;
+        }
+
         /// <summary>
         /// Returns the list of using directives that affect <paramref name="node"/>. The list will be returned in
         /// top down order.  

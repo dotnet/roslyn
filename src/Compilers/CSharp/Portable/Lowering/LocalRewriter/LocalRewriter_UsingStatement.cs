@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             Debug.Assert((object)localType != null); //otherwise, there wouldn't be a conversion to IDisposable
 
             BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _sawAwaitInExceptionHandler = true;
                 var callExpr = BoundCall.Synthesized(syntax, disposedExpression, disposeAsyncMethodSymbol);
 
-                TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
+                TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
                 BoundAwaitExpression awaitExpr = new BoundAwaitExpression(syntax, callExpr, awaitOpt, awaitExpressionType) { WasCompilerGenerated = true };
                 disposeCall = (BoundExpression)VisitAwaitExpression(awaitExpr);
             }

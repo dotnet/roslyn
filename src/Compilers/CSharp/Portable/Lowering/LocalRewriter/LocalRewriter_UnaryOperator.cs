@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (kind.IsUserDefined())
             {
                 Debug.Assert((object)method != null);
-                Debug.Assert(type == method.ReturnType);
+                Debug.Assert(type == method.ReturnType.TypeSymbol);
                 if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
                     return BoundCall.Synthesized(syntax, null, method, loweredOperand);
@@ -590,11 +590,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenArgument = rewrittenValueToIncrement;
             SyntaxNode syntax = node.Syntax;
 
-            TypeSymbol type = node.MethodOpt.ParameterTypes[0];
+            TypeSymbol type = node.MethodOpt.ParameterTypes[0].TypeSymbol;
             if (isLifted)
             {
                 type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
-                Debug.Assert(node.MethodOpt.ParameterTypes[0] == node.MethodOpt.ReturnType);
+                Debug.Assert(node.MethodOpt.ParameterTypes[0].TypeSymbol == node.MethodOpt.ReturnType.TypeSymbol);
             }
 
             if (!node.OperandConversion.IsIdentity)

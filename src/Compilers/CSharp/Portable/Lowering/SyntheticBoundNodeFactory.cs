@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 args,
                 diagnostics,
-                typeArgs: typeArgs,
+                typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeSymbolWithAnnotations>) : typeArgs.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)),
                 allowFieldsAndProperties: false,
                 allowUnexpandedForm: allowUnexpandedForm);
         }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundHoistedFieldAccess HoistedField(FieldSymbol field)
         {
-            return new BoundHoistedFieldAccess(Syntax, field, field.Type);
+            return new BoundHoistedFieldAccess(Syntax, field, field.Type.TypeSymbol);
         }
 
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false, bool isThis = false)
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundThisReference This()
         {
             Debug.Assert((object)CurrentFunction != null && !CurrentFunction.IsStatic);
-            return new BoundThisReference(Syntax, CurrentFunction.ThisParameter.Type) { WasCompilerGenerated = true };
+            return new BoundThisReference(Syntax, CurrentFunction.ThisParameter.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundExpression This(LocalSymbol thisTempOpt)
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBaseReference Base()
         {
             Debug.Assert((object)CurrentFunction != null && !CurrentFunction.IsStatic);
-            return new BoundBaseReference(Syntax, CurrentFunction.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, CurrentFunction.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
         }
 
         public BoundBadExpression BadExpression(TypeSymbol type)
@@ -260,12 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundParameter Parameter(ParameterSymbol p)
         {
-            return new BoundParameter(Syntax, p, p.Type) { WasCompilerGenerated = true };
+            return new BoundParameter(Syntax, p, p.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundFieldAccess Field(BoundExpression receiver, FieldSymbol f)
         {
-            return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type) { WasCompilerGenerated = true };
+            return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Property(WellKnownMember member)
@@ -439,13 +439,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If necessary, add a conversion on the return expression.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType, ref useSiteDiagnostics);
+                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentFunction.ReturnType.TypeSymbol, ref useSiteDiagnostics);
                 Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
                     Debug.Assert(CurrentFunction.RefKind == RefKind.None);
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, false, ConstantValue.NotAvailable, CurrentFunction.ReturnType);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, CurrentFunction.ReturnType.TypeSymbol);
                 }
             }
 
@@ -464,33 +464,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             CurrentFunction = null;
         }
 
+        public LocalSymbol SynthesizedLocal(
+            TypeSymbol type,
+            SyntaxNode syntax = null,
+            bool isPinned = false,
+            RefKind refKind = RefKind.None,
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
-        public LocalSymbol SynthesizedLocal(
-            TypeSymbol type,
-            SyntaxNode syntax = null,
-            bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
+            ,
             [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string createdAtFilePath = null)
-        {
-            return new SynthesizedLocal(CurrentFunction, type, kind, syntax, isPinned, refKind, createdAtLineNumber, createdAtFilePath);
-        }
-#else
-        public LocalSymbol SynthesizedLocal(
-            TypeSymbol type,
-            SyntaxNode syntax = null,
-            bool isPinned = false,
-            RefKind refKind = RefKind.None,
-            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
-        {
-            return new SynthesizedLocal(CurrentFunction, type, kind, syntax, isPinned, refKind);
-        }
+            [CallerFilePath]string createdAtFilePath = null
 #endif
+            )
+        {
+            return new SynthesizedLocal(CurrentFunction, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind
+#if DEBUG
+                , createdAtLineNumber, createdAtFilePath
+#endif
+                );
+        }
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
         {
-            return SynthesizedParameterSymbol.Create(container, type, ordinal, RefKind.None, name);
+            return SynthesizedParameterSymbol.Create(container, TypeSymbolWithAnnotations.Create(type), ordinal, RefKind.None, name);
         }
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
@@ -640,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
+                default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType.TypeSymbol,
                 hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
@@ -651,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 default(ImmutableArray<String>), refKinds, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType)
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType.TypeSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -671,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Debug.Assert(left.Type.IsReferenceType);
 
-            return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };
+            return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
         }
 
         public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement elseClauseOpt = null)
@@ -742,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocal Local(LocalSymbol local)
         {
-            return new BoundLocal(Syntax, local, null, local.Type) { WasCompilerGenerated = true };
+            return new BoundLocal(Syntax, local, null, local.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MakeSequence(LocalSymbol temp, params BoundExpression[] parts)
@@ -922,13 +918,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundArrayAccess ArrayAccess(BoundExpression array, ImmutableArray<BoundExpression> indices)
         {
             Debug.Assert((object)array.Type != null && array.Type.IsArray());
-            return new BoundArrayAccess(Syntax, array, indices, ((ArrayTypeSymbol)array.Type).ElementType);
+            return new BoundArrayAccess(Syntax, array, indices, ((ArrayTypeSymbol)array.Type).ElementType.TypeSymbol);
         }
 
         public BoundStatement BaseInitialization()
         {
             // TODO: add diagnostics for when things fall apart
-            var ctor = CurrentFunction.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
+            var ctor = CurrentFunction.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
             return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
         }
 
@@ -991,7 +987,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
+        public BoundExpression Typeof(TypeSymbolWithAnnotations type)
+        {
+            return Typeof(type.TypeSymbol);
+        }
+
+        public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             return typeArguments.SelectAsArray(Typeof);
         }
@@ -1131,9 +1132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // NOTE: We can see user-defined conversions at this point because there are places in the bound tree where
             // the binder stashes Conversion objects for later consumption (e.g. foreach, nullable, increment).
-            if ((object)conversion.Method != null && conversion.Method.Parameters[0].Type != arg.Type)
+            if ((object)conversion.Method != null && conversion.Method.Parameters[0].Type.TypeSymbol != arg.Type)
             {
-                arg = Convert(conversion.Method.Parameters[0].Type, arg);
+                arg = Convert(conversion.Method.Parameters[0].Type.TypeSymbol, arg);
             }
 
             if (conversion.Kind == ConversionKind.ImplicitReference && arg.IsLiteralNull())
@@ -1150,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Call(arg, this.SpecialMethod(CodeAnalysis.SpecialMember.System_Nullable_T_get_Value).AsMember((NamedTypeSymbol)arg.Type));
             }
 
-            return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: true, conversionGroupOpt: null, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)
@@ -1311,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 new SynthesizedLocal(
                     containingMethod,
-                    type,
+                    TypeSymbolWithAnnotations.Create(type),
                     kind,
 #if DEBUG
                     createdAtLineNumber: callerLineNumber,
@@ -1348,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, out LocalSymbol temp)
         {
-            temp = new SynthesizedLocal(this.CurrentFunction, node.Type, SynthesizedLocalKind.LoweringTemp);
+            temp = new SynthesizedLocal(this.CurrentFunction, TypeSymbolWithAnnotations.Create(node.Type), SynthesizedLocalKind.LoweringTemp);
 
             return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
         }

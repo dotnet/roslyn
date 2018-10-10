@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
+        System_Runtime_CompilerServices_NullableAttribute,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
@@ -275,6 +276,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
         Microsoft_VisualBasic_Conversion,
+        System_Runtime_CompilerServices_NonNullTypesAttribute,
+        System_AttributeTargets,
+        Microsoft_CodeAnalysis_EmbeddedAttribute,
 
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
@@ -544,6 +548,7 @@ namespace Microsoft.CodeAnalysis
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
+            "System.Runtime.CompilerServices.NullableAttribute",
             "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
@@ -556,6 +561,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
 
             "Microsoft.VisualBasic.Conversion",
+            "System.Runtime.CompilerServices.NonNullTypesAttribute",
+            "System.AttributeTargets",
+            "Microsoft.CodeAnalysis.EmbeddedAttribute",
 
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",
@@ -605,10 +613,7 @@ namespace Microsoft.CodeAnalysis
                         break;
                     case WellKnownType.ExtSentinel:
                         typeIdName = "";
-                        continue;
-                    case (WellKnownType.NextAvailable - 1):
-                        typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
-                        continue;
+                        break;
                     default:
                         typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
                         break;

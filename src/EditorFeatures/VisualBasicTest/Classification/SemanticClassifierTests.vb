@@ -721,5 +721,13 @@ End Operator"
             Await TestAsync("#region ""goo""""bar""",
                 Escape(""""""))
         End Function
+
+        <WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestFormatSpecifierInInterpolation() As Task
+            Await TestInMethodAsync("dim goo = $""goo{{1:0000}}bar""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
     End Class
 End Namespace
