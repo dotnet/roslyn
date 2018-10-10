@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IMethodSymbol GetEnumeratorMethod { get; }
 
         /// <summary>
-        /// Gets the &quot;MoveNext&quot; method.
+        /// Gets the &quot;MoveNext&quot; method (or &quot;MoveNextAsync&quot; in an asynchronous foreach).
         /// </summary>
         public IMethodSymbol MoveNextMethod { get; }
 
@@ -26,17 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IPropertySymbol CurrentProperty { get; }
 
         /// <summary>
-        /// Gets the &quot;WaitForNextAsyncMethod&quot; method.
-        /// </summary>
-        public IMethodSymbol WaitForNextAsyncMethod { get; }
-
-        /// <summary>
-        /// Gets the &quot;TryGetNext&quot; method.
-        /// </summary>
-        public IMethodSymbol TryGetNextMethod { get; }
-
-        /// <summary>
-        /// Gets the &quot;Dispose&quot; method.
+        /// Gets the &quot;Dispose&quot; method (or &quot;DisposeAsync&quot; in an asynchronous foreach).
         /// </summary>
         public IMethodSymbol DisposeMethod { get; }
 
@@ -71,16 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       IMethodSymbol disposeMethod,
                                       ITypeSymbol elementType,
                                       Conversion elementConversion,
-                                      Conversion currentConversion,
-                                      IMethodSymbol waitForNextAsyncMethod = null,
-                                      IMethodSymbol tryGetNextMethod = null)
+                                      Conversion currentConversion)
         {
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.MoveNextMethod = moveNextMethod;
             this.CurrentProperty = currentProperty;
             this.DisposeMethod = disposeMethod;
-            this.WaitForNextAsyncMethod = waitForNextAsyncMethod;
-            this.TryGetNextMethod = tryGetNextMethod;
             this.ElementType = elementType;
             this.ElementConversion = elementConversion;
             this.CurrentConversion = currentConversion;
@@ -99,9 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && object.Equals(this.DisposeMethod, other.DisposeMethod)
                 && object.Equals(this.ElementType, other.ElementType)
                 && this.ElementConversion == other.ElementConversion
-                && this.CurrentConversion == other.CurrentConversion
-                && object.Equals(this.WaitForNextAsyncMethod, other.WaitForNextAsyncMethod)
-                && object.Equals(this.TryGetNextMethod, other.TryGetNextMethod);
+                && this.CurrentConversion == other.CurrentConversion;
         }
 
         public override int GetHashCode()
@@ -112,9 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(DisposeMethod,
                    Hash.Combine(ElementType,
                    Hash.Combine(ElementConversion.GetHashCode(),
-                   Hash.Combine(CurrentConversion.GetHashCode(),
-                   Hash.Combine(WaitForNextAsyncMethod,
-                                TryGetNextMethod?.GetHashCode() ?? 0))))))));
+                                CurrentConversion.GetHashCode()))))));
         }
     }
 }

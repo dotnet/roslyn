@@ -436,12 +436,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>v__promiseOfValueOrEnd";
         }
 
-        internal static string MakeAsyncIteratorPromiseIsActiveFieldName()
-        {
-            Debug.Assert((char)GeneratedNameKind.AsyncIteratorPromiseIsActiveBackingField == 'w');
-            return "<>w__promiseIsActive";
-        }
-
         internal static string MakeIteratorCurrentFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.IteratorCurrentBackingField == '2');

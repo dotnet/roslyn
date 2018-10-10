@@ -21,10 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol CurrentPropertyGetter;
         public readonly MethodSymbol MoveNextMethod;
 
-        // In async-foreach, those two methods will be populated instead of CurrentPropertyGetter and MoveNextMethod
-        public readonly MethodSymbol WaitForNextAsyncMethod;
-        public readonly MethodSymbol TryGetNextMethod;
-
         // Dispose method to be called on the enumerator (may be null).
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposeMethod;
@@ -41,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly BinderFlags Location;
 
         internal bool IsAsync
-            => (object)WaitForNextAsyncMethod != null;
+            => DisposeAwaitableInfo != null;
 
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
@@ -49,8 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
-            MethodSymbol waitForNextAsyncMethod,
-            MethodSymbol tryGetNextMethod,
             bool needsDisposeMethod,
             AwaitableInfo disposeAwaitableInfo,
             Conversion collectionConversion,
@@ -63,8 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
-            this.WaitForNextAsyncMethod = waitForNextAsyncMethod;
-            this.TryGetNextMethod = tryGetNextMethod;
             this.NeedsDisposeMethod = needsDisposeMethod;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.CollectionConversion = collectionConversion;
@@ -82,8 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodSymbol GetEnumeratorMethod;
             public MethodSymbol CurrentPropertyGetter;
             public MethodSymbol MoveNextMethod;
-            public MethodSymbol WaitForNextAsyncMethod;
-            public MethodSymbol TryGetNextMethod;
 
             public bool NeedsDisposeMethod;
             public AwaitableInfo DisposeAwaitableInfo;
@@ -98,11 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)ElementType != null, "'ElementType' cannot be null");
                 Debug.Assert((object)GetEnumeratorMethod != null, "'GetEnumeratorMethod' cannot be null");
 
-                Debug.Assert(IsAsync == MoveNextMethod is null);
-                Debug.Assert(IsAsync == CurrentPropertyGetter is null);
-                Debug.Assert(IsAsync != TryGetNextMethod is null);
-                Debug.Assert(IsAsync != WaitForNextAsyncMethod is null);
-                Debug.Assert((DisposeAwaitableInfo != null) == (IsAsync && NeedsDisposeMethod));
+                Debug.Assert(MoveNextMethod != null);
+                Debug.Assert(CurrentPropertyGetter != null);
 
                 return new ForEachEnumeratorInfo(
                     CollectionType,
@@ -110,8 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,
-                    WaitForNextAsyncMethod,
-                    TryGetNextMethod,
                     NeedsDisposeMethod,
                     DisposeAwaitableInfo,
                     CollectionConversion,
@@ -120,12 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     location);
             }
 
-            private bool IsAsync
-                => (object)WaitForNextAsyncMethod != null;
-
             public bool IsIncomplete
-                => (object)GetEnumeratorMethod == null ||
-                (IsAsync ? ((object)WaitForNextAsyncMethod == null || (object)TryGetNextMethod == null) : ((object)MoveNextMethod == null || (object)CurrentPropertyGetter == null));
+                => GetEnumeratorMethod is null || MoveNextMethod is null || CurrentPropertyGetter is null;
         }
     }
 }

@@ -1548,8 +1548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">foreach의 반환 형식 '{1}'('{0}')에는 적절한 공용 MoveNext 메서드 및 공용 Current 속성이 있어야 합니다.</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="needs-review-translation">foreach의 반환 형식 '{1}'('{0}')에는 적절한 공용 MoveNext 메서드 및 공용 Current 속성이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -4266,8 +4266,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'{0}'에 적합한 정적 Main 메서드가 없습니다.</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="needs-review-translation">'{0}'에 적합한 정적 Main 메서드가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -5969,8 +5969,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'await'의 경우 {0} 형식에 적합한 GetAwaiter 메서드가 있어야 합니다.</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="needs-review-translation">'await'의 경우 {0} 형식에 적합한 GetAwaiter 메서드가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5979,13 +5979,13 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'await'의 경우 '{1}.GetAwaiter()'의 반환 형식 '{0}'에 적합한 IsCompleted, OnCompleted 및 GetResult 멤버가 있어야 하며 INotifyCompletion 또는 ICriticalNotifyCompletion을 구현해야 합니다.</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="needs-review-translation">'await'의 경우 '{1}.GetAwaiter()'의 반환 형식 '{0}'에 적합한 IsCompleted, OnCompleted 및 GetResult 멤버가 있어야 하며 INotifyCompletion 또는 ICriticalNotifyCompletion을 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'await'를 사용하려면 '{0}' 형식에 적합한 GetAwaiter 메서드가 있어야 합니다. 'System'에 대해 using 지시문이 있는지 확인하세요.</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="needs-review-translation">'await'를 사용하려면 '{0}' 형식에 적합한 GetAwaiter 메서드가 있어야 합니다. 'System'에 대해 using 지시문이 있는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -8351,8 +8351,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">{1} out 매개 변수 및 void 반환 형식을 사용하는 '{0}' 형식에 대한 적절한 분해 인스턴스 또는 확장 메서드를 찾을 수 없습니다.</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="needs-review-translation">{1} out 매개 변수 및 void 반환 형식을 사용하는 '{0}' 형식에 대한 적절한 분해 인스턴스 또는 확장 메서드를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8836,8 +8836,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Async foreach requires that the return type '{0}' of '{1}' must have suitable public WaitForNextAsync and TryGetNext methods</source>
-        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have suitable public WaitForNextAsync and TryGetNext methods</target>
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">

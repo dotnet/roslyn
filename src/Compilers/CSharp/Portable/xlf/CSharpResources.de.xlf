@@ -1548,8 +1548,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
-        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</source>
-        <target state="translated">Für "foreach" muss der Rückgabetyp "{0}" von "{1}" über eine passende öffentliche MoveNext-Methode und eine öffentliche Current-Eigenschaft verfügen.</target>
+        <source>foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNext' method and public 'Current' property</source>
+        <target state="needs-review-translation">Für "foreach" muss der Rückgabetyp "{0}" von "{1}" über eine passende öffentliche MoveNext-Methode und eine öffentliche Current-Eigenschaft verfügen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyLocals">
@@ -4266,8 +4266,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
-        <source>'{0}' does not have a suitable static Main method</source>
-        <target state="translated">'"{0}" hat keine passende statische Main-Methode.</target>
+        <source>'{0}' does not have a suitable static 'Main' method</source>
+        <target state="needs-review-translation">'"{0}" hat keine passende statische Main-Methode.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassIsImport">
@@ -5969,8 +5969,8 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg">
-        <source>'await' requires that the type {0} have a suitable GetAwaiter method</source>
-        <target state="translated">'"await" erfordert, dass der Typ "{0}" über eine geeignete GetAwaiter-Methode verfügt.</target>
+        <source>'await' requires that the type {0} have a suitable 'GetAwaiter' method</source>
+        <target state="needs-review-translation">'"await" erfordert, dass der Typ "{0}" über eine geeignete GetAwaiter-Methode verfügt.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgIntrinsic">
@@ -5979,13 +5979,13 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaiterPattern">
-        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion</source>
-        <target state="translated">'"await" erfordert, dass der Rückgabetyp "{0}" von "{1}.GetAwaiter()" über die geeigneten Member IsCompleted, OnComplete und GetResult verfügt und INotifyCompletion oder ICriticalNotifyCompletion implementiert.</target>
+        <source>'await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable 'IsCompleted', 'OnCompleted', and 'GetResult' members, and implement 'INotifyCompletion' or 'ICriticalNotifyCompletion'</source>
+        <target state="needs-review-translation">'"await" erfordert, dass der Rückgabetyp "{0}" von "{1}.GetAwaiter()" über die geeigneten Member IsCompleted, OnComplete und GetResult verfügt und INotifyCompletion oder ICriticalNotifyCompletion implementiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArg_NeedSystem">
-        <source>'await' requires that the type '{0}' have a suitable GetAwaiter method. Are you missing a using directive for 'System'?</source>
-        <target state="translated">'"await" erfordert, dass der Typ "{0}" über eine geeignete GetAwaiter-Methode verfügt. Fehlt möglicherweise eine using-Direktive für "System"?</target>
+        <source>'await' requires that the type '{0}' have a suitable 'GetAwaiter' method. Are you missing a using directive for 'System'?</source>
+        <target state="needs-review-translation">'"await" erfordert, dass der Typ "{0}" über eine geeignete GetAwaiter-Methode verfügt. Fehlt möglicherweise eine using-Direktive für "System"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitArgVoidCall">
@@ -8351,8 +8351,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingDeconstruct">
-        <source>No suitable Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
-        <target state="translated">Für den Typ "{0}" mit {1} out-Parametern und einem void-Rückgabetyp wurde keine passende Dekonstruktionsinstanz oder Erweiterungsmethode gefunden.</target>
+        <source>No suitable 'Deconstruct' instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</source>
+        <target state="needs-review-translation">Für den Typ "{0}" mit {1} out-Parametern und einem void-Rückgabetyp wurde keine passende Dekonstruktionsinstanz oder Erweiterungsmethode gefunden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructRequiresExpression">
@@ -8836,8 +8836,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
-        <source>Async foreach requires that the return type '{0}' of '{1}' must have suitable public WaitForNextAsync and TryGetNext methods</source>
-        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have suitable public WaitForNextAsync and TryGetNext methods</target>
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have a suitable public 'MoveNextAsync' method and public 'Current' property</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">

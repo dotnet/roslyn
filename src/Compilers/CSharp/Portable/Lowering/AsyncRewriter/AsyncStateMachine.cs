@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public AsyncStateMachine(VariableSlotAllocator variableAllocatorOpt, TypeCompilationState compilationState, MethodSymbol asyncMethod, int asyncMethodOrdinal, TypeKind typeKind)
             : base(variableAllocatorOpt, compilationState, asyncMethod, asyncMethodOrdinal)
         {
-            // TODO: report use-site errors on these types
             _typeKind = typeKind;
             CSharpCompilation compilation = asyncMethod.DeclaringCompilation;
             var interfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();

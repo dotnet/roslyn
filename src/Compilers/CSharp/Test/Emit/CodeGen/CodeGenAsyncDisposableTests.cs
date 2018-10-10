@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,9 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncDisposableTests : CSharpTestBase
     {
-        // PROTOTYPE(async-streams):
-        // Integrate async-dispose feature with "implicitly-scoped using statement" feature
-        // Integrate async-dispose feature with "pattern-based disposable" feature
         private static readonly string s_interfaces = @"
 namespace System
 {
@@ -279,7 +273,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            // PROTOTYPE(async-streams) Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
+            // https://github.com/dotnet/roslyn/issues/30257 Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
         }
 
         [Fact]
@@ -504,13 +498,13 @@ class C
                 // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 15),
-                // (6,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
                 // (9,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15),
-                // (9,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (9,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22)
                 );
@@ -540,7 +534,7 @@ class C
                 // (6,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 15),
-                // (6,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
                 // (6,15): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
@@ -552,7 +546,7 @@ class C
                 // (9,15): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(9, 15),
-                // (9,22): error CS9000: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (9,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
                 // (9,15): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
@@ -1035,7 +1029,7 @@ class C
 ";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,22): error CS9000: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+                // (6,22): error CS8410: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
                 //         using await (Main)
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "Main").WithArguments("method group").WithLocation(6, 22)
                 );

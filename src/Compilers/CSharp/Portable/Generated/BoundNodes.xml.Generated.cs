@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         GlobalStatementInitializer,
         DeconstructValuePlaceholder,
         TupleOperandPlaceholder,
-        TryGetNextArgumentPlaceholder,
         AwaitableValuePlaceholder,
         Dup,
         PassByCopy,
@@ -458,42 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type != this.Type)
             {
                 var result = new BoundTupleOperandPlaceholder(this.Syntax, type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                return result;
-            }
-            return this;
-        }
-    }
-
-    internal sealed partial class BoundTryGetNextArgumentPlaceholder : BoundValuePlaceholderBase
-    {
-        public BoundTryGetNextArgumentPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.TryGetNextArgumentPlaceholder, syntax, type, hasErrors)
-        {
-
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-        }
-
-        public BoundTryGetNextArgumentPlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.TryGetNextArgumentPlaceholder, syntax, type)
-        {
-
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-        }
-
-
-        public override BoundNode Accept(BoundTreeVisitor visitor)
-        {
-            return visitor.VisitTryGetNextArgumentPlaceholder(this);
-        }
-
-        public BoundTryGetNextArgumentPlaceholder Update(TypeSymbol type)
-        {
-            if (type != this.Type)
-            {
-                var result = new BoundTryGetNextArgumentPlaceholder(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6493,8 +6456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructValuePlaceholder(node as BoundDeconstructValuePlaceholder, arg);
                 case BoundKind.TupleOperandPlaceholder: 
                     return VisitTupleOperandPlaceholder(node as BoundTupleOperandPlaceholder, arg);
-                case BoundKind.TryGetNextArgumentPlaceholder: 
-                    return VisitTryGetNextArgumentPlaceholder(node as BoundTryGetNextArgumentPlaceholder, arg);
                 case BoundKind.AwaitableValuePlaceholder: 
                     return VisitAwaitableValuePlaceholder(node as BoundAwaitableValuePlaceholder, arg);
                 case BoundKind.Dup: 
@@ -6824,10 +6785,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, A arg)
-        {
-            return this.DefaultVisit(node, arg);
-        }
-        public virtual R VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7456,10 +7413,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
-        {
-            return this.DefaultVisit(node);
-        }
-        public virtual BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
         {
             return this.DefaultVisit(node);
         }
@@ -8092,10 +8045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
         public override BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
-        {
-            return null;
-        }
-        public override BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
         {
             return null;
         }
@@ -8913,11 +8862,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(node.ValEscape, type);
         }
         public override BoundNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node)
-        {
-            TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(type);
-        }
-        public override BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(type);
@@ -9881,14 +9825,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitTupleOperandPlaceholder(BoundTupleOperandPlaceholder node, object arg)
         {
             return new TreeDumperNode("tupleOperandPlaceholder", null, new TreeDumperNode[]
-            {
-                new TreeDumperNode("type", node.Type, null)
-            }
-            );
-        }
-        public override TreeDumperNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node, object arg)
-        {
-            return new TreeDumperNode("tryGetNextArgumentPlaceholder", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("type", node.Type, null)
             }

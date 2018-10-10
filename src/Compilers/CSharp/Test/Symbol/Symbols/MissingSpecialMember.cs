@@ -879,8 +879,8 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
-                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext:
-                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync:
+                    case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__get_Current:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult:
