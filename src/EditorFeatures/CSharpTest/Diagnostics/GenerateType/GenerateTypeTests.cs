@@ -1571,7 +1571,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default;
+        d = default(DateTime);
     }
 }",
 index: 1);
@@ -1720,7 +1720,7 @@ parseOptions: TestOptions.Regular7);
     {
         public T(out X d)
         {
-            d = default;
+            d = default(X);
         }
     }
 }",
