@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InCaseSwitchLabel_InvalidType()
+        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForMissingExpression()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InCasePatternSwitchLabel_InvalidType()
+        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForMissingExpression()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_InvalidType1()
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_InvalidType2()
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_InvalidType3()
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -401,6 +401,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
     void M()
     {
         if (() => { } is [||]default) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForMissingExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if ( is [||]default) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -597,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_Assignment_InvalidType()
+        public async Task TestCSharp7_0_InsideExpression_Assignment_NotForInvalidType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -625,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_Conditional_InvalidType()
+        public async Task TestCSharp7_0_InsideExpression_Conditional_NotForInvalidType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -653,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_Cast_InvalidType()
+        public async Task TestCSharp7_0_InsideExpression_Cast_NotForInvalidType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -681,7 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_Return_InvalidType()
+        public async Task TestCSharp7_0_InsideExpression_Return_NotForInvalidType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -709,7 +722,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_Argument_InvalidType()
+        public async Task TestCSharp7_0_InsideExpression_Argument_NotForInvalidType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -722,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultExpression
         }
 
         [Fact]
-        public async Task TestCSharp7_0_InsideExpression_Argument_AmbiguousType()
+        public async Task TestCSharp7_0_InsideExpression_Argument_NotForAmbiguousType()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
