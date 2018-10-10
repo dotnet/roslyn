@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public string BootstrapPath
         {
             get { return _bootstrapPath; }
-            set { _bootstrapPath = NormalizePath(value); }
+            set { _bootstrapPath = NormalizePath(Path.GetFullPath(value)); }
         }
 
         public ValidateBootstrap()
