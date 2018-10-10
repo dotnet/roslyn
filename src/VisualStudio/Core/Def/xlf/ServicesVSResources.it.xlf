@@ -37,6 +37,11 @@
         <target state="translated">Mantieni tutte le parentesi in:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Mai se non necessario</target>
