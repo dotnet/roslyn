@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         TListSyntax,
         TListItemSyntax>
     {
-        protected abstract string ListName { get; }
-        protected abstract string ItemNamePlural { get; }
-        protected abstract string ItemNameSingular { get; }
-
         private class CodeActionComputer
         {
             private readonly AbstractWrappingCodeRefactoringProvider<TListSyntax, TListItemSyntax> _service;

@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
         protected abstract string ItemNamePlural { get; }
         protected abstract string ItemNameSingular { get; }
 
+        protected abstract TListSyntax GetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(int position, TListSyntax listSyntax);
-        protected abstract TListSyntax GetListNode(SyntaxNode node);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -46,12 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var listSyntax = token.Parent.FirstAncestorOrSelf<TListSyntax>();
-            if (listSyntax == null)
+            var declaration = token.Parent.Ancestors().FirstOrDefault(n => GetApplicableList(n) != null);
+            if (declaration == null)
             {
                 return;
             }
 
+            var listSyntax = GetApplicableList(declaration);
             // Make sure we don't have any syntax errors here.  Don't want to format if we don't
             // really understand what's going on.
             if (listSyntax.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
