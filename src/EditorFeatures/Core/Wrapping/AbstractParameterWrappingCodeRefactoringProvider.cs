@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             foreach (var item in listItems)
             {
-                if (item.Span.IsEmpty ||
+                if (item == null ||
+                    item.Span.IsEmpty ||
                     !sourceText.AreOnSameLine(item.GetFirstToken(), item.GetLastToken()))
                 {
                     return;

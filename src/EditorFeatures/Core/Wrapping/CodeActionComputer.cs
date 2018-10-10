@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -93,10 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var newSourceText = _originalSourceText.WithChanges(new TextChange(new TextSpan(openToken.Span.End, 0), _newLine));
                 var newDocument = _originalDocument.WithText(newSourceText);
 
-                var indentationService = newDocument.GetLanguageService<ISynchronousIndentationService>();
+                var indentationService = (AbstractIndentationService)newDocument.GetLanguageService<ISynchronousIndentationService>();
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(openToken.Span.Start).LineNumber;
                 var desiredIndentation = indentationService.GetDesiredIndentation(
-                    newDocument, originalLineNumber + 1, cancellationToken);
+                    newDocument, originalLineNumber + 1, force: true, cancellationToken);
 
                 if (desiredIndentation == null)
                 {
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     : new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: true);
             }
 
-            private Task<CodeAction> GetUnwrapAllCodeActionAsync(
+            private async Task<CodeAction> GetUnwrapAllCodeActionAsync(
                 HashSet<string> seenDocuments, string parentTitle,
                 bool indentFirst, CancellationToken cancellationToken)
             {
@@ -252,7 +253,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                     ? string.Format(FeaturesResources.Unwrap_and_indent_all_0, _service.ItemNamePlural)
                     : string.Format(FeaturesResources.Unwrap_all_0, _service.ItemNamePlural);
                 
-                return CreateCodeActionAsync(seenDocuments, edits, parentTitle, title, cancellationToken);
+                return await CreateCodeActionAsync(
+                    seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<TextChange> GetUnwrapAllEdits(bool indentFirst)
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 return new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: false);
             }
 
-            private Task<CodeAction> GetWrapLongLineCodeActionAsync(
+            private async Task<CodeAction> GetWrapLongLineCodeActionAsync(
                 HashSet<string> seenDocuments, string parentTitle, 
                 bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
@@ -325,7 +327,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var edits = GetWrapLongLinesEdits(indentFirst, indentation);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
 
-                return CreateCodeActionAsync(seenDocuments, edits, parentTitle, title, cancellationToken);
+                return await CreateCodeActionAsync(
+                    seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<TextChange> GetWrapLongLinesEdits(bool indentFirst, string indentation)
@@ -418,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 return new CodeActionWithNestedActions(parentTitle, sorted, isInlinable: false);
             }
 
-            private Task<CodeAction> GetWrapEveryNestedCodeActionAsync(
+            private async Task<CodeAction> GetWrapEveryNestedCodeActionAsync(
                 HashSet<string> seenDocuments, string parentTitle, 
                 bool indentFirst, bool alignWithFirst, CancellationToken cancellationToken)
             {
@@ -431,8 +434,8 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var edits = GetWrapEachEdits(indentFirst, indentation);
                 var title = GetNestedCodeActionTitle(indentFirst, alignWithFirst);
 
-                return CreateCodeActionAsync(
-                    seenDocuments, edits, parentTitle, title, cancellationToken);
+                return await CreateCodeActionAsync(
+                    seenDocuments, edits, parentTitle, title, cancellationToken).ConfigureAwait(false);
             }
 
             private string GetNestedCodeActionTitle(bool indentFirst, bool alignWithFirst)

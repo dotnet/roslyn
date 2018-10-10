@@ -39,8 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, DirectCast(root, CompilationUnitSyntax), line, optionSet, cancellationToken)
         End Function
 
-        Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                formattingRules As IEnumerable(Of IFormattingRule),
+        Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules As IEnumerable(Of IFormattingRule),
                 root As CompilationUnitSyntax,
                 line As TextLine,
                 optionSet As OptionSet,

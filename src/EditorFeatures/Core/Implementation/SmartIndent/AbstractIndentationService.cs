@@ -27,8 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             return formattingRules;
         }
 
+        public IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+            => GetDesiredIndentation(document, lineNumber, force: false, cancellationToken);
+
         public IndentationResult? GetDesiredIndentation(
-            Document document, int lineNumber, CancellationToken cancellationToken)
+            Document document, int lineNumber, bool force, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             // the next line).  If we're in the latter case, we defer to the Formatting engine
             // as we need it to use all its rules to determine where the appropriate location is
             // for the following tokens to go.
-            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, documentOptions, cancellationToken))
+            if (!force && ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, documentOptions, cancellationToken))
             {
                 return null;
             }
