@@ -360,30 +360,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundExpr = BindValue(exprSyntax, diagnostics, BindValueKind.RValue);
 
-            // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
-            // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
-            // an effective base class that meets that criterion.) However, we allow the literal null 
-            // to be thrown, even though it does not meet that criterion and will at runtime always
-            // produce a null reference exception.
+                // SPEC VIOLATION: The spec requires the thrown exception to have a type, and that the type
+                // be System.Exception or derived from System.Exception. (Or, if a type parameter, to have
+                // an effective base class that meets that criterion.) However, we allow the literal null 
+                // to be thrown, even though it does not meet that criterion and will at runtime always
+                // produce a null reference exception.
 
-            if (!boundExpr.IsLiteralNull())
-            {
-                var type = boundExpr.Type;
-
-                // If the expression is a lambda, anonymous method, or method group then it will
-                // have no compile-time type; give the same error as if the type was wrong.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-                if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
+                if (!boundExpr.IsLiteralNull())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
-                    hasErrors = true;
-                    diagnostics.Add(exprSyntax, useSiteDiagnostics);
+                    var type = boundExpr.Type;
+
+                    // If the expression is a lambda, anonymous method, or method group then it will
+                    // have no compile-time type; give the same error as if the type was wrong.
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                    if ((object)type == null || !type.IsErrorType() && !Compilation.IsExceptionType(type.EffectiveType(ref useSiteDiagnostics), ref useSiteDiagnostics))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadExceptionType, exprSyntax.Location);
+                        hasErrors = true;
+                        diagnostics.Add(exprSyntax, useSiteDiagnostics);
+                    }
                 }
-            }
 
             return boundExpr;
-        }
+            }
 
         private BoundStatement BindThrow(ThrowStatementSyntax node, DiagnosticBag diagnostics)
         {
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol alias;
-            TypeSymbol declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
+            TypeSymbolWithAnnotations declType = BindVariableType(node.Declaration, diagnostics, typeSyntax, ref isConst, isVar: out isVar, alias: out alias);
 
             // UNDONE: "possible expression" feature for IDE
 
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
+        private TypeSymbolWithAnnotations BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
             Debug.Assert(
                 declarationNode is VariableDesignationSyntax ||
@@ -674,8 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
-            Debug.Assert((object)declType != null || isVar);
+            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
+            Debug.Assert(!declType.IsNull || isVar);
 
             if (isVar)
             {
@@ -724,12 +724,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (declType.IsStatic)
                 {
-                    Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, declType);
+                    Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, declType.TypeSymbol);
                 }
 
-                if (isConst && !declType.CanBeConst())
+                if (isConst && !declType.TypeSymbol.CanBeConst())
                 {
-                    Error(diagnostics, ErrorCode.ERR_BadConstType, typeSyntax, declType);
+                    Error(diagnostics, ErrorCode.ERR_BadConstType, typeSyntax, declType.TypeSymbol);
                     // Keep processing it as a non-const local.
                     isConst = false;
                 }
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression is BoundStackAllocArrayCreation boundStackAlloc)
             {
-                var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
+                var type = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(boundStackAlloc.ElementType));
                 expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefAssignment: refKind != RefKind.None);
             }
 
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar,
             VariableDeclaratorSyntax declarator,
             TypeSyntax typeSyntax,
-            TypeSymbol declTypeOpt,
+            TypeSymbolWithAnnotations declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode associatedSyntaxNode = null)
@@ -856,13 +856,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar,
             VariableDeclaratorSyntax declarator,
             TypeSyntax typeSyntax,
-            TypeSymbol declTypeOpt,
+            TypeSymbolWithAnnotations declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
-            Debug.Assert((object)declTypeOpt != null || isVar);
+            Debug.Assert(!declTypeOpt.IsNull || isVar);
             Debug.Assert(typeSyntax != null);
 
             var localDiagnostics = DiagnosticBag.GetInstance();
@@ -897,14 +897,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = BindInferredVariableInitializer(diagnostics, value, valueKind, localSymbol.RefKind, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
-                if ((object)initializerOpt?.Type != null)
+                TypeSymbol initializerType = initializerOpt?.Type;
+                if ((object)initializerType != null)
                 {
-                    declTypeOpt = initializerOpt.Type;
+                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerType);
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {
-                        Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt);
-                        declTypeOpt = CreateErrorType("var");
+                        Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt.TypeSymbol);
+                        declTypeOpt = TypeSymbolWithAnnotations.Create(CreateErrorType("var"));
                         hasErrors = true;
                     }
 
@@ -912,14 +913,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (declTypeOpt.IsStatic)
                         {
-                            Error(localDiagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerOpt.Type);
+                            Error(localDiagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerType);
                             hasErrors = true;
                         }
                     }
                 }
                 else
                 {
-                    declTypeOpt = CreateErrorType("var");
+                    declTypeOpt = TypeSymbolWithAnnotations.Create(CreateErrorType("var"));
                     hasErrors = true;
                 }
             }
@@ -932,12 +933,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Basically inlined BindVariableInitializer, but with conversion optional.
-                    initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt, valueKind, diagnostics);
+                    initializerOpt = BindPossibleArrayInitializer(value, declTypeOpt.TypeSymbol, valueKind, diagnostics);
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.		
                         initializerOpt = GenerateConversionForAssignment(
-                            declTypeOpt,
+                            declTypeOpt.TypeSymbol,
                             initializerOpt,
                             localDiagnostics,
                             isRefAssignment: localSymbol.RefKind != RefKind.None);
@@ -945,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert((object)declTypeOpt != null);
+            Debug.Assert(!declTypeOpt.IsNull);
             
             if (kind == LocalDeclarationKind.FixedVariable)
             {
@@ -967,13 +968,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                 }
-                else if (!IsValidFixedVariableInitializer(declTypeOpt, localSymbol, ref initializerOpt, localDiagnostics))
+                else if (!IsValidFixedVariableInitializer(declTypeOpt.TypeSymbol, localSymbol, ref initializerOpt, localDiagnostics))
                 {
                     hasErrors = true;
                 }
             }
 
-            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt, localDiagnostics, typeSyntax))
+            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt.TypeSymbol, localDiagnostics, typeSyntax))
             {
                 hasErrors = true;
             }
@@ -1021,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.AddRangeAndFree(localDiagnostics);
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt);
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt.TypeSymbol);
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
         }
 
@@ -1106,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fa = (BoundFieldAccess)initializerOpt;
                     if (fa.FieldSymbol.IsFixed)
                     {
-                        elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
+                        elementType = ((PointerTypeSymbol)fa.Type).PointedAtType.TypeSymbol;
                         break;
                     }
 
@@ -1119,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (initializerType.IsArray())
                     {
                         // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
-                        elementType = ((ArrayTypeSymbol)initializerType).ElementType;
+                        elementType = ((ArrayTypeSymbol)initializerType).ElementType.TypeSymbol;
                         break;
                     }
 
@@ -1150,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)fixedPatternMethod != null)
                     {
-                        elementType = fixedPatternMethod.ReturnType;
+                        elementType = fixedPatternMethod.ReturnType.TypeSymbol;
                         CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
                         break;
                     }
@@ -1273,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxNode initializerSyntax = initializer.Syntax;
 
-            TypeSymbol pointerType = new PointerTypeSymbol(elementType);
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(elementType));
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion elementConversion = this.Conversions.ClassifyConversionFromType(pointerType, declType, ref useSiteDiagnostics);
             diagnostics.Add(initializerSyntax, useSiteDiagnostics);
@@ -1364,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_VoidAssignment, op1.Syntax.Location);
             }
 
-            return op1.SetInferredType(inferredType);
+            return op1.SetInferredType(TypeSymbolWithAnnotations.Create(inferredType));
         }
 
         private BoundAssignmentOperator BindAssignment(
@@ -1702,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = new DiagnosticBag();
             }
 
-            return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
+            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
         }
 
         internal void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, SyntaxNode syntax,
@@ -1753,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument)
             {
                 Debug.Assert(targetType.IsExpressionTree());
-                Error(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, syntax, ((NamedTypeSymbol)targetType).TypeArgumentsNoUseSiteDiagnostics[0]);
+                Error(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, syntax, ((NamedTypeSymbol)targetType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol);
                 return;
             }
 
@@ -1845,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (delegateParameters[i].Type.IsStatic)
                     {
                         // {0}: Static types cannot be used as parameter
-                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, anonymousFunction.ParameterLocation(i), delegateParameters[i].Type);
+                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, anonymousFunction.ParameterLocation(i), delegateParameters[i].Type.TypeSymbol);
                     }
                 }
                 return;
@@ -1860,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    var lambdaParameterType = anonymousFunction.ParameterType(i);
+                    var lambdaParameterType = anonymousFunction.ParameterType(i).TypeSymbol;
                     if (lambdaParameterType.IsErrorType())
                     {
                         continue;
@@ -1868,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
                     var lambdaRefKind = anonymousFunction.RefKind(i);
-                    var delegateParameterType = delegateParameters[i].Type;
+                    var delegateParameterType = delegateParameters[i].Type.TypeSymbol;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
                     if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
@@ -1991,6 +1992,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
+            while (operand.Kind == BoundKind.SuppressNullableWarningExpression)
+            {
+                operand = ((BoundSuppressNullableWarningExpression)operand).Expression;
+            }
 
             switch (operand.Kind)
             {
@@ -2006,7 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                     {
                         var tuple = (BoundTupleLiteral)operand;
-                        var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+                        var targetElementTypes = default(ImmutableArray<TypeSymbolWithAnnotations>);
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
@@ -2095,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
             DiagnosticBag diagnostics,
             ImmutableArray<BoundExpression> tupleArguments,
-            ImmutableArray<TypeSymbol> targetElementTypes)
+            ImmutableArray<TypeSymbolWithAnnotations> targetElementTypes)
         {
             var argLength = tupleArguments.Length;
 
@@ -2109,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < targetElementTypes.Length; i++)
             {
                 var argument = tupleArguments[i];
-                var targetElementType = targetElementTypes[i];
+                var targetElementType = targetElementTypes[i].TypeSymbol;
 
                 var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(argument, targetElementType, ref usDiagsUnused);
                 if (!elementConversion.IsValid)
@@ -2173,7 +2178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The expression could not be bound. Insert a fake conversion
                 // around it to bool and keep on going.
                 // NOTE: no user-defined conversion candidates.
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, false, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             // Oddly enough, "if(dyn)" is bound not as a dynamic conversion to bool, but as a dynamic
@@ -2226,6 +2231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         source: expr,
                         conversion: conversion,
                         isCast: false,
+                        conversionGroupOpt: null,
                         wasCompilerGenerated: true,
                         destination: boolean,
                         diagnostics: diagnostics);
@@ -2243,7 +2249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
                 Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, false, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             UnaryOperatorSignature signature = best.Signature;
@@ -2253,6 +2259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr,
                 best.Conversion,
                 isCast: false,
+                conversionGroupOpt: null,
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
@@ -2338,9 +2345,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AliasSymbol alias;
             bool isVar;
-            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
+            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
-            Debug.Assert((object)declType != null || isVar);
+            Debug.Assert(!declType.IsNull || isVar);
 
             var variables = nodeOpt.Variables;
             int count = variables.Count;
@@ -2482,7 +2489,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)symbol != null)
             {
                 refKind = symbol.RefKind;
-                return symbol.ReturnType;
+
+                TypeSymbolWithAnnotations returnType = symbol.ReturnType;
+
+                if (returnType.IsNull || (object)returnType.TypeSymbol == LambdaSymbol.ReturnTypeIsBeingInferred)
+                {
+                    return null;
+                }
+
+                return returnType.TypeSymbol;
             }
 
             refKind = RefKind.None;
@@ -2692,7 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, false, returnType, diagnostics);
+            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, returnType, diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, DiagnosticBag diagnostics)
@@ -2744,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // LocalSymbol.Type ignores diagnostics so it seems cleaner to bind the type here
                 // as well. However, if LocalSymbol.Type is changed to report diagnostics, we'll
                 // need to avoid binding here since that will result in duplicate diagnostics.
-                type = this.BindType(declaration.Type, diagnostics);
+                type = this.BindType(declaration.Type, diagnostics).TypeSymbol;
                 Debug.Assert((object)type != null);
 
                 if (type.IsErrorType())
@@ -2827,13 +2842,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(local.Type.IsErrorType() || (local.Type == type));
+                Debug.Assert(local.Type.IsErrorType() || (local.Type.TypeSymbol == type));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.
                 hasError |= this.ValidateDeclarationNameConflictsInScope(local, diagnostics);
 
-                exceptionSource = new BoundLocal(declaration, local, ConstantValue.NotAvailable, local.Type);
+                exceptionSource = new BoundLocal(declaration, local, ConstantValue.NotAvailable, local.Type.TypeSymbol);
             }
 
             var block = BindEmbeddedBlock(node.Block, diagnostics);
@@ -2874,7 +2889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
                     Error(diagnostics, ErrorCode.ERR_CantConvAsyncAnonFuncReturns,
                         location,
-                        lambda.MessageID.Localize(), lambda.ReturnType);
+                        lambda.MessageID.Localize(), lambda.ReturnType.TypeSymbol);
                 }
                 else
                 {

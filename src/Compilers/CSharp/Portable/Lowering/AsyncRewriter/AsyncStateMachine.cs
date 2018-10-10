@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (asyncMethod.IsIterator)
             {
-                var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).Type;
+                var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementType).TypeSymbol;
                 this.IteratorElementType = elementType;
 
                 // IAsyncEnumerable<TResult>

@@ -156,7 +156,7 @@ class C : System.IAsyncDisposable
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestInAsyncAnonymousMethod()
         {
             string source = @"
@@ -298,7 +298,7 @@ class C : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestInCatchBlock()
         {
             string source = @"
@@ -413,7 +413,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestInFinallyBlock()
         {
             string source = @"
@@ -448,7 +448,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestRegularAwaitInFinallyBlock()
         {
             string source = @"
@@ -731,7 +731,7 @@ public class C : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithDeclaration()
         {
             string source = @"
@@ -761,7 +761,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestIAsyncDisposableInRegularUsing()
         {
             string source = @"
@@ -791,7 +791,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             CompileAndVerify(comp, expectedOutput: "body Dispose");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithDynamicDeclaration()
         {
             string source = @"
@@ -818,7 +818,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithExpression()
         {
             string source = @"
@@ -992,7 +992,7 @@ class C : System.IAsyncDisposable
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithNullExpression()
         {
             string source = @"
@@ -1035,7 +1035,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithDynamicExpression()
         {
             string source = @"
@@ -1062,7 +1062,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithStructExpression()
         {
             string source = @"
@@ -1231,7 +1231,7 @@ struct S : System.IAsyncDisposable
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithNullableExpression()
         {
             string source = @"
@@ -1258,7 +1258,7 @@ struct S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithNullNullableExpression()
         {
             string source = @"
@@ -1321,7 +1321,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithMultipleResources()
         {
             string source = @"
@@ -1354,7 +1354,7 @@ class S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithMultipleResourcesAndException()
         {
             string source = @"
@@ -1393,7 +1393,7 @@ class S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void TestWithMultipleResourcesAndExceptionInSecondResource()
         {
             string source = @"

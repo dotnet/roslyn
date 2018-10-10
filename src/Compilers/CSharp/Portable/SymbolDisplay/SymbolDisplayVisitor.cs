@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
@@ -196,7 +197,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                symbol.Type.Accept(this);
+                var local = symbol as LocalSymbol;
+                if ((object)local != null)
+                {
+                    VisitTypeSymbolWithAnnotations(local.Type);
+                }
+                else
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
                 AddSpace();
             }
 

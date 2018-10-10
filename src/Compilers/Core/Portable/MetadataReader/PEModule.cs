@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
         private static readonly AttributeValueExtractor<string> s_attributeStringValueExtractor = CrackStringInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
+        private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
         private static readonly AttributeValueExtractor<short> s_attributeShortValueExtractor = CrackShortInAttributeValue;
         private static readonly AttributeValueExtractor<int> s_attributeIntValueExtractor = CrackIntInAttributeValue;
         private static readonly AttributeValueExtractor<long> s_attributeLongValueExtractor = CrackLongInAttributeValue;
@@ -999,7 +1000,7 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, description).Handle;
         }
 
-        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create(true);
+        private static readonly ImmutableArray<bool> s_simpleDynamicOrNullableTransforms = ImmutableArray.Create(true);
 
         internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> dynamicTransforms)
         {
@@ -1014,7 +1015,7 @@ namespace Microsoft.CodeAnalysis
 
             if (info.SignatureIndex == 0)
             {
-                dynamicTransforms = s_simpleDynamicTransforms;
+                dynamicTransforms = s_simpleDynamicOrNullableTransforms;
                 return true;
             }
 
@@ -1058,13 +1059,11 @@ namespace Microsoft.CodeAnalysis
             if (info.HasValue)
             {
                 ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info);
-                if (obsoleteData != null &&
-                    ignoreByRefLikeMarker &&
-                    obsoleteData.Message == ByRefLikeMarker)
+                switch (obsoleteData?.Message)
                 {
-                    return null;
+                    case ByRefLikeMarker when ignoreByRefLikeMarker:
+                        return null;
                 }
-
                 return obsoleteData;
             }
 
@@ -1572,6 +1571,18 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = default(ImmutableArray<string>);
+            return false;
+        }
+
+        internal static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
+        {
+            if (sig.RemainingBytes >= 1)
+            {
+                value = sig.ReadBoolean();
+                return true;
+            }
+
+            value = false;
             return false;
         }
 
@@ -2377,6 +2388,40 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _lazyContainsNoPiaLocalTypes == ThreeState.True;
+        }
+
+        internal bool HasNullableAttribute(EntityHandle token, out ImmutableArray<bool> nullableTransforms)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                nullableTransforms = default(ImmutableArray<bool>);
+                return false;
+            }
+
+            if (info.SignatureIndex == 0)
+            {
+                nullableTransforms = s_simpleDynamicOrNullableTransforms;
+                return true;
+            }
+
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out nullableTransforms);
+        }
+
+        internal bool HasNonNullTypesAttribute(EntityHandle token, out bool value)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NonNullTypesAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (info.HasValue && TryExtractValueFromAttribute(info.Handle, out value, s_attributeBooleanValueExtractor))
+            {
+                return true;
+            }
+
+            value = false;
+            return false;
         }
 
         #endregion
