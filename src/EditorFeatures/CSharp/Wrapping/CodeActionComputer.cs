@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                         return null;
                     }
 
-                    return new MyCodeAction(title, parentTitle, _ => Task.FromResult(formattedDocument));
+                    return new WrapItemsAction(title, parentTitle, _ => Task.FromResult(formattedDocument));
                 }
                 finally
                 {
