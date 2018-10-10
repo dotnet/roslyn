@@ -283,6 +283,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 var parentTitle = string.Format(FeaturesResources.Wrap_long_0, _service.ListName);
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
+                // Wrap at long length, align with first item:
+                //      MethodName(int a, int b, int c,
+                //                 int d, int e, int f,
+                //                 int g, int h, int i,
+                //                 int j)
+                codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
+                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+
                 // Wrap at long length, indent all items:
                 //      MethodName(
                 //          int a, int b, int c, int d, int e,
@@ -296,14 +304,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 //          int h, int i, int j)
                 codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
                     seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
-
-                // Wrap at long length, align with first item:
-                //      MethodName(int a, int b, int c,
-                //                 int d, int e, int f,
-                //                 int g, int h, int i,
-                //                 int j)
-                codeActions.AddIfNotNull(await GetWrapLongLineCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
 
                 var sorted = SortActionsByMRU(codeActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
@@ -387,6 +387,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
+                // Wrap each item, align with first item
+                //      MethodName(int a,
+                //                 int b,
+                //                 ...
+                //                 int j);
+                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
+                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
+
                 // Wrap each item, indent all items
                 //      MethodName(
                 //          int a,
@@ -403,14 +411,6 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
                 //          int j)
                 codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
                     seenDocuments, parentTitle, indentFirst: false, alignWithFirst: false, cancellationToken).ConfigureAwait(false));
-
-                // Wrap each item, align with first item
-                //      MethodName(int a,
-                //                 int b,
-                //                 ...
-                //                 int j);
-                codeActions.AddIfNotNull(await GetWrapEveryNestedCodeActionAsync(
-                    seenDocuments, parentTitle, indentFirst: false, alignWithFirst: true, cancellationToken).ConfigureAwait(false));
 
                 var sorted = SortActionsByMRU(codeActions.ToImmutableAndFree());
                 if (sorted.Length == 0)
