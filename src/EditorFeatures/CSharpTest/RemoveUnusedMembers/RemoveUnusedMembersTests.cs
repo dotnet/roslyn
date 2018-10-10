@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 
         // Ensure that we explicitly test missing IDE0052, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup)
-            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(fixableDiagnosticsOnly: false));
+            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(retainNonFixableDiagnostics: true));
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [InlineData("public")]

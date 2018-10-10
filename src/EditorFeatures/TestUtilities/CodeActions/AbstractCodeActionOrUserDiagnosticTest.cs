@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly CompilationOptions compilationOptions;
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
-            internal readonly bool fixableDiagnosticsOnly;
+            internal readonly bool retainNonFixableDiagnostics;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
-                bool fixableDiagnosticsOnly = true)
+                bool retainNonFixableDiagnostics = false)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.fixProviderData = fixProviderData;
                 this.index = index;
                 this.priority = priority;
-                this.fixableDiagnosticsOnly = fixableDiagnosticsOnly;
+                this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
