@@ -332,44 +332,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 
                 var currentOffset = indentation.Length;
                 var parametersAndSeparators = _parameterList.Parameters.GetWithSeparators();
-                var firstItemOnLine = true;
 
                 for (var i = 0; i < parametersAndSeparators.Count; i += 2)
                 {
                     var parameter = parametersAndSeparators[i].AsNode();
 
-                    if (i < parametersAndSeparators.Count - 1)
+                    // Figure out where we'd be after this parameter.
+                    currentOffset += parameter.Span.Length;
+
+                    if (i > 0)
                     {
-                        // Get rid of any spaces between the list item and the following comma
-                        var comma = parametersAndSeparators[i + 1].AsToken();
-                        result.Add(DeleteBetween(parameter, comma));
-
-                        result.Add(DeleteBetween(comma, parametersAndSeparators[i + 2]));
-
-                        if (firstItemOnLine || currentOffset < _wrappingColumn)
+                        if (currentOffset < _wrappingColumn)
                         {
-                            // Either this was the first item on the line (and thus we always want
-                            // to emit it), or this item didn't take us past the wrapping limit.
-                            // All we need to do here is remove the space between this comma and the 
-                            // next item.
-                            firstItemOnLine = false;
+                            // this item would not make us go pass our preferred wrapping column. So
+                            // keep it on this line, making sure there's a space between the previous
+                            // comma and us.
+                            result.Add(UpdateBetween(parametersAndSeparators[i - 1], parameter, " "));
+                            currentOffset += " ".Length;
                         }
                         else
                         {
-                            // not the first item on the line and this item makes us go past the
-                            // wrapping limit.  We want to wrap before this item.
+                            // not the first item on the line and this item makes us go past the wrapping
+                            // limit.  We want to wrap before this item.
                             result.Add(UpdateBetween(parametersAndSeparators[i - 1], parameter, _newLine + indentation));
-                            currentOffset = indentation.Length;
-                            firstItemOnLine = true;
+                            currentOffset = indentation.Length + parameter.Span.Length;
                         }
-
-                        // Determine the offset after this parameter this ensures we always place at least one parameter before wrapping.
-                        currentOffset += parameter.Span.Length + comma.Span.Length;
                     }
-                }
 
-                // last parameter.  Delete whatever is between it and the close token of the list.
-                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
+                    // Get rid of any spaces between the list item and the following token (a
+                    // comma or close token).
+                    var nextToken = parameter.GetLastToken().GetNextToken();
+
+                    result.Add(DeleteBetween(parameter, nextToken));
+                    currentOffset += nextToken.Span.Length;
+                }
 
                 return result.ToImmutableAndFree();
             }
