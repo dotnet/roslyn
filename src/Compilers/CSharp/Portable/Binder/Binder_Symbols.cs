@@ -2178,11 +2178,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var fullName = qualifierOpt != null && !ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace) ? qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + name : name;
             var result = GetForwardedToAssembly(fullName, diagnostics, location);
-            if (result != null || diagnostics.HasAnyErrors())
+            if ((object)result != null || diagnostics.HasAnyErrors())
+            {
                 return result;
+            }
 
-            if (qualifierOpt == null)
+            if ((object)qualifierOpt == null)
+            {
                 return GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
+            }
 
             return null;
         }
