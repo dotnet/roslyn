@@ -92,22 +92,6 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Microbuild
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
-  def myJob = job(jobName) {
-    description('MicroBuild test')
-    steps {
-      batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
 // VS Integration Tests
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
