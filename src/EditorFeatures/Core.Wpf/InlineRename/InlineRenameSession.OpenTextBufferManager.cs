@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         }
 
                         var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))
                     {
-                        foreach (var change in textDiffService.GetTextChangesAsync(preMergeDocument, postMergeDocument, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken))
+                        foreach (var change in textDiffService.GetTextChangesAsync(preMergeDocument, postMergeDocument, cancellationToken).WaitAndGetResult(cancellationToken))
                         {
                             buffer.Replace(change.Span.ToSpan(), change.NewText);
                         }

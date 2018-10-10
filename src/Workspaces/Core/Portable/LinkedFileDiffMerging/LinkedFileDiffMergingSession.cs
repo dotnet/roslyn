@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
             var textDifferencingService = _oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>() ?? new DefaultDocumentTextDifferencingService();
-            var appliedChanges = await textDifferencingService.GetTextChangesAsync(_oldSolution.GetDocument(linkedDocumentGroup.First()), _newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var appliedChanges = await textDifferencingService.GetTextChangesAsync(_oldSolution.GetDocument(linkedDocumentGroup.First()), _newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
             var unmergedChanges = new List<UnmergedDocumentChanges>();
 
             foreach (var documentId in linkedDocumentGroup.Skip(1))
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
 
             int cumulativeChangeIndex = 0;
 
-            var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
             foreach (var change in textchanges)
             {
                 while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)

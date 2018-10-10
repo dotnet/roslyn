@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             // Do not limit the results since we plan to fix all the reported issues.
-            var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, int.MaxValue);
+            var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, maxResults: int.MaxValue);
             var getChangesTasks = codeActions.Select(
                 action => GetChangesForCodeActionAsync(document, action, progressTracker, textDiffingService, cancellationToken));
 

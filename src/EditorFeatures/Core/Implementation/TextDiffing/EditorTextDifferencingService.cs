@@ -27,7 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
             _differenceSelectorService = differenceSelectorService;
         }
 
-        public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType = TextDifferenceTypes.Word, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        {
+            return GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
+        }
+
+        public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
