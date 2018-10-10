@@ -127,6 +127,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Pool.Allocate();
         }
 
+        public static AnalyzedArguments GetInstance(AnalyzedArguments original)
+        {
+            var instance = GetInstance();
+            instance.Arguments.AddRange(original.Arguments);
+            instance.Names.AddRange(original.Names);
+            instance.RefKinds.AddRange(original.RefKinds);
+            instance.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
+            instance._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
+            return instance;
+        }
+
         public void Free()
         {
             this.Clear();
