@@ -40,9 +40,8 @@ steps:
 - task: PowerShell@2
   displayName: Build
   inputs:
-    filePath: 'build\scripts\build.ps1'
-    arguments: -configuration $(BuildConfiguration) 
-      -official -build -sign -pack -restore -cibuild -testDesktop -binaryLog -procdump -deployExtensions:$false
+    filePath: 'build\scripts\cibuild.cmd'
+    arguments: -configuration $(BuildConfiguration) -official -testDesktop -procdump -deployExtensions:$false
       /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
       /p:DotNetSignType=$(PB_SignType)
       /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
