@@ -7,8 +7,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// <summary>
     /// Operation and Method pair.
     /// </summary>
-    /// <remarks>Used as a key to identify invocation operations, which may have different
-    /// underlying invoked methods, cuz of delegates or something.</remarks>
+    /// <remarks>
+    /// <para>
+    /// Used as a key to identify invocation operations, which may have different
+    /// underlying invoked methods, cuz of delegates or something.
+    /// </para>
+    /// <para>
+    /// Operations and Symbols don't seem to override GetHashCode() / Equals(), so
+    /// different instances representing the same code will be considered not equal.
+    /// </para>
+    /// </remarks>
     internal sealed partial class OperationMethodKey : IEquatable<OperationMethodKey>
     {
         /// <summary>
