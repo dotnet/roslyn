@@ -2174,6 +2174,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         protected AssemblySymbol GetForwardedToAssembly(string name, int arity, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
         {
+            if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
+            {
+                var current = this;
+
+                do
+                {
+                    var contextualAttributeBinder = current as ContextualAttributeBinder;
+
+                    if (contextualAttributeBinder != null)
+                    {
+                        if ((object)contextualAttributeBinder.AttributeTarget != null &&
+                            contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.Assembly)
+                        {
+                            return null;
+                        }
+
+                        break;
+                    }
+
+                    current = current.Next;
+                }
+                while (current != null);
+            }
+
             name = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
 
             var fullName = qualifierOpt != null && !ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace) ? qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + name : name;
