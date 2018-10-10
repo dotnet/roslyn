@@ -44,6 +44,19 @@ namespace Microsoft.CodeAnalysis.Syntax
             return entry.GeneralWarningOption;
         }
 
+        public ReportDiagnostic? GetSpecificWarningState(string id, int position)
+        {
+            var entry = GetEntryAtOrBeforePosition(position);
+
+            ReportDiagnostic state;
+            if (entry.SpecificWarningOption.TryGetValue(id, out state))
+            {
+                return state;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Gets the entry with the largest position less than or equal to supplied position.
         /// </summary>

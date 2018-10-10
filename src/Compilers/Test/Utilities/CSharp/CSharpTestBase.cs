@@ -109,8 +109,28 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-        protected const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
-        protected const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
+        protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
+                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Error) });
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
+                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Suppress) });
+        }
+
+        protected static string NonNullTypesOff()
+        {
+            return $"#pragma warning disable {(int)ErrorCode.WRN_PragmaNonNullTypes}";
+        }
+
+        internal static string NonNullTypesOn()
+        {
+            return $"#pragma warning restore {(int)ErrorCode.WRN_PragmaNonNullTypes}";
+        }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,

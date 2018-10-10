@@ -24,10 +24,4 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly INonNullTypesContext Instance = new NonNullTypesFalseContext();
         public bool? NonNullTypes => false;
     }
-
-    internal sealed class NonNullTypesUnusedContext : INonNullTypesContext
-    {
-        public static readonly INonNullTypesContext Instance = new NonNullTypesUnusedContext();
-        public bool? NonNullTypes => throw ExceptionUtilities.Unreachable;
-    }
 }

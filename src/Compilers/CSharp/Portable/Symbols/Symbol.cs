@@ -631,6 +631,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        protected void AddSynthesizedNonNullTypesAttributeForMember(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            bool? nonNullTypes = NonNullTypes;
+            if (nonNullTypes.HasValue && nonNullTypes != ContainingType.NonNullTypes)
+            {
+                AddSynthesizedAttribute(ref attributes,
+                                        DeclaringCompilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
+            }
+        }
+
         /// <summary>
         /// Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         /// </summary>
@@ -852,6 +862,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        internal bool? GetNonNullTypesFromSyntax()
+        {
+            bool? result = null;
+            string id = "CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000");
+
+            foreach (Location location in Locations)
+            {
+                SyntaxTree tree = location.SourceTree;
+
+                if (tree != null)
+                {
+                    ReportDiagnostic? state = ((CSharpSyntaxTree)tree).GetPragmaDirectiveSpecificWarningState(id, location.SourceSpan.Start);
+                    if (state.HasValue)
+                    {
+                        if (state.GetValueOrDefault() == ReportDiagnostic.Suppress)
+                        {
+                            result = false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
