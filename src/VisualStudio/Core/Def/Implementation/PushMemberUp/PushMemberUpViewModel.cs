@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PushMemberUp
 {
     internal class PushMemberUpViewModel : AbstractNotifyPropertyChanged
     {
-
         public List<MemberSymbolViewWithAbstactSelection> SelectedMembersContainer { get; set; }
 
         public ObservableCollection<MemberSymbolViewModelGraphNode> TargetMembersContainer { get; set; }

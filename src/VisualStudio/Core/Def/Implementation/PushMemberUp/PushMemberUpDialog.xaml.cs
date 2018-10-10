@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PushMemberUp
 {
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PushMemberUp
         public string Cancel => ServicesVSResources.Cancel;
 
         // TODO: Add this to resources mananger
-        public string PushMembersUpTitle => "Push Up Members";
+        public string PushMembersUpTitle => "Pull Up Members";
 
         private PushMemberUpViewModel ViewModel { get; }
 

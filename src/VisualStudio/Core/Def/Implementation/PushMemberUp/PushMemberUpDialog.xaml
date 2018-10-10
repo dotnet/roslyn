@@ -6,22 +6,31 @@
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PushMemberUp"
              mc:Ignorable="d" 
-             Height="380"
-             Width="480"
-             d:DesignHeight="380"
-             d:DesignWidth="480"
+             SizeToContent="WidthAndHeight"
+             Height="460"
+             Width="490"
              Title="{Binding ElementName=dialog, Path=PushMembersUpTitle}">
     <Window.Resources>
-        <Thickness x:Key="okAndCancelButton">5, 8, 8, 4</Thickness>
+        <Thickness x:Key="okAndCancelButton">5, 3, 8, 4</Thickness>
         <Thickness x:Key="selectDependantsButton">2, 4, 4, 2</Thickness>
-        <sys:Double x:Key="okAndCancelButtonMinWidth">50</sys:Double>
-        <sys:Double x:Key="okAndCancelButtonMinHeight">20</sys:Double>
+        <sys:Double x:Key="okAndCancelButtonWidth">50</sys:Double>
+        <sys:Double x:Key="okAndCancelButtonHeight">20</sys:Double>
+        <Style x:Key="RoundCornerButton" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="2" BorderThickness="1" BorderBrush="Black">
+                            <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="LibraryTreeViewItemStyle"
                TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsSelected"
@@ -45,20 +54,24 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Height="110" MinWidth="370">
+        <StackPanel Grid.Row="0" Height="200" MinWidth="370">
             <Label
                x:Uid="SelectTargetLabel"
                x:Name="PushUpLabel"
-               FontStyle="Oblique"
-               Content="Push Up"/>
+               FontWeight="Bold"
+               Content="Pull Up"/>
             <Label
                 x:Uid="Description"
                 x:Name="Description"
-                Content="Select destination and members to push up"/>
+                Content="  Select destination and members to pull up"/>
+            <Separator/>
+
+            <Label x:Name="TargetSelectionLabel"
+                   Content="Select destination type"/>
 
             <TreeView x:Uid="PushTargetTreeView"
                       x:Name="TargetMembersContainer"
-                      Height="80"
+                      MinHeight="110"
                       MinWidth="370"
                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                       ItemsSource="{Binding TargetMembersContainer}"
@@ -77,81 +90,105 @@
         </StackPanel>
 
         <Label Grid.Row ="1" x:Uid="MemberSelectionLabel" Content="Select members:"/>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="5,5,5,0" Height="135">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <u:AutomationDelegatingListView 
+            <DataGrid 
                 Grid.Column="0"
                 x:Uid="MemberSelectionListView"
                 x:Name="MemberSelection"
-                Margin="5"
-                Height="150"
+                Margin="2"
+                MinHeight="130"
                 MinWidth="330"
-                SelectionMode="Extended"
                 ScrollViewer.VerticalScrollBarVisibility="Visible"
+                AutoGenerateColumns="False"
+                GridLinesVisibility="None"
                 ItemsSource="{Binding SelectedMembersContainer, Mode=TwoWay}">
-                <u:AutomationDelegatingListView.ItemTemplate x:Uid="MemberSelectionListViewItem">
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                             <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                           </Grid>
-                            <StackPanel Grid.Column="0">
-                                <CheckBox x:Uid="MemberSelectionCheckBox"
-                                          AutomationProperties.Name="{Binding MemberAutomationText}"
-                                          IsChecked="{Binding IsChecked}"
-                                          Width="Auto"
-                                          Focusable="False"
-                                          AutomationProperties.AutomationId="{Binding MemberName}"/>
-                                <Image x:Uid="GlyphOfMember"
-                                       Margin="8,0,0,0"
-                                       Source="{Binding Glyph}"/>
-                                <TextBlock x:Uid="MemberName"
-                                           Text="{Binding MemberName}"/>
-                            </StackPanel>
-                            <CheckBox x:Uid="AbstractCheckBox"
-                                      HorizontalAlignment="Right"
-                                      IsChecked="{Binding IsAbstract}"
-                                      Click="AbstractCheckBox_Click"
-                                      Grid.Column="1"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </u:AutomationDelegatingListView.ItemTemplate>
-            </u:AutomationDelegatingListView>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Member" MinWidth="220">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox x:Uid="MemberSelectionCheckBox"
+                                              AutomationProperties.Name="{Binding MemberAutomationText}"
+                                              IsChecked="{Binding IsChecked}"
+                                              Width="Auto"
+                                              Focusable="False"
+                                              AutomationProperties.AutomationId="{Binding MemberName}"/>
+                                    <Image x:Uid="GlyphOfMember"
+                                           Margin="8,0,0,0"
+                                           Source="{Binding Glyph}"/>
+                                    <TextBlock x:Uid="MemberName"
+                                               Text="{Binding MemberName}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Make Abstract" MinWidth="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox x:Name="MakeMemberAbstract"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
             <StackPanel Grid.Column="1"
                         Orientation="Vertical"
                         VerticalAlignment="Center"
-                        HorizontalAlignment="Right">
-                <Button
-                    x:Uid="SelecDependantsButton"
+                        HorizontalAlignment="Right"
+                        MinWidth="100">
+                    <Button
+                    x:Name="SelecDependantsButton"
                     Margin="{StaticResource ResourceKey=selectDependantsButton}"
+                    Style="{StaticResource RoundCornerButton}" 
                     Content="Select dependants"
                     MinHeight="20"
                     MaxWidth="120"/>
+                <Button
+                    x:Name="SelectAllButton"
+                    Content="Select all"
+                    Style="{StaticResource RoundCornerButton}" 
+                    Margin="{StaticResource ResourceKey=selectDependantsButton}"
+                    MinHeight="20"
+                    MaxWidth="120"/>
+                <Button
+                    x:Name="SelectPublic"
+                    Content="Select public"
+                    Style="{StaticResource RoundCornerButton}" 
+                    Margin="{StaticResource ResourceKey=selectDependantsButton}"/>
             </StackPanel>
         </Grid>
 
         <StackPanel Grid.Row="3"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    MaxHeight="40">
-            <Button x:Uid="OKButton"
+                   Orientation="Vertical"
+                   MaxHeight="40" Margin="0,8,0,8" MinWidth="445">
+            <Separator/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Uid="OKButton"
+                    Grid.Column="1"
                     Click="OK_Button_Click"
+                    Style="{StaticResource RoundCornerButton}" 
                     Margin = "{StaticResource ResourceKey=okAndCancelButton}"
                     Content="{Binding ElementName=dialog, Path=OK}"
-                    MinWidth= "{StaticResource ResourceKey=okAndCancelButtonMinWidth}"
-                    MinHeight="{StaticResource ResourceKey=okAndCancelButtonMinHeight}"/>
-            <Button x:Uid="CancelButton"
+                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
+                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                <Button x:Uid="CancelButton"
+                    Grid.Column="2"
                     Click="Cancel_Button_Click"
+                    Style="{StaticResource RoundCornerButton}" 
                     Margin= "{StaticResource ResourceKey=okAndCancelButton}"
-                    Content="{Binding ElementName=dialog, Path=Cancel}"
-                    MinWidth= "{StaticResource ResourceKey=okAndCancelButtonMinWidth}"
-                    MinHeight="{StaticResource ResourceKey=okAndCancelButtonMinHeight}"/>
-        </StackPanel>
+                    Content="{Binding Cancel, ElementName=dialog}"
+                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
+                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+            </Grid>
+            </StackPanel>
     </Grid>
 </vs:DialogWindow>
