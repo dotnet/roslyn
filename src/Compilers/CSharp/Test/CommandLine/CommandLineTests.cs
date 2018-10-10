@@ -549,7 +549,7 @@ d.cs
             CleanupAllGeneratedFiles(tmpFileName);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void Win32ResQuotes()
         {
             string[] responseFile = new string[] {
