@@ -49,15 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                 _wrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
             }
 
-            private static void DeleteAroundCommas(BaseParameterListSyntax parameterList, ArrayBuilder<TextChange> result)
-            {
-                foreach (var comma in parameterList.Parameters.GetSeparators())
-                {
-                    result.Add(DeleteBetween(comma.GetPreviousToken(), comma));
-                    result.Add(DeleteBetween(comma, comma.GetNextToken()));
-                }
-            }
-
             private static TextChange DeleteBetween(SyntaxNodeOrToken left, SyntaxNodeOrToken right)
                 => UpdateBetween(left, right, "");
 
@@ -265,9 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                 var result = ArrayBuilder<TextChange>.GetInstance();
 
                 AddTextChangeBetweenOpenAndFirstItem(indentFirst, result);
-                DeleteAroundCommas(_parameterList, result);
-                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
 
+                foreach (var comma in _parameterList.Parameters.GetSeparators())
+                {
+                    result.Add(DeleteBetween(comma.GetPreviousToken(), comma));
+                    result.Add(DeleteBetween(comma, comma.GetNextToken()));
+                }
+
+                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
                 return result.ToImmutableAndFree();
             }
 
@@ -336,37 +332,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
 
                 var currentOffset = indentation.Length;
                 var parametersAndSeparators = _parameterList.Parameters.GetWithSeparators();
+                var firstItemOnLine = true;
 
                 for (var i = 0; i < parametersAndSeparators.Count; i += 2)
                 {
                     var parameter = parametersAndSeparators[i].AsNode();
+
                     if (i < parametersAndSeparators.Count - 1)
                     {
-                        // intermediary parameter
+                        // Get rid of any spaces between the list item and the following comma
                         var comma = parametersAndSeparators[i + 1].AsToken();
                         result.Add(DeleteBetween(parameter, comma));
 
-                        // Move past this parameter and comma.  Update our current offset accordingly.
-                        // this ensures we always place at least one parameter before wrapping.
-                        currentOffset += parameter.Span.Length + comma.Span.Length;
-                         
-                        if (currentOffset > _wrappingColumn)
+                        result.Add(DeleteBetween(comma, parametersAndSeparators[i + 2]));
+
+                        if (firstItemOnLine || currentOffset < _wrappingColumn)
                         {
-                            // Current line is too long.  Wrap between this comma and the next item.
-                            result.Add(UpdateBetween(comma, parametersAndSeparators[i + 2], _newLine + indentation));
-                            currentOffset = indentation.Length;
+                            // Either this was the first item on the line (and thus we always want
+                            // to emit it), or this item didn't take us past the wrapping limit.
+                            // All we need to do here is remove the space between this comma and the 
+                            // next item.
+                            firstItemOnLine = false;
                         }
                         else
                         {
-                            result.Add(DeleteBetween(comma, parametersAndSeparators[i + 2]));
+                            // not the first item on the line and this item makes us go past the
+                            // wrapping limit.  We want to wrap before this item.
+                            result.Add(UpdateBetween(parametersAndSeparators[i - 1], parameter, _newLine + indentation));
+                            currentOffset = indentation.Length;
+                            firstItemOnLine = true;
                         }
-                    }
-                    else
-                    {
-                        // last parameter.  Delete whatever is between it and the close token of the list.
-                        result.Add(DeleteBetween(parameter, _parameterList.GetLastToken()));
+
+                        // Determine the offset after this parameter this ensures we always place at least one parameter before wrapping.
+                        currentOffset += parameter.Span.Length + comma.Span.Length;
                     }
                 }
+
+                // last parameter.  Delete whatever is between it and the close token of the list.
+                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }
@@ -461,12 +464,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping
                         // Always wrap between this comma and the next item.
                         result.Add(UpdateBetween(comma, parametersAndSeparators[i + 2], _newLine + indentation));
                     }
-                    else
-                    {
-                        // last parameter.  Delete whatever is between it and the close token of the list.
-                        result.Add(DeleteBetween(parameter, _parameterList.GetLastToken()));
-                    }
                 }
+
+                // last parameter.  Delete whatever is between it and the close token of the list.
+                result.Add(DeleteBetween(_parameterList.Parameters.Last(), _parameterList.GetLastToken()));
 
                 return result.ToImmutableAndFree();
             }
