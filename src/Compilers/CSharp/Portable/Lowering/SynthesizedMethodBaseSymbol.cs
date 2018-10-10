@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int ParameterCount
@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
+                builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type), ordinal++, p.RefKind, p.Name));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
                 foreach (var extra in extraSynthed)
                 {
-                    builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
+                    builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
                 }
             }
             return builder.ToImmutableAndFree();
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.BaseMethod.RefKind; }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
-            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType).Type; }
+            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType); }
         }
 
         public sealed override bool IsVararg
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_iteratorElementType == null)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).Type;
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).TypeSymbol;
                 }
                 return _iteratorElementType;
             }

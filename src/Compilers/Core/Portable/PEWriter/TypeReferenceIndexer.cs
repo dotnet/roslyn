@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Emit;
-using System.Diagnostics;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -9,14 +8,18 @@ namespace Microsoft.Cci
     /// <summary>
     /// Visitor to force translation of all symbols that will be referred to
     /// in metadata. Allows us to build the set of types that must be embedded
-    /// as local types.
+    /// as local types (for NoPia) and the set of injected types that must be embedded (NonNullTypes, Embedded).
     /// </summary>
-    internal sealed class NoPiaReferenceIndexer : ReferenceIndexerBase
+    internal sealed class TypeReferenceIndexer : ReferenceIndexerBase
     {
-        internal NoPiaReferenceIndexer(EmitContext context)
+        internal TypeReferenceIndexer(EmitContext context)
             : base(context)
         {
         }
+
+        // For purpose of detecting any uses of NonNullTypes attribute, we need to process references in current module too.
+        protected override bool ProcessReferencesInCurrentModule
+            => true;
 
         public override void Visit(CommonPEModuleBuilder module)
         {

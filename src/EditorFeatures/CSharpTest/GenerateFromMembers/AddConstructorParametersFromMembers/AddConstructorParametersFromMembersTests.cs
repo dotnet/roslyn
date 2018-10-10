@@ -280,6 +280,34 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestTupleOptionalCSharp7()
+        {
+            await TestAsync(
+@"class Program
+{
+    [|(int, string) i;
+    (string, int) s;|]
+
+    public Program((int, string) i)
+    {
+        this.i = i;
+    }
+}",
+@"class Program
+{
+    (int, string) i;
+    (string, int) s;
+
+    public Program((int, string) i, (string, int) s = default((string, int)))
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptional()
         {
             await TestInRegularAndScriptAsync(
@@ -305,6 +333,34 @@ index: 1);
     }
 }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestTupleOptionalWithNamesCSharp7()
+        {
+            await TestAsync(
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int a, string b) i)
+    {
+        this.i = i;
+    }
+}",
+@"class Program
+{
+    (int a, string b) i;
+    (string c, int d) s;
+
+    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
