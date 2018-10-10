@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Optional parent control flow graph for this graph.
         /// Non-null for a control flow graph generated for a local function or a lambda.
-        /// Null, otherwise.
+        /// Null otherwise.
         /// </summary>
         public ControlFlowGraph Parent { get; }
 

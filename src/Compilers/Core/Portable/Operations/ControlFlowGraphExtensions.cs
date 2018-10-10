@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     return localFunctionControlFlowGraph;
                 }
-            } while ((controlFlowGraph = controlFlowGraph.Parent) != null);
+            }
+            while ((controlFlowGraph = controlFlowGraph.Parent) != null);
 
             throw new ArgumentOutOfRangeException(nameof(localFunction));
         }
@@ -56,7 +57,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     return localFunctionControlFlowGraph;
                 }
-            } while ((controlFlowGraph = controlFlowGraph.Parent) != null);
+            }
+            while ((controlFlowGraph = controlFlowGraph.Parent) != null);
 
             throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
         }
