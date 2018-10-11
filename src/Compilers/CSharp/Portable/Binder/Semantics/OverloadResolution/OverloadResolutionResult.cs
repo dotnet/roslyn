@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!mismatch.IsNull)
             {
                 var method = (MethodSymbol)(Symbol)mismatch.Member;
-                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
+                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType.TypeSymbol);
                 return true;
             }
 
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter];
+            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter].TypeSymbol;
             formalParameterType.CheckAllConstraints(conversions, location, diagnostics);
 
             return true;
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument.Kind != BoundKind.OutVariablePendingInference &&
                 argument.Kind != BoundKind.DiscardExpression)
             {
-                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
+                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type.TypeSymbol;
 
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -1198,8 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument.Display is TypeSymbol argType)
                     {
                         SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                            argType,
-                            ImmutableArray<CustomModifier>.Empty,
+                            TypeSymbolWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
                             isParams: false,
                             refKind: refArg);
@@ -1239,10 +1238,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only try to unwrap parameters if they are a parameter array and are on the last position
             if (parameter.IsParams && isLastParameter)
             {
-                ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
+                ArrayTypeSymbol arrayType = parameter.Type.TypeSymbol as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)
                 {
-                    return arrayType.ElementType;
+                    return arrayType.ElementType.TypeSymbol;
                 }
             }
             return parameter;

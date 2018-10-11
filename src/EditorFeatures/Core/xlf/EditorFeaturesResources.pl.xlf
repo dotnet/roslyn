@@ -7,6 +7,11 @@
         <target state="translated">Stosowanie zmian</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="new">Change configuration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_cleanup_is_not_configured">
         <source>Code cleanup is not configured</source>
         <target state="translated">Nie skonfigurowano czyszczenia kodu</target>
@@ -22,6 +27,11 @@
         <target state="translated">Nie pokazuj tego komunikatu ponownie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="new">Format Document performed additional cleanup</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">Tekst preprocesora</target>
@@ -30,6 +40,11 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Interpunkcja</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="new">String - Escape Character</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">

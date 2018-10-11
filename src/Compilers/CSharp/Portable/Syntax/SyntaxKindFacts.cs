@@ -413,6 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PostIncrementExpression;
                 case SyntaxKind.MinusMinusToken:
                     return SyntaxKind.PostDecrementExpression;
+                case SyntaxKind.ExclamationToken:
+                    return SyntaxKind.SuppressNullableWarningExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -627,6 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.AndAssignmentExpression:
                 case SyntaxKind.ExclusiveOrAssignmentExpression:
@@ -648,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (token)
             {
+                case SyntaxKind.QuestionQuestionEqualsToken:
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.AmpersandEqualsToken:
                 case SyntaxKind.CaretEqualsToken:
@@ -691,6 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ModuloAssignmentExpression;
                 case SyntaxKind.EqualsToken:
                     return SyntaxKind.SimpleAssignmentExpression;
+                case SyntaxKind.QuestionQuestionEqualsToken:
+                    return SyntaxKind.CoalesceAssignmentExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -1328,6 +1334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "^=";
                 case SyntaxKind.PercentEqualsToken:
                     return "%=";
+                case SyntaxKind.QuestionQuestionEqualsToken:
+                    return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
 
@@ -1594,8 +1602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                    return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
         [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
         [Fact]
-        public async void TestRunExpressionStatement()
+        public async Task TestRunExpressionStatement()
         {
             var state = await CSharpScript.RunAsync(
 @"int F() { return 1; }

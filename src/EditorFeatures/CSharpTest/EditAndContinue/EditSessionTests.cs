@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private static string GetFirstLineText(LinePositionSpan span, SourceText text)
             => text.Lines[span.Start.Line].ToString().Trim();
 
-        [Fact, UseExportProvider]
+        [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions1()
         {
             var markedSource = new[]
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
         }
 
-        [Fact, UseExportProvider, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
+        [Fact, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
         public async Task BaseActiveStatementsAndExceptionRegions2()
         {
             var baseSource =
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, updatedText)}'"));
         }
 
-        [Fact, UseExportProvider]
+        [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions_WithInitialNonRemappableRegions()
         {
             var markedSourceV1 =
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, sourceTextV3)}'"));
         }
 
-        [Fact, UseExportProvider]
+        [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions_Recursion()
         {
             var markedSource = new[]
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
         }
 
-        [Fact, UseExportProvider, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
+        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
         public async Task BaseActiveStatementsAndExceptionRegions_LinkedDocuments()
         {
             var markedSource = new[]

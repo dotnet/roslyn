@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -500,7 +501,7 @@ abstract class d
 
 class c : d
 {
-    public override void goo(b x = default)
+    public override void goo(b x = default(b))
     {
         throw new System.NotImplementedException();
     }
@@ -1586,6 +1587,40 @@ sealed class D : B
 
         [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableOptionalParametersCSharp7()
+        {
+            await TestAsync(
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class [|D|] : B
+{
+}",
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class D : B
+{
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void M2<T>(T? i = null)
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestNullableOptionalParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -1606,7 +1641,7 @@ abstract class B
 }
 sealed class D : B
 {
-    public override void M1(int i = 0, string s = null, int? j = null, V v = default)
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
     {
         throw new System.NotImplementedException();
     }

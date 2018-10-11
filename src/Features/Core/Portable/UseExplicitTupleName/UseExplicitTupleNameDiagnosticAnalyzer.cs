@@ -37,7 +37,13 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
+            // We only create a diagnostic if the option's value is set to true.
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
+            if (!option.Value)
+            {
+                return;
+            }
+
             var severity = option.Notification.Severity;
             if (severity == ReportDiagnostic.Suppress)
             {

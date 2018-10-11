@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundReceiver,
                             fieldInit.Field,
                             constantValueOpt: null),
-                            fieldInit.Value,
-                        fieldInit.Field.Type)
+                        fieldInit.Value,
+                        fieldInit.Field.Type.TypeSymbol)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
 

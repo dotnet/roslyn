@@ -201,8 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsGenericName(SyntaxNode node)
             => node is GenericNameSyntax;
 
+        public bool IsQualifiedName(SyntaxNode node)
+            => node.IsKind(SyntaxKind.QualifiedName);
+
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
+
+        public SyntaxToken? GetNameOfParameter(SyntaxNode node)
+            => (node as ParameterSyntax)?.Identifier;
 
         public SyntaxNode GetDefaultOfParameter(SyntaxNode node)
             => (node as ParameterSyntax)?.Default;
@@ -657,11 +663,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
             => (node as ConditionalAccessExpressionSyntax)?.Expression;
 
-        public SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node)
-            => (node as ElementAccessExpressionSyntax)?.Expression;
-
-        public SyntaxNode GetArgumentListOfElementAccessExpression(SyntaxNode node)
-            => (node as ElementAccessExpressionSyntax)?.ArgumentList;
+        public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
+        {
+            var elementAccess = node as ElementAccessExpressionSyntax;
+            expression = elementAccess?.Expression;
+            argumentList = elementAccess?.ArgumentList;
+        }
 
         public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
             => (node as InterpolationSyntax)?.Expression;
@@ -685,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ArgumentSyntax).GetRefKind();
 
         public bool IsArgument(SyntaxNode node)
-            => node.Kind() == SyntaxKind.Argument;
+            => node.IsKind(SyntaxKind.Argument);
 
         public bool IsSimpleArgument(SyntaxNode node)
         {
@@ -1115,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
         {
-            Contract.Requires(root.SyntaxTree == node.SyntaxTree);
+            Debug.Assert(root.SyntaxTree == node.SyntaxTree);
 
             int currentId = 0;
             Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
@@ -1511,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, annotate the context node in the tree so that we can find it again
             // after we've done all the rewriting.
             // var currentRoot = root.ReplaceNode(contextNode, contextNode.WithAdditionalAnnotations(s_annotation));
-            newRoot = new AddFirstMissingCloseBaceRewriter(contextNode).Visit(root);
+            newRoot = new AddFirstMissingCloseBraceRewriter(contextNode).Visit(root);
             newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
@@ -1656,6 +1663,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsConditionalOr(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalOrExpression;
 
+        public bool IsTupleExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleExpression;
+
+        public bool IsTupleType(SyntaxNode node)
+            => node.Kind() == SyntaxKind.TupleType;
+
+        public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
+        {
+            var tupleExpression = (TupleExpressionSyntax)node;
+            openParen = tupleExpression.OpenParenToken;
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            closeParen = tupleExpression.CloseParenToken;
+        }
+
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
 
@@ -1683,13 +1705,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        private class AddFirstMissingCloseBaceRewriter : CSharpSyntaxRewriter
+        private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode;
             private bool _seenContextNode = false;
             private bool _addedFirstCloseCurly = false;
 
-            public AddFirstMissingCloseBaceRewriter(SyntaxNode contextNode)
+            public AddFirstMissingCloseBraceRewriter(SyntaxNode contextNode)
             {
                 _contextNode = contextNode;
             }

@@ -2,347 +2,620 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
-    internal abstract partial class AbstractInvertIfCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
+        TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
+        where TIfStatementSyntax : class, TStatementSyntax
+        where TStatementSyntax : SyntaxNode
     {
-        private const string LongLength = "LongLength";
-
-        private static readonly Dictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
-            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>
+        private enum InvertIfStyle
         {
-            {BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals},
-            {BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals},
-            {BinaryOperatorKind.LessThan, BinaryOperatorKind.GreaterThanOrEqual},
-            {BinaryOperatorKind.GreaterThan, BinaryOperatorKind.LessThanOrEqual},
-            {BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.GreaterThan},
-            {BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThan},
-            {BinaryOperatorKind.Or, BinaryOperatorKind.And},
-            {BinaryOperatorKind.And, BinaryOperatorKind.Or},
-            {BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd},
-            {BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr},
-        };
+            IfWithElse_SwapIfBodyWithElseBody,
+            IfWithoutElse_SwapIfBodyWithSubsequentStatements,
+            IfWithoutElse_MoveSubsequentStatementsToIfBody,
+            IfWithoutElse_WithElseClause,
+            IfWithoutElse_MoveIfBodyToElseClause,
+            IfWithoutElse_WithSubsequentExitPointStatement,
+            IfWithoutElse_WithNearmostJumpStatement,
+            IfWithoutElse_WithNegatedCondition,
+        }
 
-        protected abstract SyntaxNode GetIfStatement(TextSpan textSpan, SyntaxToken token, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetRootWithInvertIfStatement(Document document, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken);
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract string GetTitle();
-
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
             var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
             if (!textSpan.IsEmpty)
             {
                 return;
             }
 
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
-            var ifStatement = GetIfStatement(textSpan, token, cancellationToken);
-            if (ifStatement == null)
+            var ifNode = token.GetAncestor<TIfStatementSyntax>();
+            if (ifNode == null)
             {
                 return;
             }
 
-            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
+            if (ifNode.OverlapsHiddenPosition(cancellationToken))
             {
                 return;
             }
 
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    GetTitle(),
-                    c => InvertIfAsync(document, ifStatement, c)));
+            var headerSpan = GetHeaderSpan(ifNode);
+            if (!headerSpan.IntersectsWith(textSpan))
+            {
+                return;
+            }
+
+            if (!CanInvert(ifNode))
+            {
+                return;
+            }
+
+            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
+                c => InvertIfAsync(root, document, ifNode, c)));
+        }
+
+        private InvertIfStyle GetInvertIfStyle(
+            TIfStatementSyntax ifNode,
+            SemanticModel semanticModel,
+            out SyntaxNode subsequentSingleExitPointOpt)
+        {
+            subsequentSingleExitPointOpt = null;
+
+            if (!IsElseless(ifNode))
+            {
+                return InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody;
+            }
+
+            var ifBodyStatementRange = GetIfBodyStatementRange(ifNode);
+            if (IsEmptyStatementRange(ifBodyStatementRange))
+            {
+                // (1) An empty if-statement: just negate the condition
+                //  
+                //  if (condition) { }
+                //
+                // ->
+                //
+                //  if (!condition) { }
+                //
+                return InvertIfStyle.IfWithoutElse_WithNegatedCondition;
+            }
+
+            var subsequentStatementRanges = GetSubsequentStatementRanges(ifNode);
+            if (subsequentStatementRanges.All(IsEmptyStatementRange))
+            {
+                // (2) No statements after if-statement, invert with the nearmost parent jump-statement
+                //
+                //  void M() {
+                //    if (condition) {
+                //      Body();
+                //    }
+                //  }
+                //
+                // ->
+                //
+                //  void M() {
+                //    if (!condition) {
+                //      return;
+                //    }
+                //    Body();
+                //  }
+                //
+                return InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement;
+            }
+
+            AnalyzeControlFlow(
+                semanticModel, ifBodyStatementRange,
+                out var ifBodyEndPointIsReachable,
+                out var ifBodySingleExitPointOpt);
+
+            AnalyzeSubsequentControlFlow(
+                semanticModel, subsequentStatementRanges,
+                out var subsequentEndPointIsReachable,
+                out subsequentSingleExitPointOpt);
+
+            if (subsequentEndPointIsReachable)
+            {
+                if (!ifBodyEndPointIsReachable)
+                {
+                    if (IsSingleStatementStatementRange(ifBodyStatementRange) &&
+                        SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges) &&
+                        ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifNode))
+                    {
+                        // (3) Inverse of the case (2). Safe to move all subsequent statements to if-body.
+                        // 
+                        //  while (condition) {
+                        //    if (condition) {
+                        //      continue;
+                        //    }
+                        //    f();
+                        //  }
+                        //
+                        // ->
+                        //
+                        //  while (condition) {
+                        //    if (!condition) {
+                        //      f();
+                        //    }
+                        //  }
+                        //
+                        return InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody;
+                    }
+                    else
+                    {
+                        // (4) Otherwise, we generate the else and swap blocks to keep flow intact.
+                        // 
+                        //  while (condition) {
+                        //    if (condition) {
+                        //      return;
+                        //    }
+                        //    f();
+                        //  }
+                        //
+                        // ->
+                        //
+                        //  while (condition) {
+                        //    if (!condition) {
+                        //      f();
+                        //    } else {
+                        //      return;
+                        //    }
+                        //  }
+                        //
+                        return InvertIfStyle.IfWithoutElse_WithElseClause;
+                    }
+                }
+            }
+            else if (ifBodyEndPointIsReachable)
+            {
+                if (subsequentSingleExitPointOpt != null &&
+                    SingleSubsequentStatement(subsequentStatementRanges))
+                {
+                    // (5) if-body end-point is reachable but the next statement is a only jump-statement.
+                    //     This usually happens in a switch-statement. We invert and use that jump-statement.
+                    // 
+                    //  case constant:
+                    //    if (condition) {
+                    //      f();
+                    //    }
+                    //    break;
+                    //
+                    // ->
+                    //
+                    //  case constant:
+                    //    if (!condition) {
+                    //      break;
+                    //    }
+                    //    f();
+                    //    break; // we always keep this so that we don't end up with invalid code.
+                    //
+                    return InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement;
+                }
+            }
+            else if (SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges))
+            {
+                // (6) If both if-body and subsequent statements have an unreachable end-point,
+                //     it would be safe to just swap the two.
+                //
+                //    if (condition) {
+                //      return;
+                //    }
+                //    break;
+                //
+                // ->
+                //
+                //  case constant:
+                //    if (!condition) {
+                //      break;
+                //    }
+                //    return;
+                //
+                return InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements;
+            }
+
+            // (7) If none of the above worked, as the last resort we invert and generate an empty if-body.
+            // 
+            //  {
+            //    if (condition) {
+            //      f();
+            //    }
+            //    f();
+            //  }
+            //
+            // ->
+            //
+            //  {
+            //    if (!condition) {
+            //    } else {
+            //      f();
+            //    }
+            //    f();
+            //  }
+            //  
+            return InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause;
+        }
+
+        private bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
+        {
+            return subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
         }
 
         private async Task<Document> InvertIfAsync(
-            Document document, 
-            SyntaxNode ifStatement, 
+            SyntaxNode root,
+            Document document,
+            TIfStatementSyntax ifNode,
             CancellationToken cancellationToken)
         {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var invertIfStyle = GetInvertIfStyle(ifNode, semanticModel, out var subsequentSingleExitPointOpt);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
             return document.WithSyntaxRoot(
-                // this returns the root because VB requires changing context around if statement
                 GetRootWithInvertIfStatement(
-                    document, model, ifStatement, cancellationToken));
-        }
-
-        internal SyntaxNode Negate(
-            SyntaxNode expression,
-            SyntaxGenerator generator,
-            ISyntaxFactsService syntaxFacts,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            if (syntaxFacts.IsParenthesizedExpression(expression))
-            {
-                return syntaxFacts.Parenthesize(
-                    Negate(
-                        syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
-                        generator,
-                        syntaxFacts,
+                    sourceText,
+                    root,
+                    ifNode,
+                    invertIfStyle,
+                    subsequentSingleExitPointOpt,
+                    negatedExpression: generator.Negate(
+                        GetCondition(ifNode),
                         semanticModel,
-                        cancellationToken))
-                    .WithTriviaFrom(expression);
-            }
-            if (syntaxFacts.IsBinaryExpression(expression))
-            {
-                return GetNegationOfBinaryExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-            }
-            else if (syntaxFacts.IsLiteralExpression(expression))
-            {
-                return GetNegationOfLiteralExpression(expression, generator, semanticModel);
-            }
-            else if (syntaxFacts.IsLogicalNotExpression(expression))
-            {
-                return GetNegationOfLogicalNotExpression(expression, syntaxFacts);
-            }
-
-            return generator.LogicalNotExpression(expression);
+                        cancellationToken)));
         }
 
-        private SyntaxNode GetNegationOfBinaryExpression(
-            SyntaxNode expressionNode,
-            SyntaxGenerator generator,
-            ISyntaxFactsService syntaxFacts,
+        private static void AnalyzeSubsequentControlFlow(
             SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            ImmutableArray<StatementRange> subsequentStatementRanges,
+            out bool subsequentEndPointIsReachable,
+            out SyntaxNode subsequentSingleExitPointOpt)
         {
-            syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
+            subsequentEndPointIsReachable = true;
+            subsequentSingleExitPointOpt = null;
 
-            var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
-            if (operation.Kind == OperationKind.IsPattern)
+            foreach (var statementRange in subsequentStatementRanges)
             {
-                return generator.LogicalNotExpression(expressionNode);
-            }
+                AnalyzeControlFlow(
+                    semanticModel,
+                    statementRange,
+                    out subsequentEndPointIsReachable,
+                    out subsequentSingleExitPointOpt);
 
-            var binaryOperation = (IBinaryOperation)operation;
-
-            if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
-            {
-                return generator.LogicalNotExpression(expressionNode);
-            }
-            else
-            {
-                var negateOperands = false;
-                switch (binaryOperation.OperatorKind)
+                if (!subsequentEndPointIsReachable)
                 {
-                    case BinaryOperatorKind.Or:
-                    case BinaryOperatorKind.And:
-                    case BinaryOperatorKind.ConditionalAnd:
-                    case BinaryOperatorKind.ConditionalOr:
-                        negateOperands = true;
-                        break;
+                    return;
                 }
-
-                //Workaround for https://github.com/dotnet/roslyn/issues/23956
-                //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsConditionalOr(expressionNode))
-                {
-                    negatedKind = BinaryOperatorKind.ConditionalAnd;
-                }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsConditionalAnd(expressionNode))
-                {
-                    negatedKind = BinaryOperatorKind.ConditionalOr;
-                }
-
-                var newLeftOperand = leftOperand;
-                var newRightOperand = rightOperand;
-                if (negateOperands)
-                {
-                    newLeftOperand = Negate(leftOperand, generator, syntaxFacts, semanticModel, cancellationToken);
-                    newRightOperand = Negate(rightOperand, generator, syntaxFacts, semanticModel, cancellationToken);
-                }
-
-                var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator, syntaxFacts, cancellationToken)
-                    .WithTriviaFrom(expressionNode);
-
-                var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
-                var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
-                return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
             }
         }
 
-        private SyntaxNode NewBinaryOperation(
-            IBinaryOperation binaryOperation, 
-            SyntaxNode leftOperand, 
-            BinaryOperatorKind operationKind, 
-            SyntaxNode rightOperand, 
-            SyntaxGenerator generator, 
-            ISyntaxFactsService syntaxFacts, 
-            CancellationToken cancellationToken)
+        private static void AnalyzeControlFlow(
+            SemanticModel semanticModel,
+            StatementRange statementRange,
+            out bool endPointIsReachable,
+            out SyntaxNode singleExitPointOpt)
         {
-            switch (operationKind)
-            {
-                case BinaryOperatorKind.Equals:
-                    return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.ReferenceEqualsExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.NotEquals:
-                    return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true
-                        ? generator.ValueNotEqualsExpression(leftOperand, rightOperand)
-                        : generator.ReferenceNotEqualsExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.LessThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind, cancellationToken) 
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.LessThanOrEqualExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.GreaterThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind, cancellationToken)
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.GreaterThanOrEqualExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.LessThan:
-                    return generator.LessThanExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.GreaterThan:
-                    return generator.GreaterThanExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.Or:
-                    return generator.BitwiseOrExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.And:
-                    return generator.BitwiseAndExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.ConditionalOr:
-                    return generator.LogicalOrExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.ConditionalAnd:
-                    return generator.LogicalAndExpression(leftOperand, rightOperand);
-            }
+            var flow = semanticModel.AnalyzeControlFlow(
+                statementRange.FirstStatement,
+                statementRange.LastStatement);
 
-            return null;
+            endPointIsReachable = flow.EndPointIsReachable;
+            singleExitPointOpt = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
         }
 
-        /// <summary>
-        /// Returns true if the binaryExpression consists of an expression that can never be negative, 
-        /// such as length or unsigned numeric types, being compared to zero with greater than, 
-        /// less than, or equals relational operator.
-        /// </summary>
-        public bool IsSpecialCaseBinaryExpression(
-            IBinaryOperation binaryOperation,
-            BinaryOperatorKind operationKind,
-            CancellationToken cancellationToken)
+        private static bool SubsequentStatementsAreInTheSameBlock(
+            TIfStatementSyntax ifNode,
+            ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            if (binaryOperation == null)
-            {
-                return false;
-            }
-
-            var rightOperand = RemoveImplicitConversion(binaryOperation.RightOperand);
-            var leftOperand = RemoveImplicitConversion(binaryOperation.LeftOperand);
-
-            switch (operationKind)
-            {
-                case BinaryOperatorKind.LessThanOrEqual when IsNumericLiteral(rightOperand):
-                    return CanSimplifyToLengthEqualsZeroExpression(
-                        leftOperand,
-                        (ILiteralOperation)rightOperand,
-                        cancellationToken);
-                case BinaryOperatorKind.GreaterThanOrEqual when IsNumericLiteral(leftOperand):
-                    return CanSimplifyToLengthEqualsZeroExpression(
-                        rightOperand,
-                        (ILiteralOperation)leftOperand,
-                        cancellationToken);
-            }
-
-            return false;
+            Debug.Assert(subsequentStatementRanges.Length > 0);
+            return ifNode.Parent == subsequentStatementRanges[0].Parent;
         }
 
-        private bool IsNumericLiteral(IOperation operation)
-            => operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
-
-        private IOperation RemoveImplicitConversion(IOperation operation)
+        private int GetNearmostParentJumpStatementRawKind(SyntaxNode ifNode)
         {
-            return operation is IConversionOperation conversion && conversion.IsImplicit
-                ? RemoveImplicitConversion(conversion.Operand)
-                : operation;
-        }
-
-        private bool CanSimplifyToLengthEqualsZeroExpression(
-            IOperation variableExpression,
-            ILiteralOperation numericLiteralExpression,
-            CancellationToken cancellationToken)
-        {
-            var numericValue = numericLiteralExpression.ConstantValue;
-            if (numericValue.HasValue && numericValue.Value is 0)
+            foreach (var node in ifNode.Ancestors())
             {
-                if (variableExpression is IPropertyReferenceOperation propertyOperation)
+                var jumpStatementRawKind = GetJumpStatementRawKind(node);
+                if (jumpStatementRawKind != -1)
                 {
-                    var property = propertyOperation.Property;
-                    if ((property.Name == nameof(Array.Length) || property.Name == LongLength))
+                    return jumpStatementRawKind;
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private bool IsEmptyStatementRange(StatementRange statementRange)
+        {
+            if (!statementRange.IsEmpty)
+            {
+                var parent = statementRange.Parent;
+                if (!IsStatementContainer(parent))
+                {
+                    Debug.Assert(statementRange.FirstStatement == statementRange.LastStatement);
+                    return statementRange.FirstStatement.DescendantNodesAndSelf().All(IsNoOpSyntaxNode);
+                }
+
+                var statements = GetStatements(parent);
+                var firstIndex = statements.IndexOf(statementRange.FirstStatement);
+                var lastIndex = statements.IndexOf(statementRange.LastStatement);
+                for (var i = firstIndex; i <= lastIndex; i++)
+                {
+                    if (!statements[i].DescendantNodesAndSelf().All(IsNoOpSyntaxNode))
                     {
-                        var containingType = property.ContainingType;
-                        if (containingType?.SpecialType == SpecialType.System_Array ||
-                            containingType.SpecialType == SpecialType.System_String)
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                var type = variableExpression.Type;
-                if (type != null)
-                {
-                    switch (type.SpecialType)
-                    {
-                        case SpecialType.System_Byte:
-                        case SpecialType.System_UInt16:
-                        case SpecialType.System_UInt32:
-                        case SpecialType.System_UInt64:
-                            return true;
+                        return false;
                     }
                 }
             }
 
-            return false;
+            return true;
         }
 
-        private SyntaxNode GetNegationOfLiteralExpression(
-            SyntaxNode expression,
-            SyntaxGenerator generator,
-            SemanticModel semanticModel)
+        private ImmutableArray<StatementRange> GetSubsequentStatementRanges(TIfStatementSyntax ifNode)
         {
-            var operation = semanticModel.GetOperation(expression);
-            SyntaxNode newLiteralExpression;
+            var builder = ArrayBuilder<StatementRange>.GetInstance();
 
-            if (operation?.Kind == OperationKind.Literal && operation.ConstantValue.HasValue && operation.ConstantValue.Value is true)
+            TStatementSyntax innerStatement = ifNode;
+            foreach (var node in ifNode.Ancestors())
             {
-                newLiteralExpression = generator.FalseLiteralExpression();
-            }
-            else if (operation?.Kind == OperationKind.Literal && operation.ConstantValue.HasValue && operation.ConstantValue.Value is false)
-            {
-                newLiteralExpression = generator.TrueLiteralExpression();
-            }
-            else
-            {
-                newLiteralExpression = generator.LogicalNotExpression(expression.WithoutTrivia());
+                var nextStatement = GetNextStatement(innerStatement);
+                if (nextStatement != null && IsStatementContainer(node))
+                {
+                    builder.Add(new StatementRange(nextStatement, GetStatements(node).Last()));
+                }
+
+                if (!CanControlFlowOut(node))
+                {
+                    // We no longer need to continue since other statements
+                    // are out of reach, as far as this analysis concerned.
+                    break;
+                }
+
+                if (IsExecutableStatement(node))
+                {
+                    innerStatement = (TStatementSyntax)node;
+                }
             }
 
-            return newLiteralExpression.WithTriviaFrom(expression);
+            return builder.ToImmutableAndFree();
         }
 
-        private SyntaxNode GetNegationOfLogicalNotExpression(
-            SyntaxNode expression,
-            ISyntaxFactsService syntaxFacts)
-        {
-            var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
-            var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);
+        protected abstract string GetTitle();
 
-            return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia);
+        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode node);
+        protected abstract TStatementSyntax GetNextStatement(TStatementSyntax node);
+
+        protected abstract TStatementSyntax GetJumpStatement(int rawKind);
+        protected abstract int GetJumpStatementRawKind(SyntaxNode node);
+
+        protected abstract bool IsNoOpSyntaxNode(SyntaxNode node);
+        protected abstract bool IsExecutableStatement(SyntaxNode node);
+        protected abstract bool IsStatementContainer(SyntaxNode node);
+        protected abstract bool IsSingleStatementStatementRange(StatementRange statementRange);
+
+        protected abstract bool CanControlFlowOut(SyntaxNode node);
+
+        protected abstract bool CanInvert(TIfStatementSyntax ifNode);
+        protected abstract bool IsElseless(TIfStatementSyntax ifNode);
+
+        protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
+        protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
+        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
+
+        protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
+        protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);
+        protected abstract TEmbeddedStatement GetElseBody(TIfStatementSyntax ifNode);
+        protected abstract TEmbeddedStatement GetEmptyEmbeddedStatement();
+
+        protected abstract TEmbeddedStatement AsEmbeddedStatement(
+            IEnumerable<TStatementSyntax> statements,
+            TEmbeddedStatement original);
+
+        protected abstract TIfStatementSyntax UpdateIf(
+            SourceText sourceText,
+            TIfStatementSyntax ifNode,
+            SyntaxNode condition,
+            TEmbeddedStatement trueStatement,
+            TEmbeddedStatement falseStatementOpt = default);
+
+        protected abstract SyntaxNode WithStatements(
+            SyntaxNode node,
+            IEnumerable<TStatementSyntax> statements);
+
+        private SyntaxNode GetRootWithInvertIfStatement(
+            SourceText text,
+            SyntaxNode root,
+            TIfStatementSyntax ifNode,
+            InvertIfStyle invertIfStyle,
+            SyntaxNode subsequentSingleExitPointOpt,
+            SyntaxNode negatedExpression)
+        {
+            switch (invertIfStyle)
+            {
+                case InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody:
+                    {
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: GetElseBody(ifNode),
+                            falseStatementOpt: GetIfBody(ifNode));
+
+                        return root.ReplaceNode(ifNode, updatedIf);
+                    }
+
+                case InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause:
+                    {
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: GetEmptyEmbeddedStatement(),
+                            falseStatementOpt: GetIfBody(ifNode));
+
+                        return root.ReplaceNode(ifNode, updatedIf);
+                    }
+
+                case InvertIfStyle.IfWithoutElse_WithNegatedCondition:
+                    {
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: GetIfBody(ifNode));
+
+                        return root.ReplaceNode(ifNode, updatedIf);
+                    }
+
+                case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements:
+                    {
+                        var currentParent = ifNode.Parent;
+                        var statements = GetStatements(currentParent);
+                        var index = statements.IndexOf(ifNode);
+
+                        var statementsBeforeIf = statements.Take(index);
+                        var statementsAfterIf = statements.Skip(index + 1);
+
+                        var ifBody = GetIfBody(ifNode);
+
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: AsEmbeddedStatement(statementsAfterIf, original: ifBody));
+
+                        var updatedParent = WithStatements(
+                            currentParent,
+                            statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)));
+
+                        return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+
+                case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement:
+                    {
+                        var currentParent = ifNode.Parent;
+                        var statements = GetStatements(currentParent);
+                        var index = statements.IndexOf(ifNode);
+
+                        var ifBody = GetIfBody(ifNode);
+                        var newIfBody = GetJumpStatement(GetNearmostParentJumpStatementRawKind(ifNode));
+
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: AsEmbeddedStatement(
+                                SpecializedCollections.SingletonEnumerable(newIfBody), original: ifBody));
+
+                        var statementsBeforeIf = statements.Take(index);
+
+                        var updatedParent = WithStatements(
+                            currentParent,
+                            statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)));
+
+                        return root.ReplaceNode(currentParent, updatedParent .WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+
+                case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:
+                    {
+                        Debug.Assert(subsequentSingleExitPointOpt is TStatementSyntax);
+
+                        var currentParent = ifNode.Parent;
+                        var statements = GetStatements(currentParent);
+                        var index = statements.IndexOf(ifNode);
+
+                        var ifBody = GetIfBody(ifNode);
+                        var newIfBody = (TStatementSyntax)subsequentSingleExitPointOpt;
+
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: AsEmbeddedStatement(
+                                SpecializedCollections.SingletonEnumerable(newIfBody), ifBody));
+
+                        var statementsBeforeIf = statements.Take(index);
+
+                        var updatedParent = WithStatements(
+                            currentParent,
+                            statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)).Concat(newIfBody));
+
+                        return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+
+                case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody:
+                    {
+                        var currentParent = ifNode.Parent;
+                        var statements = GetStatements(currentParent);
+                        var index = statements.IndexOf(ifNode);
+
+                        var statementsBeforeIf = statements.Take(index);
+                        var statementsAfterIf = statements.Skip(index + 1);
+                        var ifBody = GetIfBody(ifNode);
+
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: AsEmbeddedStatement(statementsAfterIf, ifBody));
+
+                        var updatedParent = WithStatements(
+                            currentParent,
+                            statementsBeforeIf.Concat(updatedIf));
+
+                        return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+
+                case InvertIfStyle.IfWithoutElse_WithElseClause:
+                    {
+                        var currentParent = ifNode.Parent;
+                        var statements = GetStatements(currentParent);
+                        var index = statements.IndexOf(ifNode);
+
+                        var statementsBeforeIf = statements.Take(index);
+                        var statementsAfterIf = statements.Skip(index + 1);
+
+                        var ifBody = GetIfBody(ifNode);
+
+                        var updatedIf = UpdateIf(
+                            text,
+                            ifNode: ifNode,
+                            condition: negatedExpression,
+                            trueStatement: AsEmbeddedStatement(statementsAfterIf, ifBody),
+                            falseStatementOpt: ifBody);
+
+                        var updatedParent = WithStatements(
+                            currentParent,
+                            statementsBeforeIf.Concat(updatedIf));
+
+                        return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
+            }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

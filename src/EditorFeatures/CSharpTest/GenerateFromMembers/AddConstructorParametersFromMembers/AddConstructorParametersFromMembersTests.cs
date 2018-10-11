@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -280,9 +281,9 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-        public async Task TestTupleOptional_CSharp7()
+        public async Task TestTupleOptionalCSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Program
 {
     [|(int, string) i;
@@ -304,8 +305,7 @@ index: 1);
         this.s = s;
     }
 }",
-parseOptions: TestOptions.Regular7,
-index: 1);
+index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -327,7 +327,7 @@ index: 1);
     (int, string) i;
     (string, int) s;
 
-    public Program((int, string) i, (string, int) s = default)
+    public Program((int, string) i, (string, int) s = default((string, int)))
     {
         this.i = i;
         this.s = s;
@@ -366,6 +366,34 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestTupleOptionalWithNamesCSharp7()
+        {
+            await TestAsync(
+@"class Program
+{
+    [|(int a, string b) i;
+    (string c, int d) s;|]
+
+    public Program((int a, string b) i)
+    {
+        this.i = i;
+    }
+}",
+@"class Program
+{
+    (int a, string b) i;
+    (string c, int d) s;
+
+    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+index: 1, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestTupleOptionalWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -384,7 +412,7 @@ index: 1);
     (int a, string b) i;
     (string c, int d) s;
 
-    public Program((int a, string b) i, (string c, int d) s = default)
+    public Program((int a, string b) i, (string c, int d) s = default((string c, int d)))
     {
         this.i = i;
         this.s = s;

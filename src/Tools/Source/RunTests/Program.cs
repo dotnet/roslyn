@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -291,12 +291,12 @@ namespace RunTests
 
                 // As a starting point we will just schedule the items we know to be a performance
                 // bottleneck.  Can adjust as we get real data.
-                if (name == "Roslyn.Compilers.CSharp.Emit.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.UnitTests.dll" ||
+                if (name == "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" ||
                     name == "Roslyn.Services.Editor.UnitTests2.dll" ||
-                    name == "Roslyn.VisualStudio.Services.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.CSharp.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.VisualBasic.UnitTests.dll")
+                    name == "Microsoft.VisualStudio.LanguageServices.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.dll" ||
+                    name == "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.dll")
                 {
                     list.AddRange(scheduler.Schedule(assemblyPath));
                 }

@@ -49,5 +49,18 @@ namespace Microsoft.CodeAnalysis
         ///   b) not setting this option will produce "int[][,]".
         /// </summary>
         ReverseArrayRankSpecifiers = 1 << 5,
+
+        //  https://github.com/dotnet/roslyn/issues/26198 Should this option be made public?
+        /// <summary>
+        /// Append '!' to non-nullable reference types.
+        /// Note this causes SymbolDisplay to pull on IsNullable and therefore NonNullTypes,
+        /// so don't use this option in binding, in order to avoid cycles.
+        /// </summary>
+        IncludeNonNullableTypeModifier = 1 << 6,
+
+        /// <summary>
+        /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
+        /// </summary>
+        UseValueTuple = 1 << 7,
     }
 }

@@ -531,6 +531,44 @@ End Class"
                 [Class]("AttributeUsage"))
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestRegex1() As Task
+            Await TestAsync(
+"
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        ' language=regex
+        var r = ""$(\b\G\z)|(?<name>sub){0,5}?^""
+    end sub
+end class",
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestConstField() As Task
             Dim code =
@@ -641,5 +679,55 @@ End Operator"
             Await TestInClassAsync(code)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape1() As Task
+            Await TestInMethodAsync("dim goo = ""goo""""bar""",
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape2() As Task
+            Await TestInMethodAsync("dim goo = $""goo{{1}}bar""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape3() As Task
+            Await TestInMethodAsync("dim goo = $""goo""""{{1}}""""bar""",
+                Escape(""""""),
+                Escape("{{"),
+                Escape("}}"),
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape4() As Task
+            Await TestInMethodAsync("dim goo = $""goo""""{1}""""bar""",
+                Escape(""""""),
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape5() As Task
+            Await TestInMethodAsync("dim goo = $""{{goo{1}bar}}""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
+
+        <WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestDirectiveStringLiteral() As Task
+            Await TestAsync("#region ""goo""""bar""",
+                Escape(""""""))
+        End Function
+
+        <WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestFormatSpecifierInInterpolation() As Task
+            Await TestInMethodAsync("dim goo = $""goo{{1:0000}}bar""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
     End Class
 End Namespace

@@ -18,19 +18,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly INavigateToItemDisplayFactory _displayFactory;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public NavigateToItemProvider(
             Workspace workspace,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousOperationListener asyncListener,
+            IDocumentTrackingService documentTrackingService)
         {
             Contract.ThrowIfNull(workspace);
             Contract.ThrowIfNull(asyncListener);
 
             _workspace = workspace;
             _asyncListener = asyncListener;
+            _documentTrackingService = documentTrackingService;
             _displayFactory = new NavigateToItemDisplayFactory();
         }
 
@@ -142,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             var searcher = new Searcher(
                 _workspace.CurrentSolution,
                 _asyncListener,
+                _documentTrackingService,
                 _displayFactory,
                 callback,
                 searchValue,
@@ -149,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 kinds,
                 _cancellationTokenSource.Token);
 
-            searcher.Search();
+            _ = searcher.SearchAsync();
         }
 
         private static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate TryGetNavigateToSearchService(Project project)
@@ -190,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
                 => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
 
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+            public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
                 => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
         }
     }

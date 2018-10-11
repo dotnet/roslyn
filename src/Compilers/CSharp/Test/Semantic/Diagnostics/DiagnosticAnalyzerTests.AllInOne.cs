@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
+            var missingSyntaxKinds = new HashSet<SyntaxKind>();
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-
-            var syntaxKinds = new HashSet<SyntaxKind>();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKinds);
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxKinds);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 

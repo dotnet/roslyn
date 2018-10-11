@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!localByType.TryGetValue(type, out var localSymbol))
             {
-                localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
+                localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, TypeSymbolWithAnnotations.Create(type), SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
                 localByType.Add(type, localSymbol);
             }
 

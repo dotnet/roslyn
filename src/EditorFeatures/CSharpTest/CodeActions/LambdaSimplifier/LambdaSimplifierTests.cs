@@ -397,7 +397,7 @@ class A
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular7_3);
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]

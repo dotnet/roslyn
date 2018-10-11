@@ -20,13 +20,16 @@ namespace Roslyn.Test.Utilities
             new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
 
         // these are virtual paths that don't exist on disk
-        internal static string KeyPairFile = @"R:\__Test__\KeyPair_" + Guid.NewGuid() + ".snk";
-        internal static string PublicKeyFile = @"R:\__Test__\PublicKey_" + Guid.NewGuid() + ".snk";
+        internal static readonly string KeyFileDirectory = ExecutionConditionUtil.IsWindows
+            ? @"R:\__Test__\"
+            : "/r/__Test__/";
+        internal static readonly string KeyPairFile = KeyFileDirectory + @"KeyPair_" + Guid.NewGuid() + ".snk";
+        internal static readonly string PublicKeyFile = KeyFileDirectory + @"PublicKey_" + Guid.NewGuid() + ".snk";
 
-        internal static string KeyPairFile2 = @"R:\__Test__\KeyPair2_" + Guid.NewGuid() + ".snk";
-        internal static string PublicKeyFile2 = @"R:\__Test__\PublicKey2_" + Guid.NewGuid() + ".snk";
+        internal static readonly string KeyPairFile2 = KeyFileDirectory + @"KeyPair2_" + Guid.NewGuid() + ".snk";
+        internal static readonly string PublicKeyFile2 = KeyFileDirectory + @"PublicKey2_" + Guid.NewGuid() + ".snk";
 
-        internal static string MaxSizeKeyFile = @"R:\__Test__\MaxSizeKey_" + Guid.NewGuid() + ".snk";
+        internal static readonly string MaxSizeKeyFile = KeyFileDirectory + @"MaxSizeKey_" + Guid.NewGuid() + ".snk";
 
         private static bool s_keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
