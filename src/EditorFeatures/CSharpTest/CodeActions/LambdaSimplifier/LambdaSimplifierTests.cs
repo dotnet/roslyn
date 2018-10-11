@@ -2,8 +2,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -323,9 +323,9 @@ class C
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestMissingOnAmbiguity1()
+        public async Task TestMissingOnAmbiguity1_CSharp7()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class A
@@ -346,15 +346,15 @@ class A
     {
         Bar(x => [||]Goo(x));
     }
-}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+}", parameters: new TestParameters(TestOptions.Regular7));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
-        public async Task TestOnAmbiguity()
+        [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestMissingOnAmbiguity1()
         {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
+            var code = @"
+using System;
 class A
 {
     static void Goo<T>(T x) where T : class
@@ -373,9 +373,10 @@ class A
     {
         Bar(x => [||]Goo(x));
     }
-}",
-@"using System;
+}";
 
+            var expected = @"
+using System;
 class A
 {
     static void Goo<T>(T x) where T : class
@@ -394,7 +395,9 @@ class A
     {
         Bar(Goo);
     }
-}");
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: TestOptions.Regular7_3);
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]

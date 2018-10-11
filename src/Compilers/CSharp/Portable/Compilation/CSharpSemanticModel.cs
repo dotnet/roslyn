@@ -3301,6 +3301,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.FromEndIndexExpression:
+                    {
+                        var fromEndIndexExpression = (BoundFromEndIndexExpression)boundNode;
+                        if ((object)fromEndIndexExpression.MethodOpt != null)
+                        {
+                            symbols = ImmutableArray.Create<Symbol>(fromEndIndexExpression.MethodOpt);
+                        }
+                        break;
+                    }
+
+                case BoundKind.RangeExpression:
+                    {
+                        var rangeExpression = (BoundRangeExpression)boundNode;
+                        if ((object)rangeExpression.MethodOpt != null)
+                        {
+                            symbols = ImmutableArray.Create<Symbol>(rangeExpression.MethodOpt);
+                        }
+                        break;
+                    }
+
                 default:
                     {
                         var symbol = boundNode.ExpressionSymbol;

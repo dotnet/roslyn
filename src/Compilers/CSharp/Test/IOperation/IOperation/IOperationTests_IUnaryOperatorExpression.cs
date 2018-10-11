@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3545,6 +3546,78 @@ Block[B2] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyIndexOperator_Int()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int arg)
+    {
+        var x = /*<bind>*/^arg/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^arg')
+  Operand: 
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
+";
+
+            var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyIndexOperator_NullableInt()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int? arg)
+    {
+        var x = /*<bind>*/^arg/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IFromEndIndexOperation (IsLifted) (OperationKind.FromEndIndex, Type: System.Index?) (Syntax: '^arg')
+  Operand: 
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
+";
+
+            var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyIndexOperator_ConvertibleToInt()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(byte arg)
+    {
+        var x = /*<bind>*/^arg/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^arg')
+  Operand: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'arg')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'arg')
+";
+
+            var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
         }
     }
 }
