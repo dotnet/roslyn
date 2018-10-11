@@ -1352,6 +1352,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Fix_formatting {
+            get {
+                return ResourceManager.GetString("Fix_formatting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix Name Violation: {0}.
         /// </summary>
         internal static string Fix_Name_Violation_colon_0 {
@@ -1375,33 +1384,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Format_string_contains_invalid_placeholder {
             get {
                 return ResourceManager.GetString("Format_string_contains_invalid_placeholder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix formatting.
-        /// </summary>
-        internal static string Formatting_analyzer_code_fix {
-            get {
-                return ResourceManager.GetString("Formatting_analyzer_code_fix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix formatting.
-        /// </summary>
-        internal static string Formatting_analyzer_message {
-            get {
-                return ResourceManager.GetString("Formatting_analyzer_message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix formatting.
-        /// </summary>
-        internal static string Formatting_analyzer_title {
-            get {
-                return ResourceManager.GetString("Formatting_analyzer_title", resourceCulture);
             }
         }
         

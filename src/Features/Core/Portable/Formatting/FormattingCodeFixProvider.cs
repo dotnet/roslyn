@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Formatting_analyzer_code_fix, createChangedDocument, FeaturesResources.Formatting_analyzer_code_fix)
+                : base(FeaturesResources.Fix_formatting, createChangedDocument, FeaturesResources.Fix_formatting)
             {
             }
         }

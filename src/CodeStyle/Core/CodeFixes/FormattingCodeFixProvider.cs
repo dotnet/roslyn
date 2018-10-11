@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        CodeStyleFixesResources.Formatting_analyzer_code_fix,
+                        CodeStyleResources.Fix_formatting,
                         c => FormattingCodeFixHelper.FixOneAsync(context.Document, diagnostic, c),
                         nameof(FormattingCodeFixProvider)),
                     diagnostic);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         private class FixAll : DocumentBasedFixAllProvider
         {
-            protected override string CodeActionTitle => CodeStyleFixesResources.Formatting_analyzer_code_fix;
+            protected override string CodeActionTitle => CodeStyleResources.Fix_formatting;
 
             protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {

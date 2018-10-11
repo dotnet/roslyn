@@ -64,18 +64,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Fix formatting.
         /// </summary>
-        internal static string Formatting_analyzer_message {
+        internal static string Fix_formatting {
             get {
-                return ResourceManager.GetString("Formatting_analyzer_message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix formatting.
-        /// </summary>
-        internal static string Formatting_analyzer_title {
-            get {
-                return ResourceManager.GetString("Formatting_analyzer_title", resourceCulture);
+                return ResourceManager.GetString("Fix_formatting", resourceCulture);
             }
         }
         

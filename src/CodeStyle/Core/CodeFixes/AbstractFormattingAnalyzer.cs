@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractFormattingAnalyzer()
             : base(
                 IDEDiagnosticIds.FormattingDiagnosticId,
-                new LocalizableResourceString(nameof(CodeStyleResources.Formatting_analyzer_title), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)),
-                new LocalizableResourceString(nameof(CodeStyleResources.Formatting_analyzer_message), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)))
+                new LocalizableResourceString(nameof(CodeStyleResources.Fix_formatting), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)),
+                new LocalizableResourceString(nameof(CodeStyleResources.Fix_formatting), CodeStyleResources.ResourceManager, typeof(CodeStyleResources)))
         {
         }
 

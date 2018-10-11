@@ -2,12 +2,7 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CodeStyleResources.resx">
     <body>
-      <trans-unit id="Formatting_analyzer_message">
-        <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_analyzer_title">
+      <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
         <target state="new">Fix formatting</target>
         <note />
