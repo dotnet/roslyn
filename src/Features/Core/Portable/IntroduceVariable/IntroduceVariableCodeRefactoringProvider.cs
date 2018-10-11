@@ -2,10 +2,10 @@
 
 using System.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.IntroduceVariable;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertTupleToStruct)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)]
@@ -27,8 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
             }
 
             var service = document.GetLanguageService<IIntroduceVariableService>();
-            var actions = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
+            var action = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (action != null)
+            {
+                context.RegisterRefactoring(action);
+            }
         }
     }
 }
