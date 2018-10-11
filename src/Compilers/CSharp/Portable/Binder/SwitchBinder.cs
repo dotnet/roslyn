@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
-                        return binder.CreateConversion(node, switchExpression, conversion, false, resultantGoverningType, diagnostics);
+                        return binder.CreateConversion(node, switchExpression, conversion, isCast: false, conversionGroupOpt: null, resultantGoverningType, diagnostics);
                     }
                     else if (switchGoverningType.SpecialType != SpecialType.System_Void)
                     {

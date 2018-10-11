@@ -60,9 +60,13 @@
       <!-- 
         We never load these binaries, and it does not generate the correct binding redirects, so do not NGEN them
         https://github.com/dotnet/roslyn/pull/27537 
+
+        BTW, can't use Update due to bug https://github.com/Microsoft/msbuild/issues/3825.
       -->
-      <CompilerArtifact Update="$(_Exes)csi\net46\System.Net.Http.dll" NgenArchitecture="" NgenApplication=""/>
-      <CompilerArtifact Update="$(_Exes)csi\net46\System.Diagnostics.DiagnosticSource.dll" NgenArchitecture="" NgenApplication=""/>
+      <CompilerArtifact Remove="$(_Exes)csi\net46\System.Net.Http.dll"/>
+      <CompilerArtifact Remove="$(_Exes)csi\net46\System.Diagnostics.DiagnosticSource.dll"/>
+      <CompilerArtifact Include="$(_Exes)csi\net46\System.Net.Http.dll" NgenArchitecture="" NgenApplication=""/>
+      <CompilerArtifact Include="$(_Exes)csi\net46\System.Diagnostics.DiagnosticSource.dll" NgenArchitecture="" NgenApplication=""/>
     </ItemGroup>
   </Target>
 </Project>

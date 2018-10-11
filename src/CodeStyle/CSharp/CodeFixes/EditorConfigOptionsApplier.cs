@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Options;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal class EditorConfigOptionsApplier
     {
-        private IReadOnlyList<(IOption, OptionStorageLocation, MethodInfo)> _formattingOptionsWithStorage;
+        private readonly ImmutableArray<(IOption, OptionStorageLocation, MethodInfo)> _formattingOptionsWithStorage;
 
         public EditorConfigOptionsApplier()
         {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return optionSet;
         }
 
-        internal IReadOnlyList<(IOption, OptionStorageLocation, MethodInfo)> GetOptionsWithStorageFromTypes(params Type[] formattingOptionTypes)
+        internal ImmutableArray<(IOption, OptionStorageLocation, MethodInfo)> GetOptionsWithStorageFromTypes(params Type[] formattingOptionTypes)
         {
             var optionType = typeof(IOption);
             return formattingOptionTypes
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 .Select(p => (IOption)p.GetValue(null))
                 .Select(GetOptionWithStorage)
                 .Where(ows => ows.Item2 != null)
-                .ToList();
+                .ToImmutableArray();
         }
 
         internal (IOption, OptionStorageLocation, MethodInfo) GetOptionWithStorage(IOption option)
@@ -83,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             value = null;
             var args = new object[] { option, codingConventions.AllRawConventions, option.Type, value };
 
-            var containedOption = (bool)tryGetOptionMethod.Invoke(editorConfigStorage, args);
+            var isOptionPresent = (bool)tryGetOptionMethod.Invoke(editorConfigStorage, args);
             value = args[3];
 
-            return containedOption;
+            return isOptionPresent;
         }
     }
 }

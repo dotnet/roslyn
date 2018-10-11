@@ -2171,6 +2171,50 @@ var y = $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableReference()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+@"class A<T>
+{
+}
+class B
+{
+    static void M()
+    {
+        A<B?>? x = null!;
+        var y = x;
+        $$y.ToString();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) A<B?>? y"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26648, "https://github.com/dotnet/roslyn/issues/26648")]
+        public async Task NullableReference_InMethod()
+        {
+            var code = @"
+class G
+{
+    void M()
+    {
+        C c;
+        c.Go$$o();
+    }
+}
+public class C
+{
+    public string? Goo(IEnumerable<object?> arg)
+    {
+    }
+}";
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+                code, MainDescription("string? C.Goo(IEnumerable<object?> arg)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedInGeneric()
         {
             await TestInMethodAsync(
@@ -3659,7 +3703,8 @@ $@"
         }
 
         [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(30035, "https://github.com/dotnet/roslyn/issues/30035")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30035"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties

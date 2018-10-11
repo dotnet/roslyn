@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _memberSymbol ?? Next.ContainingMemberOrLambda; }
         }
 
+        protected override bool InExecutableBinder
+            => true;
+
         internal Symbol MemberSymbol { get { return _memberSymbol; } }
 
         internal override Binder GetBinder(SyntaxNode node)

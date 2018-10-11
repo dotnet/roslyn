@@ -67,6 +67,8 @@
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
     <MicrosoftDotNetBuildTasksFeedVersion>2.1.0-prerelease-02419-02</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftDotNetSignToolVersion>1.0.0-beta.18455.10</MicrosoftDotNetSignToolVersion>
+    <MicrosoftExtensionsDependencyInjectionVersion>2.1.1</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsLoggingVersion>2.1.1</MicrosoftExtensionsLoggingVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
@@ -160,7 +162,7 @@
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-03</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-06</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
@@ -176,6 +178,7 @@
     <SystemCollectionsVersion>4.3.0</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+    <SystemCommandLineExperimentalVersion>0.1.0-alpha-63227-01</SystemCommandLineExperimentalVersion>
     <SystemConsoleVersion>4.3.0</SystemConsoleVersion>
     <SystemDataCommonVersion>4.3.0</SystemDataCommonVersion>
     <SystemDiagnosticsContractsVersion>4.3.0</SystemDiagnosticsContractsVersion>
@@ -370,6 +373,7 @@
       https://vside.myget.org/F/vssdk/api/v3/index.json;
       https://vside.myget.org/F/vs-impl/api/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
+      https://dotnet.myget.org/F/system-commandline/api/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
