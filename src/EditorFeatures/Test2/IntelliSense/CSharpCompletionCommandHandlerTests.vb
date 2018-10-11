@@ -1580,7 +1580,7 @@ class Goo
     {
     }
 }
-                         </Document>)
+                              </Document>, languageVersion:=LanguageVersion.CSharp7)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
@@ -1929,6 +1929,30 @@ public class Goo
         End Function
 
         <WorkItem(545590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545590")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOverrideDefaultParameter_CSharp7() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    public virtual void Goo<S>(S x = default(S))
+    {
+    }
+}
+
+class D : C
+{
+    override $$
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7)
+                state.SendTypeChars(" Goo")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOverrideDefaultParameter(completionImplementation As CompletionImplementation) As Task

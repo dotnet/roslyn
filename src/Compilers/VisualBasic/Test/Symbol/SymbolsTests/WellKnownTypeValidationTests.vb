@@ -505,6 +505,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Index,
+                         WellKnownType.System_Range,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
@@ -561,6 +563,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Index,
+                         WellKnownType.System_Range,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
@@ -651,7 +655,12 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Index__ctor,
+                         WellKnownMember.System_Range__All,
+                         WellKnownMember.System_Range__Create,
+                         WellKnownMember.System_Range__FromStart,
+                         WellKnownMember.System_Range__ToEnd
                         ' Not always available.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
@@ -768,7 +777,12 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Index__ctor,
+                         WellKnownMember.System_Range__All,
+                         WellKnownMember.System_Range__Create,
+                         WellKnownMember.System_Range__FromStart,
+                         WellKnownMember.System_Range__ToEnd
                         ' Not always available.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor

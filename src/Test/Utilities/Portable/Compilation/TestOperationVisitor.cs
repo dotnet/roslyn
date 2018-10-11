@@ -1295,5 +1295,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotNull(operation.Local);
             Assert.True(operation.Local.IsStatic);
         }
+
+        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        {
+            Assert.Equal(OperationKind.FromEndIndex, operation.Kind);
+            Assert.Same(operation.Operand, operation.Children.Single());
+        }
+
+        public override void VisitRangeOperation(IRangeOperation operation)
+        {
+            Assert.Equal(OperationKind.Range, operation.Kind);
+
+            IOperation[] children = operation.Children.ToArray();
+
+            int index = 0;
+
+            if (operation.LeftOperand != null)
+            {
+                Assert.Same(operation.LeftOperand, children[index++]);
+            }
+
+            if (operation.RightOperand != null)
+            {
+                Assert.Same(operation.RightOperand, children[index++]);
+            }
+
+            Assert.Equal(index, children.Length);
+        }
     }
 }

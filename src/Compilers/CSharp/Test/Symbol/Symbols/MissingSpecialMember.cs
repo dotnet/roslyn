@@ -565,6 +565,8 @@ namespace System
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
+                    case WellKnownType.System_Index:
+                    case WellKnownType.System_Range:
                     case WellKnownType.System_IAsyncDisposable:
                     case WellKnownType.System_Collections_Generic_IAsyncEnumerable_T:
                     case WellKnownType.System_Collections_Generic_IAsyncEnumerator_T:
@@ -881,6 +883,11 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_Index__ctor:
+                    case WellKnownMember.System_Range__All:
+                    case WellKnownMember.System_Range__Create:
+                    case WellKnownMember.System_Range__FromStart:
+                    case WellKnownMember.System_Range__ToEnd:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync:
@@ -899,7 +906,6 @@ namespace System
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
                     case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
-
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
