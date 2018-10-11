@@ -362,6 +362,56 @@ $@"class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        public async Task FieldReturnedInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s;
+    }
+}",
+@"class MyClass
+{
+    private readonly string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        [WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")]
+        public async Task FieldReadInMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s.ToUpper();
+    }
+}",
+@"class MyClass
+{
+    private readonly string [|_s|];
+    public MyClass(string s) => _s = s;
+    public string Method()
+    {
+        return _s.ToUpper();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldAssignedInProperty()
         {
             await TestMissingInRegularAndScriptAsync(

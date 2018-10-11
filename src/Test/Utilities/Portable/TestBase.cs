@@ -330,17 +330,13 @@ namespace Roslyn.Test.Utilities
             Func<SyntaxNode, bool> syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false)
         {
-            Debug.Assert(code is ErrorCode || code is ERRID || code is int || code is string);
-
-            return new DiagnosticDescription(
-                code as string ?? (object)(int)code,
-                false,
+            return TestHelpers.Diagnostic(
+                code,
                 squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
-                argumentOrderDoesNotMatter,
-                code.GetType());
+                argumentOrderDoesNotMatter);
         }
 
         internal static DiagnosticDescription Diagnostic(
@@ -351,23 +347,13 @@ namespace Roslyn.Test.Utilities
            Func<SyntaxNode, bool> syntaxNodePredicate = null,
            bool argumentOrderDoesNotMatter = false)
         {
-            return Diagnostic(
+            return TestHelpers.Diagnostic(
                 code,
-                NormalizeDiagnosticString(squiggledText.Value),
+                squiggledText,
                 arguments,
                 startLocation,
                 syntaxNodePredicate,
                 argumentOrderDoesNotMatter);
-        }
-
-        protected static string NormalizeDiagnosticString(string inputString)
-        {
-            if (!inputString.Contains("\r\n") && inputString.Contains("\n"))
-            {
-                return inputString.Replace("\n", "\r\n");
-            }
-
-            return inputString;
         }
 
         #endregion

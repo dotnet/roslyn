@@ -7,7 +7,6 @@ Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     ' https://github.com/dotnet/roslyn/issues/29819 remove explicit language version when VB 16 is latest
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular, languageVersion:=LanguageVersion.VisualBasic16)
-    Public Shared ReadOnly RegularWithFlowAnalysisFeature As VisualBasicParseOptions = Regular.WithFlowAnalysisFeature()
     Public Shared ReadOnly Regular15_5 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5)
 
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithParseOptions(Regular)
@@ -31,11 +30,6 @@ Friend Module TestOptionExtensions
     <Extension()>
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("Strict", "true")}))
-    End Function
-
-    <Extension()>
-    Public Function WithFlowAnalysisFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeatures(options.Features.Concat(New KeyValuePair(Of String, String)() {New KeyValuePair(Of String, String)("flow-analysis", "true")}))
     End Function
 
     <Extension()>

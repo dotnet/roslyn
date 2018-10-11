@@ -291,15 +291,21 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public void Verify(Verification verification)
         {
+            // Verification is only done on windows desktop 
+            if (!ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                return;
+            }
+
             if (verification == Verification.Skipped)
             {
                 return;
             }
 
             var shouldSucceed = verification == Verification.Passes;
+            var emitData = GetEmitData();
             try
             {
-                var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
                 if (!shouldSucceed)

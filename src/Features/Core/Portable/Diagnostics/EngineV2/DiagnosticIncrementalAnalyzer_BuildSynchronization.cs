@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
                 }
 
-                if (PreferLiveErrorsOnOpenedFiles(workspace))
+                // if we have updated errors, refresh open files
+                if (map.Count > 0 && PreferLiveErrorsOnOpenedFiles(workspace))
                 {
                     // enqueue re-analysis of open documents.
                     this.Owner.Reanalyze(workspace, documentIds: workspace.GetOpenDocumentIds(), highPriority: true);

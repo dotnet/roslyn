@@ -126,6 +126,12 @@
   <data name="Invert_if" xml:space="preserve">
     <value>Invert if</value>
   </data>
+  <data name="Add_await" xml:space="preserve">
+    <value>Add await</value>
+  </data>
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add await and ConfigureAwait(false)</value>
+  </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
   </data>
@@ -158,6 +164,9 @@
   </data>
   <data name="Autoselect_disabled_due_to_potential_range_variable_declaration" xml:space="preserve">
     <value>Autoselect disabled due to potential range variable declaration.</value>
+  </data>
+  <data name="Declare_as_nullable" xml:space="preserve">
+    <value>Declare as nullable</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>

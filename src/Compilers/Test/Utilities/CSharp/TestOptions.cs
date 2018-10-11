@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
 
-        public static readonly CSharpParseOptions RegularWithFlowAnalysisFeature = Regular.WithFlowAnalysisFeature();
-
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
 
@@ -86,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options;
         }
 
-        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
+        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
-            return options;
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
         }
 
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
@@ -110,11 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             return options.WithFeatures(options.Features.Concat(list));
-        }
-
-        public static CSharpParseOptions WithFlowAnalysisFeature(this CSharpParseOptions options)
-        {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
         }
     }
 }

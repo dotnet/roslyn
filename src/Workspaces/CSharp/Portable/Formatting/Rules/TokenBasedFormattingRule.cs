@@ -347,6 +347,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // No space between an array type and ?
+            if (currentToken.IsKind(SyntaxKind.QuestionToken) &&
+                previousToken.Parent?.IsParentKind(SyntaxKind.ArrayType) == true)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
+            if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
+                currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())
             {

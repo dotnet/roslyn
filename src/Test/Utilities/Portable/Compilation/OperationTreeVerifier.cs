@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
+            actual = actual.Replace("\"", "\"\"");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+            expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
             AssertEx.AreEqual(expectedOperationTree, actual);
         }

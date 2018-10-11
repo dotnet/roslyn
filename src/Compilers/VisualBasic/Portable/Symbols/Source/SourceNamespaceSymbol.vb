@@ -321,13 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyAllMembers, members, Nothing)
             End If
 
-#If DEBUG Then
-            ' In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            ' more obviously.
-            Return _lazyAllMembers.DeOrder()
-#Else
-            Return _lazyAllMembers
-#End If
+            Return _lazyAllMembers.ConditionallyDeOrder()
         End Function
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)

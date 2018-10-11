@@ -2407,5 +2407,146 @@ public class C {
 }";
             await TestMissingAsync(code);
         }
+
+        [WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
+        {
+            // error CS1729: 'C' does not contain a constructor that takes 1 arguments
+            var code =
+@"
+public class C {
+    
+    public C(): [|this|](1)
+    { }
+}";
+            await TestMissingAsync(code);
+        }
+
+        [WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestThis_Fix_IfACandidateIsAvailable()
+        {
+            // error CS1729: 'C' does not contain a constructor that takes 2 arguments
+            var code =
+@"
+class C 
+{
+    public C(int i) { }
+    
+    public C(): [|this|](1, 1)
+    { }
+}";
+            var fix0 =
+@"
+class C 
+{
+    public C(int i, int v) { }
+    
+    public C(): this(1, 1)
+    { }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestActionCountAsync(code, 1);
+        }
+
+        [WorkItem(29061, "https://github.com/dotnet/roslyn/issues/29061")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestBase_Fix_IfACandidateIsAvailable()
+        {
+            // error CS1729: 'B' does not contain a constructor that takes 1 arguments
+            var code =
+@"
+public class B
+{
+    B() { }
+}
+public class C : B
+{
+    public C(int i) : [|base|](i) { }
+}";
+            var fix0 =
+@"
+public class B
+{
+    B(int i) { }
+}
+public class C : B
+{
+    public C(int i) : base(i) { }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+            await TestActionCountAsync(code, 1);
+        }
+
+        [WorkItem(29753, "https://github.com/dotnet/roslyn/issues/29753")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task LocalFunction_AddParameterToLocalFunctionWithOneParameter()
+        {
+            // CS1501 No overload for method takes 2 arguments
+            var code =
+@"
+class Rsrp
+{
+  public void M()
+  {
+    [|Local|](""ignore this"", true);
+    void Local(string whatever)
+    {
+
+    }
+  }
+}";
+            var fix0 =
+@"
+class Rsrp
+{
+  public void M()
+  {
+    Local(""ignore this"", true);
+    void Local(string whatever, bool v)
+    {
+
+    }
+  }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
+
+        [WorkItem(29752, "https://github.com/dotnet/roslyn/issues/29752")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task LocalFunction_AddNamedParameterToLocalFunctionWithOneParameter()
+        {
+            // CS1739: The best overload for 'Local' does not have a parameter named 'mynewparameter'
+            var code =
+@"
+class Rsrp
+{
+    public void M()
+    {
+        Local(""ignore this"", [|mynewparameter|]: true);
+        void Local(string whatever)
+        {
+
+        }
+    }
+}
+";
+            var fix0 =
+@"
+class Rsrp
+{
+    public void M()
+    {
+        Local(""ignore this"", mynewparameter: true);
+        void Local(string whatever, bool mynewparameter)
+        {
+
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(code, fix0, index: 0);
+        }
     }
 }

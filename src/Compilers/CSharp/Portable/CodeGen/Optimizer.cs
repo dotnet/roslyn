@@ -600,6 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 node.Checked,
                 node.ExplicitCastInCode,
                 node.ConstantValue,
+                node.ConversionGroupOpt,
                 node.Type);
         }
 
@@ -1010,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             => isRef &&
                right is BoundFieldAccess fieldAccess &&
                fieldAccess.FieldSymbol.IsFixed &&
-               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 
@@ -1441,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(left, right, node.LeftConversion, node.Type);
+            return node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type);
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -2184,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { throw new NotImplementedException(); }
         }

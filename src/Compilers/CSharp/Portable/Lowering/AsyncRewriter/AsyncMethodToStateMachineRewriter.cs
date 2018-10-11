@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Syntax,
                             ImmutableArray.Create(exceptionLocal),
                             F.Local(exceptionLocal),
-                            exceptionLocal.Type,
+                            exceptionLocal.Type.TypeSymbol,
                             exceptionFilterOpt: null,
                             body: F.Block(
                                 // this.state = finishedState
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
             Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression));
-            TypeSymbol awaiterType = node.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
+            TypeSymbol awaiterType = node.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType.TypeSymbol;
             var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
 
             var awaitIfIncomplete = F.Block(
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // [$resultPlace = ] $awaiterTemp.GetResult();
             BoundStatement getResultStatement = resultPlace != null && type.SpecialType != SpecialType.System_Void ?
-                F.Assignment(resultPlace, getResultCall):
+                F.Assignment(resultPlace, getResultCall) :
                 F.ExpressionStatement(getResultCall);
 
             return F.Block(
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _dynamicFactory.MakeDynamicMemberInvocation(
                 methodName,
                 receiver,
-                typeArguments: ImmutableArray<TypeSymbol>.Empty,
+                typeArguments: ImmutableArray<TypeSymbolWithAnnotations>.Empty,
                 loweredArguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNames: ImmutableArray<string>.Empty,
                 refKinds: ImmutableArray<RefKind>.Empty,
@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol resumeLabel;
             AddState(out stateNumber, out resumeLabel);
 
-            TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
+            TypeSymbol awaiterFieldType = awaiterTemp.Type.TypeSymbol.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
-                : awaiterTemp.Type;
+                : awaiterTemp.Type.TypeSymbol;
 
             FieldSymbol awaiterField = GetAwaiterField(awaiterFieldType);
 
@@ -383,13 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this.<>t__awaiter = $awaiterTemp
                     F.Assignment(
                     F.Field(F.This(), awaiterField),
-                    (awaiterField.Type == awaiterTemp.Type)
+                    (awaiterField.Type.TypeSymbol == awaiterTemp.Type.TypeSymbol)
                         ? F.Local(awaiterTemp)
                         : F.Convert(awaiterFieldType, F.Local(awaiterTemp))));
 
             blockBuilder.Add(awaiterTemp.Type.IsDynamic()
                 ? GenerateAwaitOnCompletedDynamic(awaiterTemp)
-                : GenerateAwaitOnCompleted(awaiterTemp.Type, awaiterTemp));
+                : GenerateAwaitOnCompleted(awaiterTemp.Type.TypeSymbol, awaiterTemp));
 
             blockBuilder.Add(
                 GenerateReturn(false));
@@ -406,12 +406,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // $this.<>t__awaiter = null;
                     F.Assignment(
                     F.Local(awaiterTemp),
-                    awaiterTemp.Type == awaiterField.Type
+                    awaiterTemp.Type.TypeSymbol == awaiterField.Type.TypeSymbol 
                         ? F.Field(F.This(), awaiterField)
-                        : F.Convert(awaiterTemp.Type, F.Field(F.This(), awaiterField))));
+                        : F.Convert(awaiterTemp.Type.TypeSymbol, F.Field(F.This(), awaiterField))));
 
             blockBuilder.Add(
-                F.Assignment(F.Field(F.This(), awaiterField), F.NullOrDefault(awaiterField.Type)));
+                F.Assignment(F.Field(F.This(), awaiterField), F.NullOrDefault(awaiterField.Type.TypeSymbol)));
 
             blockBuilder.Add(
                     // this.state = cachedState = NotStartedStateMachine
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(
                     F.Local(criticalNotifyCompletedTemp),
                         // Use reference conversion rather than dynamic conversion:
-                        F.As(F.Local(awaiterTemp), criticalNotifyCompletedTemp.Type)));
+                        F.As(F.Local(awaiterTemp), criticalNotifyCompletedTemp.Type.TypeSymbol)));
 
             if (thisTemp != null)
             {
@@ -462,38 +462,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 F.If(
-                    condition: F.ObjectEqual(F.Local(criticalNotifyCompletedTemp), F.Null(criticalNotifyCompletedTemp.Type)),
+                    condition: F.ObjectEqual(F.Local(criticalNotifyCompletedTemp), F.Null(criticalNotifyCompletedTemp.Type.TypeSymbol)),
 
                     thenClause: F.Block(
                         ImmutableArray.Create(notifyCompletionTemp),
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
                                 // Use reference conversion rather than dynamic conversion:
-                                F.Convert(notifyCompletionTemp.Type, F.Local(awaiterTemp), Conversion.ExplicitReference)),
+                                F.Convert(notifyCompletionTemp.Type.TypeSymbol, F.Local(awaiterTemp), Conversion.ExplicitReference)),
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), _asyncMethodBuilderField),
                                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted.Construct(
-                                    notifyCompletionTemp.Type,
+                                    notifyCompletionTemp.Type.TypeSymbol,
                                     F.This().Type),
                                 F.Local(notifyCompletionTemp), F.This(thisTemp))),
                         F.Assignment(
                             F.Local(notifyCompletionTemp),
-                            F.NullOrDefault(notifyCompletionTemp.Type))),
+                            F.NullOrDefault(notifyCompletionTemp.Type.TypeSymbol))),
 
                     elseClauseOpt: F.Block(
                         F.ExpressionStatement(
                             F.Call(
                                 F.Field(F.This(), _asyncMethodBuilderField),
                                 _asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted.Construct(
-                                    criticalNotifyCompletedTemp.Type,
+                                    criticalNotifyCompletedTemp.Type.TypeSymbol,
                                     F.This().Type),
                                 F.Local(criticalNotifyCompletedTemp), F.This(thisTemp))))));
 
             blockBuilder.Add(
                 F.Assignment(
                     F.Local(criticalNotifyCompletedTemp),
-                    F.NullOrDefault(criticalNotifyCompletedTemp.Type)));
+                    F.NullOrDefault(criticalNotifyCompletedTemp.Type.TypeSymbol)));
 
             return F.Block(
                 SingletonOrPair(criticalNotifyCompletedTemp, thisTemp),

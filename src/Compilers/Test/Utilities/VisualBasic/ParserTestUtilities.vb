@@ -49,11 +49,11 @@ Friend Module ParserTestUtilities
     End Function
 
     Public Function ParseAndVerify(code As XCData, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(TestHelpers.NormalizeNewLines(code), VisualBasicParseOptions.Default, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(code As XCData, options As VisualBasicParseOptions, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree
-        Return ParseAndVerify(code.Value, options, expectedDiagnostics, errorCodesOnly:=False)
+        Return ParseAndVerify(TestHelpers.NormalizeNewLines(code), options, expectedDiagnostics, errorCodesOnly:=False)
     End Function
 
     Public Function ParseAndVerify(source As String, ParamArray expectedDiagnostics() As DiagnosticDescription) As SyntaxTree

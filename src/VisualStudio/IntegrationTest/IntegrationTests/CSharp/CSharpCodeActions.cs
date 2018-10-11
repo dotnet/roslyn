@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -138,7 +140,7 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [WpfFact]
+        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/30015")]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]

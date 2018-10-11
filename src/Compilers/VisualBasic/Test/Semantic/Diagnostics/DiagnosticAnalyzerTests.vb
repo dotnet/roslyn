@@ -1447,7 +1447,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source)
             comp.VerifyDiagnostics()
 
             ' 1. Method body flow graph

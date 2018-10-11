@@ -12,6 +12,7 @@
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
 
   <Import Project="RepoToolset\ProjectLayout.props" />
@@ -22,16 +23,11 @@
   <Import Project="Tools.props" />
 
   <PropertyGroup>
-    <JenkinsBuild>false</JenkinsBuild>
-    <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
-    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
-    <ContinuousIntegrationBuild Condition="'$(OfficialBuild)' == 'true' or '$(JenkinsBuild)' == 'true'">true</ContinuousIntegrationBuild>
-
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net46;netcoreapp2.1</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
     <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
@@ -108,6 +104,23 @@
     <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
   </PropertyGroup>
 
+  <!-- 
+       Enable hard links for the build. This is not done by default due to fears about 
+       inadvertently corrupting the NuGet cache (hard links in the output directory will
+       point into the cache). The build itself will not due this but a developer directly
+       modifying this directory could cause it to happen.
+
+       Developers who do not modify the output directory directly can enable this safely 
+
+       Related discussion in https://github.com/dotnet/roslyn/issues/30005
+  -->
+  <PropertyGroup Condition="'$(ROSLYNUSEHARDLINKS)' != ''">
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible> 
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+  </PropertyGroup>
+
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0' and '$(VisualStudioVersion)' != '16.0'">false</DeployExtension>
@@ -138,12 +151,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
 
-  <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
-    <Import 
-      Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props"
-      Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(MicrosoftVSSDKBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
-  </ImportGroup>
-
   <!--
     Language specifc settings
   -->
@@ -163,7 +170,7 @@
         <Import Include="System.Collections.Generic" />
         <Import Include="System.Diagnostics" />
       </ItemGroup>
-      <ItemGroup Condition="'$(TargetNetFX20)' != 'true'">
+      <ItemGroup Condition="'$(TargetFramework)' != 'net20'">
         <Import Include="System.Linq" />
       </ItemGroup>
       <PropertyGroup>

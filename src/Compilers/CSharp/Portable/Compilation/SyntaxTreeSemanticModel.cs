@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (!type.IsVar)
                             {
-                                return binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved);
+                                return binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
                             }
 
                             Symbol result = bindVarAsAliasFirst
-                                ? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved)
+                                ? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol
                                 : null;
 
                             // CONSIDER: we might bind "var" twice - once to see if it is an alias and again
@@ -374,16 +374,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
                                     if ((object)fieldSymbol != null)
                                     {
-                                        result = fieldSymbol.Type;
+                                        result = fieldSymbol.Type.TypeSymbol;
                                     }
                                 }
                             }
 
-                            return result ?? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved);
+                            return result ?? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
                         }
                         else
                         {
-                            return binder.BindNamespaceOrTypeOrAliasSymbol(type, diagnostics, basesBeingResolved, basesBeingResolved != null);
+                            return binder.BindNamespaceOrTypeOrAliasSymbol(type, diagnostics, basesBeingResolved, basesBeingResolved != null).Symbol;
                         }
                     }
                     finally
@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt);
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).TypeSymbol;
             discarded.Free();
 
             return AttributeSemanticModel.Create(

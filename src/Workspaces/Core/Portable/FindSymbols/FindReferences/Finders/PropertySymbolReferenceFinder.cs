@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var elementAccessExpressions = syntaxRoot.DescendantNodes().Where(syntaxFacts.IsElementAccessExpression);
             var locations = ArrayBuilder<FinderLocation>.GetInstance();
@@ -171,8 +172,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
 
                     var location = argumentList.SyntaxTree.GetLocation(new TextSpan(argumentList.SpanStart, 0));
+                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, valueUsageInfo, candidateReason: reason)));
                 }
             }
 
@@ -193,6 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
             var indexerMemberCrefs = syntaxRoot.DescendantNodes(descendIntoTrivia: true)
@@ -208,8 +211,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (match.matched)
                 {
                     var location = node.SyntaxTree.GetLocation(new TextSpan(node.SpanStart, 0));
+                    var valueUsageInfo = semanticModel.GetValueUsageInfo(node, semanticFacts, cancellationToken);
                     locations.Add(new FinderLocation(
-                        node, new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason)));
+                        node, new ReferenceLocation(document, null, location, isImplicit: false, valueUsageInfo, candidateReason: match.reason)));
                 }
             }
 

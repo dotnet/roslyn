@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 New NameSyntaxClassifier(),
                 New ImportAliasClauseSyntaxClassifier(),
                 New IdentifierNameSyntaxClassifier(),
-                New EmbeddedLanguagesTokenClassifier())
+                New EmbeddedLanguagesClassifier())
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As ImmutableArray(Of ISyntaxClassifier)
             Return s_defaultSyntaxClassifiers

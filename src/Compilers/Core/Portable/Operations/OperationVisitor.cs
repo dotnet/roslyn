@@ -191,6 +191,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitSuppressNullableWarningExpression(ISuppressNullableWarningOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         // API moved internal for V1
         // https://github.com/dotnet/roslyn/issues/21295
         internal virtual void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
@@ -755,6 +760,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitArrayElementReference(IArrayElementReferenceOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitSuppressNullableWarningExpression(ISuppressNullableWarningOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

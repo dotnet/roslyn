@@ -740,16 +740,16 @@ class ADerived2: A
             FieldSymbol privField = classA.GetMembers("priv").Single() as FieldSymbol;
             FieldSymbol pubField = classA.GetMembers("pub").Single() as FieldSymbol;
             FieldSymbol protField = classA.GetMembers("prot").Single() as FieldSymbol;
-            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type;
-            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type;
-            TypeSymbol kptrType = (classA.GetMembers("kptr").Single() as FieldSymbol).Type;
-            TypeSymbol aptrType = (classA.GetMembers("aptr").Single() as FieldSymbol).Type;
-            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
-            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
+            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol kptrType = (classA.GetMembers("kptr").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol aptrType = (classA.GetMembers("aptr").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type.TypeSymbol;
             var discards = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken).ToArray();
             DiscardSymbol kdiscard = (DiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
             DiscardSymbol adiscard = (DiscardSymbol)model.GetSymbolInfo(discards[1]).Symbol;
-            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
+            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type.TypeSymbol;
 
             ISymbol nullSymbol = null;
             Assert.Throws<ArgumentNullException>(() => { compilation.IsSymbolAccessibleWithin(classA, nullSymbol); });
@@ -1406,6 +1406,75 @@ public abstract class Class1
     }
 }";
             CompileAndVerify(text).VerifyDiagnostics();
+        }
+
+        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [Fact]
+        public void InaccessibleToUnnamedExe_01()
+        {
+            string sourceA =
+@"class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB =
+@"class B
+{
+    static void Main()
+    {
+        new A();
+    }
+}";
+            // Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: null);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+
+            // Named assembly.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B");
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+        }
+
+        [WorkItem(29253, "https://github.com/dotnet/roslyn/issues/29253")]
+        [Fact]
+        public void InaccessibleToUnnamedExe_02()
+        {
+            string sourceA =
+@"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""B"")]
+class A { }";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB =
+@"class B
+{
+    static void Main()
+    {
+        new A();
+    }
+}";
+            // Unnamed assembly (the default from the command-line compiler).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: null);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
+
+            // Named assembly.
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B");
+            comp.VerifyDiagnostics();
+
+            // Named assembly (distinct).
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, assemblyName: "B2");
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0122: 'A' is inaccessible due to its protection level
+                //         new A();
+                Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
         }
     }
 }

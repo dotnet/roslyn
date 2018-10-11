@@ -325,7 +325,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 
 class A
