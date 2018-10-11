@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -51,8 +50,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
                 if (change.NewText.Length == 0 && change.Span.IsEmpty)
                 {
-                    // No actual change
-                    throw new InvalidOperationException("This program location is thought to be unreachable.");
+                    // No actual change (allows for the formatter to report a NOP change without triggering a
+                    // diagnostic that can't be fixed).
+                    continue;
                 }
 
                 var location = Location.Create(tree, change.Span);
