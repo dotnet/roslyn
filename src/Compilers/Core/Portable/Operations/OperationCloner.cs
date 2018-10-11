@@ -587,6 +587,16 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, object argument)
+        {
+            return new FromEndIndexOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol);
+        }
+
+        public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
+        {
+            return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method);
+        }
+
         public override IOperation VisitReDim(IReDimOperation operation, object argument)
         {
             return new ReDimOperation(VisitArray(operation.Clauses), operation.Preserve, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
