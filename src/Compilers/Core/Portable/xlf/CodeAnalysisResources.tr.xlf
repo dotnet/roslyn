@@ -59,6 +59,11 @@
         <target state="translated">Derleme meta verileri oluşturmak için modül kopyası kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unresolved">
         <source>Unresolved: </source>
         <target state="translated">Çözümlenmemiş: </target>

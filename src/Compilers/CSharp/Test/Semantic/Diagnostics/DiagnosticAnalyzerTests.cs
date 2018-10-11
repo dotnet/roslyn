@@ -889,6 +889,22 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
+        public void TestAnalyzerWithNullDescriptor()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNullDescriptor() };
+            var analyzerFullName = "Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithNullDescriptor";
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzerFullName), "SupportedDiagnostics").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments(analyzerFullName, "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithCSharpCompilerId()
         {

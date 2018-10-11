@@ -259,6 +259,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
                         {
+                            foreach (var descriptor in supportedDiagnosticsLocal)
+                            {
+                                if (descriptor == null)
+                                {
+                                    // Disallow null descriptors.
+                                    throw new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzer.ToString()), nameof(DiagnosticAnalyzer.SupportedDiagnostics));
+                                }
+                            }
+
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
