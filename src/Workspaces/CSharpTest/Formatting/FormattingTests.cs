@@ -8130,5 +8130,115 @@ class C
         {
             await Formatter.FormatAsync(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatIndexExpression()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = ^1;
+        object y = ^1
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = ^1;
+        object y = ^1
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_NoOperands()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = ..;
+        object y = ..
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = ..;
+        object y = ..
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_RightOperand()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = ..1;
+        object y = ..1
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = ..1;
+        object y = ..1
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_LeftOperand()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = 1..;
+        object y = 1..
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = 1..;
+        object y = 1..
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRangeExpression_BothOperands()
+        {
+            await AssertFormatAsync(@"
+class C
+{
+    void M()
+    {
+        object x = 1..2;
+        object y = 1..2
+    }
+}", @"
+class C
+{
+    void M()
+    {
+        object x = 1..2;
+        object y = 1..2
+    }
+}");
+        }
     }
 }

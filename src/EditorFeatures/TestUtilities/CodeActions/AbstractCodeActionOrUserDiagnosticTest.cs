@@ -329,11 +329,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            ParseOptions parseOptions = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(null, compilationOptions, options, fixProviderData, index, priority));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
         }
 
         internal async Task TestInRegularAndScript1Async(
