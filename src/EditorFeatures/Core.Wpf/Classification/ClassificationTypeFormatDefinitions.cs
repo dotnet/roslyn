@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#define dark_theme
-
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
@@ -378,19 +376,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // can be removed.  Right now it serves as an easy way to recompile while flipping
         // between different themes.
 #if dark_theme
-        private static readonly Color s_regexTextColor = Color.FromRgb(0xd6, 0x9d, 0x85);
-        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0xff, 0xd6, 0x8f);
-        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
-        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x8a, 0xff);
-        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xd7, 0x45, 0x8c);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(87, 166, 74);
+        private static readonly Color s_regexTextColor = Color.FromRgb(0xD6, 0x9D, 0x85);
+        private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0xFF, 0xD6, 0x8F);
+        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xC3, 0xBA);
+        private static readonly Color s_characterClassColor = Color.FromRgb(0x2E, 0xAB, 0xFE);
+        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xF9, 0x79, 0xAE);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0x4A, 0xBA, 0x39);
 #else
         private static readonly Color s_regexTextColor = Color.FromRgb(0x80, 0x00, 0x00);
         private static readonly Color s_regexOtherEscapeColor = Color.FromRgb(0x9e, 0x5b, 0x71);
-        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x05, 0xc3, 0xba);
-        private static readonly Color s_characterClassColor = Color.FromRgb(0x00, 0x73, 0xff);
-        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0xff, 0x00, 0xc1);
-        private static readonly Color s_regexCommentColor = Color.FromRgb(0, 128, 0);
+        private static readonly Color s_regexGroupingAndAlternationColor = Color.FromRgb(0x29, 0x5F, 0x5B);
+        private static readonly Color s_characterClassColor = Color.FromRgb(0x05, 0x50, 0xC9);
+        private static readonly Color s_regexAnchorAndQuantifierColor = Color.FromRgb(0x9B, 0x20, 0x7C);
+        private static readonly Color s_regexCommentColor = Color.FromRgb(0x89, 0x42, 0x5C);
 #endif
 
         [Export(typeof(EditorFormatDefinition))]
