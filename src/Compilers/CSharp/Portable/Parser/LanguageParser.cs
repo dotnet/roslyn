@@ -2325,7 +2325,8 @@ parse_member_name:;
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
                 SyntaxToken identifierOrThisOpt;
                 TypeParameterListSyntax typeParameterListOpt;
-                this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
+                string temp;
+                this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, out temp, isEvent: false);
 
                 // First, check if we got absolutely nothing.  If so, then 
                 // We need to consume a bad member and try again.
@@ -4001,8 +4002,9 @@ tryAgain:
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
             SyntaxToken identifierOrThisOpt;
             TypeParameterListSyntax typeParameterList;
+            string temp;
 
-            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, isEvent: true);
+            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, out temp, isEvent: true);
 
             // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
@@ -4011,7 +4013,7 @@ tryAgain:
                 Debug.Assert(typeParameterList == null, "Exit condition of ParseMemberName in this scenario");
 
                 // No need for a diagnostic, ParseMemberName has already added one.
-                var missingIdentifier = CreateMissingIdentifierToken();
+                var missingIdentifier = CreateMissingIdentifierToken().WithAnnotationsGreen(new SyntaxAnnotation[] { new SyntaxAnnotation("value", temp) });
 
                 var missingAccessorList =
                     _syntaxFactory.AccessorList(
@@ -5574,11 +5576,13 @@ tryAgain:
             out ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
             out SyntaxToken identifierOrThisOpt,
             out TypeParameterListSyntax typeParameterListOpt,
+            out string temp,
             bool isEvent)
         {
             identifierOrThisOpt = null;
             explicitInterfaceOpt = null;
             typeParameterListOpt = null;
+            temp = null;
 
             if (!IsPossibleMemberName())
             {
@@ -5715,6 +5719,15 @@ tryAgain:
                         explicitInterfaceOpt = _syntaxFactory.ExplicitInterfaceSpecifier(
                             explicitInterfaceName,
                             AddError(separator, ErrorCode.ERR_ExplicitEventFieldImpl));
+
+                        temp = identifierOrThisOpt.ToString();
+
+                        Debug.Assert(beforeIdentifierPointSet);
+                        Reset(ref beforeIdentifierPoint);
+
+                        //clear fields that were populated after the reset point
+                        identifierOrThisOpt = null;
+                        typeParameterListOpt = null;
                     }
                     else
                     {
@@ -6911,7 +6924,8 @@ tryAgain:
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
             SyntaxToken identifierOrThisOpt;
             TypeParameterListSyntax typeParameterListOpt;
-            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
+            string temp;
+            this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, out temp, isEvent: false);
 
             if (explicitInterfaceOpt == null && identifierOrThisOpt == null && typeParameterListOpt == null)
             {

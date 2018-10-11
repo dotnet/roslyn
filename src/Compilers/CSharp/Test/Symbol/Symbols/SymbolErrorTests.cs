@@ -892,13 +892,24 @@ public interface I1
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
+                // (6,36): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     abstract event System.Action I2.P10;
                 Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 36),
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 40),
-                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, ";").WithLocation(6, 40),
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(7, 2),
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(6, 37),
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(6, 37),
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 37));
+                // (6,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     abstract event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 40),
+                // (6,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     abstract event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 40),
+                // (6,37): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "").WithArguments("abstract").WithLocation(6, 37),
+                // (6,37): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                //     abstract event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "").WithArguments("I1.P10").WithLocation(6, 37),
+                // (6,37): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                //     abstract event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("I1.P10").WithLocation(6, 37));
         }
 
         [Fact]
