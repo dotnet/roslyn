@@ -296,6 +296,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundNullableIsTrueOperator(DirectCast(boundNode, BoundNullableIsTrueOperator))
                 Case BoundKind.RedimStatement
                     Return CreateBoundReDimOperation(DirectCast(boundNode, BoundRedimStatement))
+                Case BoundKind.RedimClause
+                    Return CreateBoundReDimClauseOperation(DirectCast(boundNode, BoundRedimClause))
 
                 Case BoundKind.AddressOfOperator,
                      BoundKind.ArrayLiteral,
