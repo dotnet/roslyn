@@ -8,12 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Hosting.Diagnostics.PerfMargin;
 using Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
 using Task = System.Threading.Tasks.Task;
 
@@ -82,7 +82,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             var menuCommandService = (IMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+
             cancellationToken.ThrowIfCancellationRequested();
+
             Assumes.Present(componentModel);
             Assumes.Present(menuCommandService);
 
@@ -97,6 +99,12 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
             }
+
+            // set logger at start up
+            var optionService = componentModel.GetService<IGlobalOptionService>();
+            var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
+
+            PerformanceLoggersPage.SetLoggers(optionService, remoteService);
         }
         #endregion
 
