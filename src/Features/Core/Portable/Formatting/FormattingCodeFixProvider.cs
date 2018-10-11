@@ -24,11 +24,17 @@ namespace Microsoft.CodeAnalysis.Formatting
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(c => FormattingCodeFixHelper.FixOneAsync(context.Document, diagnostic, c)),
+                    new MyCodeAction(c => FixOneAsync(context, diagnostic, c)),
                     diagnostic);
             }
 
             return Task.CompletedTask;
+        }
+
+        private static async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            var options = await context.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return await FormattingCodeFixHelper.FixOneAsync(context.Document, options, diagnostic, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)

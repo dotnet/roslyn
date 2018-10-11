@@ -3,13 +3,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class FormattingCodeFixHelper
     {
-        internal static async Task<Document> FixOneAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        internal static async Task<Document> FixOneAsync(Document document, OptionSet options, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis
                 text.Lines[diagnosticLinePositionSpan.Start.Line].Start,
                 text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await Formatter.FormatAsync(document, spanToFormat, options, cancellationToken).ConfigureAwait(false);
         }
     }
