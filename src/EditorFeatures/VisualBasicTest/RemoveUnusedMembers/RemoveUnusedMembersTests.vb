@@ -12,6 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMember
             Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(), New VisualBasicRemoveUnusedMembersCodeFixProvider())
         End Function
 
+        ' Ensure that we explicitly test missing IDE0052, which has no corresponding code fix (non-fixable diagnostic).
+        Private Overloads Function TestDiagnosticMissingAsync(initialMarkup As String) As Task
+            Return TestDiagnosticMissingAsync(initialMarkup, New TestParameters(retainNonFixableDiagnostics:=True))
+        End Function
+
         Private Shared Function Diagnostic(id As String) As DiagnosticDescription
             Return TestHelpers.Diagnostic(id)
         End Function
@@ -22,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMember
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateField(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} [|_goo|] As Integer
 End Class")
@@ -34,7 +39,7 @@ End Class")
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateFieldWithConstantInitializer(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} [|_goo|] As Integer = 0
 End Class")
@@ -46,7 +51,7 @@ End Class")
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateFieldWithNonConstantInitializer(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} [|_goo|] As Integer = _goo2
     Private Shared ReadOnly _goo2 As Integer = 0
@@ -59,7 +64,7 @@ End Class")
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateMethod(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} Sub [|M|]
     End Sub
@@ -72,7 +77,7 @@ End Class")
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateProperty(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} Property [|P|] As Integer
 End Class")
@@ -84,7 +89,7 @@ End Class")
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateIndexer(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} Property [|P|](i As Integer) As Integer
         Get
@@ -102,7 +107,7 @@ End Class")
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         Public Async Function NonPrivateEvent(accessibility As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 $"Class C
     {accessibility} Event [|E|] As EventHandler
 End Class")
@@ -154,7 +159,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function InstanceConstructorIsUnused_NoArguments() As Task
             ' We only flag constructors with arguments.
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|New()|]
     End Sub
@@ -174,7 +179,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function StaticConstructorIsNotFlagged() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Shared Sub [|New()|]
     End Sub
@@ -337,7 +342,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Function M() As Integer
@@ -348,7 +353,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_Lambda() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Function M() As Integer
@@ -359,7 +364,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_Accessor() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Property P As Integer
@@ -372,7 +377,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_DifferentInstance() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Function M() As Integer
@@ -383,7 +388,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_ObjectInitializer() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Function M() As C2
@@ -398,7 +403,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_ObjectInitializer_02() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Dim _goo2 As Integer
@@ -410,7 +415,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_MeInstance() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Function M() As Integer
@@ -421,7 +426,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_Attribute() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Const [|_goo|] As String = """"
 
@@ -433,7 +438,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsInvoked() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M|]()
     End Sub
@@ -446,7 +451,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsAddressTaken() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M|]()
     End Sub
@@ -459,7 +464,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function GenericMethodIsInvoked_ExplicitTypeArguments() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M1|](Of T)()
     End Sub
@@ -472,7 +477,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function GenericMethodIsInvoked_ImplicitTypeArguments() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M1|](Of T)(t1 As T)
     End Sub
@@ -485,7 +490,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodInGenericTypeIsInvoked_NoTypeArguments() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C(Of T)
     Private Sub [|M1|]()
     End Sub
@@ -498,7 +503,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodInGenericTypeIsInvoked_NonConstructedType() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C(Of T)
     Private Sub [|M1|]()
     End Sub
@@ -511,7 +516,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodInGenericTypeIsInvoked_ConstructedType() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C(Of T)
     Private Sub [|M1|]()
     End Sub
@@ -524,7 +529,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function InstanceConstructorIsUsed_NoArguments() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|New|]()
     End Sub
@@ -535,7 +540,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function InstanceConstructorIsUsed_NoArguments_AsNew() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|New|]()
     End Sub
@@ -546,7 +551,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function InstanceConstructorIsUsed_WithArguments() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|New|](i As Integer)
     End Sub
@@ -557,7 +562,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function InstanceConstructorIsUsed_WithArguments_AsNew() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|New|](i As Integer)
     End Sub
@@ -568,7 +573,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsRead() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private ReadOnly Property [|P|] As Integer
     Public Function M() As Integer
@@ -579,7 +584,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsRead() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Shared Property [|P|](i As Integer) As Integer
         Get
@@ -597,7 +602,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsRead() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Event [|E|] As System.EventHandler
 
@@ -609,7 +614,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsSubscribed() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Event [|E|] As System.EventHandler
 
@@ -621,7 +626,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsRaised() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Imports System
 
 Class C
@@ -801,7 +806,7 @@ End Class", parameters:=Nothing,
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsReadAndWritten() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Sub M()
@@ -813,7 +818,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsReadAndWritten() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private ReadOnly Property [|P|] As Integer
     Public Sub M()
@@ -825,7 +830,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsReadAndWritten() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Property [|P|](i As Integer) As Integer
         Get
@@ -887,7 +892,7 @@ End Class", parameters:=Nothing,
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsArg() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Sub M1()
@@ -900,7 +905,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsByRefArg() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Dim [|_goo|] As Integer
     Public Sub M1()
@@ -913,7 +918,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsArg() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M()|]
     End Sub
@@ -928,7 +933,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function PropertyIsArg() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private ReadOnly Property [|P|] As Integer
     Public Sub M1()
@@ -941,7 +946,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function IndexerIsArg() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Property [|P|](i As Integer) As Integer
         Get
@@ -961,7 +966,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function EventIsArg() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Event [|_goo|] As System.EventHandler
     Public Sub M1()
@@ -1013,7 +1018,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MultipleFields_SomeUnused_02() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] = 0, _goo2 = 0
     Public Function M() As Integer
@@ -1024,7 +1029,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_InNestedType() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Private Class Nested
@@ -1037,7 +1042,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function MethodIsInvoked_InNestedType() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Sub [|M1|]()
     End Sub
@@ -1066,7 +1071,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldOfNestedTypeIsRead() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private Class Nested
         Private [|_goo|] As Integer
@@ -1089,7 +1094,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_PartialClass() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Partial Class C
     Private [|_goo|] As Integer
 End Class
@@ -1103,7 +1108,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_PartialClass_DifferentFile() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "<Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -1146,7 +1151,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsRead_InParens() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Function M() As Integer
@@ -1157,7 +1162,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsWritten_InParens() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Sub M()
@@ -1169,7 +1174,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnusedInType_SyntaxError() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Sub M()
@@ -1180,7 +1185,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsUnusedInType_SemanticError() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|_goo|] As Integer
     Public Sub M()
@@ -1237,7 +1242,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldIsGeneratedCode() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     <System.CodeDom.Compiler.GeneratedCodeAttribute("""", """")>
     Private [|i|] As Integer
@@ -1249,7 +1254,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
         Public Async Function FieldUsedInGeneratedCode() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestDiagnosticMissingAsync(
 "Class C
     Private [|i|] As Integer
 
