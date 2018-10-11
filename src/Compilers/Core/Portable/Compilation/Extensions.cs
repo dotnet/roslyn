@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis
             return semanticModel.GetSymbolInfo(node, cancellationToken);
         }
 
+        // If there is no single symbol, return will be the same as GetSymbolInfoWithNullability
+        public static SymbolInfo GetSymbolInfoWithNullability(this SemanticModel semanticModel, SyntaxNode, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Binds the node in the context of the specified location and get semantic information
         /// such as type, symbols and diagnostics. This method is used to get semantic information
@@ -58,6 +64,11 @@ namespace Microsoft.CodeAnalysis
         public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
             return semanticModel.GetTypeInfo(node, cancellationToken);
+        }
+
+        public static TypeInfo GetTypeInfoWithNullability(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -133,6 +144,46 @@ namespace Microsoft.CodeAnalysis
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken))
         {
             return semanticModel.GetDeclaredSymbolForNode(declaration, cancellationToken);
+        }
+
+        public static TypeInfo GetTypeWithNullability(this SemanticModel semanticModel, IDiscardSymbol discard, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static TypeInfo GetTypeWithNullability(this SemanticModel semanticModel, IEventSymbol eventSymbol, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static TypeInfo GetTypeWithNullability(this SemanticModel semanticModel, IFieldSymbol field, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static TypeInfo GetTypeWithNullability(this SemanticModel semanticModel, ILocalSymbol local, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static TypeInfo GetReturnTypeWithNullability(this SemanticModel semanticModel, IMethodSymbol method, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static ImmutableArray<TypeInfo> GetTypeParametersWithNullability(this SemanticModel semanticModel, IMethodSymbol method, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static TypeInfo GetReceiverTypeWithNullability(this SemanticModel semanticModel, IMethodSymbol method, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static TypeInfo GetTypeWithNullability(this SemanticModel semanticModel, IParameterSymbol local, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

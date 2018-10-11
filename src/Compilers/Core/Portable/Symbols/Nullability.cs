@@ -79,6 +79,13 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         NotApplicable = 0,
         /// <summary>
+        /// The given <see cref="SyntaxNode"/> has inferred nullability that has not yet been
+        /// computed.
+        /// </summary>
+        // PROTOTYPE(NullableReferenceTypes): Potentially link to the correct methods to compute?
+        // Some of them are defined on CSharpSemanticModel, so this could be difficult
+        NotComputed = 1,
+        /// <summary>
         /// There is no information on the current nullable state of the variable
         /// or value.
         /// </summary>
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         /// have unknown nullability are also referred to as oblivious expressions,
         /// and they generally do not provide warnings for assignment or dereference.
         /// </remarks>
-        Unknown = 1,
+        Unknown = 2,
         /// <summary>
         /// The variable or value is either known or declared to be non-null.
         /// </summary>
@@ -105,13 +112,13 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="MaybeNull"/>, because the compiler tracks null state regardless
         /// of the declared nullability.
         /// </remarks>
-        NonNull = 2,
+        NonNull = 3,
         /// <summary>
         /// The variable or value is either known or declared to possibly be null.
         /// </summary>
         /// <remarks>
         /// Nullable value types will always be considered to be <see cref="MaybeNull"/>.
         /// </remarks>
-        MaybeNull = 3
+        MaybeNull = 4
     }
 }

@@ -214,14 +214,6 @@ namespace Microsoft.CodeAnalysis
         string ToDisplayString(SymbolDisplayFormat format = null);
 
         /// <summary>
-        /// Converts the symbol to a string representation with given nullability.
-        /// </summary>
-        /// <param name="nullability">The nullability to use for the symbol.</param>
-        /// <param name="format">Format or null for the default.</param>
-        /// <returns>A formatted string representation of the symbol.</returns>
-        string ToDisplayString(Nullability nullability, SymbolDisplayFormat format = null);
-
-        /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
         /// colorizing the display string.
         /// </summary>
@@ -229,16 +221,6 @@ namespace Microsoft.CodeAnalysis
         /// SymbolDisplayFormat.ErrorMessageFormat.</param>
         /// <returns>A read-only array of string parts.</returns>
         ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null);
-
-        /// <summary>
-        /// Convert a symbol to an array of string parts, each of which has a kind, with a given
-        /// nullability. Useful for colorizing the display string.
-        /// </summary>
-        /// <param name="nullability">The nullability to use for formatting.</param>
-        /// <param name="format">Formatting rules - null implies
-        /// SymbolDisplayFormat.ErrorMessageFormat.</param>
-        /// <returns>A read-only array of string parts.</returns>
-        ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability nullability, SymbolDisplayFormat format = null);
 
         /// <summary>
         /// Convert a symbol to a string that can be displayed to the user. May be tailored to a
@@ -253,22 +235,6 @@ namespace Microsoft.CodeAnalysis
         string ToMinimalDisplayString(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null);
-
-        /// <summary>
-        /// Convert a symbol to a string that can be displayed to the user. May be tailored to a
-        /// specific location in the source code.
-        /// </summary>
-        /// <param name="semanticModel">Binding information (for determining names appropriate to
-        /// the context).</param>
-        /// <param name="position">A position in the source code (context).</param>
-        /// <param name="nullability">The nullability to use in formatting.</param>
-        /// <param name="format">Formatting rules - null implies
-        /// <returns>A formatted string that can be displayed to the user.</returns>
-        string ToMinimalDisplayString(
-            SemanticModel semanticModel,
-            int position,
-            Nullability nullability,
             SymbolDisplayFormat format = null);
 
         /// <summary>
@@ -284,24 +250,6 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null);
-
-        /// <summary>
-        /// Convert a symbol to an array of string parts, each of which has a kind, including
-        /// nullability. May be tailored to a specific location in the source code. Useful 
-        /// for colorizing the display string.
-        /// </summary>
-        /// <param name="semanticModel">Binding information (for determining names appropriate to
-        /// the context).</param>
-        /// <param name="position">A position in the source code (context).</param>
-        /// <param name="nullability">The nullability to use in formatting.</param>
-        /// <param name="format">Formatting rules - null implies
-        /// SymbolDisplayFormat.MinimallyQualifiedFormat.</param>
-        /// <returns>A read-only array of string parts.</returns>
-        ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
-            SemanticModel semanticModel,
-            int position,
-            Nullability nullability,
             SymbolDisplayFormat format = null);
 
         /// <summary>

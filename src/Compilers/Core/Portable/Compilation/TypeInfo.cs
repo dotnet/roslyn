@@ -35,11 +35,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Nullability ConvertedNullability { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType)
+        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, Nullability nullability = Nullability.NotComputed, Nullability convertedNullability = Nullability.NotComputed)
             : this()
         {
             this.Type = type;
             this.ConvertedType = convertedType;
+            this.Nullability = nullability;
+            this.ConvertedNullability = convertedNullability;
         }
 
         public bool Equals(TypeInfo other)

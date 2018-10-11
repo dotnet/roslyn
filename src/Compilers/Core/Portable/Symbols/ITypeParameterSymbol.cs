@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         bool HasReferenceTypeConstraint { get; }
 
         /// <summary>
+        /// <see cref="Nullability.NotApplicable"/> if <see cref="HasReferenceTypeConstraint"/> is false.
+        /// </summary>
+        Nullability ReferenceTypeConstraintNullability { get; }
+
+        /// <summary>
         /// True if the value type constraint (<c>struct</c>) was specified for the type parameter.
         /// </summary>
         bool HasValueTypeConstraint { get; }
