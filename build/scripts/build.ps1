@@ -252,7 +252,6 @@ function Build-Artifacts() {
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
         Build-InsertionItems
-        Build-Installer
     }
 
     if ($cibuild) {
@@ -272,55 +271,6 @@ function Build-InsertionItems() {
     finally {
         Pop-Location
     }
-}
-
-function Build-Installer () {
-    ## Copying Artifacts
-    $installerDir = Join-Path $configDir "Installer"
-    if (Test-Path $installerDir) {
-        Remove-Item -Path $installerDir -Recurse -Force
-    }
-    Create-Directory $installerDir
-
-    $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
-    if (Test-Path $intermidateDirectory) {
-        Remove-Item -Path $intermidateDirectory -Recurse -Force
-    }
-    Create-Directory $intermidateDirectory
-
-    ## Copying VsixExpInstaller.exe
-    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
-    $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\*"
-    $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
-    Create-Directory $vsixExpInstallerExeDestination
-    Copy-Item $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination -Recurse
-
-    ## Copying VsWhere.exe
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\*"
-    $vswhereDestination = Join-Path $intermidateDirectory "tools\vswhere"
-    Create-Directory $vswhereDestination
-    Copy-Item $vswhere -Destination $vswhereDestination -Recurse
-
-    ## Copying scripts
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\*.bat"
-    Copy-Item $installerScriptsFolder -Destination $intermidateDirectory -Recurse
-
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\tools\*.ps1"
-    $intermidatePowershellScriptsDirectory = Join-Path $intermidateDirectory "tools"
-    Copy-Item $installerScriptsFolder -Destination $intermidatePowershellScriptsDirectory -Recurse
-
-    ## Copying VSIXes
-    $vsixDirDestination = Join-Path $intermidateDirectory "vsix"
-    if (-not (Test-Path $vsixDirDestination)) {
-        New-Item -ItemType Directory -Force -Path $vsixDirDestination
-    }
-    $RoslynDeploymentVsix = Join-Path $vsSetupDir "RoslynDeployment.vsix"
-    Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
-
-    #  Zip Folder
-    $installerZip = Join-Path $installerDir "Roslyn_Preview"
-    $intermidateDirectory = Join-Path $intermidateDirectory "*"
-    Compress-Archive -Path $intermidateDirectory -DestinationPath $installerZip
 }
 
 function Build-CheckLocStatus() {
