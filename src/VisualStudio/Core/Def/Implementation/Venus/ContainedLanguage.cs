@@ -90,6 +90,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
         }
 
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public ContainedLanguage(
+            IVsTextBufferCoordinator bufferCoordinator,
+            IComponentModel componentModel,
+            AbstractProject project,
+            IVsHierarchy hierarchy,
+            uint itemid,
+            TLanguageService languageService,
+            SourceCodeKind sourceCodeKind,
+            IFormattingRule vbHelperFormattingRule)
+            : this(bufferCoordinator,
+                   componentModel,
+                   project.VisualStudioProject,
+                   hierarchy,
+                   itemid,
+                   languageService,
+                   vbHelperFormattingRule)
+        {
+        }
+
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
