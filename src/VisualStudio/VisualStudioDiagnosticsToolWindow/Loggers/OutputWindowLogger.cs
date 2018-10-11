@@ -91,20 +91,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                    {
                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
+                       if (_doNotAccessDirectlyOutputPane != null)
+                       {
+                           // check whether other one already initialized output window.
+                           // the output API already handle double initialization, so this is just quick bail
+                           // rather than any functional issue
+                           return;
+                       }
+
                        var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
-                       // Output Window panes have two states; initialized and active. The former is used to indicate that the pane
-                       // can be made active ("selected") by the user, the latter indicates that the pane is currently active.
-                       // There's no way to only initialize a pane without also making it active so we remember the last active pane
-                       // and reactivate it after we've created ourselves to avoid stealing focus away from it.
-                       var lastActivePane = GetActivePane(outputWindow);
-
+                       // this should bring outout window to the front
                        _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
-
-                       if (lastActivePane != Guid.Empty)
-                       {
-                           ActivatePane(outputWindow, lastActivePane);
-                       }
                    });
                 }
 
@@ -126,31 +124,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 return null;
-            }
-
-            private Guid GetActivePane(IVsOutputWindow outputWindow)
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                if (outputWindow is IVsOutputWindow2 outputWindow2)
-                {
-                    if (ErrorHandler.Succeeded(outputWindow2.GetActivePaneGUID(out var activePaneGuid)))
-                    {
-                        return activePaneGuid;
-                    }
-                }
-
-                return Guid.Empty;
-            }
-
-            private void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                if (ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out var pane)))
-                {
-                    pane.Activate();
-                }
             }
         }
     }
