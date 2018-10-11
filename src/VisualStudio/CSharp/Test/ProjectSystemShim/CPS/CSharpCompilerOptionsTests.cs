@@ -66,38 +66,38 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             using (var environment = new TestEnvironment())
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: $"/out:{initialObjPath}"))
             {
-                //Assert.Equal(initialObjPath, project.ObjOutputPath);
+                Assert.Equal(initialObjPath, project.GetIntermediateOutputFilePath());
                 Assert.Equal(initialBinPath, project.BinOutputPath);
 
                 // Change obj output folder from command line arguments - verify that objOutputPath changes, but binOutputPath is the same.
                 var newObjPath = @"C:\NewFolder\test.dll";
                 project.SetOptions($"/out:{newObjPath}");
-                //Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(newObjPath, project.GetIntermediateOutputFilePath());
                 Assert.Equal(initialBinPath, project.BinOutputPath);
 
                 // Change output file name - verify that objOutputPath changes, but binOutputPath is the same.
                 newObjPath = @"C:\NewFolder\test2.dll";
                 project.SetOptions($"/out:{newObjPath}");
-                //Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(newObjPath, project.GetIntermediateOutputFilePath());
                 Assert.Equal(initialBinPath, project.BinOutputPath);
 
                 // Change output file name and folder - verify that objOutputPath changes, but binOutputPath is the same.
                 newObjPath = @"C:\NewFolder3\test3.dll";
                 project.SetOptions($"/out:{newObjPath}");
-                //Assert.Equal(newObjPath, project.ObjOutputPath);
+                Assert.Equal(newObjPath, project.GetIntermediateOutputFilePath());
                 Assert.Equal(initialBinPath, project.BinOutputPath);
 
                 // Change bin output folder - verify that binOutputPath changes, but objOutputPath is the same.
                 var newBinPath = @"C:\NewFolder4\test.dll";
-                ((IWorkspaceProjectContext)project).BinOutputPath = newBinPath;
-                //Assert.Equal(newObjPath, project.ObjOutputPath);
+                project.BinOutputPath = newBinPath;
+                Assert.Equal(newObjPath, project.GetIntermediateOutputFilePath());
                 Assert.Equal(newBinPath, project.BinOutputPath);
 
                 // Change bin output folder to non-normalized path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
                 newBinPath = @"test.dll";
                 var expectedNewBinPath = Path.Combine(Path.GetTempPath(), newBinPath);
-                ((IWorkspaceProjectContext)project).BinOutputPath = newBinPath;
-                //Assert.Equal(newObjPath, project.ObjOutputPath);
+                project.BinOutputPath = newBinPath;
+                Assert.Equal(newObjPath, project.GetIntermediateOutputFilePath());
                 Assert.Equal(expectedNewBinPath, project.BinOutputPath);
             }
         }

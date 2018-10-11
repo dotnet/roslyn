@@ -108,6 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
+        internal string GetIntermediateOutputFilePath()
+        {
+            return _visualStudioProject.IntermediateOutputFilePath;
+        }
+
         public ProjectId Id => _visualStudioProject.Id;
 
         public void SetOptions(string commandLineForOptions)

@@ -139,7 +139,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // and not contain the existing value. Only update if we have one.
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
-            _project.IntermediateOutputFilePath = _commandLineArgumentsForCommandLine.OutputFileName ?? _project.IntermediateOutputFilePath;
+
+            string fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
+                                                    ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
+                                                    : _commandLineArgumentsForCommandLine.OutputFileName;
+
+            _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;
             _project.ParseOptions = parseOptions;
         }
 
