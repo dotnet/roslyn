@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Threading
@@ -311,6 +312,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Public Sub SetCompilerOptions(ByRef pCompilerOptions As VBCompilerOptions) Implements IVbCompilerProject.SetCompilerOptions
             Dim oldRuntimeLibraries = _runtimeLibraries
             VisualStudioProjectOptionsProcessor.SetNewRawOptions(pCompilerOptions)
+
+            If Not String.IsNullOrEmpty(pCompilerOptions.wszExeName) Then
+                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
+            End If
+
             _runtimeLibraries = VisualStudioProjectOptionsProcessor.GetRuntimeLibraries(_compilerHost)
 
             If Not _runtimeLibraries.SequenceEqual(oldRuntimeLibraries, StringComparer.Ordinal) Then

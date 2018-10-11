@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
@@ -45,6 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         public void SetOutputFileName(string filename)
         {
             VisualStudioProject.IntermediateOutputFilePath = filename;
+
+            if (filename != null)
+            {
+                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
+            }
         }
 
         public void SetOutputFileType(OutputFileType fileType)
