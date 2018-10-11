@@ -1,7 +1,7 @@
 phases:
 - phase: Windows_Desktop_Unit_Tests
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
     parallel: 4
     matrix:
@@ -39,7 +39,7 @@ phases:
 
 - phase: Windows_CoreClr_Unit_Tests
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
     parallel: 2
     matrix:
@@ -69,7 +69,7 @@ phases:
            
 - phase: Windows_Determinism_Test
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
@@ -84,7 +84,7 @@ phases:
 
 - phase: Windows_Correctness_Test
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
   steps:
     - script: build/scripts/test-build-correctness.cmd -cibuild -release
