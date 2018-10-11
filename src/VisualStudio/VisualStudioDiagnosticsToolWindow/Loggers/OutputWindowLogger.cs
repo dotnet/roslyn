@@ -2,8 +2,11 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -59,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             public static readonly OutputPane s_instance = new OutputPane();
 
             private readonly IServiceProvider _serviceProvider;
+            private readonly IThreadingContext _threadingContext;
 
             public static void WriteLine(string value)
             {
@@ -68,6 +72,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             public OutputPane()
             {
                 _serviceProvider = ServiceProvider.GlobalProvider;
+
+                var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
+                _threadingContext = componentModel.GetService<IThreadingContext>();
             }
 
             private IVsOutputWindowPane _doNotAccessDirectlyOutputPane;
@@ -87,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             {
                 if (_doNotAccessDirectlyOutputPane == null)
                 {
-                    ThreadHelper.JoinableTaskFactory.Run(async () =>
+                    _threadingContext.JoinableTaskFactory.Run(async () =>
                    {
-                       await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                       await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                        if (_doNotAccessDirectlyOutputPane != null)
                        {
@@ -111,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
             private IVsOutputWindowPane CreateOutputPane(IVsOutputWindow outputWindow)
             {
-                ThreadHelper.ThrowIfNotOnUIThread();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 // Try to get the workspace pane if it has already been registered
                 var workspacePaneGuid = s_outputPaneGuid;

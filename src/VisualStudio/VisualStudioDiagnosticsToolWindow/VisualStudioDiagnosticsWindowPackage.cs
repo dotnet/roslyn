@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -50,6 +52,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
     {
         private ForceLowMemoryMode _forceLowMemoryMode;
+        private IThreadingContext _threadingContext;
 
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the 
@@ -58,7 +61,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// </summary>
         private void ShowToolWindow(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             JoinableTaskFactory.RunAsync(async () =>
             {
@@ -88,6 +91,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             Assumes.Present(componentModel);
             Assumes.Present(menuCommandService);
 
+            _threadingContext = componentModel.GetService<IThreadingContext>();
+
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
@@ -104,7 +109,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             var optionService = componentModel.GetService<IGlobalOptionService>();
             var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
 
-            PerformanceLoggersPage.SetLoggers(optionService, remoteService);
+            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
         }
         #endregion
 
