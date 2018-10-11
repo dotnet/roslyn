@@ -387,10 +387,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
-
-        internal static bool IsFeatureStaticNullCheckingEnabled(this CSharpSyntaxNode node)
-        {
-            return ((CSharpParseOptions)node.SyntaxTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true;
-        }
     }
 }

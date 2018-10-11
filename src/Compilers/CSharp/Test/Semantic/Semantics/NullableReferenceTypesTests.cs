@@ -49,6 +49,141 @@ class C
                 );
         }
 
+        [Fact]
+        public void Directive_NullableDefault()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T, U> { }
+class B
+{
+    static A<object, string?> F1;
+    static void G1()
+    {
+        object o1;
+        o1 = F1/*T:A<object, string?>*/;
+        o1 = F2/*T:A<object, string?>*/;
+        o1 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull disable
+    static A<object, string?> F2;
+    static void G2()
+    {
+        object o2;
+        o2 = F1/*T:A<object, string?>*/;
+        o2 = F2/*T:A<object, string?>*/;
+        o2 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull restore
+    static A<object, string?> F3;
+    static void G3()
+    {
+        object o3;
+        o3 = F1/*T:A<object, string?>*/;
+        o3 = F2/*T:A<object, string?>*/;
+        o3 = F3/*T:A<object!, string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F1;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 28),
+                // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F2;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 28));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void Directive_NullableFalse()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T, U> { }
+class B
+{
+    static A<object, string?> F1;
+    static void G1()
+    {
+        object o1;
+        o1 = F1/*T:A<object, string?>*/;
+        o1 = F2/*T:A<object, string?>*/;
+        o1 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull disable
+    static A<object, string?> F2;
+    static void G2()
+    {
+        object o2;
+        o2 = F1/*T:A<object, string?>*/;
+        o2 = F2/*T:A<object, string?>*/;
+        o2 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull restore
+    static A<object, string?> F3;
+    static void G3()
+    {
+        object o3;
+        o3 = F1/*T:A<object, string?>*/;
+        o3 = F2/*T:A<object, string?>*/;
+        o3 = F3/*T:A<object!, string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullable(false));
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F1;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 28),
+                // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F2;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 28));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void Directive_NullableTrue()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T, U> { }
+class B
+{
+    static A<object, string?> F1;
+    static void G1()
+    {
+        object o1;
+        o1 = F1/*T:A<object!, string?>!*/;
+        o1 = F2/*T:A<object, string?>*/;
+        o1 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull disable
+    static A<object, string?> F2;
+    static void G2()
+    {
+        object o2;
+        o2 = F1/*T:A<object!, string?>!*/;
+        o2 = F2/*T:A<object, string?>*/;
+        o2 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull restore
+    static A<object, string?> F3;
+    static void G3()
+    {
+        object o3;
+        o3 = F1/*T:A<object!, string?>!*/;
+        o3 = F2/*T:A<object, string?>*/;
+        o3 = F3/*T:A<object!, string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullable(true));
+            comp.VerifyDiagnostics(
+                // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F2;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 28));
+            comp.VerifyTypes();
+        }
+
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
         public void IsOperatorOnNonNullExpression()
         {
@@ -277,11 +412,10 @@ class C2
                 );
 
             var c2 = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes pragma for old language version
             c2.VerifyDiagnostics(
-                //// (10,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(10, 2)
+                // (10,2): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nonnull").WithArguments("static null checking", "8.0").WithLocation(10, 2)
                 );
         }
 
@@ -32931,23 +33065,25 @@ public class D
 }
 ";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes pragma for old language version
             comp.VerifyDiagnostics(
-                //// (2,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(2, 2),
-                //// (12,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(12, 6),
-                //// (15,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(15, 6),
-                //// (18,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(18, 6),
-                //// (9,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
+                // (2,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(2, 2),
+                // (9,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(9, 2),
+                // (12,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(12, 2),
+                // (15,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(15, 2),
+                // (18,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(18, 2),
+                // (20,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull disable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(20, 2)
                 );
         }
 

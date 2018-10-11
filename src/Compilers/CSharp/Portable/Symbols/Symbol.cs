@@ -866,31 +866,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool? GetNonNullTypesFromSyntax()
         {
-            bool? result = null;
-            string id = "CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000");
-
             foreach (Location location in Locations)
             {
                 SyntaxTree tree = location.SourceTree;
-
                 if (tree != null)
                 {
-                    ReportDiagnostic? state = ((CSharpSyntaxTree)tree).GetPragmaDirectiveSpecificWarningState(id, location.SourceSpan.Start);
-                    if (state.HasValue)
-                    {
-                        if (state.GetValueOrDefault() == ReportDiagnostic.Suppress)
-                        {
-                            result = false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
+                    return ((CSharpSyntaxTree)tree).GetNonNullDirectiveState(location.SourceSpan.Start);
                 }
             }
 
-            return result;
+            return null;
         }
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
