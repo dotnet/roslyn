@@ -15,7 +15,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "EtwLogger"));
 
         public static readonly Option<bool> TraceLoggerKey = new Option<bool>(nameof(LoggerOptions), nameof(TraceLoggerKey), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "TraceLoggerKey"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "TraceLogger"));
+
+        public static readonly Option<bool> OutputWindowLoggerKey = new Option<bool>(nameof(LoggerOptions), nameof(OutputWindowLoggerKey), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "OutputWindowLogger"));
     }
 
     [ExportOptionProvider, Shared]
@@ -23,7 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             LoggerOptions.EtwLoggerKey,
-            LoggerOptions.TraceLoggerKey);
+            LoggerOptions.TraceLoggerKey,
+            LoggerOptions.OutputWindowLoggerKey);
     }
 
 }
