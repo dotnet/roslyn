@@ -65,7 +65,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Windows debug unit tests on unit32 using Spanish language")
           steps {
-            batchFile(""".\\build\\scripts\\cibuild.cmd -debug -test32 -testDesktop""")
+            batchFile(""".\\build\\scripts\\cibuild.cmd -configuration Debug -test32 -testDesktop""")
           }
   }
    def triggerPhraseOnly = false
@@ -81,7 +81,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Mac tests")
     steps {
-      shell("./build/scripts/cibuild.sh --debug")
+      shell("./build/scripts/cibuild.sh --configuration Debug")
     }
   }
 
@@ -89,22 +89,6 @@ commitPullList.each { isPr ->
   def triggerPhraseExtra = "mac"
   Utilities.setMachineAffinity(myJob, 'OSX10.12', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Microbuild
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
-  def myJob = job(jobName) {
-    description('MicroBuild test')
-    steps {
-      batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -116,7 +100,7 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd -configuration ${configuration} -testVsi""")
         }
       }
 

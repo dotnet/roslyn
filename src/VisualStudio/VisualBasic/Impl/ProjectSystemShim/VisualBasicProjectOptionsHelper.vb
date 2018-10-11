@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Private Shared s_conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
             New Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object)))
 
-        Private Shared ReadOnly s_EmptyCommandLineArguments As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(SpecializedCollections.EmptyEnumerable(Of String)(), baseDirectory:="", sdkDirectory:=Nothing)
+        Private Shared ReadOnly s_EmptyCommandLineArguments As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(SpecializedCollections.EmptyEnumerable(Of String)(), baseDirectory:=Nothing, sdkDirectory:=Nothing)
 
         Public Shared Function CreateCompilationOptions(baseCompilationOptionsOpt As VisualBasicCompilationOptions,
                                                      newParseOptions As VisualBasicParseOptions,

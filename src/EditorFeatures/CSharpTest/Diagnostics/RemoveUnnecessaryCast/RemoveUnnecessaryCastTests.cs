@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -3986,6 +3987,80 @@ static class Program
   static void Main()
   {
   }
+}");
+        }
+
+        [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnDictionaryIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+
+static class Program
+{
+    enum TestEnum
+    {
+        Test,
+    }
+
+    static void Main()
+    {
+        Dictionary<int, string> Icons = new Dictionary<int, string>
+        {
+            [[|(int)|] TestEnum.Test] = null,
+        };
+    }
+}");
+        }
+
+        [WorkItem(29264, "https://github.com/dotnet/roslyn/issues/29264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnDictionaryIndexer()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+
+static class Program
+{
+    enum TestEnum
+    {
+        Test,
+    }
+
+    static void Main()
+    {
+        Dictionary<int, string> Icons = new Dictionary<int, string>
+        {
+            [[|(int)|] 0] = null,
+        };
+    }
+}",
+                @"
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+
+static class Program
+{
+    enum TestEnum
+    {
+        Test,
+    }
+
+    static void Main()
+    {
+        Dictionary<int, string> Icons = new Dictionary<int, string>
+        {
+            [0] = null,
+        };
+    }
 }");
         }
 
