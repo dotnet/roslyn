@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
+        internal const string InitialTrigger = nameof(InitialTrigger);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
@@ -124,6 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // This is a code supporting legacy completion scenarios:
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
+
+            session.Properties.AddProperty(InitialTrigger, roslynTrigger);
 
             return new AsyncCompletionData.CompletionContext(
                 items,

@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return null;
             }
 
+            if (!session.Properties.TryGetProperty<RoslynTrigger>(CompletionSource.InitialTrigger, out var initialRoslynTrigger))
+            {
+                return null;
+            }
+
             // Check if the user is typing a number. If so, only proceed if it's a number
             // directly after a <dot>. That's because it is actually reasonable for completion
             // to be brought up after a <dot> and for the user to want to filter completion
@@ -99,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // We need to filter if a non-empty strict subset of filters are selected
             var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
+            var filterReason = Helpers.GetFilterReason(roslynTrigger);
 
             var initialListOfItemsToBeIncluded = new List<ExtendedFilterResult>();
             foreach (var item in data.InitialSortedList)
@@ -115,15 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                     roslynItem = RoslynCompletionItem.Create(item.DisplayText, item.FilterText, item.SortText);
                 }
 
-                if (Session.MatchesFilterText(_completionHelper, roslynItem, filterText, roslynTrigger, Helpers.GetFilterReason(roslynTrigger), _recentItems))
+                if (Session.MatchesFilterText(_completionHelper, roslynItem, filterText, initialRoslynTrigger.Kind, filterReason, _recentItems))
                 {
                     initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true)));
                 }
                 else
                 {
-                    if (reason == AsyncCompletionData.CompletionTriggerReason.Deletion ||
-                        reason == AsyncCompletionData.CompletionTriggerReason.Backspace ||
-                        reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
+                    if (roslynTrigger.Kind == CompletionTriggerKind.Deletion ||
+                        roslynTrigger.Kind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
                     {
                         initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: false)));
@@ -145,37 +150,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return null;
             }
 
+            var completionService = document.GetLanguageService<CompletionService>();
+            if (completionService == null)
+            {
+                return null;
+            }
+
+            var completionRules = completionService.GetRules();
+            var caretPoint = session.TextView.GetCaretPoint(data.Snapshot.TextBuffer);
+            var caretPosition = caretPoint?.Position;
+
+            //var disconnectedBufferGraph = new DisconnectedBufferGraph(data.Snapshot.TextBuffer, session.ApplicableToSpan.TextBuffer, session.TextView.TextBuffer);
+            var disconnectedBufferGraph = new DisconnectedBufferGraph(session.ApplicableToSpan.TextBuffer, session.TextView.TextBuffer);
+            if (data.Trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Backspace &&
+                completionRules.DismissIfLastCharacterDeleted && 
+                Controller.AllFilterTextsEmpty(
+                    initialListOfItemsToBeIncluded.Select(i => i.FilterResult.CompletionItem).ToImmutableArray(),
+                    disconnectedBufferGraph.GetSubjectBufferTextSpanInViewBuffer,
+                    (textSpan, snapshot, endPoint) => GetCurrentTextInSnapshot(disconnectedBufferGraph.GetSubjectBufferTextSpanInViewBuffer(textSpan), snapshot, disconnectedBufferGraph, snapshotForDocument.Version.CreateTrackingPoint(caretPosition.Value, PointTrackingMode.Positive)),
+                    caretPoint.Value))
+            {
+                return null;
+            }
+
             if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                var completionService = document.GetLanguageService<CompletionService>();
-                if (completionService == null)
-                {
-                    return null;
-                }
-
-                var completionRules = completionService.GetRules();
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, selectedFilters, completionRules);
             }
 
             // If this was deletion, then we control the entire behavior of deletion ourselves.
-            if (reason == AsyncCompletionData.CompletionTriggerReason.Deletion ||
-                reason == AsyncCompletionData.CompletionTriggerReason.Backspace)
+            if (initialRoslynTrigger.Kind == CompletionTriggerKind.Deletion)
             {
                 return HandleDeletionTrigger(data.InitialSortedList, reason, 
                     data.SelectedFilters, reason, filterText, initialListOfItemsToBeIncluded);
             }
 
-            var caretPoint = session.TextView.GetCaretPoint(data.Snapshot.TextBuffer);
-            var caretPosition = caretPoint?.Position;
-
             return HandleNormalFiltering(
                 data.InitialSortedList,
                 snapshotForDocument,
                 document,
+                completionService,
                 caretPoint,
                 filterText,
                 data.SelectedFilters,
-                roslynTrigger,
+                initialRoslynTrigger.Kind,
+                filterReason,
                 initialListOfItemsToBeIncluded,
                 hasSuggestedItemOptions);
         }
@@ -201,10 +220,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             ImmutableArray<VSCompletionItem> sortedList,
             ITextSnapshot snapshot,
             Document document,
+            CompletionService completionService,
             SnapshotPoint? caretPoint,
             string filterText,
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            RoslynTrigger roslynTrigger,
+            CompletionTriggerKind initialRoslynTriggerKind,
+            CompletionFilterReason filterReason,
             List<ExtendedFilterResult> itemsInList,
             bool hasSuggestedItemOptions)
         {
@@ -214,12 +235,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // matches the text typed so far.
 
             // Ask the language to determine which of the *matched* items it wants to select.
-            var completionService = document.GetLanguageService<CompletionService>();
-            if (completionService == null)
-            {
-                return null;
-            }
-
             var matchingItems = itemsInList.Where(r => r.FilterResult.MatchedFilterText)
                                            .Select(t => t.FilterResult.CompletionItem)
                                            .AsImmutable();
@@ -257,8 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
 
             var updateSelectionHint = Session.IsHardSelection(
-                        bestOrFirstCompletionItem.Span, filterText, roslynTrigger, bestOrFirstCompletionItem,
-                        caretPoint.Value, _completionHelper, Helpers.GetFilterReason(roslynTrigger), recentItems, hasSuggestedItemOptions)
+                        bestOrFirstCompletionItem.Span, filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
+                        caretPoint.Value, _completionHelper, filterReason, recentItems, hasSuggestedItemOptions)
                         ? AsyncCompletionData.UpdateSelectionHint.Selected
                         : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
 
@@ -312,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 var hardSelect = bestFilterResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
                 return new AsyncCompletionData.FilteredCompletionModel(highlightedList, filterResults.IndexOf(bestFilterResult.Value), updatedFilters, 
-                    hardSelect ? AsyncCompletionData.UpdateSelectionHint.NoChange : AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
+                    hardSelect ? AsyncCompletionData.UpdateSelectionHint.Selected : AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
                     centerSelection: true, uniqueItem: null);
             }
             else
@@ -428,6 +443,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 session.ItemCommitted -= ItemCommitted;
                 session.Dismissed -= SessionDismissed;
             }
+        }
+
+        internal static string GetCurrentTextInSnapshot(
+            ViewTextSpan originalSpan,
+            ITextSnapshot textSnapshot,
+            DisconnectedBufferGraph disconnectedBufferGraph,
+            ITrackingPoint trackingPoint,
+            int? endPoint = null)
+        {
+            var currentSpan = GetCurrentSpanInSnapshot(originalSpan, textSnapshot, disconnectedBufferGraph, trackingPoint);
+
+            var startPosition = currentSpan.Start;
+            var endPosition = endPoint.HasValue ? endPoint.Value : currentSpan.End;
+
+            // TODO(cyrusn): What to do if the span is empty, or the end comes before the start.
+            // Can that even happen?  Not sure, so we'll just be resilient just in case.
+            return startPosition <= endPosition
+                ? textSnapshot.GetText(Span.FromBounds(startPosition, endPosition))
+                : string.Empty;
+        }
+
+        internal static SnapshotSpan GetCurrentSpanInSnapshot(
+            ViewTextSpan originalSpan, ITextSnapshot textSnapshot, 
+            DisconnectedBufferGraph disconnectedBufferGraph, ITrackingPoint trackingPoint)
+        {
+            var start = disconnectedBufferGraph.ViewSnapshot.CreateTrackingPoint(originalSpan.TextSpan.Start, PointTrackingMode.Negative).GetPosition(textSnapshot);
+            var end = Math.Max(start, trackingPoint.GetPosition(textSnapshot));
+            return new SnapshotSpan(
+                textSnapshot, Span.FromBounds(start, end));
         }
 
         private readonly struct ExtendedFilterResult

@@ -277,13 +277,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         internal string GetCurrentTextInSnapshot(
             TextSpan originalSpan,
             ITextSnapshot textSnapshot,
+            int? endPoint = null)
+        {
+            var viewSpan = GetViewBufferSpan(originalSpan);
+            return GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint);
+        }
+
+        internal string GetCurrentTextInSnapshot(
+            TextSpan originalSpan,
+            ITextSnapshot textSnapshot,
             Dictionary<TextSpan, string> textSpanToTextCache,
+            int? endPoint = null)
+            => GetCurrentTextInSnapshot(originalSpan, textSnapshot, textSpanToTextCache, GetCurrentTextInSnapshot, endPoint);
+        
+
+        internal static string GetCurrentTextInSnapshot(
+            TextSpan originalSpan,
+            ITextSnapshot textSnapshot,
+            Dictionary<TextSpan, string> textSpanToTextCache,
+            Func<TextSpan, ITextSnapshot, int?, string> func,
             int? endPoint = null)
         {
             if (!textSpanToTextCache.TryGetValue(originalSpan, out var currentSnapshotText))
             {
-                var viewSpan = GetViewBufferSpan(originalSpan);
-                currentSnapshotText = GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint);
+                currentSnapshotText = func(originalSpan, textSnapshot, endPoint);
                 textSpanToTextCache[originalSpan] = currentSnapshotText;
             }
 

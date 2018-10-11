@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = MatchesFilterText(helper, currentItem, filterText, model.Trigger, filterReason, recentItems);
+                    var matchesFilterText = MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems);
 
                     if (matchesFilterText)
                     {
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             internal static bool MatchesFilterText(
                 CompletionHelper helper, CompletionItem item,
-                string filterText, CompletionTrigger trigger,
+                string filterText, CompletionTriggerKind initialTriggerKind,
                 CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
             {
                 // For the deletion we bake in the core logic for how matching should work.
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // completion, we require that the current filter text be a prefix of the 
                 // item in the list.
                 if (filterReason == CompletionFilterReason.Deletion &&
-                    trigger.Kind == CompletionTriggerKind.Deletion)
+                    initialTriggerKind == CompletionTriggerKind.Deletion)
                 {
                     return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
                 }
@@ -520,21 +520,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 CompletionItem bestFilterMatch,
                 SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
-                CompletionFilterReason reason)
+                CompletionFilterReason filterReason)
             {
                 var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, caretPosition.Snapshot, endPoint: null);
-                return IsHardSelection(itemViewSpan.TextSpan, fullFilterText, model.Trigger, bestFilterMatch, caretPosition, completionHelper, reason, this.Controller.GetRecentItems(), model.UseSuggestionMode);
+                return IsHardSelection(itemViewSpan.TextSpan, fullFilterText, model.Trigger.Kind, bestFilterMatch, caretPosition, completionHelper, filterReason, this.Controller.GetRecentItems(), model.UseSuggestionMode);
             }
 
             internal static bool IsHardSelection(
                 TextSpan textSpan,
                 string fullFilterText,
-                CompletionTrigger trigger,
+                CompletionTriggerKind initialTriggerKind,
                 CompletionItem bestFilterMatch,
                 SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
-                CompletionFilterReason reason,
+                CompletionFilterReason filterReason,
                 ImmutableArray<string> recentItems,
                 bool useSuggestionMode)
             {
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
 
-                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
+                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, recentItems))
+                if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, initialTriggerKind, filterReason, recentItems))
                 {
                     return false;
                 }
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
             /// selected.
             /// </summary>
-            private static bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
+            private static bool ShouldSoftSelectItem(CompletionItem item, string filterText)
             {
                 // If all that has been typed is puntuation, then don't hard select anything.
                 // It's possible the user is just typing language punctuation and selecting
