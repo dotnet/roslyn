@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         public static bool IsEmptyOrWhitespace(this ITextSnapshotLine line, int startIndex = 0, int endIndex = -1)
         {
             Contract.ThrowIfNull("line");
+            Contract.ThrowIfFalse(startIndex >= 0);
 
             var text = line.GetText();
 

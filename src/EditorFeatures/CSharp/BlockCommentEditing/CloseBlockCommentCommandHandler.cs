@@ -2,11 +2,11 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 {
                     var (snapshot, position) = caret.Value;
 
+                    // Check that the line is all whitespace ending with an asterisk and a single space (| marks caret position):
+                    // * |
                     if (position >= 2 &&
                         snapshot[position - 1] == ' ' &&
                         snapshot[position - 2] == '*')
