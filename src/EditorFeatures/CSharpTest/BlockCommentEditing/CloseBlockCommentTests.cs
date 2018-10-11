@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -261,6 +262,26 @@ a    * /$$
 <tab><tab>*/$$
 ";
             VerifyTabs(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void NotClosedAfterAsteriskSpaceWithOptionOff()
+        {
+            var code = @"
+    /*
+     *
+     * $$
+";
+            var expected = @"
+    /*
+     *
+     * /$$
+";
+            Verify(code, expected, workspace =>
+            {
+                workspace.Options = workspace.Options.WithChangedOption(
+                    FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false);
+            });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]

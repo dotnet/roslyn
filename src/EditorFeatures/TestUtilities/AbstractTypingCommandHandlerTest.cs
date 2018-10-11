@@ -25,10 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         
         protected abstract (TCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer);
 
-        protected void Verify(string initialMarkup, string expectedMarkup)
+        protected void Verify(string initialMarkup, string expectedMarkup, Action<TestWorkspace> initializeWorkspace = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
+                initializeWorkspace?.Invoke(workspace);
+
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
