@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
             private const int MaxInterproceduralCallChain = 1;
-            private readonly ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
+            private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), PropertySetAbstractValue>.Builder _hazardousUsageBuilder;
             private INamedTypeSymbol DeserializerTypeSymbol;
 
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
@@ -31,7 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
-                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<OperationMethodKey, PropertySetAbstractValue>();
+                _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), PropertySetAbstractValue>();
 
                 this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.DeserializerTypeSymbol);
             }
@@ -41,7 +41,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return HashUtilities.Combine(_hazardousUsageBuilder.GetHashCode(), base.GetHashCode());
             }
 
-            public ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue> HazardousUsages
+            public ImmutableDictionary<(Location Location, IMethodSymbol Method), PropertySetAbstractValue> HazardousUsages
             {
                 get
                 {
@@ -153,9 +153,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
-                if (visitedInstance != null
-                    && visitedInstance.Type != null
-                    && visitedInstance.Type == this.DeserializerTypeSymbol
+                if (visitedInstance?.Type == this.DeserializerTypeSymbol
                     && this.DataFlowAnalysisContext.MethodNamesToCheckForFlaggedUsage.Contains(method.MetadataName))
                 {
                     PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(visitedInstance);
@@ -176,7 +174,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         }
                     }
 
-                    OperationMethodKey key = new OperationMethodKey(originalOperation, method);
+                    (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
                     if (hasFlagged && !hasMaybeFlagged)
                     {
                         this._hazardousUsageBuilder.Add(key, PropertySetAbstractValue.Flagged);

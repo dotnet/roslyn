@@ -29,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        public static ImmutableDictionary<OperationMethodKey, PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
+        public static ImmutableDictionary<(Location Location, IMethodSymbol method), PropertySetAbstractValue> GetOrComputeHazardousParameterUsages(
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
@@ -38,9 +38,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             string propertyToSetFlag,
             bool isNullPropertyFlagged,
             ImmutableHashSet<string> methodNamesToCheckForFlaggedUsage,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             bool pessimisticAnalysis = false)
         {
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None;
+
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
                 cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisKind, pessimisticAnalysis);

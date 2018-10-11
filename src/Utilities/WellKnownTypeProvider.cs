@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private WellKnownTypeProvider(Compilation compilation)
         {
             Compilation = compilation;
-            FullNameToType = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
-
+            _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
             Exception = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemException);
             Contract = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemDiagnosticContractsContract);
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
         /// </summary>
-        private ConcurrentDictionary<string, INamedTypeSymbol> FullNameToType { get; }
+        private readonly ConcurrentDictionary<string, INamedTypeSymbol> _fullNameToTypeMap;
 
         /// <summary>
         /// Attempts to get the type by the full type name.
@@ -86,14 +85,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <returns>True if found in the compilation, false otherwise.</returns>
         public bool TryGetTypeByMetadataName(string fullTypeName, out INamedTypeSymbol namedTypeSymbol)
         {
-            if (!FullNameToType.TryGetValue(fullTypeName, out namedTypeSymbol))
-            {
-                namedTypeSymbol = Compilation.GetTypeByMetadataName(fullTypeName);
-
-                // Even if the compilation gives back null, still cache the null to avoid future lookups.
-                FullNameToType.TryAdd(fullTypeName, namedTypeSymbol);
-            }
-
+            namedTypeSymbol = _fullNameToTypeMap.GetOrAdd(
+                fullTypeName,
+                (string s) => Compilation.GetTypeByMetadataName(s));    // Caching null results in our cache is intended.
             return namedTypeSymbol != null;
         }
 
@@ -120,13 +114,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 builder.Add(iCollection);
             }
 
-            var genericICollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericICollection);
+            var genericICollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericICollection1);
             if (genericICollection != null)
             {
                 builder.Add(genericICollection);
             }
 
-            var genericIReadOnlyCollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericIReadOnlyCollection);
+            var genericIReadOnlyCollection = GetTypeByMetadataName(Analyzer.Utilities.WellKnownTypes.SystemCollectionsGenericIReadOnlyCollection1);
             if (genericIReadOnlyCollection != null)
             {
                 builder.Add(genericIReadOnlyCollection);
