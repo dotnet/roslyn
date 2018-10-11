@@ -1261,13 +1261,15 @@ namespace System.Runtime.CompilerServices
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
+        protected static IOperation VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
+
+            return actualOperation;
         }
 
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
@@ -1413,9 +1415,9 @@ namespace System.Runtime.CompilerServices
             return ilReference;
         }
 
-#endregion
+        #endregion
 
-#region Span
+        #region Span
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
@@ -1650,6 +1652,41 @@ namespace System
             }
         }
     }";
-#endregion
+        #endregion
+
+        #region Index and Range
+        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+        #endregion
     }
 }

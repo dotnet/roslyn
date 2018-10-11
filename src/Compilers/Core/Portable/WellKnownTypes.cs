@@ -280,6 +280,9 @@ namespace Microsoft.CodeAnalysis
         System_AttributeTargets,
         Microsoft_CodeAnalysis_EmbeddedAttribute,
 
+        System_Index,
+        System_Range,
+
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
         System_Collections_Generic_IAsyncEnumerator_T,
@@ -564,6 +567,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.NonNullTypesAttribute",
             "System.AttributeTargets",
             "Microsoft.CodeAnalysis.EmbeddedAttribute",
+
+            "System.Index",
+            "System.Range",
 
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",

@@ -684,7 +684,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AsyncIteratorWithAwaitCompletedAndYield()
         {
             string source = @"
@@ -1083,7 +1083,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AsyncIteratorWithGenericReturn()
         {
             string source = @"

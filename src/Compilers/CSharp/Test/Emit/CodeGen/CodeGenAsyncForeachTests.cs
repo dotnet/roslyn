@@ -2058,7 +2058,7 @@ public class C
                 verify: Verification.Skipped);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWithPattern_WithUnsealed_WithIAsyncDisposable()
         {
             string source = @"
@@ -3589,7 +3589,7 @@ class C
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWithInterfaceImplementingPattern()
         {
             string source = @"
