@@ -1772,7 +1772,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Function()
                     Return boundRedimStatement.Clauses.SelectAsArray(Function(n)
                                                                          Debug.Assert(preserve = n.Preserve)
-                                                                         Return CreateBoundReDimClauseOperation(n)
+                                                                         Return DirectCast(Create(n), IReDimClauseOperation)
                                                                      End Function)
                 End Function)
             Dim syntax As SyntaxNode = boundRedimStatement.Syntax
