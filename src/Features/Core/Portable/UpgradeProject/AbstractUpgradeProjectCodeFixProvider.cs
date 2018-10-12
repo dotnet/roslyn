@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             result.Add(fixOneProject);
             if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
             {
-                var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
+                var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, AddBetaIfNeeded(newVersion));
 
                 var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
                     ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
