@@ -278,8 +278,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Compilers.Extension", "src\Compilers\Extension\Roslyn.Compilers.Extension.csproj", "{43026D51-3083-4850-928D-07E1883D5B1A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Setup", "src\VisualStudio\IntegrationTest\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{600AF682-E097-407B-AD85-EE3CED37E680} = {600AF682-E097-407B-AD85-EE3CED37E680}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.IntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Utilities", "src\VisualStudio\IntegrationTest\TestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
 EndProject
@@ -394,6 +400,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PortableFacades.Setup", "src\Setup\DevDivVsix\PortableFacades\PortableFacades.Setup.csproj", "{952808C5-799A-4CAA-964C-2AA78458CEC7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Setup", "src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.Setup.csproj", "{03607817-6800-40B6-BEAA-D6F437CD62B7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-format", "src\Tools\dotnet-format\dotnet-format.csproj", "{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1056,6 +1064,10 @@ Global
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1244,6 +1256,7 @@ Global
 		{B9843F65-262E-4F40-A0BC-2CBEF7563A44} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{952808C5-799A-4CAA-964C-2AA78458CEC7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{03607817-6800-40B6-BEAA-D6F437CD62B7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
+		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
