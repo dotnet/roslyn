@@ -8,6 +8,7 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
         Inherits AbstractFormattingAnalyzer
 
         Protected Overrides Function GetAnalyzerImplType() As Type
+            ' Explained at the call site in the base class
             Return GetType(VisualBasicFormattingAnalyzerImpl)
         End Function
     End Class

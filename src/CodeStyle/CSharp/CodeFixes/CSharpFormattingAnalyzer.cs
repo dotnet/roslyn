@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         protected override Type GetAnalyzerImplType()
         {
+            // Explained at the call site in the base class
             return typeof(CSharpFormattingAnalyzerImpl);
         }
     }
