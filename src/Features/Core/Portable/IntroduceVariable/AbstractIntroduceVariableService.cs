@@ -159,8 +159,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 return GetConstantOrLocalResource(state.IsConstant);
             }
-
-            return null;
+            else
+            {
+                return null;
+            }
         }
 
         private static string GetConstantOrFieldResource(bool isConstant)
