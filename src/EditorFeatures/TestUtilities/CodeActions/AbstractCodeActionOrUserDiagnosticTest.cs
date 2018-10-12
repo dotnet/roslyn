@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var (actions, actionToInvoke) = await GetCodeActionsWorkerAsync(workspace, parameters);
-            return (MassageActions(actions), actionToInvoke);
+            return await GetCodeActionsWorkerAsync(workspace, parameters);
         }
 
         protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
