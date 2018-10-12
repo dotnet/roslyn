@@ -2118,12 +2118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFoundFwd, location, whereText, forwardedToAssembly)
                     : diagnostics.Add(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, location, whereText, qualifierOpt, forwardedToAssembly);
             }
+
             return diagnostics.Add(ErrorCode.ERR_SingleTypeNameNotFound, location, whereText);
         }
 
-        protected virtual AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string name, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
+        protected virtual AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string metadataName, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
         {
-            return Next?.GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
+            return Next?.GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
         }
 
         protected AssemblySymbol GetForwardedToAssembly(string fullName, DiagnosticBag diagnostics, Location location)
@@ -2151,9 +2152,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null; // Cannot determine a suitable forwarding assembly
                         }
                     }
+
                     return forwardedType.ContainingAssembly;
                 }
             }
+
             return null;
         }
 
@@ -2167,13 +2170,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// if any.</param>
         /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
         /// <param name="location">Location to report errors on.</param>
-        /// <returns></returns>
+        /// <returns>Returns the Assembly to which the type is forwarded, or null if none is found.</returns>
         /// <remarks>
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
         /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
         /// </remarks>
         protected AssemblySymbol GetForwardedToAssembly(string name, int arity, ref NamespaceOrTypeSymbol qualifierOpt, DiagnosticBag diagnostics, Location location)
         {
+            // If we are in the process of binding assembly level attributes, we might get into an infinite cycle
+            // if any of the referenced assemblies forwards type to this assembly. Since forwarded types
+            // are specified through assembly level attributes, an attempt to resolve the forwarded type
+            // might require us to examine types forwarded by this assembly, thus binding assembly level 
+            // attributes again. And the cycle continues. 
+            // So, we won't do the analysis in this case, at the expense of better diagnostics.
             if ((this.Flags & BinderFlags.InContextualAttributeBinder) != 0)
             {
                 var current = this;
@@ -2198,18 +2207,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (current != null);
             }
 
-            name = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
+            var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
 
-            var fullName = qualifierOpt != null && !ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace) ? qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + name : name;
+            var fullName = qualifierOpt != null && !ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace) ? qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + metadataName : metadataName;
             var result = GetForwardedToAssembly(fullName, diagnostics, location);
-            if ((object)result != null || diagnostics.HasAnyErrors())
+            if ((object)result != null)
             {
                 return result;
             }
 
             if ((object)qualifierOpt == null)
             {
-                return GetForwardedToAssemblyInUsingNamespaces(name, ref qualifierOpt, diagnostics, location);
+                return GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
             }
 
             return null;

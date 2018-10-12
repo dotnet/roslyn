@@ -97,14 +97,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Look for a type forwarder for the given type in any referenced assemblies.
+        /// Look for a type forwarder for the given type in any referenced assemblies, checking any using namespaces in
+        /// the current imports.
         /// </summary>
-        /// <param name="name">The name of the (potentially) forwarded type.</param>
+        /// <param name="name">The metadata name of the (potentially) forwarded type, without qualifyiers.</param>
         /// <param name="qualifierOpt">Will be used to return the namespace of the found forwarder, 
         /// if any.</param>
         /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
         /// <param name="location">Location to report errors on.</param>
-        /// <returns></returns>
+        /// <returns>Returns the Assembly to which the type is forwarded, or null if none is found.</returns>
         /// <remarks>
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
         /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var fullName = typeOrNamespace.NamespaceOrType + "." + name;
                 var result = GetForwardedToAssembly(fullName, diagnostics, location);
-                if (result != null || diagnostics.HasAnyErrors())
+                if (result != null)
                 {
                     qualifierOpt = typeOrNamespace.NamespaceOrType;
                     return result;
