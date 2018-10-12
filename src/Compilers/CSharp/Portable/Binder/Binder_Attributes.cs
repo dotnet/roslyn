@@ -156,19 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)attributeConstructor != null)
             {
-                if (attributeConstructor.ContainingType == Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute))
-                {
-                    if (Compilation.LanguageVersion < MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
-                    {
-                        // PROTOTYPE(NullableReferenceTypes): Stop injecting NonNullTypesAttribute and get rid of this error
-                        Error(diagnostics, ErrorCode.ERR_NonNullTypesNotAvailable, node,
-                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureStaticNullChecking.RequiredVersion()));
-                    }
-                }
-                else
-                {
-                    ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
-                }
+                ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
             }
 
             if (attributeConstructor?.Parameters.Any(p => p.RefKind == RefKind.In) == true)

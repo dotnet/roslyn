@@ -7262,15 +7262,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please use language version {0} or greater to use the NonNullTypes attribute..
-        /// </summary>
-        internal static string ERR_NonNullTypesNotAvailable {
-            get {
-                return ResourceManager.GetString("ERR_NonNullTypesNotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
         internal static string ERR_NonTaskMainCantBeAsync {
@@ -7438,6 +7429,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoVoidParameter {
             get {
                 return ResourceManager.GetString("ERR_NoVoidParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid &apos;{0}&apos; value: &apos;{1}&apos; for C# {2}. Please use language version {3} or greater..
+        /// </summary>
+        internal static string ERR_NullableOptionNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_NullableOptionNotAvailable", resourceCulture);
             }
         }
         

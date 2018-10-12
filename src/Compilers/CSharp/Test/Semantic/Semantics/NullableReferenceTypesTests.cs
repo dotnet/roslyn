@@ -904,11 +904,9 @@ interface I { }
         public void NonNullTypesAttribute_Injected_InCSharp7()
         {
             var comp = CreateCompilation("", options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.0", "8.0").WithLocation(1, 1)
                 );
 
             Assert.True(comp.SourceModule.NonNullTypes);
@@ -995,17 +993,34 @@ interface I { }
         public void NonNullTypesAttribute_False_Injected_InCSharp7()
         {
             var comp = CreateCompilation("", options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular7);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(false)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(false)").WithArguments("8.0").WithLocation(1, 10)
+                // error CS8630: Invalid 'Nullable' value: 'False' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "False", "7.0", "8.0").WithLocation(1, 1)
                 );
 
             Assert.False(comp.SourceModule.NonNullTypes);
 
             var type = (NamedTypeSymbol)comp.GlobalNamespace.GetMember("System.Runtime.CompilerServices.NonNullTypesAttribute");
             Assert.False(type.NonNullTypes);
+        }
+
+        [Fact]
+        public void NullableOption()
+        {
+            var comp = CreateCompilation("", options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilation("", options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new string[] { }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new string[] { }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3670,11 +3685,9 @@ class B<T> : A<T> where T : A<T>.I
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.0", "8.0").WithLocation(1, 1)
                 );
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -32837,11 +32850,9 @@ class P
 
             // No warnings with C#7.3.
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1)
                 );
         }
 
@@ -39436,13 +39447,11 @@ class B<T1> where T1 : class?
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(expected
-                //.Concat(new[] {
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-                //}).ToArray()
+                .Concat(new[] {
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                }).ToArray()
                 );
         }
 
@@ -40786,13 +40795,11 @@ class B<T1> where T1 : struct?
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(expected
-                //.Concat(new[] { 
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-                //}).ToArray()
+                .Concat(new[] { 
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1),
+                }).ToArray()
                 );
         }
 
@@ -42087,13 +42094,11 @@ class B
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
 
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(expected
-            //.Concat(new[] {
-            //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-            //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-            //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10)
-            //}).ToArray()
+            .Concat(new[] {
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1),
+            }).ToArray()
             );
 
             {
@@ -47773,26 +47778,18 @@ class D
 {
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes global switch for old language version
             comp.VerifyDiagnostics(
-                //// (1,10): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes(true)").WithArguments("8.0").WithLocation(1, 10),
+                // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1),
                 // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
-                // (7,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [NonNullTypes(B<A>.True)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "NonNullTypes(B<A>.True)").WithArguments("8.0").WithLocation(7, 2),
                 // (11,18): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(11, 18),
                 // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A?>.True)]
-                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2),
-                // (11,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                // [NonNullTypes(B<A?>.True)]
-                Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "NonNullTypes(B<A?>.True)").WithArguments("8.0").WithLocation(11, 2));
+                Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2));
 
             var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
