@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
                 if (state != null)
                 {
-                    var (category, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
+                    var (title, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
                     if (actions.Length > 0)
                     {
                         // We may end up creating a lot of viable code actions for the selected
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         // the code action as 'inlinable' so that if the lightbulb is not cluttered
                         // then the nested items can just be lifted into it, giving the user fast
                         // access to them.
-                        return new CodeActionWithNestedActions(category, actions, isInlinable: true);
+                        return new CodeActionWithNestedActions(title, actions, isInlinable: true);
                     }
                 }
 
@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
         }
 
-        private async Task<(string category, ImmutableArray<CodeAction>)> CreateActionsAsync(State state, CancellationToken cancellationToken)
+        private async Task<(string title, ImmutableArray<CodeAction>)> CreateActionsAsync(State state, CancellationToken cancellationToken)
         {
             var actions = ArrayBuilder<CodeAction>.GetInstance();
 
-            var category = await AddActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+            var title = await AddActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
 
-            return (category, actions.ToImmutableAndFree());
+            return (title, actions.ToImmutableAndFree());
         }
 
         private async Task<string> AddActionsAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
