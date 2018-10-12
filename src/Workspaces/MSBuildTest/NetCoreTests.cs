@@ -288,5 +288,33 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 }
             }
         }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp()
+        {
+            CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceToFSharp());
+
+            var solutionFilePath = GetSolutionFileName("Solution.sln");
+
+            DotNetHelper.Restore("Solution.sln", workingDirectory: this.SolutionDirectory.Path);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+                var projects = solution.Projects.ToArray();
+
+                Assert.Equal(2, projects.Length);
+
+                foreach (var project in projects)
+                {
+                    Assert.StartsWith("csharplib", project.Name);
+                    Assert.Empty(project.ProjectReferences);
+                    Assert.Single(project.AllProjectReferences);
+                }
+            }
+        }
     }
 }
