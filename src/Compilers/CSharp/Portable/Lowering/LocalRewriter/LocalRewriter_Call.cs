@@ -661,8 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!@params.IsDefaultOrEmpty)
             {
                 var thisParam = @params[0];
-                var isRefParam = (thisParam.RefKind & RefKind.Ref) != RefKind.None;
-                if (isRefParam)
+                if (thisParam.RefKind == RefKind.Ref)
                 {
                     return false;
                 }
