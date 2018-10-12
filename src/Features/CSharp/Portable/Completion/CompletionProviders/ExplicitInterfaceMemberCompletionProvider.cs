@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static ImmutableArray<MethodKind> s_invalidCodeCompletionMethodKind = ImmutableArray.Create(new MethodKind[] { MethodKind.PropertyGet, MethodKind.PropertySet, MethodKind.EventAdd, MethodKind.EventRemove });
-
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return text[characterPosition] == '.';
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
-                    if (IsInvalidCompletionMethodKind(member))
+                    if (member.IsAccessor())
                     {
                         continue;
                     }
@@ -118,16 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // nop
             }
-        }
-
-        private static bool IsInvalidCompletionMethodKind(ISymbol symbol)
-        {
-            if (symbol is IMethodSymbol)
-            {
-                return s_invalidCodeCompletionMethodKind.Contains(((IMethodSymbol)symbol).MethodKind);
-            }
-
-            return false;
         }
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
