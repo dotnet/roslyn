@@ -101,9 +101,25 @@ phases:
       continueOnError: true
       condition: failed()
 
+- phase: Windows_Debug_Spanish_Unit32
+  queue:
+    name: dnceng-windows-spanish-external-temp-pr
+    timeoutInMinutes: 90
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration Debug -test32 -testDesktop
+      displayName: Spanish Build and Test Unit32
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Debug\Logs'
+        ArtifactName: 'Windows Spanish Unit32 Debug'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
 - phase: Linux_Test
   queue:
-    name: DotNetCore-Linux                     
+    name: dnceng-linux-external-temp
     timeoutInMinutes: 90
     parallel: 2
     matrix:
@@ -119,6 +135,7 @@ phases:
     - script: ./build/scripts/dockerstop.sh
       displayName: Stop Docker
       condition: eq(variables['_name'], 'Mono')
+
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
@@ -134,4 +151,3 @@ phases:
         publishLocation: Container
       continueOnError: true
       condition: failed()
-    
