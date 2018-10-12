@@ -68,6 +68,107 @@ public static class Program
         }
 
         [Fact]
+        public void ExtensionMethods_StructCollectionInitializerInParam()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, in MyStruct other)
+    {
+        s.i += other.i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var other = new MyStruct { i = 2 };
+        var s = new MyStruct { other };
+        System.Console.Write(s.i);
+    }
+}";
+            var verifier = CompileAndVerify(code, expectedOutput: "2");
+            verifier.VerifyIL("Program.Main", @"{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (MyStruct V_0, //other
+                MyStruct V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""MyStruct""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.2
+  IL_000b:  stfld      ""int MyStruct.i""
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""MyStruct""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_0023:  ldloc.1
+  IL_0024:  ldfld      ""int MyStruct.i""
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  ret
+}");
+        }
+
+        [Fact]
+        public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, in MyStruct other)
+    {
+        s.i += other.i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var s = new MyStruct { new MyStruct { i = 2 } };
+        System.Console.Write(s.i);
+    }
+}";
+            var verifier = CompileAndVerify(code, expectedOutput: "2");
+            verifier.VerifyIL("Program.Main", @"{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (MyStruct V_0,
+                MyStruct V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""MyStruct""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  initobj    ""MyStruct""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldc.i4.2
+  IL_0015:  stfld      ""int MyStruct.i""
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""int MyStruct.i""
+  IL_0027:  call       ""void System.Console.Write(int)""
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
         public void ExtensionMethods_LValues_Ref_Allowed()
         {
             var code = @"
