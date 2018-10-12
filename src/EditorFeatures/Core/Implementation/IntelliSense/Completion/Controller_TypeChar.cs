@@ -86,12 +86,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 this.TextView.Caret.PositionChanged += OnCaretPositionChanged;
             }
 
+            var typedChar = args.TypedChar;
+
             // We only want to process typechar if it is a normal typechar and no one else is
             // involved.  i.e. if there was a typechar, but someone processed it and moved the caret
             // somewhere else then we don't want completion.  Also, if a character was typed but
             // something intercepted and placed different text into the editor, then we don't want
             // to proceed. 
-            if (this.TextView.TypeCharWasHandledStrangely(this.SubjectBuffer, args.TypedChar))
+            if (this.TextView.TypeCharWasHandledStrangely(this.SubjectBuffer, typedChar))
             {
                 if (sessionOpt != null)
                 {
@@ -102,17 +104,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     if (isOnSeam)
                     {
                         var model = this.WaitForModel();
-                        if (this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
+                        if (this.CommitIfCommitCharacter(typedChar, model, initialTextSnapshot, nextHandler))
                         {
                             return;
                         }
                     }
 
-                    if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
+                    if (_autoBraceCompletionChars.Contains(typedChar) &&
                         this.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.AutomaticPairCompletion))
                     {
                         var model = this.WaitForModel();
-                        if (this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
+                        if (this.CommitIfCommitCharacter(typedChar, model, initialTextSnapshot, nextHandler))
                         {
                             // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                             // we don't do multiple buffer change check
@@ -137,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var options = GetOptions();
             Contract.ThrowIfNull(options);
 
-            var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, args.TypedChar, options);
-            var isPotentialFilterCharacter = IsPotentialFilterCharacter(args);
-            var trigger = CompletionTrigger.CreateInsertionTrigger(args.TypedChar);
+            var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, typedChar, options);
+            var isPotentialFilterCharacter = IsPotentialFilterCharacter(typedChar);
+            var trigger = CompletionTrigger.CreateInsertionTrigger(typedChar);
 
             if (sessionOpt == null)
             {
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // "Color", "Color.Red", "Color.Blue", etc.  When we process the 'dot', we
                     // actually want to filter some more.  But we can't know that ahead of time until
                     // we have computed the list of completions.
-                    if (this.IsFilterCharacter(args.TypedChar, model))
+                    if (this.IsFilterCharacter(typedChar, model))
                     {
                         // Known to be a filter character for the currently selected item.  So just 
                         // filter the session.
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // buffer.
 
                     // Now, commit if it was a commit character.
-                    this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler);
+                    this.CommitIfCommitCharacter(typedChar, model, initialTextSnapshot, nextHandler);
 
                     // At this point we don't want a session anymore (either because we committed, or 
                     // because we got a character we don't know how to handle).  Unilaterally dismiss
@@ -250,12 +252,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         /// A potential filter character is something that can filter a completion lists and is
         /// *guaranteed* to not be a commit character.
         /// </summary>
-        private static bool IsPotentialFilterCharacter(TypeCharCommandArgs args)
+        internal static bool IsPotentialFilterCharacter(char c)
         {
             // TODO(cyrusn): Actually use the right unicode categories here.
-            return char.IsLetter(args.TypedChar)
-                || char.IsNumber(args.TypedChar)
-                || args.TypedChar == '_';
+            return char.IsLetter(c)
+                || char.IsNumber(c)
+                || c == '_';
         }
 
         private Document GetDocument()
@@ -312,8 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
-            return IsCommitCharacter(
-                completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
+            return IsCommitCharacter(completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
         /// <summary>
@@ -347,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
+            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
             {
                 return false;
             }
@@ -379,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return IsFilterCharacter(model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
-        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
+        internal static bool TextTypedSoFarMatchesItem(CompletionItem item, string textTypedSoFar)
         {
             if (textTypedSoFar.Length > 0)
             {
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return false;
         }
 
-        private static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
+        internal static bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
         {
             // First see if the item has any specific filter rules it wants followed.
             foreach (var rule in item.Rules.FilterCharacterRules)
@@ -417,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
+            if (TextTypedSoFarMatchesItem(item, textTypedSoFar))
             {
                 return true;
             }

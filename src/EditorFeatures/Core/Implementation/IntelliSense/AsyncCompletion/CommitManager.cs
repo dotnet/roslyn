@@ -69,6 +69,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return CommitResultUnhandled;
             }
 
+            var filterText = session.ApplicableToSpan.GetText(subjectBuffer.CurrentSnapshot);
+            if (Controller.IsFilterCharacter(roslynItem, typeChar, filterText + typeChar))
+            { 
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
+            }
+
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
             if (!IsCommitCharacter(typeChar, roslynItem.Rules.CommitCharacterRules))
@@ -88,8 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new AsyncCompletionData.CommitResult(isHandled: false,
-                    AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
+                return new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             return CommitResultUnhandled;

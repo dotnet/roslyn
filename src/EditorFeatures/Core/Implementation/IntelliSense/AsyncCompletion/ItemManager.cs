@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 data.SelectedFilters,
                 initialRoslynTrigger.Kind,
                 filterReason,
+                data.Trigger,
                 initialListOfItemsToBeIncluded,
                 hasSuggestedItemOptions);
         }
@@ -226,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
             CompletionTriggerKind initialRoslynTriggerKind,
             CompletionFilterReason filterReason,
+            AsyncCompletionData.CompletionTrigger completionTrigger,
             List<ExtendedFilterResult> itemsInList,
             bool hasSuggestedItemOptions)
         {
@@ -270,6 +272,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             // If we don't have a best completion item yet, then pick the first item from the list.
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
+
+            // Check that it is a filter symbol. We can be called for a non-filter symbol.
+            if (completionTrigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && 
+                !Controller.IsPotentialFilterCharacter(completionTrigger.Character) && 
+                !string.IsNullOrEmpty(filterText))
+            {
+                if (!Controller.IsFilterCharacter(bestOrFirstCompletionItem, completionTrigger.Character, filterText))
+                {
+                    return null;
+                }
+            }
 
             var updateSelectionHint = Session.IsHardSelection(
                         bestOrFirstCompletionItem.Span, filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
