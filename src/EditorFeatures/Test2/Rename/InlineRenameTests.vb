@@ -1138,7 +1138,7 @@ class C
                 Await editHandler.ApplyAsync(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    Await actions.First().GetOperationsAsync(CancellationToken.None),
+                    Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
                     New ProgressTracker(),
                     CancellationToken.None)
