@@ -249,9 +249,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         break;
                     case SyntaxKind.NonNullDirectiveTrivia:
-                        if (null != exp.Text)
+                        var nn = (NonNullDirectiveTriviaSyntax)dt;
+                        var disableOrRestore = nn.DisableOrRestoreKeyword;
+                        if (null == exp.Text)
                         {
-                            Assert.Equal(exp.Text, ((NonNullDirectiveTriviaSyntax)dt).DisableOrRestoreKeyword.ValueText);
+                            Assert.True(disableOrRestore.IsMissing);
+                        }
+                        else
+                        {
+                            Assert.Equal(exp.Text, disableOrRestore.ValueText);
+                            Assert.True(disableOrRestore.Kind() == SyntaxKind.DisableKeyword || disableOrRestore.Kind() == SyntaxKind.RestoreKeyword);
                         }
                         break;
                     default:
@@ -4001,6 +4008,7 @@ class A
             var text = @"#nonnull restore";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
         }
 
@@ -4011,6 +4019,7 @@ class A
             var text = @"#nonnull disable // comment";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
@@ -4021,7 +4030,7 @@ class A
             var text = @"#nonnull";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NonNullDirectiveQualifierExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
@@ -4032,7 +4041,7 @@ class A
             var text = @"#nonnull disable true";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_EndOfPPLineExpected, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_EndOfPPLineExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
@@ -4043,7 +4052,7 @@ class A
             var text = @"#nonnull disabled";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NonNullDirectiveQualifierExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
@@ -4054,7 +4063,7 @@ class A
             var text = @"#nonnull disabled true";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsError });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NonNullDirectiveQualifierExpected, Status = NodeStatus.IsError });
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 

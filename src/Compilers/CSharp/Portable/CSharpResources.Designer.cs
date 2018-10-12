@@ -7262,6 +7262,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected disable or restore.
+        /// </summary>
+        internal static string ERR_NonNullDirectiveQualifierExpected {
+            get {
+                return ResourceManager.GetString("ERR_NonNullDirectiveQualifierExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please use language version {0} or greater to use the NonNullTypes attribute..
         /// </summary>
         internal static string ERR_NonNullTypesNotAvailable {

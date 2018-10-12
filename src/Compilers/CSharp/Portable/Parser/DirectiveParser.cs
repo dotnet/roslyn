@@ -433,8 +433,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             token = CheckFeatureAvailability(token, MessageID.IDS_FeatureStaticNullChecking);
             var disableOrRestore = (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword) ?
                 EatToken() :
-                EatToken(SyntaxKind.DisableKeyword, ErrorCode.WRN_IllegalPPWarning, reportError: isActive);
-            var end = this.ParseEndOfDirective(ignoreErrors: disableOrRestore.IsMissing || !isActive, afterPragma: true);
+                EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NonNullDirectiveQualifierExpected, reportError: isActive);
+            var end = this.ParseEndOfDirective(ignoreErrors: disableOrRestore.IsMissing || !isActive);
             return SyntaxFactory.NonNullDirectiveTrivia(hash, token, disableOrRestore, end, isActive);
         }
 
