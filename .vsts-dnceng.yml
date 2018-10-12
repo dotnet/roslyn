@@ -1,8 +1,14 @@
+variables:
+  _LinuxQueueName: dnceng-linux-external-temp
+  _WindowsQueueName: dotnet-external-temp
+  _WindowsSpanishQueueName: dnceng-windows-spanish-external-temp-pr
+  _TimeoutInMinutes: 90
+
 phases:
 - phase: Windows_Desktop_Unit_Tests
   queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
+    name: $(_WindowsQueueName)
+    timeoutInMinutes: $(_TimeoutInMinutes)
     parallel: 4
     matrix:
       debug_32:
@@ -40,8 +46,8 @@ phases:
 
 - phase: Windows_CoreClr_Unit_Tests
   queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
+    name: $(_WindowsQueueName)
+    timeoutInMinutes: $(_TimeoutInMinutes)
     parallel: 2
     matrix:
       debug:
@@ -71,8 +77,8 @@ phases:
            
 - phase: Windows_Determinism_Test
   queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
+    name: $(_WindowsQueueName)
+    timeoutInMinutes: $(_TimeoutInMinutes)
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
       displayName: Build - Validate determinism
@@ -87,8 +93,8 @@ phases:
 
 - phase: Windows_Correctness_Test
   queue:
-    name: dotnet-external-temp
-    timeoutInMinutes: 90
+    name: $(_WindowsQueueName)
+    timeoutInMinutes: $(_TimeoutInMinutes)
   steps:
     - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
       displayName: Build - Validate correctness
@@ -101,10 +107,26 @@ phases:
       continueOnError: true
       condition: failed()
 
+- phase: Windows_Debug_Spanish_Unit32
+  queue:
+    name: $(_WindowsSpanishQueueName)
+    timeoutInMinutes: $(_TimeoutInMinutes)
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration Debug -test32 -testDesktop
+      displayName: Spanish Build and Test Unit32
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Debug\Logs'
+        ArtifactName: 'Windows Spanish Unit32 Debug'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
 - phase: Linux_Test
   queue:
-    name: DotNetCore-Linux                     
-    timeoutInMinutes: 90
+    name: $(_LinuxQueueName)
+    timeoutInMinutes: $(_TimeoutInMinutes)
     parallel: 2
     matrix:
       coreclr:
@@ -119,6 +141,7 @@ phases:
     - script: ./build/scripts/dockerstop.sh
       displayName: Stop Docker
       condition: eq(variables['_name'], 'Mono')
+
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
