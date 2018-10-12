@@ -72,14 +72,20 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                     return;
                                 }
 
+                                var localBuilders = builders;
+                                if (localBuilders == null) // e.g. cancelled
+                                {
+                                    return;
+                                }
+
                                 if (activeStatementsResult.ErrorCode != 0)
                                 {
-                                    builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
+                                    localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
 
                                     // the last active statement of the last runtime has been processed:
                                     if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                     {
-                                        completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                        completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
                                     }
 
                                     return;
@@ -91,14 +97,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                 GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
 
                                 int pendingStatements = instructionMap.Count;
-                                builders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
-                                builders[runtimeIndex].Count = pendingStatements;
+                                localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
+                                localBuilders[runtimeIndex].Count = pendingStatements;
 
                                 if (instructionMap.Count == 0)
                                 {
                                     if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                     {
-                                        completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                        completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
                                     }
 
                                     return;
@@ -132,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             span = default;
                                         }
 
-                                        builders[runtimeIndex][index] = new ActiveStatementDebugInfo(
+                                        localBuilders[runtimeIndex][index] = new ActiveStatementDebugInfo(
                                             instructionId,
                                             documentNameOpt,
                                             span,
@@ -145,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             // the last active statement of the last runtime has been processed:
                                             if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                             {
-                                                completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                                completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
                                             }
                                         }
                                     });
