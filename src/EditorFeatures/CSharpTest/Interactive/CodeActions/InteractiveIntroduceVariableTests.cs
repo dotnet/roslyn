@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             => new IntroduceVariableCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+            => GetNestedActions(actions);
 
         protected Task TestAsync(string initial, string expected, int index = 0)
         {

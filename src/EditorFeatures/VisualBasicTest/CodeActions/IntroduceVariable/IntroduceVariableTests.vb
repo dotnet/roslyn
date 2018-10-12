@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         End Function
 
         Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
-            Return FlattenActions(actions)
+            Return GetNestedActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>

@@ -569,6 +569,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
 
+        protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
+            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
+
         protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);
 
