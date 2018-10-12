@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_MissingNonNullTypesContext = 8629,
-        ERR_NonNullTypesNotAvailable = 8630,
+        ERR_NullableOptionNotAvailable = 8630,
         WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
