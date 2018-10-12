@@ -59,6 +59,11 @@
         <target state="translated">Impossible d'utiliser le module de copie pour créer des métadonnées d'assembly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unresolved">
         <source>Unresolved: </source>
         <target state="translated">Non résolu : </target>

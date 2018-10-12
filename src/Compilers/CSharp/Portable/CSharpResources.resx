@@ -5576,4 +5576,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureObjectGenericTypeConstraint" xml:space="preserve">
     <value>object generic type constraint</value>
   </data>
+  <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
+    <value>Unexpected character sequence '...'</value>
+  </data>
+  <data name="IDS_FeatureIndexOperator" xml:space="preserve">
+    <value>index operator</value>
+  </data>
+  <data name="IDS_FeatureRangeOperator" xml:space="preserve">
+    <value>range operator</value>
+  </data>
 </root>

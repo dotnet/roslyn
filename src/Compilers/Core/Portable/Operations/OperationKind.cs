@@ -208,6 +208,10 @@ namespace Microsoft.CodeAnalysis
         CoalesceAssignment = 0x61,
         /// <summary>Indicates an <see cref="ISuppressNullableWarningOperation"/>.</summary>
         SuppressNullableWarning = 0x62,
+        /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
+        Range = 0x62,
+        /// <summary>Indicates an <see cref="IFromEndIndexOperation"/>.</summary>
+        FromEndIndex = 0x63,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

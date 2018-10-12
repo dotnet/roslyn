@@ -167,6 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
         IDS_InjectedDeclaration = MessageBase + 12748,
         IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12749,
+
+        IDS_FeatureIndexOperator = MessageBase + 12750,
+        IDS_FeatureRangeOperator = MessageBase + 12751,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -228,6 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
                 case MessageID.IDS_FeatureStaticNullChecking: // syntax and semantic check
                 case MessageID.IDS_FeatureObjectGenericTypeConstraint:   // semantic check
+                case MessageID.IDS_FeatureIndexOperator: // semantic check
+                case MessageID.IDS_FeatureRangeOperator: // semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
