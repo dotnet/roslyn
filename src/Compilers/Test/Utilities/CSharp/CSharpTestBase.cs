@@ -112,14 +112,12 @@ namespace System.Runtime.CompilerServices
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
-                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Error) });
+            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
         }
 
         protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
         {
-            return (options ?? TestOptions.ReleaseDll).WithSpecificDiagnosticOptions(
-                new[] { new System.Collections.Generic.KeyValuePair<string, ReportDiagnostic>("CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000"), ReportDiagnostic.Suppress) });
+            return (options ?? TestOptions.ReleaseDll).WithNullable(false);
         }
 
         protected static string NonNullTypesOff()

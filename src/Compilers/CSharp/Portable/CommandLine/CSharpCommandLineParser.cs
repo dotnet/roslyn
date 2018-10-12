@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
+            bool? nullable = null;
             bool allowUnsafe = false;
             bool concurrentBuild = true;
             bool deterministic = false; // TODO(5431): Enable deterministic mode by default
@@ -316,6 +317,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             checkOverflow = false;
+                            continue;
+
+                        case "nullable":
+                        case "nullable+":
+                            if (value != null)
+                            {
+                                break;
+                            }
+
+                            nullable = true;
+                            continue;
+
+                        case "nullable-":
+                            if (value != null)
+                                break;
+
+                            nullable = false;
                             continue;
 
                         case "instrument":
@@ -1279,6 +1297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 usings: usings,
                 optimizationLevel: optimize ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 checkOverflow: checkOverflow,
+                nullable: nullable,
                 allowUnsafe: allowUnsafe,
                 deterministic: deterministic,
                 concurrentBuild: concurrentBuild,
@@ -1318,6 +1337,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // add option incompatibility errors if any
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
+
+            if (nullable.HasValue && parseOptions.LanguageVersion < MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+            {
+                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 nameof(nullable), nullable, parseOptions.LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())), Location.None));
+            }
 
             return new CSharpCommandLineArguments
             {

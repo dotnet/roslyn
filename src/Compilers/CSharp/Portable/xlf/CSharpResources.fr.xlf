@@ -32,9 +32,9 @@
         <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NonNullTypesNotAvailable">
-        <source>Please use language version {0} or greater to use the NonNullTypes attribute.</source>
-        <target state="new">Please use language version {0} or greater to use the NonNullTypes attribute.</target>
+      <trans-unit id="ERR_NullableOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</source>
+        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -7443,6 +7443,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
                               `default` (latest major version), or
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
+-nullable[+|-]                Enable/disable Nullable Reference Types feature
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public

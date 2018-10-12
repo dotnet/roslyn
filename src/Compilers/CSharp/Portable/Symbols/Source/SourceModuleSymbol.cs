@@ -522,22 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                string id = "CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000");
-
-                ReportDiagnostic report;
-                if (_assemblySymbol.DeclaringCompilation.Options.SpecificDiagnosticOptions.TryGetValue(id, out report))
-                {
-                    if (report == ReportDiagnostic.Error)
-                    {
-                        return true;
-                    }
-                    else if (report == ReportDiagnostic.Suppress)
-                    {
-                        return false;
-                    }
-                }
-
-                return null;
+                return _assemblySymbol.DeclaringCompilation.Options.Nullable;
             }
         }
 
