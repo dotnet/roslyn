@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     if (actions.Length > 0)
                     {
                         var topLevelAction = new CodeActionWithNestedActions(
-                            category,
-                            actions,
-                            isInlinable: true);
+                            category, actions, isInlinable: true);
 
                         return topLevelAction;
                     }
