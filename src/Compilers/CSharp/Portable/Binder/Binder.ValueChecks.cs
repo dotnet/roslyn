@@ -460,6 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return true;
 
+                case BoundKind.ImplicitReceiver:
+                    return true;
+
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);

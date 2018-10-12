@@ -39,6 +39,35 @@ public static class Program
         }
 
         [Fact]
+        public void ExtensionMethods_StructCollectionInitializer()
+        {
+            var code = @"
+public struct MyStruct : System.Collections.IEnumerable
+{
+    public int i;
+    public System.Collections.IEnumerator GetEnumerator() => throw new System.NotImplementedException();
+}
+
+public static class MyStructExtension
+{
+    public static void Add(ref this MyStruct s, int i)
+    {
+        s.i += i;
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        var s = new MyStruct { 1 };
+        System.Console.Write(s.i);
+    }
+}";
+            CompileAndVerify(code, expectedOutput: "1");
+        }
+
+        [Fact]
         public void ExtensionMethods_LValues_Ref_Allowed()
         {
             var code = @"

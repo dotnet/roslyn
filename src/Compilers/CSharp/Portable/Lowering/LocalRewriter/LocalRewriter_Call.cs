@@ -654,7 +654,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverNamedType = invokedAsExtensionMethod ?
                                         ((MethodSymbol)methodOrIndexer).Parameters[0].Type.TypeSymbol as NamedTypeSymbol :
                                         methodOrIndexer.ContainingType;
-            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+                isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+            }
+
+            var @params = methodOrIndexer.GetParameters();
+            if (!@params.IsDefaultOrEmpty)
+            {
+                var thisParam = @params[0];
+                var isRefParam = (thisParam.RefKind & RefKind.Ref) != RefKind.None;
+                if (isRefParam)
+                {
+                    return false;
+                }
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&

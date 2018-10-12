@@ -156,6 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            if (addMethod.Parameters[0].RefKind == RefKind.Ref)
+            {
+                // If the Add method is an extension which takes a `ref this` as the first parameter, implicitly add a `ref` to the argument
+                var builder = ArrayBuilder<RefKind>.GetInstance(addMethod.Parameters.Length, RefKind.None);
+                builder[0] = RefKind.Ref;
+                argumentRefKindsOpt = builder.ToImmutableAndFree();
+            }
+
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
 
             if (initializer.InvokedAsExtensionMethod)
