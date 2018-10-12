@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
+        /// The nullability of the event
+        /// </summary>
+        Nullability Nullability { get; }
+
+        /// <summary>
         /// Returns true if the event is a WinRT type event.
         /// </summary>
         bool IsWindowsRuntimeEvent { get; }

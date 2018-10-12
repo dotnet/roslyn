@@ -16,14 +16,15 @@ Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IDiscardSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IEventSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IFieldSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.ILocalSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IEventSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IFieldSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.ILocalSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnNullability.get -> Microsoft.CodeAnalysis.Nullability
-Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
+Microsoft.CodeAnalysis.IMethodSymbol.TypeArgumentsNullabilities.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TypeArgumentsNullability.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Nullability>
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
-Microsoft.CodeAnalysis.IParameterSymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
+Microsoft.CodeAnalysis.IParameterSymbol.Nullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.IPropertySymbol.DeclaredNullability.get -> Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.ISymbol.ToDisplayParts(Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>
 Microsoft.CodeAnalysis.ISymbol.ToDisplayString(Microsoft.CodeAnalysis.Nullability nullability, Microsoft.CodeAnalysis.SymbolDisplayFormat format = null) -> string
@@ -156,13 +157,7 @@ static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.Cod
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
-static Microsoft.CodeAnalysis.ModelExtensions.GetReturnTypeWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.IMethodSymbol method, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.TypeInfo
-static Microsoft.CodeAnalysis.ModelExtensions.GetSymbolInfoWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode , System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SymbolInfo
-static Microsoft.CodeAnalysis.ModelExtensions.GetTypeInfoWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.TypeInfo
-static Microsoft.CodeAnalysis.ModelExtensions.GetTypeWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.IEventSymbol eventSymbol, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.TypeInfo
-static Microsoft.CodeAnalysis.ModelExtensions.GetTypeWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.IFieldSymbol field, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.TypeInfo
-static Microsoft.CodeAnalysis.ModelExtensions.GetTypeWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.ILocalSymbol local, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.TypeInfo
-static Microsoft.CodeAnalysis.ModelExtensions.GetTypeWithNullability(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.IParameterSymbol local, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.TypeInfo
+static Microsoft.CodeAnalysis.ModelExtensions.GetNullabilityAwareSemanticModel(this Microsoft.CodeAnalysis.SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SemanticModel
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCaughtException(Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCaptureReference(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation operation) -> void

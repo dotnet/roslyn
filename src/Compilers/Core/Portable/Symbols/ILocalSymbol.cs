@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
+        /// The declared nullability of this local
+        /// </summary>
+        Nullability Nullability { get; }
+
+        /// <summary>
         /// Returns true if this local variable was declared as "const" (i.e. is a constant declaration).
         /// Also returns true for an enum member.
         /// </summary>
