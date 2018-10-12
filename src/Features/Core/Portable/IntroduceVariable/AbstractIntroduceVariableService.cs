@@ -83,13 +83,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private async Task<(string title, ImmutableArray<CodeAction>)> CreateActionsAsync(State state, CancellationToken cancellationToken)
         {
             var actions = ArrayBuilder<CodeAction>.GetInstance();
-
-            var title = await AddActionsAsync(state, actions, cancellationToken).ConfigureAwait(false);
+            var title = await AddActionsAndGetTitleAsync(state, actions, cancellationToken).ConfigureAwait(false);
 
             return (title, actions.ToImmutableAndFree());
         }
 
-        private async Task<string> AddActionsAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
+        private async Task<string> AddActionsAndGetTitleAsync(State state, ArrayBuilder<CodeAction> actions, CancellationToken cancellationToken)
         {
             if (state.InQueryContext)
             {
