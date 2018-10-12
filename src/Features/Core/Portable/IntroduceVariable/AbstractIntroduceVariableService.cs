@@ -66,10 +66,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var (category, actions) = await CreateActionsAsync(state, cancellationToken).ConfigureAwait(false);
                     if (actions.Length > 0)
                     {
-                        var topLevelAction = new CodeActionWithNestedActions(
-                            category, actions, isInlinable: true);
-
-                        return topLevelAction;
+                        // We may end up creating a lot of viable code actions for the selected
+                        // piece of code.  Create a top level code action so that we don't overwhelm
+                        // the light bulb if there are a lot of other options in the list.  Set 
+                        // the code action as 'inlinable' so that if the lightbulb is not cluttered
+                        // then the nested items can just be lifted into it, giving the user fast
+                        // access to them.
+                        return new CodeActionWithNestedActions(category, actions, isInlinable: true);
                     }
                 }
 
