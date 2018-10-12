@@ -864,7 +864,9 @@ class MyClass
         public async Task FixAll2()
         {
             await TestInRegularAndScriptAsync(
-@"  partial struct MyClass
+@"  using System;
+
+    partial struct MyClass
     {
         private static Func<int, bool> {|FixAllInDocument:_test1|} = x => x > 0;
         private static Func<int, bool> _test2 = x => x < 0;
@@ -881,7 +883,9 @@ class MyClass
     }
 
     partial struct MyClass { }",
-@"  partial struct MyClass
+@"  using System;
+
+    partial struct MyClass
     {
         private static readonly Func<int, bool> _test1 = x => x > 0;
         private static readonly Func<int, bool> _test2 = x => x < 0;
