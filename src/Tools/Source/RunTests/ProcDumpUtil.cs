@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace RunTests
 {
@@ -72,7 +73,33 @@ namespace RunTests
         internal static Process AttachProcDump(string procDumpFilePath, int processId, string dumpDirectory)
         {
             Directory.CreateDirectory(dumpDirectory);
-            return Process.Start(procDumpFilePath, GetProcDumpCommandLine(processId, dumpDirectory));
+            var startInfo = new ProcessStartInfo(procDumpFilePath, GetProcDumpCommandLine(processId, dumpDirectory));
+
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardError = true;
+            startInfo.RedirectStandardOutput = true;
+
+            var process = Process.Start(startInfo);
+
+            void CopyStreamReaderToLogFile(StreamReader stream, string extensionSuffix)
+            {
+                new Thread(() =>
+                {
+                    using (var streamWriter = new StreamWriter(Path.Combine(dumpDirectory, $"procdump-pid{processId}" + extensionSuffix)))
+                    {
+                        string line;
+                        while ((line = stream.ReadLine()) != null)
+                        {
+                            streamWriter.WriteLine(line);
+                        }
+                    }
+                }).Start();
+            }
+
+            CopyStreamReaderToLogFile(process.StandardError, ".err.log");
+            CopyStreamReaderToLogFile(process.StandardOutput, ".out.log");
+
+            return process;
         }
     }
 }
