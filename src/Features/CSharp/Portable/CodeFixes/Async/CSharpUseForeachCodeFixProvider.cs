@@ -17,12 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseForEach
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseForEach), Shared]
     internal sealed class CSharpUseForEachCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        private const string AsyncForEachWrongAsync = "CS8415";
-
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(AsyncForEachWrongAsync);
-//ERR_NoConvToIAsyncDispWrongAsync = 8417,
-//   1         ERR_NoConvToIDispWrongAsync = 8418,
+            => ImmutableArray.Create("CS8415");
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

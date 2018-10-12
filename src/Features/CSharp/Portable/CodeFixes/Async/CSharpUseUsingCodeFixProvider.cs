@@ -12,13 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseAsyncForEach
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseUsing
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAsyncForEach), Shared]
-    internal sealed class CSharpUseAsyncForEachCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseUsing), Shared]
+    internal sealed class CSharpUseUsingCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create("CS8414");
+            => ImmutableArray.Create("CS8417");
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseAsyncForEach
             foreach (var diagnostic in diagnostics)
             {
                 var expression = root.FindNode(diagnostic.Location.SourceSpan);
-                var loop = expression.FirstAncestorOrSelf<ForEachStatementSyntax>();
-                editor.ReplaceNode(loop, loop.WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword)));
+                var loop = expression.FirstAncestorOrSelf<UsingStatementSyntax>();
+                editor.ReplaceNode(loop, loop.WithAwaitKeyword(default));
             }
 
             return Task.CompletedTask;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.UseAsyncForEach
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Use_asynchronous_foreach, createChangedDocument, FeaturesResources.Use_asynchronous_foreach)
+                base(FeaturesResources.Use_using, createChangedDocument, FeaturesResources.Use_using)
             {
             }
         }
