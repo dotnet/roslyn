@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _additionalFiles = new BatchingDocumentCollection(this, (s, d) => s.ContainsAdditionalDocument(d), (w, d) => w.OnAdditionalDocumentAdded(d), (w, documentId) => w.OnAdditionalDocumentRemoved(documentId));
         }
 
-        
+
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
         {
             lock (_gate)
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        s => s.WithProjectName(Id, value),
                        w => w.OnProjectNameChanged(Id, value, _filePath));
         }
-        
+
         // internal to match the visibility of the Workspace-level API -- this is something
         // we use but we haven't made officially public yet.
         internal bool HasAllInformation
@@ -944,7 +944,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyChangeToWorkspace(w => {
+                        _project._workspace.ApplyChangeToWorkspace(w =>
+                        {
                             _project._workspace.AddDocumentToDocumentsNotFromFiles(documentInfo.Id);
                             _documentAddAction(w, documentInfo);
                             w.OnDocumentOpened(documentInfo.Id, textContainer);
@@ -1018,9 +1019,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"{nameof(textContainer)} is not a text container added to this project.");
                     }
 
-                    // TODO: clean up the file name if one was added
-
                     _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.RemoveKey(textContainer);
+
+                    // if the TextContainer had a full path provided, remove it from the map.
+                    var entry = _documentPathsToDocumentIds.Where(kv => kv.Value == documentId).FirstOrDefault();
+                    if (entry.Key != null)
+                    {
+                        _documentPathsToDocumentIds.Remove(entry.Key);
+                    }
 
                     // There are two cases:
                     // 
@@ -1035,7 +1041,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                         else
                         {
-                            _project._workspace.ApplyChangeToWorkspace(w => {
+                            _project._workspace.ApplyChangeToWorkspace(w =>
+                            {
                                 w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
                                 _documentRemoveAction(w, documentId);
                                 _project._workspace.RemoveDocumentToDocumentsNotFromFiles(documentId);
