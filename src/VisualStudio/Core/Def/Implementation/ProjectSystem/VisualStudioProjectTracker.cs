@@ -88,10 +88,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private sealed class StubProject : AbstractProject
         {
+            private readonly ProjectId _id;
+
             public StubProject(VisualStudioProjectTracker projectTracker, Project project)
                 : base(projectTracker, null, project.Name + "_Stub", project.FilePath, null, project.Language, Guid.Empty, null, null, null, null)
             {
+                _id = project.Id;
             }
+
+            public override ProjectId Id => _id;
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]

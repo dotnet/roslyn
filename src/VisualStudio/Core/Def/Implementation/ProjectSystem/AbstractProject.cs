@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
 
-        public ProjectId Id => VisualStudioProject.Id;
+        public virtual ProjectId Id => VisualStudioProject.Id;
 
         public string Language { get; }
 
