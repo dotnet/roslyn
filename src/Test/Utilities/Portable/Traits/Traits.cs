@@ -138,6 +138,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
+            public const string CodeActionsUseAsyncForEach = "CodeActions.UseAsyncForEach";
+            public const string CodeActionsUseForEach = "CodeActions.UseForEach";
+            public const string CodeActionsUseAsyncUsing = "CodeActions.UseAsyncUsing";
+            public const string CodeActionsUseUsing = "CodeActions.UseUsing";
             public const string CodeCleanup = nameof(CodeCleanup);
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";

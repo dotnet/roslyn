@@ -112,6 +112,16 @@
         <target state="new">Remove unused private members</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_asynchronous_foreach">
+        <source>Use asynchronous 'foreach'</source>
+        <target state="new">Use asynchronous 'foreach'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_asynchronous_using">
+        <source>Use asynchronous 'using'</source>
+        <target state="new">Use asynchronous 'using'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="new">Use block body for lambda expressions</target>
@@ -122,9 +132,19 @@
         <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_foreach">
+        <source>Use 'foreach'</source>
+        <target state="new">Use 'foreach'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_using">
+        <source>Use 'using'</source>
+        <target state="new">Use 'using'</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

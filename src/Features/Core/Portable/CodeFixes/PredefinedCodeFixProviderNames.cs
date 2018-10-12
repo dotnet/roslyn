@@ -61,5 +61,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
+        public const string UseAsyncForEach = nameof(UseAsyncForEach);
+        public const string UseForEach = nameof(UseForEach);
+        public const string UseAsyncUsing = nameof(UseAsyncUsing);
+        public const string UseUsing = nameof(UseUsing);
     }
 }

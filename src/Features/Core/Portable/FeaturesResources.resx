@@ -989,6 +989,18 @@ This version used in: {2}</value>
   <data name="Add_braces" xml:space="preserve">
     <value>Add braces</value>
   </data>
+  <data name="Use_asynchronous_foreach" xml:space="preserve">
+    <value>Use asynchronous 'foreach'</value>
+  </data>
+  <data name="Use_foreach" xml:space="preserve">
+    <value>Use 'foreach'</value>
+  </data>
+  <data name="Use_asynchronous_using" xml:space="preserve">
+    <value>Use asynchronous 'using'</value>
+  </data>
+  <data name="Use_using" xml:space="preserve">
+    <value>Use 'using'</value>
+  </data>
   <data name="Replace_0_with_method" xml:space="preserve">
     <value>Replace '{0}' with method</value>
   </data>

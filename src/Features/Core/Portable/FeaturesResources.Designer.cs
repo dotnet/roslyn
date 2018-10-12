@@ -3691,6 +3691,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use asynchronous &apos;foreach&apos;.
+        /// </summary>
+        internal static string Use_asynchronous_foreach {
+            get {
+                return ResourceManager.GetString("Use_asynchronous_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use asynchronous &apos;using&apos;.
+        /// </summary>
+        internal static string Use_asynchronous_using {
+            get {
+                return ResourceManager.GetString("Use_asynchronous_using", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use auto property.
         /// </summary>
         internal static string Use_auto_property {
@@ -3844,6 +3862,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;foreach&apos;.
+        /// </summary>
+        internal static string Use_foreach {
+            get {
+                return ResourceManager.GetString("Use_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use framework type.
         /// </summary>
         internal static string Use_framework_type {
@@ -3922,6 +3949,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_throw_expression {
             get {
                 return ResourceManager.GetString("Use_throw_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;using&apos;.
+        /// </summary>
+        internal static string Use_using {
+            get {
+                return ResourceManager.GetString("Use_using", resourceCulture);
             }
         }
         
