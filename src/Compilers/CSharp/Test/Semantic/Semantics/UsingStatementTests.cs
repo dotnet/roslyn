@@ -1079,7 +1079,29 @@ class C2
        }
     }
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            //PROTOTYPE: theoretically this should be doable:
+            //Consider:
+            // S1 s = new S1();
+            // try{}
+            // finally
+            // {
+            //    s.Dispose();
+            // }
+            // would be valid code which is what we'd ultimately lower to here.
+            // however, during binding we're effectively binding
+            //  (S1 s = new S1()).Dipose()
+            // which (correctly) results in the CS1510 below for this case.
+            // we either need to special case the ref extension case, or figure
+            // out a more general way to bind against what we'll eventually lower to
+             
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15),
+                // (15,22): error CS1510: A ref or out value must be an assignable variable
+                //        using (S1 s = new S1())
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new S1()").WithLocation(15, 22)
+                );
         }
 
         [Fact]
@@ -1125,6 +1147,27 @@ class C2
         }
         C1 c1b = new C1();
         using (c1b) { }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternWithRefStructTest()
+        {
+            var source = @"
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+        }
+    }
+
+    public ref struct S1 
+    {
+        public void Dispose() { System.Console.WriteLine(""S1.Dispose()""); }
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();

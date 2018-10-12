@@ -673,9 +673,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
             Debug.Assert(!declarations.IsEmpty);
 
-            BoundTypeExpression declTypeExpr = declarations[0].DeclaredType;
+            BoundLocalDeclaration declaration = declarations[0];
+            TypeSymbol declType = declaration.DeclaredType.Type;
 
-            if (declTypeExpr.Type.IsDynamic())
+            if (declType.IsDynamic())
             {
                 iDisposableConversion = Conversion.ImplicitDynamic;
             }
@@ -683,17 +684,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
-                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declTypeExpr.Type, iDisposable, ref useSiteDiagnostics);
+                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
                 if (!iDisposableConversion.IsImplicit)
                 {
-                   disposeMethod = TryFindDisposePatternMethod(declTypeExpr, declarationSyntax, diagnostics);
+                   disposeMethod = TryFindDisposePatternMethod(declaration.InitializerOpt, declarationSyntax, diagnostics);
                    if (disposeMethod is null)
                    {
-                       if (!declTypeExpr.Type.IsErrorType())
+                       if (!declType.IsErrorType())
                        {
-                           Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declTypeExpr.Type);
+                           Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
                        }
                        hasErrors = true;
                    }
@@ -703,19 +704,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Checks for a Dispose method on typeExpr and returns if found.
+        /// Checks for a Dispose method on <paramref name="expr"/> and returns its <see cref="MethodSymbol"/> if found.
         /// </summary>
-        /// <param name="typeExpr">Expression over which to iterate</param>
-        /// <param name="syntaxNode">The syntax node for this expression or declaration.</param>
-        /// <param name="diagnostics">Populated with warnings if there are near misses</param>
-        /// <returns>The method symbol of the DisposeMethod if one is found, otherwise null.</returns>
-        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression typeExpr, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        /// <param name="expr">Expression on which to perform lookup</param>
+        /// <param name="syntaxNode">The syntax node to perform lookup on</param>
+        /// <param name="diagnostics">Populated with invocation errors, and warnings of near misses</param>
+        /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
+        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-   
-            var synthLocal = new SynthesizedLocal(null, typeExpr.Type, SynthesizedLocalKind.LoweringTemp);
-            var receiver = new BoundLocal(syntaxNode, synthLocal, typeExpr.ConstantValue, typeExpr.Type);
+            if(expr?.Type is null)
+            {
+                return null;
+            }
 
-            var result = FindPatternMethodRelaxed(receiver,
+            var result = FindPatternMethodRelaxed(expr,
                                                   WellKnownMemberNames.DisposeMethodName,
                                                   syntaxNode,
                                                   diagnostics,
@@ -724,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             
             if (disposeMethod?.ReturnsVoid == false || result == PatternLookupResult.NotAMethod)
             {
-                ReportPatternWarning(diagnostics, typeExpr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
+                ReportPatternWarning(diagnostics, expr.Type, disposeMethod, syntaxNode, MessageID.IDS_Disposable);
                 disposeMethod = null;
             }
 
@@ -3245,6 +3247,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                        invoked: true,
                        indexed: false,
                        bindingDiagnostics);
+
+                BoundMethodGroup bmg = new BoundMethodGroup(syntaxNode, default, receiver, "Dispose", ImmutableArray<MethodSymbol>.Empty, LookupResult.GetInstance(), BoundMethodGroupFlags.SearchExtensionMethods, false);
 
                 if (boundAccess.Kind != BoundKind.MethodGroup)
                 {
