@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
@@ -184,6 +184,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                return _underlyingEvent.NonNullTypes;
+            }
         }
     }
 }

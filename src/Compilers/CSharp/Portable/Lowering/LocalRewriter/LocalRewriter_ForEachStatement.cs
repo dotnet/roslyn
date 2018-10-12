@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType;
-            TypeSymbol elementType = enumeratorInfo.ElementType;
+            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType.TypeSymbol;
+            TypeSymbol elementType = enumeratorInfo.ElementType.TypeSymbol;
 
             // E e
             LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
-                    type: arrayType.ElementType),
+                    type: arrayType.ElementType.TypeSymbol),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
-                    type: arrayType.ElementType),
+                    type: arrayType.ElementType.TypeSymbol),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);

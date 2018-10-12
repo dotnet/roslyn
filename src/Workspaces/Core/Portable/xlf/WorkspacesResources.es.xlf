@@ -7,9 +7,64 @@
         <target state="translated">Error al leer el archivo de configuración especificado: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_files">
+        <source>C# files</source>
+        <target state="new">C# files</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Core_EditorConfig_Options">
+        <source>Core EditorConfig Options</source>
+        <target state="new">Core EditorConfig Options</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_level_preferences">
+        <source>Expression-level preferences</source>
+        <target state="new">Expression-level preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences">
+        <source>Field preferences</source>
+        <target state="new">Field preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="new">Indentation and spacing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_keywords_vs_BCL_types_preferences">
+        <source>Language keywords vs BCL types preferences</source>
+        <target state="new">Language keywords vs BCL types preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier_preferences">
+        <source>Modifier preferences</source>
+        <target state="new">Modifier preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="new">New line preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_usings">
+        <source>Organize usings</source>
+        <target state="new">Organize usings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences">
+        <source>Parentheses preferences</source>
+        <target state="new">Parentheses preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Solo refactorización</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
+        <source>Remove the line below if you want to inherit .editorconfig settings from higher directories</source>
+        <target state="new">Remove the line below if you want to inherit .editorconfig settings from higher directories</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -85,6 +140,31 @@
       <trans-unit id="Adding_projects_is_not_supported">
         <source>Adding projects is not supported.</source>
         <target state="translated">No se admite la adición de proyectos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="new">Visual Basic files</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_NameOnly">
+        <source>NameOnly</source>
+        <target state="new">NameOnly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="new">Read</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="new">Reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="new">Write</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -951,6 +1031,16 @@
         <source>Unterminated (?#...) comment</source>
         <target state="new">Unterminated (?#...) comment</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
+      </trans-unit>
+      <trans-unit id="dot_NET_Coding_Conventions">
+        <source>.NET Coding Conventions</source>
+        <target state="new">.NET Coding Conventions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_dot_and_Me_dot_preferences">
+        <source>this. and Me. preferences</source>
+        <target state="new">this. and Me. preferences</target>
+        <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>

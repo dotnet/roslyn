@@ -10,8 +10,11 @@ dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 dockerfile="$dir"/docker/
 
 [ -z "$CONTAINER_TAG" ] && CONTAINER_TAG="roslyn-build"
-[ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container"
+[ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly"
 [ -z "$DOCKER_HOST_SHARE_dir" ] && DOCKER_HOST_SHARE_DIR="$dir"/../..
+
+# Ensure the container isn't already running. Can happened for cancelled jobs in CI
+docker kill $CONTAINER_NAME || true
 
 # Make container names CI-specific if we're running in CI
 #  Jenkins

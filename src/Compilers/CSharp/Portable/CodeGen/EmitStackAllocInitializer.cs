@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(type is PointerTypeSymbol || type is NamedTypeSymbol);
 
-            var elementType = type.TypeKind == TypeKind.Pointer
+            var elementType = (type.TypeKind == TypeKind.Pointer
                 ? ((PointerTypeSymbol)type).PointedAtType
-                : ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
+                : ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0]).TypeSymbol;
 
             var initExprs = inits.Initializers;
 
@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (data.All(datum => datum == data[0]))
                 {
                     _builder.EmitStackAllocBlockInitializer(data, inits.Syntax, emitInitBlock: true, _diagnostics);
+
+                    if (initializationStyle == ArrayInitializerStyle.Mixed)
+                    {
+                        EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: false);
+                    }
                 }
                 else if (elementType.SpecialType.SizeInBytes() == 1)
                 {

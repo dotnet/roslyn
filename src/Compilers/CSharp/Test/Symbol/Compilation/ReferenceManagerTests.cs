@@ -1019,7 +1019,7 @@ public interface I {}";
 
             var comp = CSharpCompilation.Create(
                 "DupSignedRefs",
-                new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular) },
                 new[] { MetadataReference.CreateFromFile(p1), MetadataReference.CreateFromFile(p2) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
@@ -1660,7 +1660,7 @@ namespace System.Printing
                 GetMember<NamedTypeSymbol>("PrintDialog").
                 GetMember<MethodSymbol>("Test");
 
-            AssemblyIdentity actualIdentity = method.ReturnType.ContainingAssembly.Identity;
+            AssemblyIdentity actualIdentity = method.ReturnType.TypeSymbol.ContainingAssembly.Identity;
 
             // Even though the compilation has the correct version number, the referenced binary is preferred.
             Assert.Equal(oldMetadata.GetAssembly().Identity, actualIdentity);

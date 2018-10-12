@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,8 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
-                IFindAllReferencesWindow findReferencesWindow)
-                : base(presenter, findReferencesWindow)
+                IFindAllReferencesWindow findReferencesWindow,
+                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
+                : base(presenter, findReferencesWindow, customColumns)
             {
             }
 
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await CreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
                     if (definitionEntry != null)
                     {
                         declarations.Add(definitionEntry);
@@ -110,7 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     reference.Definition,
                     bucket => CreateDocumentSpanEntryAsync(
                         bucket, reference.SourceSpan, 
-                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference),
+                        reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
+                        reference.ReferenceInfo),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }

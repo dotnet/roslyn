@@ -65,7 +65,7 @@
          identifier to the end of the output path
          https://github.com/dotnet/roslyn/issues/23547
     -->
-    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != ''">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
+    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != '' AND '$(MSBuildProjectName)' != 'IlAsmDeploy'">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
     <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' == ''">$(OutputPath)$(TargetFramework)\$(PublishDirName)\</PublishDir>
 
     <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
