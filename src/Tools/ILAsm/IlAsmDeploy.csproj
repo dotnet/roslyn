@@ -40,6 +40,7 @@
     <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
   </ItemGroup>
 
+  <!-- Workaround for https://github.com/dotnet/sdk/issues/2573 -->
   <PropertyGroup>
     <_IlasmIncrementalBuildMarker>$(PublishDir).v$(MicrosoftNETCoreILAsmVersion)</_IlasmIncrementalBuildMarker>
   </PropertyGroup>
