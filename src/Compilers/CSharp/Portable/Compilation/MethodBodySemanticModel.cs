@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
+
+            _ = GetBoundRoot();
         }
 
         /// <summary>
