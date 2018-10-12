@@ -15,7 +15,7 @@
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="new">Add missing Imports</target>
-        <note />
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>

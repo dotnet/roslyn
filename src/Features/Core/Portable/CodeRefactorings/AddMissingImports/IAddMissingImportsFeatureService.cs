@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     internal interface IAddMissingImportsFeatureService : ILanguageService
     {
+        Task<bool> HasMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+
         Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
     }
 }

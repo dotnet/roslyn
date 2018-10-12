@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     {
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
+        public async Task<bool> HasMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            // Get the diagnostics that indicate a missing import.
+            var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            return !diagnostics.IsEmpty;
+        }
+
         public async Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Get the diagnostics that indicate a missing import.

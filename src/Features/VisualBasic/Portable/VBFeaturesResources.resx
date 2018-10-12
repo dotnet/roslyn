@@ -1261,5 +1261,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
+    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
   </data>
 </root>

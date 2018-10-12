@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
@@ -30,17 +31,27 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return;
             }
 
-            // Add missing imports for the pasted text span.
+            // Check pasted text span for missing imports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-            var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, context.CancellationToken).ConfigureAwait(false);
+            var hasMissingImports = await addMissingImportsService.HasMissingImportsAsync(document, textSpan, context.CancellationToken).ConfigureAwait(false);
 
-            // If the project is unchanged, then do not offer the refactoring.
-            if (document.Project == newProject)
+            if (!hasMissingImports)
             {
                 return;
             }
 
-            context.RegisterRefactoring(new AddMissingImportsCodeAction(CodeActionTitle, _ => Task.FromResult(newProject.Solution)));
+            var addImportsCodeAction = new AddMissingImportsCodeAction(
+                CodeActionTitle,
+                cancellationToken => AddMissingImports(document, textSpan, cancellationToken));
+            context.RegisterRefactoring(addImportsCodeAction);
+    }
+
+        private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            // Add missing imports for the pasted text span.
+            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            return newProject.Solution;
         }
 
         private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
