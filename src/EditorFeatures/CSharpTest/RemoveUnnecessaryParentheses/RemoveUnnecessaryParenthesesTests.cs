@@ -45,6 +45,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")]
+        public async Task TestVariableInitializer_TestMissingParenthesis()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = $$(1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestArithmeticRequiredForClarity1()
         {
             await TestMissingAsync(

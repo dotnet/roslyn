@@ -1341,6 +1341,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Paste Tracking.
+        /// </summary>
+        internal static string Paste_Tracking {
+            get {
+                return ResourceManager.GetString("Paste_Tracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Peek.
         /// </summary>
         internal static string Peek {
