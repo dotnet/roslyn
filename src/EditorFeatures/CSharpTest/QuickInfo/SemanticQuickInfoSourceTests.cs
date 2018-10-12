@@ -18,7 +18,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
-    public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
+    public partial class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {

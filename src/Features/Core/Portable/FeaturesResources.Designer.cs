@@ -881,6 +881,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Constant value:.
+        /// </summary>
+        internal static string Constant_value_colon {
+            get {
+                return ResourceManager.GetString("Constant_value_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Constants.
         /// </summary>
         internal static string Constants {

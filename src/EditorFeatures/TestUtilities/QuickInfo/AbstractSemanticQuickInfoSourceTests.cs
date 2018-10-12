@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
         }
 
+        protected Action<QuickInfoItem> ConstantValue(string expectedText)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ConstantValue);
+        }
+
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
             var service = document.GetLanguageService<ISyntaxFactsService>();

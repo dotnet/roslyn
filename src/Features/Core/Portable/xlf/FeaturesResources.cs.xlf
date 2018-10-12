@@ -37,6 +37,11 @@
         <target state="new">Code Quality</target>
         <note />
       </trans-unit>
+      <trans-unit id="Constant_value_colon">
+        <source>Constant value:</source>
+        <target state="new">Constant value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="new">Convert to LINQ</target>

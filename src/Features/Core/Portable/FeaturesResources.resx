@@ -1463,4 +1463,7 @@ This version used in: {2}</value>
   <data name="Introduce_query_variable" xml:space="preserve">
     <value>Introduce query variable</value>
   </data>
+  <data name="Constant_value_colon" xml:space="preserve">
+    <value>Constant value:</value>
+  </data>
 </root>

@@ -575,6 +575,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(node Is Nothing, False, node.IsKind(SyntaxKind.NumericLiteralExpression))
         End Function
 
+        Public Function IsCharacterLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsCharacterLiteralExpression
+            Return node.IsKind(SyntaxKind.CharacterLiteralExpression)
+        End Function
+
         Public Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFactsService.IsBindableToken
             Return Me.IsWord(token) OrElse
                 Me.IsLiteral(token) OrElse
@@ -1643,6 +1647,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
             closeParen = tupleExpr.CloseParenToken
         End Sub
+
+        Public Function IsPrefixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPrefixUnaryExpression
+            Return TypeOf node Is UnaryExpressionSyntax
+        End Function
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
             Return DirectCast(node, UnaryExpressionSyntax).Operand

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -203,6 +204,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
+            var constantValueContent = GetConstantValueContent(workspace, token, syntaxFactsService, semanticModel, cancellationToken);
+            if (!constantValueContent.IsDefaultOrEmpty)
+            {
+                AddSection(QuickInfoSectionKinds.ConstantValue, constantValueContent);
+            }
+
             if (TryGetGroupText(SymbolDescriptionGroups.TypeParameterMap, out var typeParameterMapText))
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
@@ -294,6 +301,89 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return default;
+        }
+
+        private static ImmutableArray<TaggedText> GetConstantValueContent(
+            Workspace workspace,
+            SyntaxToken token,
+            ISyntaxFactsService syntaxFacts,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            if (!syntaxFacts.IsBinaryExpression(token.Parent))
+            {
+                return default;
+            }
+
+            syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var leftExpression, out var operatorToken, out var rightExpression);
+
+            if (token != operatorToken)
+            {
+                return default;
+            }
+
+            var constant = semanticModel.GetConstantValue(token.Parent, cancellationToken);
+            if (!constant.HasValue)
+            {
+                return default;
+            }
+
+            var leftConstant = semanticModel.GetConstantValue(leftExpression, cancellationToken);
+            if (!leftConstant.HasValue)
+            {
+                return default;
+            }
+
+            var rightConstant = semanticModel.GetConstantValue(rightExpression, cancellationToken);
+            if (!rightConstant.HasValue)
+            {
+                return default;
+            }
+
+            var generator = SyntaxGenerator.GetGenerator(workspace, semanticModel.Language);
+
+            var textBuilder = ImmutableArray.CreateBuilder<TaggedText>();
+            textBuilder.AddLineBreak();
+            textBuilder.AddText(FeaturesResources.Constant_value_colon);
+            textBuilder.AddSpace();
+            AddConstantText(leftConstant.Value);
+            textBuilder.AddSpace();
+            textBuilder.AddOperator(operatorToken.Text);
+            textBuilder.AddSpace();
+            AddConstantText(rightConstant.Value);
+            textBuilder.AddSpace();
+            textBuilder.AddOperator("=");
+            textBuilder.AddSpace();
+            AddConstantText(constant.Value);
+            return textBuilder.ToImmutable();
+
+            void AddConstantText(object value)
+            {
+                textBuilder.AddRange(TrimTaggedTextRun(LiteralDisplayBuilder.Build(syntaxFacts, generator, value), 42));
+            }
+        }
+
+        private static ImmutableArray<TaggedText> TrimTaggedTextRun(ImmutableArray<TaggedText> taggedTextRun, int maxLength)
+        {
+            const string UnicodeEllipsis = "\u2026";
+
+            for (int i = 0, length = 0; i < taggedTextRun.Length; ++i)
+            {
+                var tag = taggedTextRun[i].Tag;
+                var text = taggedTextRun[i].Text;
+
+                if (length + text.Length > maxLength)
+                {
+                    taggedTextRun = taggedTextRun.RemoveRange(i, taggedTextRun.Length - i);
+                    taggedTextRun = taggedTextRun.Add(new TaggedText(tag, text.Substring(0, maxLength - length)));
+                    taggedTextRun = taggedTextRun.Add(new TaggedText(TextTags.Text, UnicodeEllipsis));
+                    break;
+                }
+
+                length = length + text.Length;
+            }
+
+            return taggedTextRun;
         }
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);

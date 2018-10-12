@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
+        bool IsCharacterLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsTupleType(SyntaxNode node);
 
+        bool IsPrefixUnaryExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
 
