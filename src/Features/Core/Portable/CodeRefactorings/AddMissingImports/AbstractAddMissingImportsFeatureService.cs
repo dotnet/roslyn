@@ -24,7 +24,14 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         {
             // Get the diagnostics that indicate a missing import.
             var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return !diagnostics.IsEmpty;
+            if (diagnostics.IsEmpty)
+            {
+                return false;
+            }
+
+            // Find fixes for the diagnostic where there is only a single fix.
+            var usableFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            return !usableFixes.IsEmpty;
         }
 
         public async Task<Project> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
