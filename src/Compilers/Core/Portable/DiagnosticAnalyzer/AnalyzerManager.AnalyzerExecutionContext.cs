@@ -139,7 +139,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             lock (_gate)
                             {
                                 _lazyPendingMemberSymbolsMapOpt = _lazyPendingMemberSymbolsMapOpt ?? new Dictionary<ISymbol, HashSet<ISymbol>>();
-                                _lazyPendingMemberSymbolsMapOpt.Add(symbol, dependentSymbols);
+
+                                // Guard against entry added from another thread.
+                                VerifyNewEntryForPendingMemberSymbolsMap(symbol, dependentSymbols);
+                                _lazyPendingMemberSymbolsMapOpt[symbol] = dependentSymbols;
                             }
                         }
 
@@ -179,6 +182,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 processMembers(typeMember.GetMembers());
                             }
                         }
+                    }
+                }
+            }
+
+            [Conditional("DEBUG")]
+            private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol> dependentSymbols)
+            {
+                if (_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols))
+                {
+                    if (existingDependentSymbols == null)
+                    {
+                        Debug.Assert(dependentSymbols == null);
+                    }
+                    else
+                    {
+                        Debug.Assert(dependentSymbols != null);
+                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols));
                     }
                 }
             }

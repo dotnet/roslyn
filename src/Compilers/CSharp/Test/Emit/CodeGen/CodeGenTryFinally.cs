@@ -3685,5 +3685,75 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        [WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")]
+        public void Issue29481()
+        {
+            var source = @"
+using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        try
+        {
+            bool b = false;
+            if (b)
+            {
+                try
+                {
+                    return;
+                }
+                finally
+                {
+                    Console.WriteLine(""Prints"");
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+        finally
+        {
+            GC.KeepAlive(null);
+        }
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe).VerifyIL("Program.Main",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldc.i4.0
+    IL_0001:  brfalse.s  IL_0010
+    .try
+    {
+      IL_0003:  leave.s    IL_0019
+    }
+    finally
+    {
+      IL_0005:  ldstr      ""Prints""
+      IL_000a:  call       ""void System.Console.WriteLine(string)""
+      IL_000f:  endfinally
+    }
+    IL_0010:  leave.s    IL_0019
+  }
+  finally
+  {
+    IL_0012:  ldnull
+    IL_0013:  call       ""void System.GC.KeepAlive(object)""
+    IL_0018:  endfinally
+  }
+  IL_0019:  ret
+}
+");
+        }
     }
 }

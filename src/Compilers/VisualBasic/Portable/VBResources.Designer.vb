@@ -5171,7 +5171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be nullable or a reference type..
+        '''  Looks up a localized string similar to First operand in a binary &apos;If&apos; expression must be a nullable value type, a reference type, or an unconstrained generic type..
         '''</summary>
         Friend ReadOnly Property ERR_IllegalCondTypeInIIF() As String
             Get
@@ -12226,6 +12226,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to unconstrained type parameters in binary conditional expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_UnconstrainedTypeParameterInConditional() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_UnconstrainedTypeParameterInConditional", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to warning directives.
         '''</summary>
         Friend ReadOnly Property FEATURE_WarningDirectives() As String
@@ -12251,7 +12260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("FieldInitializerSyntaxNotWithinSyntaxTree", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         '''</summary>

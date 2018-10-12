@@ -621,6 +621,12 @@
   <data name="InvalidOperationBlockForAnalysisContext" xml:space="preserve">
     <value>Given operation block does not belong to the current analysis context.</value>
   </data>
+  <data name="IsSymbolAccessibleBadWithin" xml:space="preserve">
+    <value>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</value>
+  </data>
+  <data name="IsSymbolAccessibleWrongAssembly" xml:space="preserve">
+    <value>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</value>
+  </data>
   <data name="OperationMustNotBeControlFlowGraphPart" xml:space="preserve">
     <value>The provided operation must not be part of a Control Flow Graph.</value>
   </data>

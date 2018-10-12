@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -29,8 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Started,
             Finished
         }
-
-        private static int s_instanceId = 0;
 
         private readonly JsonRpc _rpc;
         private readonly ConnectionManager _connectionManager;
@@ -75,9 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             try
             {
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
-                var currentInstanceId = Interlocked.Add(ref s_instanceId, 1);
-
-                var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
+                var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
                 var hostGroup = new HostGroup(current);
                 var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
@@ -133,6 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
+        public override string ClientId => _connectionManager.HostGroup.Id;
+
         public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
@@ -156,6 +153,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
             _connectionManager.Shutdown();
+        }
+
+        public HostGroup HostGroup
+        {
+            get
+            {
+                Debug.Assert(_connectionManager.HostGroup.Id == ClientId);
+                return _connectionManager.HostGroup;
+            }
         }
 
         private void RegisterGlobalOperationNotifications()

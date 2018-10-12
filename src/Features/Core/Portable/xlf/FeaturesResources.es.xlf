@@ -87,6 +87,11 @@
         <target state="new">Private member '{0}' is unused.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
+        <target state="new">Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="new">Invert conditional</target>
@@ -130,6 +135,11 @@
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="new">Use expression body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

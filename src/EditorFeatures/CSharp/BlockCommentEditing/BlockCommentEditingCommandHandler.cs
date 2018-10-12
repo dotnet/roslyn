@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             }
         }
 
-        private static bool IsCaretInsideBlockCommentSyntax(SnapshotPoint caretPosition)
+        public static bool IsCaretInsideBlockCommentSyntax(SnapshotPoint caretPosition)
         {
             var snapshot = caretPosition.Snapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();

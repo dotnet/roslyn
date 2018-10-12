@@ -257,6 +257,11 @@
         <target state="translated">Po zadání znaku zobrazit _seznam dokončení</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="new">VB Coding Conventions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Kontrola hodnot nothing:</target>

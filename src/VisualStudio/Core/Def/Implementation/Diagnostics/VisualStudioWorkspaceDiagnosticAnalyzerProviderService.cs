@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 return packages;
             }
-            catch (InvalidOperationException)
+            catch (TargetInvocationException ex) when (ex.InnerException is InvalidOperationException)
             {
                 // this can be called from any thread, and extension manager could be disposed in the middle of us using it since
                 // now all these are free-threaded and there is no central coordinator, or API or state is immutable that prevent states from

@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal HostAnalyzerManager HostAnalyzerManager { get; }
         internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
 
+        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        {
+            var stateSet = _stateManager.GetOrCreateStateSet(project, diagnosticAnalyzer);
+            return stateSet.IsCompilationEndAnalyzer(project, compilation);
+        }
+
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
