@@ -1,14 +1,8 @@
-variables:
-  _LinuxQueueName: dnceng-linux-external-temp
-  _WindowsQueueName: dotnet-external-temp
-  _WindowsSpanishQueueName: dnceng-windows-spanish-external-temp-pr
-  _TimeoutInMinutes: 90
-
 phases:
 - phase: Windows_Desktop_Unit_Tests
   queue:
-    name: $(_WindowsQueueName)
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
     parallel: 4
     matrix:
       debug_32:
@@ -46,8 +40,8 @@ phases:
 
 - phase: Windows_CoreClr_Unit_Tests
   queue:
-    name: $(_WindowsQueueName)
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
     parallel: 2
     matrix:
       debug:
@@ -77,8 +71,8 @@ phases:
            
 - phase: Windows_Determinism_Test
   queue:
-    name: $(_WindowsQueueName)
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
       displayName: Build - Validate determinism
@@ -93,8 +87,8 @@ phases:
 
 - phase: Windows_Correctness_Test
   queue:
-    name: $(_WindowsQueueName)
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
   steps:
     - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
       displayName: Build - Validate correctness
@@ -109,8 +103,8 @@ phases:
 
 - phase: Windows_Debug_Spanish_Unit32
   queue:
-    name: $(_WindowsSpanishQueueName)
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    name: dnceng-windows-spanish-external-temp-pr
+    timeoutInMinutes: 90
   steps:
     - script: build/scripts/cibuild.cmd -configuration Debug -test32 -testDesktop
       displayName: Spanish Build and Test Unit32
@@ -125,8 +119,8 @@ phases:
 
 - phase: Linux_Test
   queue:
-    name: $(_LinuxQueueName)
-    timeoutInMinutes: $(_TimeoutInMinutes)
+    name: dnceng-linux-external-temp
+    timeoutInMinutes: 90
     parallel: 2
     matrix:
       coreclr:
@@ -157,4 +151,3 @@ phases:
         publishLocation: Container
       continueOnError: true
       condition: failed()
-    
