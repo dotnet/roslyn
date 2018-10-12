@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
+        public abstract string AddBetaIfNeeded(string version);
 
         public override FixAllProvider GetFixAllProvider()
         {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             var result = new List<CodeAction>();
             var language = project.Language;
 
-            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
+            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, AddBetaIfNeeded(newVersion));
             var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
                 _ => Task.FromResult(UpgradeProject(project, newVersion)));
 
