@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsVolatile => _symbol.IsVolatile;
 
+            public bool IsFixed => _symbol.IsFixed;
+
             public ITypeSymbol Type => _symbol.Type;
         }
     }
