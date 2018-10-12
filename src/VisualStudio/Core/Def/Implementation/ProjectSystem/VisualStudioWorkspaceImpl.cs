@@ -69,12 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private ImmutableHashSet<DocumentId> _documentsNotFromFiles = ImmutableHashSet<DocumentId>.Empty;
 
-        /// <summary>
-        /// The <see cref="DeferredInitializationState"/> that consists of the <see cref="VisualStudioProjectTracker" />
-        /// and other UI-initialized types. It will be created as long as a single project has been created.
-        /// </summary>
-        [Obsolete]
-        internal DeferredInitializationState DeferredState { get; private set; }
+        internal VisualStudioProjectTracker _projectTracker;
 
         private OpenFileTracker _openFileTrackerOpt;
         internal FileChangeWatcher FileChangeWatcher { get; }
@@ -160,27 +155,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        /// <summary>
-        /// Ensures the workspace is fully hooked up to the host by subscribing to all sorts of VS
-        /// UI thread affinitized events.
-        /// </summary>
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker GetProjectTrackerAndInitializeIfNecessary()
         {
-            if (DeferredState == null)
+            if (_projectTracker == null)
             {
-                ThreadHelper.ThrowIfNotOnUIThread();
-                DeferredState = new DeferredInitializationState(this, _projectFactory.Value, _threadingContext);
+                _projectTracker = new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
             }
 
-            return DeferredState.ProjectTracker;
+            return _projectTracker;
         }
 
-        /// <summary>
-        /// A compatibility shim to ensure that F# and TypeScript continue to work after the deferred work goes in. This will be
-        /// removed once they move to calling <see cref="GetProjectTrackerAndInitializeIfNecessary"/>.
-        /// </summary>
-        [Obsolete]
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
         internal VisualStudioProjectTracker ProjectTracker
         {
             get
