@@ -32,6 +32,11 @@
         <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonNullDirectiveQualifierExpected">
+        <source>Expected disable or restore</source>
+        <target state="new">Expected disable or restore</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</source>
         <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</target>

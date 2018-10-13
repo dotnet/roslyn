@@ -1245,6 +1245,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       return this.DefaultVisit(node);
     }
+
+    /// <summary>Called when the visitor visits a NonNullDirectiveTriviaSyntax node.</summary>
+    public virtual TResult VisitNonNullDirectiveTrivia(NonNullDirectiveTriviaSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
   }
 
   public partial class CSharpSyntaxVisitor
@@ -2475,6 +2481,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
     public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a NonNullDirectiveTriviaSyntax node.</summary>
+    public virtual void VisitNonNullDirectiveTrivia(NonNullDirectiveTriviaSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -4240,6 +4252,15 @@ namespace Microsoft.CodeAnalysis.CSharp
       var exclamationToken = this.VisitToken(node.ExclamationToken);
       var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
       return node.Update(hashToken, exclamationToken, endOfDirectiveToken, node.IsActive);
+    }
+
+    public override SyntaxNode VisitNonNullDirectiveTrivia(NonNullDirectiveTriviaSyntax node)
+    {
+      var hashToken = this.VisitToken(node.HashToken);
+      var nonNullKeyword = this.VisitToken(node.NonNullKeyword);
+      var disableOrRestoreKeyword = this.VisitToken(node.DisableOrRestoreKeyword);
+      var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
+      return node.Update(hashToken, nonNullKeyword, disableOrRestoreKeyword, endOfDirectiveToken, node.IsActive);
     }
   }
 
@@ -10959,6 +10980,48 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(bool isActive)
     {
       return SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+    }
+
+    /// <summary>Creates a new NonNullDirectiveTriviaSyntax instance.</summary>
+    public static NonNullDirectiveTriviaSyntax NonNullDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+      switch (hashToken.Kind())
+      {
+        case SyntaxKind.HashToken:
+          break;
+        default:
+          throw new ArgumentException("hashToken");
+      }
+      switch (nonNullKeyword.Kind())
+      {
+        case SyntaxKind.NonNullKeyword:
+          break;
+        default:
+          throw new ArgumentException("nonNullKeyword");
+      }
+      switch (disableOrRestoreKeyword.Kind())
+      {
+        case SyntaxKind.DisableKeyword:
+        case SyntaxKind.RestoreKeyword:
+          break;
+        default:
+          throw new ArgumentException("disableOrRestoreKeyword");
+      }
+      switch (endOfDirectiveToken.Kind())
+      {
+        case SyntaxKind.EndOfDirectiveToken:
+          break;
+        default:
+          throw new ArgumentException("endOfDirectiveToken");
+      }
+      return (NonNullDirectiveTriviaSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.NonNullDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node, (Syntax.InternalSyntax.SyntaxToken)nonNullKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node, isActive).CreateRed();
+    }
+
+
+    /// <summary>Creates a new NonNullDirectiveTriviaSyntax instance.</summary>
+    public static NonNullDirectiveTriviaSyntax NonNullDirectiveTrivia(SyntaxToken disableOrRestoreKeyword, bool isActive)
+    {
+      return SyntaxFactory.NonNullDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NonNullKeyword), disableOrRestoreKeyword, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
     }
   }
 }

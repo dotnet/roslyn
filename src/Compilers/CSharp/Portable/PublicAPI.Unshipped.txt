@@ -68,6 +68,15 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DirectiveTriviaSyntax.WithHashToken(Microso
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.DisableOrRestoreKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.NonNullKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken nonNullKeyword, Microsoft.CodeAnalysis.SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.WithDisableOrRestoreKeyword(Microsoft.CodeAnalysis.SyntaxToken disableOrRestoreKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.WithIsActive(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.WithNonNullKeyword(Microsoft.CodeAnalysis.SyntaxToken nonNullKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken keyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax
@@ -92,12 +101,24 @@ Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEndQuoteToken(Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEqualsToken(Microsoft.CodeAnalysis.SyntaxToken equalsToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithStartQuoteToken(Microsoft.CodeAnalysis.SyntaxToken startQuoteToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.NonNullDirectiveTrivia = 9056 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.NonNullKeyword = 8486 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SuppressNullableWarningExpression = 9054 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.QuestionQuestionEqualsToken = 8284 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceAssignmentExpression = 8725 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitNonNullDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.EndOfDirectiveToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.HashToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax.IsActive.get -> bool
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ArrayRankSpecifier(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> sizes, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ClassOrStructConstraint(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.SyntaxToken classOrStructKeyword, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.NonNullDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken disableOrRestoreKeyword, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.NonNullDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken nonNullKeyword, Microsoft.CodeAnalysis.SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitNonNullDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitNonNullDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.NonNullDirectiveTriviaSyntax node) -> TResult

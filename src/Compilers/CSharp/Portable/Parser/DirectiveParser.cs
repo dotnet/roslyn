@@ -98,6 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     result = this.ParseLoadDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
                     break;
 
+                case SyntaxKind.NonNullKeyword:
+                    result = this.ParseNonNullDirective(hash, this.EatContextualToken(contextualKind), isActive);
+                    break;
+
                 default:
                     if (lexer.Options.Kind == SourceCodeKind.Script && contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
                     {
@@ -422,6 +426,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var end = this.ParseEndOfDirective(ignoreErrors: file.IsMissing || !isActive);
             return SyntaxFactory.LoadDirectiveTrivia(hash, keyword, file, end, isActive);
+        }
+
+        private DirectiveTriviaSyntax ParseNonNullDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
+        {
+            token = CheckFeatureAvailability(token, MessageID.IDS_FeatureStaticNullChecking);
+            var disableOrRestore = (this.CurrentToken.Kind == SyntaxKind.DisableKeyword || this.CurrentToken.Kind == SyntaxKind.RestoreKeyword) ?
+                EatToken() :
+                EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NonNullDirectiveQualifierExpected, reportError: isActive);
+            var end = this.ParseEndOfDirective(ignoreErrors: disableOrRestore.IsMissing || !isActive);
+            return SyntaxFactory.NonNullDirectiveTrivia(hash, token, disableOrRestore, end, isActive);
         }
 
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)
