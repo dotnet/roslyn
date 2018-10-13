@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract CodeRefactoringProvider CreateCodeRefactoringProvider(
             Workspace workspace, TestParameters parameters);
 
-        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected override async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
