@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAwait = _syntax.AwaitKeyword.Kind() != default;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
-            TypeSymbol iDisposable = getDisposableInterface(hasAwait);
+            TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
 
-            Debug.Assert((object)iDisposable != null);
-            bool hasErrors = ReportUseSiteDiagnostics(iDisposable, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
+            Debug.Assert((object)disposableInterface != null);
+            bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? _syntax.AwaitKeyword : _syntax.UsingKeyword);
 
             Conversion iDisposableConversion = Conversion.NoConversion;
             BoundMultipleLocalDeclarations declarationsOpt = null;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expressionSyntax != null)
             {
                 expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
-                hasErrors |= initConversion(iDisposable, diagnostics, fromExpression: true);
+                hasErrors |= !initConversion(fromExpression: true);
             }
             else
             {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    hasErrors |= initConversion(iDisposable, diagnostics, fromExpression: false);
+                    hasErrors |= !initConversion(fromExpression: false);
                 }
             }
 
@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 awaitOpt,
                 hasErrors);
 
-            // returns true for error
-            bool initConversion(TypeSymbol disposableInterface, DiagnosticBag bag, bool fromExpression)
+            bool initConversion(bool fromExpression)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -131,11 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, disposableInterface, ref useSiteDiagnostics) :
                     originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, disposableInterface, ref useSiteDiagnostics);
 
-                bag?.Add(fromExpression ? (CSharpSyntaxNode)expressionSyntax : declarationSyntax, useSiteDiagnostics);
+                diagnostics.Add(fromExpression ? (CSharpSyntaxNode)expressionSyntax : declarationSyntax, useSiteDiagnostics);
 
                 if (iDisposableConversion.IsImplicit)
                 {
-                    return false;
+                    return true;
                 }
 
                 TypeSymbol type = fromExpression ? expressionOpt.Type : declarationTypeOpt;
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Retry with a different assumption about whether the `using` is async
                     TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
                     HashSet<DiagnosticInfo> ignored = null;
-                    var alternateConversion = fromExpression ?
+                    Conversion alternateConversion = fromExpression ?
                         originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, alternateInterface, ref ignored) :
                         originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, alternateInterface, ref ignored);
 
@@ -154,7 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp);
 
                     Error(diagnostics, errorCode, (CSharpSyntaxNode)declarationSyntax ?? expressionSyntax, declarationTypeOpt ?? expressionOpt.Display);
-                    return true;
                 }
 
                 return false;
