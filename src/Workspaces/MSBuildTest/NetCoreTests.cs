@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 var expectedNames = new HashSet<string>()
                 {
-                    "Library(netstandard2.0)",
+                    "Library(netstandard2",
                     "Library(net461)",
-                    "Project(netcoreapp2.1)",
+                    "Project(netcoreapp2",
                     "Project(net461)"
                 };
 
@@ -263,7 +263,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 foreach (var project in workspace.CurrentSolution.Projects)
                 {
-                    actualNames.Add(project.Name);
+                    var dotIndex = project.Name.IndexOf('.');
+                    var projectName = dotIndex >= 0
+                        ? project.Name.Substring(0, dotIndex)
+                        : project.Name;
+
+                    actualNames.Add(projectName);
                     var fileName = PathUtilities.GetFileName(project.FilePath);
 
                     Document document;
@@ -289,7 +294,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     Assert.Empty(diagnostics);
                 }
 
-                Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Expected: {actualNames}{Environment.NewLine}Expected: {expectedNames}");
+                Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Actual: {{{actualNames.Join(",")}}}{Environment.NewLine}Expected: {{{expectedNames.Join(",")}}}");
 
                 // Verify that the projects reference the correct TFMs
                 var projects = workspace.CurrentSolution.Projects.Where(p => p.FilePath.EndsWith("Project.csproj"));
@@ -299,9 +304,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                     var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
 
-                    if (project.OutputFilePath.Contains("netcoreapp2.1"))
+                    if (project.OutputFilePath.Contains("netcoreapp2"))
                     {
-                        Assert.Contains("netstandard2.0", referencedProject.OutputFilePath);
+                        Assert.Contains("netstandard2", referencedProject.OutputFilePath);
                     }
                     else if (project.OutputFilePath.Contains("net461"))
                     {
