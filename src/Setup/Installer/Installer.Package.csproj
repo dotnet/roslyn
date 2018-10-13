@@ -20,6 +20,10 @@
     </PropertyGroup>
   </Target>
 
+  <!-- TODO: remove, once we upgrade to 15.8 -->
+  <Import Project="..\..\..\build\Targets\RepoToolset\BuildTasks.props"/>
+  <UsingTask TaskName="RoslynTools.ZipDirectory" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+
   <Target Name="_GenerateZip" 
           AfterTargets="Pack"
           DependsOnTargets="_CalculateInputsOutputs;ResolveProjectReferences"
@@ -37,7 +41,7 @@
     <Copy SourceFiles="%(_Files.Identity)" DestinationFolder="$(_ZipDir)%(_Files.TargetDir)" SkipUnchangedFiles="true" />
 
     <MakeDir Directories="$(_InstallerDir)" />
-    <ZipDirectory SourceDirectory="$(_ZipDir)" DestinationFile="$(_InstallerFilePath)" Overwrite="true"/>
+    <RoslynTools.ZipDirectory SourceDirectory="$(_ZipDir)" DestinationFile="$(_InstallerFilePath)" Overwrite="true"/>
     
     <ItemGroup>
       <FileWrites Include="$(_InstallerFilePath)"/>
