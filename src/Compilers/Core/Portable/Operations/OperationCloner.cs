@@ -596,5 +596,15 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method);
         }
+
+        public override IOperation VisitReDim(IReDimOperation operation, object argument)
+        {
+            return new ReDimOperation(VisitArray(operation.Clauses), operation.Preserve, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, object argument)
+        {
+            return new ReDimClauseOperation(Visit(operation.Operand), VisitArray(operation.DimensionSizes), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
     }
 }
