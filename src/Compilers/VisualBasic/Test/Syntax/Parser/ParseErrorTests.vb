@@ -1444,7 +1444,6 @@ End Class
             <errors>
                 <error id="30200"/>
                 <error id="30201"/>
-                <error id="30812"/>
             </errors>)
     End Sub
 
@@ -2245,7 +2244,6 @@ End Module
             ]]>,
         <errors>
             <error id="30642"/>
-            <error id="30812"/>
             <error id="30201"/>
         </errors>)
     End Sub
@@ -2557,7 +2555,6 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30812"/>
                                  <error id="30201"/>
                              </errors>)
     End Sub

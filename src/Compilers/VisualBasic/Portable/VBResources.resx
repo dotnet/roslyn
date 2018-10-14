@@ -5533,4 +5533,7 @@
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="FEATURE_DefaultOptionalParameter" xml:space="preserve">
+    <value>Default Optional Parameter</value>
+  </data>
 </root>

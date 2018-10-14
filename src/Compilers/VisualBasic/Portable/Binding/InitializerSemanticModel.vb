@@ -152,6 +152,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
+
+                        Dim parameter = parameterSymbol.SyntaxNode
+                        Debug.Assert(parameter IsNot Nothing)
+
+                        If Compilation.LanguageVersion < InternalSyntax.FeatureExtensions.GetLanguageVersion(InternalSyntax.Feature.DefaultOptionalParameter) Then
+                            Dim isOptional = parameter.Modifiers.Any(SyntaxKind.OptionalKeyword)
+                            Dim defto = parameter.Default
+                            If isOptional AndAlso defto.IsMissing Then
+                                Return Binder.ReportDiagnosticAndProduceBadExpression(diagnostics, defto, ERRID.ERR_ObsoleteOptionalWithoutValue)
+                            End If
+                        End If
                         boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
 
                         Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)

@@ -3091,7 +3091,14 @@ ProduceBoundNode:
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
-            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
+            Dim defaultConstantValue As ConstantValue = Nothing ' If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
+            If param.IsOptional Then
+                If param.HasExplicitDefaultValue Then
+                    defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
+                Else
+                    defaultConstantValue = ConstantValue.Nothing
+                End If
+            End If
             If defaultConstantValue IsNot Nothing Then
 
                 If callerInfoOpt IsNot Nothing AndAlso

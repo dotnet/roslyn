@@ -706,13 +706,13 @@ End Module
 
             CompileAndVerify(source, references:={metadataRef}, expectedOutput:=<![CDATA[
 1
-System.Reflection.Missing
+2
 3
-System.Runtime.InteropServices.DispatchWrapper
+4
 5
-System.Runtime.InteropServices.UnknownWrapper
+6
 7
-System.Runtime.InteropServices.DispatchWrapper
+8
 ]]>).VerifyDiagnostics()
         End Sub
 
@@ -849,8 +849,8 @@ End Class
 4
 5
 6
-System.Runtime.InteropServices.DispatchWrapper
-System.Runtime.InteropServices.DispatchWrapper
+7
+8
 ]]>
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
@@ -869,17 +869,10 @@ IInvocationOperation (Sub C.M7([x As System.Object])) (OperationKind.Invocation,
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C.M7')
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C.M7')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'C.M7')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IObjectCreationOperation (Constructor: Sub System.Runtime.InteropServices.DispatchWrapper..ctor(obj As System.Object)) (OperationKind.ObjectCreation, Type: System.Runtime.InteropServices.DispatchWrapper, IsImplicit) (Syntax: 'C.M7')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'C.M7')
-                    ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'C.M7')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsImplicit) (Syntax: 'C.M7')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value)
@@ -947,7 +940,7 @@ End Module
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, references:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
-System.Reflection.Missing
+nothing
 nothing
 0
 ]]>).VerifyDiagnostics()
@@ -1116,12 +1109,12 @@ End Class
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
                      ~
-BC30812: Optional parameters must specify a default value.
-            Optional f A String = "",
-                       ~
 BC30451: 'A' is not declared. It may be inaccessible due to its protection level.
             Optional f A String = "",
                        ~
+BC30213: Comma or ')' expected.
+            Optional f A String = "",
+                         ~~~~~~
 BC30002: Type 'CallerFilePath' is not defined.
             <CallerFilePath> Optional f As String = "",
              ~~~~~~~~~~~~~~

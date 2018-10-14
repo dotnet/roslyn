@@ -731,7 +731,7 @@ End Interface
         End Function
 
         <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
-        <Fact()>
+        <Fact(Skip:="Feature.DefaultOptionalParameter")>
         Public Sub TestDuplicateConstantAttributesMetadata()
             Dim ilSource = <![CDATA[
 .assembly extern System {}

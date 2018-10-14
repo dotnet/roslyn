@@ -2610,10 +2610,11 @@ BC33010: 'operator' parameters cannot be declared 'Optional'.
 BC30201: Expression expected.
     Public Shared Operator Not(Optional x As TestType) As Boolean 'BIND1:"TestType"
                                                      ~
-BC30812: Optional parameters must specify a default value.
-    Public Shared Operator Not(Optional x As TestType) As Boolean 'BIND1:"TestType"
-                                                     ~
 </expected>)
+            'BC30812: Optional parameters must specify a default value.
+            '    Public Shared Operator Not(Optional x As TestType) As Boolean 'BIND1:"TestType"
+            '                                                     ~
+
         End Sub
 
         <WorkItem(14688, "https://github.com/dotnet/roslyn/issues/14688")>

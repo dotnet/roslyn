@@ -655,6 +655,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If constValue Is Nothing Then
                     boundInitValue = BadExpression(boundInitValue.Syntax, boundInitValue, targetType)
                 End If
+            Else
+                If equalsValueSyntax.IsMissing Then
+                    Dim new_value = SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
+                    Dim new_init = equalsValueSyntax.WithValue(new_value)
+                    Return BindParameterDefaultValue(targetType, new_init, diagnostics, constValue).MakeCompilerGenerated
+                End If
             End If
 
             Return boundInitValue
