@@ -6114,7 +6114,7 @@ class X
 
         [WorkItem(21494, "https://github.com/dotnet/roslyn/issues/21494")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestNullableOfIntOperator()
+        public async Task TestNullableOfIntBinaryOperator()
         {
             await TestAsync(
 @"class C
@@ -6122,6 +6122,18 @@ class X
     bool M(int? value) => value $$> 0;
 }",
                 MainDescription("bool int?.operator >(int? left, int? right)"));
+        }
+
+        [WorkItem(21494, "https://github.com/dotnet/roslyn/issues/21494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullableOfIntUnaryOperator()
+        {
+            await TestAsync(
+@"class C
+{
+    int? M(int? value) => $$-value;
+}",
+                MainDescription("int? int?.operator -(int? value)"));
         }
     }
 }
