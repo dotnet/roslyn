@@ -3401,9 +3401,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)unaryOperator.MethodOpt == null && unaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = unaryOperator.OperatorKind.Operator();
-                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type.StrippedType(),
+                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type,
                                                                                                  OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
-                                                                                                 unaryOperator.Type.StrippedType(),
+                                                                                                 unaryOperator.Type,
                                                                                                  unaryOperator.OperatorKind.IsChecked()));
                 resultKind = unaryOperator.ResultKind;
             }
@@ -3425,9 +3425,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
-                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
+                symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type,
                                                                                                  OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
-                                                                                                 increment.Type.StrippedType(),
+                                                                                                 increment.Type,
                                                                                                  increment.OperatorKind.IsChecked()));
                 resultKind = increment.ResultKind;
             }
@@ -3480,13 +3480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Symbol GetIntrinsicOperatorSymbol(BinaryOperatorKind op, bool isDynamic, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType, bool isChecked)
         {
-            if (!isDynamic)
-            {
-                leftType = leftType.StrippedType();
-                rightType = rightType.StrippedType();
-                returnType = returnType.StrippedType();
-            }
-            else
+            if (isDynamic)
             {
                 Debug.Assert(returnType.IsDynamic());
 
@@ -3501,6 +3495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rightType = leftType;
                 }
             }
+
             return new SynthesizedIntrinsicOperatorSymbol(leftType,
                                                           OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
                                                           rightType,

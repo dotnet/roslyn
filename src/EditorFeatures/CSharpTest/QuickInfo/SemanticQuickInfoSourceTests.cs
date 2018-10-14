@@ -6135,5 +6135,29 @@ class X
 }",
                 MainDescription("int? int?.operator -(int? value)"));
         }
+
+        [WorkItem(21494, "https://github.com/dotnet/roslyn/issues/21494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullableOfIntDecrementOperator()
+        {
+            await TestAsync(
+@"class C
+{
+    int? M(int? value) => value-$$-;
+}",
+                MainDescription("int? int?.operator --(int? value)"));
+        }
+
+        [WorkItem(21494, "https://github.com/dotnet/roslyn/issues/21494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullableOfIntCompoundAssignmentOperator()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(ref int? value) => value *$$= 2;
+}",
+                MainDescription("int? int?.operator *(int? left, int? right)"));
+        }
     }
 }
