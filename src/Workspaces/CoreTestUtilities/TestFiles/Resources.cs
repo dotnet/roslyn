@@ -86,12 +86,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string DuplicatedGuidsBecomeSelfReferential => GetText("SolutionFiles.DuplicatedGuidsBecomeSelfReferential.sln");
             public static string DuplicatedGuidsBecomeCircularReferential => GetText("SolutionFiles.DuplicatedGuidsBecomeCircularReferential.sln");
             public static string EmptyLineBetweenProjectBlock => GetText("SolutionFiles.EmptyLineBetweenProjectBlock.sln");
+            public static string Issue29122_Solution => GetText("Issue29122.TestVB2.sln");
             public static string InvalidProjectPath => GetText("SolutionFiles.InvalidProjectPath.sln");
             public static string MissingEndProject1 => GetText("SolutionFiles.MissingEndProject1.sln");
             public static string MissingEndProject2 => GetText("SolutionFiles.MissingEndProject2.sln");
             public static string MissingEndProject3 => GetText("SolutionFiles.MissingEndProject3.sln");
             public static string NetCoreMultiTFM_ProjectReferenceToFSharp = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.Solution.sln");
             public static string NonExistentProject => GetText("SolutionFiles.NonExistentProject.sln");
+            public static string ProjectLoadErrorOnMissingDebugType => GetText("SolutionFiles.ProjectLoadErrorOnMissingDebugType.sln");
             public static string SolutionFolder => GetText("SolutionFiles.SolutionFolder.sln");
             public static string VB_and_CSharp => GetText("SolutionFiles.VB_and_CSharp.sln");
         }
@@ -137,6 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Library.csproj");
                 public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Project.csproj");
                 public static string PortableProject => GetText("ProjectFiles.CSharp.PortableProject.csproj");
+                public static string ProjectLoadErrorOnMissingDebugType => GetText("ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
                 public static string ReferencesPortableProject => GetText("ProjectFiles.CSharp.ReferencesPortableProject.csproj");
                 public static string Wildcards => GetText("ProjectFiles.CSharp.Wildcards.csproj");
@@ -159,6 +162,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string Circular_Target => GetText("ProjectFiles.VisualBasic.Circular_Target.vbproj");
                 public static string Circular_Top => GetText("ProjectFiles.VisualBasic.Circular_Top.vbproj");
                 public static string Embed => GetText("ProjectFiles.VisualBasic.Embed.vbproj");
+                public static string Issue29122_ClassLibrary1 => GetText("Issue29122.Proj1.ClassLibrary1.vbproj");
+                public static string Issue29122_ClassLibrary2 => GetText("Issue29122.Proj2.ClassLibrary2.vbproj");
                 public static string InvalidProjectReference => GetText("ProjectFiles.VisualBasic.InvalidProjectReference.vbproj");
                 public static string NonExistentProjectReference => GetText("ProjectFiles.VisualBasic.NonExistentProjectReference.vbproj");
                 public static string UnknownProjectExtension => GetText("ProjectFiles.VisualBasic.UnknownProjectExtension.vbproj");
