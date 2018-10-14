@@ -7185,4 +7185,126 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation LeftOperand => this._leftOperand.Value;
         public override IOperation RightOperand => this._rightOperand.Value;
     }
+
+    internal abstract class BaseReDimOperation : Operation, IReDimOperation
+    {
+        protected BaseReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.ReDim, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Preserve = preserve;
+        }
+
+        public abstract ImmutableArray<IReDimClauseOperation> Clauses { get; }
+        public bool Preserve { get; }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                foreach (var clause in Clauses)
+                {
+                    yield return clause;
+                }
+            }
+        }
+
+        public sealed override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitReDim(this);
+        }
+
+        public sealed override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitReDim(this, argument);
+        }
+    }
+
+    internal sealed class ReDimOperation : BaseReDimOperation
+    {
+        public ReDimOperation(ImmutableArray<IReDimClauseOperation> clauses, bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Clauses = SetParentOperation(clauses, this);
+        }
+
+        public override ImmutableArray<IReDimClauseOperation> Clauses { get; }
+    }
+
+    internal sealed class LazyReDimOperation : BaseReDimOperation
+    {
+        private readonly Lazy<ImmutableArray<IReDimClauseOperation>> _lazyClauses;
+
+        public LazyReDimOperation(Lazy<ImmutableArray<IReDimClauseOperation>> clauses, bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyClauses = clauses;
+        }
+
+        public override ImmutableArray<IReDimClauseOperation> Clauses => SetParentOperation(_lazyClauses.Value, this);
+    }
+
+    internal abstract class BaseReDimClauseOperation : Operation, IReDimClauseOperation
+    {
+        protected BaseReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.ReDimClause, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        public abstract IOperation Operand { get; }
+        public abstract ImmutableArray<IOperation> DimensionSizes { get; }
+
+        public sealed override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                Debug.Assert(Operand != null);
+                yield return Operand;
+
+                foreach (var index in DimensionSizes)
+                {
+                    Debug.Assert(index != null);
+                    yield return index;
+                }
+            }
+        }
+
+        public sealed override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitReDimClause(this);
+        }
+
+        public sealed override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitReDimClause(this, argument);
+        }
+    }
+
+    internal sealed class ReDimClauseOperation : BaseReDimClauseOperation
+    {
+        public ReDimClauseOperation(IOperation operand, ImmutableArray<IOperation> dimensionSizes, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Operand = SetParentOperation(operand, this);
+            DimensionSizes = SetParentOperation(dimensionSizes, this);
+        }
+
+        public override IOperation Operand { get; }
+        public override ImmutableArray<IOperation> DimensionSizes { get; }
+    }
+
+    internal sealed class LazyReDimClauseOperation : BaseReDimClauseOperation
+    {
+        private readonly Lazy<IOperation> _lazyOperand;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyDimensionSizes;
+
+        public LazyReDimClauseOperation(Lazy<IOperation> lazyOperand, Lazy<ImmutableArray<IOperation>> lazyDimensionSizes, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyOperand = lazyOperand;
+            _lazyDimensionSizes = lazyDimensionSizes;
+        }
+
+        public override IOperation Operand => SetParentOperation(_lazyOperand.Value, this);
+        public override ImmutableArray<IOperation> DimensionSizes => SetParentOperation(_lazyDimensionSizes.Value, this);
+    }
 }

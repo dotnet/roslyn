@@ -894,5 +894,47 @@ End Class",
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        Public Async Function FieldIsReDimOperand() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_goo()|] As Integer
+    Private Sub M()
+        Redim _goo(5)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        Public Async Function FieldIsReDimPreserveOperand() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Private [|_goo()|] As Integer
+    Private Sub M()
+        Redim Preserve _goo(5)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        Public Async Function FieldIsRedimIndex() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_goo()|] As Integer
+    Private Sub M(a() As Integer)
+        Redim a(_goo)
+    End Sub
+End Class",
+"Class C
+    Private ReadOnly _goo() As Integer
+    Private Sub M(a() As Integer)
+        Redim a(_goo)
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
