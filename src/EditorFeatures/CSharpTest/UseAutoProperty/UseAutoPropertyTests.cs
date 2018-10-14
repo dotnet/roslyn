@@ -873,6 +873,257 @@ partial class Class
 }");
         }
 
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInSimpleExpressionLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action<int> x = _ => i = 1;
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action<int> x = _ => P = 1;
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInSimpleBlockLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action<int> x = _ =>
+        {
+            i = 1;
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action<int> x = _ =>
+        {
+            P = 1;
+        };
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInParenthesizedExpressionLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action x = () => i = 1;
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action x = () => P = 1;
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInParenthesizedBlockLambdaInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action x = () =>
+        {
+            i = 1;
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action x = () =>
+        {
+            P = 1;
+        };
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInAnonymousMethodInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        Action x = delegate ()
+        {
+            i = 1;
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        Action x = delegate ()
+        {
+            P = 1;
+        };
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInLocalFunctionInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        void F()
+        {
+            i = 1;
+        }
+    }
+}",
+@"class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        void F()
+        {
+            P = 1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestWriteInExpressionBodiedLocalFunctionInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        void F() => i = 1;
+    }
+}",
+@"class C
+{
+    int P { get; set; }
+
+    C()
+    {
+        void F() => P = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestReadInExpressionBodiedLocalFunctionInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i|];
+    int P => i;
+
+    C()
+    {
+        bool F() => i == 1;
+    }
+}",
+@"class C
+{
+    int P { get; }
+
+    C()
+    {
+        bool F() => P == 1;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestAlreadyAutoPropertyWithGetterWithNoBody()
         {

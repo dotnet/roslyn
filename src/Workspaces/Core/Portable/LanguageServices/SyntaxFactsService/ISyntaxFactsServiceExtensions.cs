@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return token;
         }
 
-        public static bool IsAnonymousOrLocalFunctionStatement(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        public static bool IsAnonymousOrLocalFunction(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
             => syntaxFacts.IsAnonymousFunction(node) ||
                syntaxFacts.IsLocalFunctionStatement(node);
 

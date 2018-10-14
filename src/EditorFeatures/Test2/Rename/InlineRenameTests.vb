@@ -1,14 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
@@ -1139,7 +1138,7 @@ class C
                 Await editHandler.ApplyAsync(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    Await actions.First().GetOperationsAsync(CancellationToken.None),
+                    Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
                     New ProgressTracker(),
                     CancellationToken.None)
