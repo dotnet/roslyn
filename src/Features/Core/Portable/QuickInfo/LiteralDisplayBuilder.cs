@@ -35,26 +35,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             node = WalkDownMemberAccess(syntaxFacts, node);
 
-            if (syntaxFacts.IsPrefixUnaryExpression(node))
+            foreach (var token in node.DescendantTokens())
             {
-                var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(node);
-                textBuilder.Add(new TaggedText(TextTags.Operator, operatorToken.Text));
-                node = syntaxFacts.GetOperandOfPrefixUnaryExpression(node);
+                textBuilder.Add(TagToken(syntaxFacts, token));
             }
-
-            var tag =
-                syntaxFacts.IsStringLiteralExpression(node) ||
-                syntaxFacts.IsCharacterLiteralExpression(node)
-                    ? TextTags.StringLiteral :
-                syntaxFacts.IsNullLiteralExpression(node) ||
-                syntaxFacts.IsTrueLiteralExpression(node) ||
-                syntaxFacts.IsFalseLiteralExpression(node)
-                    ? TextTags.Keyword :
-                syntaxFacts.IsNumericLiteralExpression(node)
-                    ? TextTags.NumericLiteral :
-                TextTags.Text;
-
-            textBuilder.Add(new TaggedText(tag, node.ToString()));
         }
 
         private static SyntaxNode WalkDownMemberAccess(ISyntaxFactsService syntaxFacts, SyntaxNode node)
@@ -65,6 +49,17 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return node;
+        }
+
+        private static TaggedText TagToken(ISyntaxFactsService syntaxFacts, SyntaxToken token)
+        {
+            var tag =
+                syntaxFacts.IsCharacterLiteral(token) || syntaxFacts.IsStringLiteral(token) ? TextTags.StringLiteral :
+                syntaxFacts.IsNumericLiteral(token) ? TextTags.NumericLiteral :
+                syntaxFacts.IsKeyword(token) ? TextTags.Keyword :
+                TextTags.Text;
+
+            return new TaggedText(tag, token.Text);
         }
     }
 }

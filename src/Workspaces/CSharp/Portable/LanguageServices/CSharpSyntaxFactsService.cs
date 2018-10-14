@@ -567,9 +567,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node?.IsKind(SyntaxKind.NumericLiteralExpression) == true;
         }
 
-        public bool IsCharacterLiteralExpression(SyntaxNode node)
-            => node.IsKind(SyntaxKind.CharacterLiteralExpression);
-
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
         {
             var typedToken = token;
@@ -1698,9 +1695,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
-
-        public bool IsPrefixUnaryExpression(SyntaxNode node)
-            => node is PrefixUnaryExpressionSyntax;
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
