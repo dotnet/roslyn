@@ -6111,5 +6111,17 @@ class X
 }",
                 MainDescription("void M<T>() where T : unmanaged"));
         }
+
+        [WorkItem(21494, "https://github.com/dotnet/roslyn/issues/21494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNullableOfIntOperator()
+        {
+            await TestAsync(
+@"class C
+{
+    bool M(int? value) => value $$> 0;
+}",
+                MainDescription("bool int?.operator >(int? left, int? right)"));
+        }
     }
 }
