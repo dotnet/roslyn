@@ -7076,7 +7076,6 @@ public class RubyTime
 
             if (type.IsValueType && !type.IsPointerType())
             {
-                Assert.Equal(symbol1, symbol2);
                 return;
             }
 
@@ -7867,9 +7866,6 @@ class Module1
             {
                 if (rightType.IsValueType && !rightType.IsPointerType())
                 {
-                    Assert.Equal(symbol1, symbol2);
-                    Assert.Equal(symbol1, symbol3);
-                    Assert.Equal(symbol1, symbol4);
                     return;
                 }
                 else
@@ -8124,10 +8120,10 @@ struct TestStr
                         Assert.Equal("System.Boolean System.Object.op_Inequality(System.Object left, System.Object right)", info1.Symbol.ToTestDisplayString());
                         break;
                     case 8:
-                        Assert.Equal("System.Boolean System.Int32.op_Equality(System.Int32 left, System.Int32 right)", info1.Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Boolean System.Int32?.op_Equality(System.Int32? left, System.Int32? right)", info1.Symbol.ToTestDisplayString());
                         break;
                     case 9:
-                        Assert.Equal("System.Boolean System.Int32.op_Inequality(System.Int32 left, System.Int32 right)", info1.Symbol.ToTestDisplayString());
+                        Assert.Equal("System.Boolean System.Int32?.op_Inequality(System.Int32? left, System.Int32? right)", info1.Symbol.ToTestDisplayString());
                         break;
                     case 10:
                     case 11:

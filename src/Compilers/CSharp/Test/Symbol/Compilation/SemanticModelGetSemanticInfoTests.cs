@@ -2015,7 +2015,7 @@ public class Test
             Assert.Equal(TypeKind.Struct, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("ulong.operator +(ulong, ulong)", semanticInfo.Symbol.ToString());
+            Assert.Equal("ulong?.operator +(ulong?, ulong?)", semanticInfo.Symbol.ToString());
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
