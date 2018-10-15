@@ -843,14 +843,14 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task MethodWithUsingAwait()
+        public async Task MethodWithAwaitUsing()
         {
             await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
-        [|using await (var x = new object())|]
+        [|await using (var x = new object())|]
         {
         }
     }
@@ -859,7 +859,7 @@ class C
 {
     async System.Threading.Tasks.Task MAsync()
     {
-        using await (var x = new object())
+        await using (var x = new object())
         {
         }
     }
@@ -867,7 +867,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task MethodWithUsingNoAwait()
+        public async Task MethodWithRegularUsing()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -882,14 +882,14 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task MethodWithForEachAwait()
+        public async Task MethodWithAwaitForEach()
         {
             await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
-        [|foreach await (var n in new int[] { })|]
+        [|await foreach (var n in new int[] { })|]
         {
         }
     }
@@ -898,7 +898,7 @@ class C
 {
     async System.Threading.Tasks.Task MAsync()
     {
-        foreach await (var n in new int[] { })
+        await foreach (var n in new int[] { })
         {
         }
     }
@@ -906,7 +906,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task MethodWithForEachNoAwait()
+        public async Task MethodWithRegularForEach()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -921,14 +921,14 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task MethodWithForEachVariableAwait()
+        public async Task MethodWithAwaitForEachVariable()
         {
             await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
-        [|foreach await (var (a, b) in new(int, int)[] { })|]
+        [|await foreach (var (a, b) in new(int, int)[] { })|]
         {
         }
     }
@@ -937,7 +937,7 @@ class C
 {
     async System.Threading.Tasks.Task MAsync()
     {
-        foreach await (var (a, b) in new(int, int)[] { })
+        await foreach (var (a, b) in new(int, int)[] { })
         {
         }
     }
@@ -945,7 +945,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
-        public async Task MethodWithForEachVariableNoAwait()
+        public async Task MethodWithRegularForEachVariable()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C

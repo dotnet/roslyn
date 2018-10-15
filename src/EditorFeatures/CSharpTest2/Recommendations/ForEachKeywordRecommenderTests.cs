@@ -56,8 +56,14 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAwait()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"await $$"));
+            await VerifyKeywordAsync(
+@"class C
+{
+    async void M()
+    {
+        await $$
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

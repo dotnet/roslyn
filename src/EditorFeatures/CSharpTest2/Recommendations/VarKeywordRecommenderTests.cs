@@ -214,7 +214,7 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestnotInAwaitForEach()
+        public async Task TestNotInAwaitForEach()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"await foreach (var $$"));

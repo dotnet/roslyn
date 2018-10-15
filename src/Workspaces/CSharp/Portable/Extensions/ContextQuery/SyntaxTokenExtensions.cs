@@ -171,13 +171,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 case SyntaxKind.ElseKeyword:
                     return true;
 
-            }
-
-            if (token.ValueText == "await")
-            {
-                // await foreach
-                // await using
-                return true;
+                case SyntaxKind.AwaitKeyword:
+                    // await foreach
+                    // await using
+                    return true;
             }
 
             return false;

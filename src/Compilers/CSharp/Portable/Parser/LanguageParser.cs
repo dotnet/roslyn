@@ -6628,7 +6628,6 @@ tryAgain:
 
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.FixedKeyword:
                     return this.ParseFixedStatement();
                 case SyntaxKind.BreakKeyword:
@@ -6697,11 +6696,18 @@ tryAgain:
                     goto default;
 
                 default:
-                    return NewMethod(allowAnyExpression);
+                    return ParseExpressionStatementIfPossible(allowAnyExpression);
             }
         }
 
-        private StatementSyntax NewMethod(bool allowAnyExpression)
+        private SyntaxToken ParseAwaitKeywordForAsyncStreams()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
+            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+            return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+        }
+
+        private StatementSyntax ParseExpressionStatementIfPossible(bool allowAnyExpression)
         {
             if (this.IsPossibleLocalDeclarationStatement(allowAnyExpression))
             {
@@ -8118,13 +8124,6 @@ tryAgain:
             var statement = this.ParseEmbeddedStatement();
 
             return _syntaxFactory.UsingStatement(awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
-        }
-
-        private SyntaxToken ParseAwaitKeywordForAsyncStreams()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-            return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
         }
 
         private void ParseUsingExpression(ref VariableDeclarationSyntax declaration, ref ExpressionSyntax expression, ref ResetPoint resetPoint)
