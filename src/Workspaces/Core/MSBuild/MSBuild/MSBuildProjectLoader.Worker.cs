@@ -308,7 +308,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             filePath: projectPath,
                             outputFilePath: string.Empty,
                             outputRefFilePath: string.Empty,
-                            defaultNamespace: null,
                             compilationOptions: compilationOptions,
                             parseOptions: parseOptions,
                             documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
@@ -376,7 +375,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         projectPath,
                         outputFilePath: projectFileInfo.OutputFilePath,
                         outputRefFilePath: projectFileInfo.OutputRefFilePath,
-                        defaultNamespace: projectFileInfo.DefaultNamespace,
                         compilationOptions: compilationOptions,
                         parseOptions: parseOptions,
                         documents: documents,
@@ -385,8 +383,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         analyzerReferences: analyzerReferences,
                         additionalDocuments: additionalDocuments,
                         isSubmission: false,
-                        hostObjectType: null,
-                        hasAllInformation: true);
+                        hostObjectType: null)
+                        .WithDefaultNamespace(projectFileInfo.DefaultNamespace);
                 });
             }
 

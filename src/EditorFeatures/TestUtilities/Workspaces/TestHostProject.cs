@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 this.AnalyzerReferences,
                 this.AdditionalDocuments.Select(d => d.ToDocumentInfo()),
                 this.IsSubmission,
-                this.HostObjectType,
-                defaultNamespace: this.DefaultNamespace);
+                this.HostObjectType)
+                .WithDefaultNamespace(this.DefaultNamespace);
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.

@@ -310,7 +310,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this.Language,
                     filePath: this.ProjectFilePath,
                     outputFilePath: this.ObjOutputPath,
-                    defaultNamespace: this.DefaultNamespace,
                     compilationOptions: this.CurrentCompilationOptions,
                     parseOptions: this.CurrentParseOptions,
                     documents: _documents.Values.Select(d => d.GetInitialState()),
@@ -319,7 +318,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     analyzerReferences: _analyzers.Values.Select(a => a.GetReference()),
                     additionalDocuments: _additionalDocuments.Values.Select(d => d.GetInitialState()));
 
-                return info.WithHasAllInformation(hasAllInformation: LastDesignTimeBuildSucceeded);
+                return info
+                    .WithHasAllInformation(hasAllInformation: LastDesignTimeBuildSucceeded)
+                    .WithDefaultNamespace(this.DefaultNamespace);
             }
         }
 

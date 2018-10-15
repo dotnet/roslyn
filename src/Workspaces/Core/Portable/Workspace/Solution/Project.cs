@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The default namespace of the project, or null if it is not know.
         /// </summary>
-        public string DefaultNamespace => _projectState.DefaultNamespace;
+        internal string DefaultNamespace => _projectState.DefaultNamespace;
 
         /// <summary>
         /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new instance of this project updated to have the new default namespace.
         /// </summary>
-        public Project WithDefaultNamespace(string defaultNamespace)
+        internal Project WithDefaultNamespace(string defaultNamespace)
         {
             return this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id);
         }

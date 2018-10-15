@@ -213,36 +213,6 @@ namespace Microsoft.CodeAnalysis
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
 
-        // 2.8.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
-        /// <summary>
-        /// Create a new instance of a ProjectInfo.
-        /// </summary>
-        public static ProjectInfo Create(
-            ProjectId id,
-            VersionStamp version,
-            string name,
-            string assemblyName,
-            string language,
-            string filePath,
-            string outputFilePath,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            IEnumerable<DocumentInfo> documents,
-            IEnumerable<ProjectReference> projectReferences,
-            IEnumerable<MetadataReference> metadataReferences,
-            IEnumerable<AnalyzerReference> analyzerReferences,
-            IEnumerable<DocumentInfo> additionalDocuments,
-            bool isSubmission,
-            Type hostObjectType,
-            string outputRefFilePath)
-        {
-            return Create(
-                id, version, name, assemblyName, language,
-                filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
-                isSubmission, hostObjectType, hasAllInformation: true);
-        }
-
         /// <summary>
         /// Create a new instance of a ProjectInfo.
         /// </summary>
@@ -263,12 +233,11 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
             Type hostObjectType = null,
-            string outputRefFilePath = null,
-            string defaultNamespace = null)
+            string outputRefFilePath = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, outputRefFilePath, defaultNamespace, compilationOptions, parseOptions,
+                filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
@@ -359,7 +328,7 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
         }
 
-        public ProjectInfo WithDefaultNamespace(string defaultNamespace)
+        internal ProjectInfo WithDefaultNamespace(string defaultNamespace)
         {
             return With(attributes: Attributes.With(defaultNamespace: defaultNamespace));
         }
