@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Success,
 
         /// <summary>
-        /// A member was looked up, but it was not a method
+        /// A member was found, but it was not a method
         /// </summary>
         NotAMethod,
 
