@@ -68,14 +68,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         {
             return new PropertySetAnalysisContext(
-                valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisKind,
-                pessimisticAnalysis, pointsToAnalysisResultOpt, getOrComputeAnalysisResult, null,
-                null,
-                typeToTrackMetadataName,
-                isNewInstanceFlagged,
-                propertyToSetFlag,
-                isNullPropertyFlagged,
-                methodNamesToCheckForFlaggedUsage);
+                valueDomain,
+                wellKnownTypeProvider, 
+                controlFlowGraph,
+                owningSymbol,
+                interproceduralAnalysisKind,
+                pessimisticAnalysis,
+                pointsToAnalysisResultOpt, 
+                getOrComputeAnalysisResult, 
+                parentControlFlowGraphOpt: null,
+                interproceduralAnalysisDataOpt: null,
+                typeToTrackMetadataName: typeToTrackMetadataName,
+                isNewInstanceFlagged: isNewInstanceFlagged,
+                propertyToSetFlag: propertyToSetFlag,
+                isNullPropertyFlagged: isNullPropertyFlagged,
+                methodNamesToCheckForFlaggedUsage: methodNamesToCheckForFlaggedUsage);
         }
 
         public override PropertySetAnalysisContext ForkForInterproceduralAnalysis(
@@ -90,7 +97,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(copyAnalysisResultOpt == null);
 
             return new PropertySetAnalysisContext(
-                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisKind.ContextSensitive,
+                ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, InterproceduralAnalysisKind,
                 PessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph,
                 interproceduralAnalysisData,
                 this.TypeToTrackMetadataName,
@@ -111,7 +118,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public bool IsNewInstanceFlagged { get; }
 
         /// <summary>
-        /// Set of property names to change the abstract value.
+        /// Name of the property that when assigned to, may change the abstract value.
         /// </summary>
         public string PropertyToSetFlag { get; }
 
@@ -125,7 +132,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// Method names for invocations that check whether the instance is flagged or maybe flagged.
         /// </summary>
         public ImmutableHashSet<string> MethodNamesToCheckForFlaggedUsage { get; }
-
 
         protected override int GetHashCode(int hashCode) =>
             HashUtilities.Combine(this.TypeToTrackMetadataName.GetHashCode(),
