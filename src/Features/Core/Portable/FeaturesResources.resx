@@ -1154,6 +1154,9 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
+  <data name="Add_tuple_element_name_0" xml:space="preserve">
+    <value>Add tuple element name '{0}'</value>
+  </data>
   <data name="Take_0" xml:space="preserve">
     <value>Take '{0}'</value>
   </data>

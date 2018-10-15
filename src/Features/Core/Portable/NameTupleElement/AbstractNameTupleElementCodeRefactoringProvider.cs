@@ -1,0 +1,110 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+namespace Microsoft.CodeAnalysis.NameTupleElement
+{
+    abstract class AbstractNameTupleElementCodeRefactoringProvider<TArgumentSyntax, TTupleExpressionSyntax> : CodeRefactoringProvider
+        where TArgumentSyntax : SyntaxNode
+        where TTupleExpressionSyntax : SyntaxNode
+    {
+        protected abstract bool IsCloseParenOrComma(SyntaxToken token);
+        protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string argumentName);
+        protected abstract bool IsUnnamedElement(TArgumentSyntax node);
+        protected abstract SeparatedSyntaxList<TArgumentSyntax> GetArguments(TTupleExpressionSyntax tuple);
+
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        {
+            var document = context.Document;
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            {
+                return;
+            }
+
+            if (context.Span.Length > 0)
+            {
+                return;
+            }
+
+            var cancellationToken = context.CancellationToken;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var position = context.Span.Start;
+            var token = root.FindToken(position);
+            if (token.Span.Start == position &&
+                IsCloseParenOrComma(token))
+            {
+                token = token.GetPreviousToken();
+                if (token.Span.End != position)
+                {
+                    return;
+                }
+            }
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var argument = root.FindNode(token.Span)
+                .GetAncestorsOrThis<TArgumentSyntax>()
+                .FirstOrDefault(node => syntaxFacts.IsTupleExpression(node.Parent));
+
+            if (argument == null || !IsUnnamedElement(argument))
+            {
+                return;
+            }
+
+            var tuple = (TTupleExpressionSyntax)argument.Parent;
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType as INamedTypeSymbol;
+            if (tupleType == null)
+            {
+                return;
+            }
+
+            var arguments = GetArguments(tuple);
+            var argumentIndex = arguments.IndexOf(argument);
+            var elements = tupleType.TupleElements;
+            if (elements.IsDefaultOrEmpty || argumentIndex >= elements.Length)
+            {
+                return;
+            }
+
+            var element = elements[argumentIndex];
+            if ((object)element == element.CorrespondingTupleField)
+            {
+                return;
+            }
+
+            var elementName = element.Name;
+
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
+                    c => AddNamedElementAsync(root, document, argument, elementName)));
+        }
+
+        private Task<Document> AddNamedElementAsync(
+            SyntaxNode root,
+            Document document,
+            TArgumentSyntax argument,
+            string argumentName)
+        {
+            var newArgument = WithName(argument, argumentName).WithTriviaFrom(argument);
+            var newRoot = root.ReplaceNode(argument, newArgument);
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
+            {
+            }
+        }
+    }
+}
