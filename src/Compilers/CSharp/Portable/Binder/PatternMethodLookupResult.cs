@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NotAMethod,
 
         /// <summary>
-        /// A member was looked up, but it was not callable
+        /// A member was found, but it was not callable
         /// </summary>
         NotCallable,
 

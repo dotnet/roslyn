@@ -722,7 +722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   syntaxNode,
                                                   diagnostics,
                                                   out var disposeMethod);
-
             
             if (disposeMethod?.ReturnsVoid == false || result == PatternLookupResult.NotAMethod)
             {
@@ -1252,24 +1251,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             const string methodName = "GetPinnableReference";
 
-            var result = FindPatternMethodRelaxed(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patterMethodSymbol);
+            var result = FindPatternMethodRelaxed(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
 
-            if (result != PatternLookupResult.Success)
+            if (patternMethodSymbol is null)
             {
                 return null;
             }
 
-            if (HasOptionalOrVariableParameters(patterMethodSymbol) ||
-                patterMethodSymbol.ReturnsVoid ||
-                !patterMethodSymbol.RefKind.IsManagedReference() ||
-                !(patterMethodSymbol.ParameterCount == 0 || patterMethodSymbol.IsStatic && patterMethodSymbol.ParameterCount == 1))
+            if (HasOptionalOrVariableParameters(patternMethodSymbol) ||
+                patternMethodSymbol.ReturnsVoid ||
+                !patternMethodSymbol.RefKind.IsManagedReference() ||
+                !(patternMethodSymbol.ParameterCount == 0 || patternMethodSymbol.IsStatic && patternMethodSymbol.ParameterCount == 1))
             {
                 // the method does not fit the pattern
-                additionalDiagnostics.Add(ErrorCode.WRN_PatternBadSignature, initializer.Syntax.Location, initializer.Type, "fixed", patterMethodSymbol);
+                additionalDiagnostics.Add(ErrorCode.WRN_PatternBadSignature, initializer.Syntax.Location, initializer.Type, "fixed", patternMethodSymbol);
                 return null;
             }
 
-            return patterMethodSymbol;
+            return patternMethodSymbol;
         }
 
         /// <summary>
@@ -3216,8 +3215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Perform a lookup for the specified method on the specified type, searching further if the first resolved symbol doesn't match
-        /// the requirements. Perform overload resolution the lookup results.
+        /// Perform a lookup for the specified method on the specified expression by attempting to invoke it 
         /// </summary>
         /// <param name="receiver">The expression to perform pattern lookup on</param>
         /// <param name="methodName">Method to search for.</param>
@@ -3248,8 +3246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                        indexed: false,
                        bindingDiagnostics);
 
-                BoundMethodGroup bmg = new BoundMethodGroup(syntaxNode, default, receiver, "Dispose", ImmutableArray<MethodSymbol>.Empty, LookupResult.GetInstance(), BoundMethodGroupFlags.SearchExtensionMethods, false);
-
                 if (boundAccess.Kind != BoundKind.MethodGroup)
                 {
                     // the thing is not a method
@@ -3271,14 +3267,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (patternMethodCall.Kind != BoundKind.Call)
                 {
-                    // did not find anything callable
                     return PatternLookupResult.NotCallable;
                 }
 
                 var call = (BoundCall)patternMethodCall;
                 if (call.ResultKind == LookupResultKind.Empty)
                 {
-                    // did not find any methods that even remotely fit
                     return PatternLookupResult.NoResults;
                 }
 
@@ -3290,7 +3284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (patternMethodSymbol is ErrorMethodSymbol ||
                     patternMethodCall.HasAnyErrors)
                 {
-                    // bound to something uncallable
                     return PatternLookupResult.ResultHasErrors;
                 }
 

@@ -469,6 +469,37 @@ class C3
         }
 
         [Fact]
+        public void UsingPatternStaticMethodTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+
+    public static void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (14,16): error CS0176: Member 'C1.Dispose()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "C1 c = new C1()").WithArguments("C1.Dispose()").WithLocation(13, 16),
+                // (14,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
+                );
+        }
+
+
+        [Fact]
         public void UsingPatternHidingInvalidInheritedWithPropertyAndValidExtensionMethodTest()
         {
             var source = @"
