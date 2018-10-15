@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Look for a type forwarder for the given type in any referenced assemblies, checking any using namespaces in
         /// the current imports.
         /// </summary>
-        /// <param name="name">The metadata name of the (potentially) forwarded type, without qualifyiers.</param>
+        /// <param name="name">The metadata name of the (potentially) forwarded type, without qualifiers.</param>
         /// <param name="qualifierOpt">Will be used to return the namespace of the found forwarder, 
         /// if any.</param>
         /// <param name="diagnostics">Will be used to report non-fatal errors during look up.</param>
