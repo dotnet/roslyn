@@ -250,6 +250,28 @@ d.cs
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
         }
 
+        [Fact]
+        public void SdkPathArg()
+        {
+            var parentDir = Temp.CreateDirectory();
+
+            var sdkDir = parentDir.CreateDirectory("sdk");
+            var sdkPath = sdkDir.Path;
+
+            var file = sdkDir.CreateFile("mscorlib.dll");
+
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { $"-sdkPath:{sdkPath}" }, null, null);
+            Assert.Equal(file.Path, parser.MetadataReferences[0].Reference);
+        }
+
+        [Fact]
+        public void SdkPathNoArg()
+        {
+            var parentDir = Temp.CreateDirectory();
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "-sdkPath" }, parentDir.Path, null);
+            parser.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString, arguments: new[] { "<text>", "-sdkPath" }).WithLocation(1, 1));
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {

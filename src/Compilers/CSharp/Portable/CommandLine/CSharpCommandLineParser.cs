@@ -407,6 +407,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             continue;
 
+                        case "sdkpath":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
+                            }
+                            else
+                            {
+                                sdkDirectory = value;
+                            }
+
+                            continue;
+
                         case "out":
                             if (string.IsNullOrWhiteSpace(value))
                             {
