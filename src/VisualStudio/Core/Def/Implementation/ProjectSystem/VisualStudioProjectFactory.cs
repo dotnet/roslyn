@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -47,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectUniqueName);
 
             _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
-                w.OnProjectAdded(
-                    ProjectInfo.Create(
+            {
+                var projectInfo = ProjectInfo.Create(
                         id,
                         versionStamp,
                         name: projectUniqueName,
@@ -56,7 +51,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions)));
+                        parseOptions: creationInfo.ParseOptions);
+
+                // HACK: update this since we're still on the UI thread. Note we can only update this if we don't have projects -- the workspace
+                // only lets us really do this with OnSolutionAdded for now.
+                string solutionPathToSetWithOnSolutionAdded = null;
+                var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+                if (solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var solutionFilePath, out _)))
+                {
+                    if (w.CurrentSolution.FilePath != solutionFilePath && w.CurrentSolution.ProjectIds.Count == 0)
+                    {
+                        solutionPathToSetWithOnSolutionAdded = solutionFilePath;
+                    }
+                }
+
+                if (solutionPathToSetWithOnSolutionAdded != null)
+                {
+                    w.OnSolutionAdded(
+                        SolutionInfo.Create(
+                            SolutionId.CreateNewId(solutionPathToSetWithOnSolutionAdded),
+                            VersionStamp.Create(),
+                            solutionPathToSetWithOnSolutionAdded,
+                            projects: new[] { projectInfo }));
+                }
+                else
+                {
+                    w.OnProjectAdded(projectInfo);
+                }
+            });
 
             // We do all these sets after the w.OnProjectAdded, as the setting of these properties is going to try to modify the workspace
             // again. Those modifications will all implicitly do nothing, since the workspace already has the values from above.
