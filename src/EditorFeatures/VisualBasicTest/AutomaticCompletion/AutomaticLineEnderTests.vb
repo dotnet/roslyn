@@ -218,13 +218,15 @@ End Module
 </code>)
         End Sub
 
+        ' The test verifies the integrated behavior which keeps the space '_'.
+        ' This corresponds to the actual VS behavior.
         <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub TestWithLineContinuation()
             Test(
 <code>
 Module M
     Sub Main()
-        Dim _
+        Dim _ 
             $$
     End Sub
 End Module
