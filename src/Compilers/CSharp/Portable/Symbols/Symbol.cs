@@ -866,16 +866,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool? GetNonNullTypesFromSyntax()
         {
+            bool? result = null;
             foreach (Location location in Locations)
             {
                 SyntaxTree tree = location.SourceTree;
-                if (tree != null)
+                if (tree == null)
                 {
-                    return ((CSharpSyntaxTree)tree).GetNonNullDirectiveState(location.SourceSpan.Start);
+                    continue;
                 }
+                bool? state = ((CSharpSyntaxTree)tree).GetNonNullDirectiveState(location.SourceSpan.Start);
+                if (state == null)
+                {
+                    continue;
+                }
+                if (state == true)
+                {
+                    return true;
+                }
+                result = false;
             }
-
-            return null;
+            return result;
         }
 
         internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()

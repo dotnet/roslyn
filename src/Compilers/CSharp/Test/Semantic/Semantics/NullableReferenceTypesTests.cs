@@ -184,6 +184,120 @@ class B
             comp.VerifyTypes();
         }
 
+        [Fact]
+        public void Directive_PartialClasses()
+        {
+            var source0 =
+@"class Base<T> { }
+class Program
+{
+#nonnull restore
+    static void F(Base<object?> b)
+    {
+    }
+    static void Main()
+    {
+        F(new C1());
+        F(new C2());
+        F(new C3());
+        F(new C4());
+        F(new C5());
+        F(new C6());
+        F(new C7());
+        F(new C8());
+        F(new C9());
+    }
+}";
+            var source1 =
+@"#pragma warning disable 8632
+partial class C1 : Base<object> { }
+partial class C2 { }
+partial class C3 : Base<object> { }
+#nonnull disable
+partial class C4 { }
+partial class C5 : Base<object> { }
+partial class C6 { }
+#nonnull restore
+partial class C7 : Base<object> { }
+partial class C8 { }
+partial class C9 : Base<object> { }
+";
+            var source2 =
+@"#pragma warning disable 8632
+partial class C1 { }
+partial class C4 : Base<object> { }
+partial class C7 { }
+#nonnull disable
+partial class C2 : Base<object> { }
+partial class C5 { }
+partial class C8 : Base<object> { }
+#nonnull restore
+partial class C3 { }
+partial class C6 : Base<object> { }
+partial class C9 { }
+";
+
+            // -nullable (default):
+            var comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C3());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C6());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
+                // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C7());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
+                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C8());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
+                // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C9());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
+
+            // -nullable-:
+            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullable(false));
+            comp.VerifyDiagnostics(
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C3());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C6());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
+                // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C7());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
+                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C8());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
+                // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C9());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
+
+            // -nullable+:
+            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullable(true));
+            comp.VerifyDiagnostics(
+                // (10,11): warning CS8620: Nullability of reference types in argument of type 'C1' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C1());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C1()").WithArguments("C1", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(10, 11),
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C3());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C6());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
+                // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C7());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
+                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C8());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
+                // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C9());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
+        }
+
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
         public void IsOperatorOnNonNullExpression()
         {
