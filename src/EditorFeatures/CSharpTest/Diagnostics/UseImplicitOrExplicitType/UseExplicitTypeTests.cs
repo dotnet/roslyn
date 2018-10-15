@@ -1903,5 +1903,19 @@ class Program
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnConstVar()
+        {
+            // This is handled by another code fix.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        const [|var|] v = 0;
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
     }
 }

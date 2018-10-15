@@ -279,6 +279,20 @@ class Program
             await TestMissingInRegularAndScriptAsync(code);
         }
 
+        [Fact]
+        public async Task NotOnConstVar()
+        {
+            // This is handled by another code fix.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        const [||]var v = 0;
+    }
+}");
+        }
+
         private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
         {
             // Enabled because the diagnostic is disabled
