@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         internal sealed class ChangeNamespaceCodeAction : CodeAction
         {
             private readonly State _state;
-            private readonly AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> _service;
+            private readonly AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> _service;
 
             public override string Title => _state.TargetNamespace.Length == 0 
                 ? FeaturesResources.Change_to_global_namespace
                 : string.Format(FeaturesResources.Change_namespace_to_0, _state.TargetNamespace);
 
             public ChangeNamespaceCodeAction(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
                 State state)
             {
                 _service = service;

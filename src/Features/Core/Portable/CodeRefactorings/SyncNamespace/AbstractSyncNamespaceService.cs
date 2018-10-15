@@ -10,31 +10,29 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
-        CodeRefactoringProvider
-        where TNamespaceDeclarationSyntax : SyntaxNode
-        where TCompilationUnitSyntax : SyntaxNode 
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
+       ISyncNamespaceService
+       where TNamespaceDeclarationSyntax : SyntaxNode
+       where TCompilationUnitSyntax : SyntaxNode
     {
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;            
 
-            var state = await State.CreateAsync(this, document, textSpan, cancellationToken);
+            var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
-                return;
+                return default;
             }
 
-            context.RegisterRefactorings(CreateCodeActions(this, state));
+            return CreateCodeActions(this, state);
         }
 
         private static ImmutableArray<CodeAction> CreateCodeActions(
-            AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, State state)
+            AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, State state)
         {
             var builder = ArrayBuilder<CodeAction>.GetInstance();
 

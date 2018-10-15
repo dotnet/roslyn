@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
     {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private async static Task<(bool shouldTriggerRefactoring, string defaultNamespace, string declaredNamespace)> 
                 TryGetDefaultNamespaceAndNamespaceDeclarationAsync(
                 ImmutableArray<Document> documents,
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
                 ISyntaxFactsService syntaxFacts, 
                 TextSpan textSpan, 
                 CancellationToken cancellationToken)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             public static async Task<State> CreateAsync(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, 
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, 
                 Document document, 
                 TextSpan textSpan, 
                 CancellationToken cancellationToken)
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
             /// </summary>
             private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> serivice, 
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> serivice, 
                 IEnumerable<string> folders, 
                 ISyntaxFactsService syntaxFacts)
             {

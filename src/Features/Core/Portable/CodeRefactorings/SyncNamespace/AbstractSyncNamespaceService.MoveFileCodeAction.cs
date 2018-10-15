@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {

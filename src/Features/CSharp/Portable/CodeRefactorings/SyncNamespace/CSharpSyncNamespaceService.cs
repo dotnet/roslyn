@@ -8,18 +8,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SyncNamespace), Shared]
-    internal sealed class CSharpSyncNamespaceCodeRefactoringProvider :
-        AbstractSyncNamespaceCodeRefactoringProvider<NamespaceDeclarationSyntax, CompilationUnitSyntax>
+    [ExportLanguageService(typeof(ISyncNamespaceService), LanguageNames.CSharp), Shared]
+    internal sealed class CSharpSyncNamespaceService :
+        AbstractSyncNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax>
     {
         protected override IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl)
         {
