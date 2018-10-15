@@ -3236,6 +3236,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split into nested &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Split_into_nested_0_statements {
+            get {
+                return ResourceManager.GetString("Split_into_nested_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {

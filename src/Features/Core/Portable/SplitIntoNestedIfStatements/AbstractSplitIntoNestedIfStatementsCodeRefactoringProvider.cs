@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
         where TIfStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
+        protected abstract string IfKeywordText { get; }
+
         protected abstract int LogicalAndSyntaxKind { get; }
 
         protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out TIfStatementSyntax ifStatement);
@@ -39,7 +41,10 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             if (IsPartOfBinaryExpressionChain(token, LogicalAndSyntaxKind, out var rootExpression) &&
                 IsConditionOfIfStatement(rootExpression, out _))
             {
-                context.RegisterRefactoring(new MyCodeAction(c => FixAsync(context.Document, context.Span, c)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        c => FixAsync(context.Document, context.Span, c),
+                        IfKeywordText));
             }
         }
 
@@ -86,8 +91,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base("Split into nested 'if' statements", createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
+                : base(string.Format(FeaturesResources.Split_into_nested_0_statements, ifKeywordText), createChangedDocument)
             {
             }
         }

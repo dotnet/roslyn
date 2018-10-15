@@ -152,6 +152,11 @@
         <target state="new">Replace '{0}' with '{1}' </target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_into_nested_0_statements">
+        <source>Split into nested '{0}' statements</source>
+        <target state="new">Split into nested '{0}' statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="new">Use block body for lambda expressions</target>
