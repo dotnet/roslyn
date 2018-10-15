@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return false;
                 }
 
-                // This is handled by another code fix.
+                // This error case is handled by a separate code fix (UseExplicitTypeForConst).
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
                     return false;

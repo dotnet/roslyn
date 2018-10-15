@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
                 base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Use_explicit_type_instead_of_var)
+                     createChangedDocument)
             {
             }
         }

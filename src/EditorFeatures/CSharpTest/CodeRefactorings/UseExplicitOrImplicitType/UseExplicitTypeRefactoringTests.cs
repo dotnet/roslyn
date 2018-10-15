@@ -282,7 +282,7 @@ class Program
         [Fact]
         public async Task NotOnConstVar()
         {
-            // This is handled by another code fix.
+            // This error case is handled by a separate code fix (UseExplicitTypeForConst).
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
