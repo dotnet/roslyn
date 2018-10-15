@@ -221,8 +221,8 @@ namespace [||]{declaredNamespace}
     class Class1 
     {{ 
         private Foo.Class2 c2;
-        private Bar.Class3 c3;
-        private Baz.Class4 c4;
+        private Foo.Bar.Class3 c3;
+        private Foo.Bar.Baz.Class4 c4;
     }}
 }}</Document>
 <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 

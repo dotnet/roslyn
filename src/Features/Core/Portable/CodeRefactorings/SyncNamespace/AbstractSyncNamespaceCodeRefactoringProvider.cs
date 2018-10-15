@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -10,9 +11,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TService, TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
+    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
         CodeRefactoringProvider
-        where TService : AbstractSyncNamespaceCodeRefactoringProvider<TService, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {
@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;            
 
-            var state = await State.CreateAsync((TService)this, document, textSpan, cancellationToken);
+            var state = await State.CreateAsync(this, document, textSpan, cancellationToken);
             if (state == null)
             {
                 return;
             }
 
-            context.RegisterRefactorings(CreateCodeActions((TService)this, state));
+            context.RegisterRefactorings(CreateCodeActions(this, state));
         }
 
-        private static ImmutableArray<CodeAction> CreateCodeActions(TService service, State state)
+        private static ImmutableArray<CodeAction> CreateCodeActions(AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, State state)
         {
             var builder = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             return builder.ToImmutableAndFree();
         }
+
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the namespce to be changed.
         /// If this reference is the right side of a qualified name, the new node returned would be the entire qualified name. Depends on 
@@ -58,15 +59,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// <param name="newNamespaceParts">If specified, the namespace of original reference will be replaced with given namespace in the replacement node.</param>
         /// <param name="old">The node to be replaced. This might be an ancestor of original </param>
         /// <param name="new">The replacement node.</param>
-        abstract protected bool TryGetReplacementSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
-
-        abstract protected ImmutableArray<ISymbol> GetDeclaredSymbolsInContainer(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        abstract protected bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
 
         abstract protected string EscapeIdentifier(string identifier);
 
         abstract protected SyntaxNode CreateUsingDirective(ImmutableArray<string> namespaceParts);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="declaredNamespaceParts"></param>
+        /// <param name="targetNamespaceParts"></param>
+        /// <returns></returns>
         abstract protected SyntaxNode ChangeNamespaceDeclaration(SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
+
+        abstract protected IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode node);
 
         /// <summary>
         /// Determine if this refactoring should be triggered based on current cursor position and if there's any partial type declarations. 
@@ -76,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// </summary>
         abstract protected Task<(bool, TNamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
 
+        // Add comments
         private static bool TryGetRelativeNamespace(string relativeTo, string @namespace, out string relativeNamespace)
         {
             Debug.Assert(relativeTo != null && @namespace != null);
@@ -97,6 +106,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 relativeNamespace = null;
             }
             return relativeNamespace == null;
+        }
+
+        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+        {
+            return !parts.IsDefaultOrEmpty && parts.Length == 1 && parts[1].Length == 0;
         }
     }
 }

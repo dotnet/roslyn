@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,14 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TService, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
-        where TService : AbstractSyncNamespaceCodeRefactoringProvider<TService, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode 
     {
         internal sealed class MoveFileCodeAction : CodeAction
         {
-            private readonly Document _document;
+            private readonly State _state;
             private readonly ImmutableArray<string> _newfolders;
 
             public override string Title
@@ -28,10 +28,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ? string.Format(FeaturesResources.Move_file_to_0_folder, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders)) 
                 : FeaturesResources.Move_file_to_project_root_folder;
 
-
-            public MoveFileCodeAction(Document document, ImmutableArray<string> newFolders)
+            public MoveFileCodeAction(State state, ImmutableArray<string> newFolders)
             {
-                _document = document;
+                _state = state;
                 _newfolders = newFolders;
             }
 
@@ -40,51 +39,68 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private async Task<ImmutableArray<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
             {
-                var newSolution = _document.Project.Solution.RemoveDocument(_document.Id);
-                var text = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                var newDocumentId = DocumentId.CreateNewId(_document.Project.Id, _document.Name);
-                newSolution = newSolution.AddDocument(newDocumentId, _document.Name, text: string.Empty, folders: _newfolders);
-                newSolution = newSolution.WithDocumentText(newDocumentId, text, PreservationMode.PreserveIdentity);
+                var solution = _state.Solution;
+                DocumentId newDocumentId = default;
+                (solution, newDocumentId) = await MoveFileWorker(solution, _state.DocumentIds.First(), cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(newSolution),
+                    new ApplyChangesOperation(solution),
                     new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
+            }
+
+            private async Task<(Solution, DocumentId)> MoveFileWorker(Solution solution, DocumentId Id, CancellationToken cancellationToken)
+            {
+                var document = solution.GetDocument(Id);
+
+                var newSolution = document.Project.Solution.RemoveDocument(Id);
+                var newDocumentId = DocumentId.CreateNewId(document.Project.Id, document.Name);
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                newSolution = newSolution.AddDocument(newDocumentId, document.Name, text: string.Empty, folders: _newfolders);
+                return (newSolution.WithDocumentText(newDocumentId, text, PreservationMode.PreserveIdentity), newDocumentId);
             }
             
             public static ImmutableArray<MoveFileCodeAction> Create(State state)
             {
-                var document = state.Document;
-
+                // Since all documents have identical folder structure, we can do the computation on any of them.
+                var document = state.Solution.GetDocument(state.DocumentIds.First());
                 var parts = state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
-                if (parts.Any(s => s.IndexOfAny(Path.GetInvalidPathChars()) >= 0))
-                {
-                    return ImmutableArray<MoveFileCodeAction>.Empty;
-                }
+
+                // Invalid char can only appear in namespace name when there's error,
+                // which we have checked before creating any code actions.
+                Debug.Assert(parts.Any(s => s.IndexOfAny(Path.GetInvalidPathChars()) < 0));
 
                 var projectRootFolder = FolderInfo.CreateFolderHierarchyForProject(document.Project);
                 var candidateFolders = FindCandidateFolders(projectRootFolder, parts, ImmutableArray<string>.Empty);
-                return candidateFolders.SelectAsArray(folders => new MoveFileCodeAction(document, folders));
+                return candidateFolders.SelectAsArray(folders => new MoveFileCodeAction(state, folders));
             }
 
             /// <summary>
             /// We try to provide additional "move file" options if we can find existing folders that matches target namespace.
-            /// For example, if the target namespace is 'DefaultNamesapce.A.B.C', and there's a folder 'ProjectRoot\A.B\' already exists, 
-            /// then will provide two actions, "move file to ProjectRoot\A.B\C\" and "move file to ProjectRoot\A\B\C\".
+            /// For example, if the target namespace is 'DefaultNamesapce.A.B.C', and there's a folder 'ProjectRoot\A.B\' already 
+            /// exists, then will provide two actions, "move file to ProjectRoot\A.B\C\" and "move file to ProjectRoot\A\B\C\".
             /// </summary>
-            private static ImmutableArray<ImmutableArray<string>> FindCandidateFolders(FolderInfo currentFolderInfo, ImmutableArray<string> parts, ImmutableArray<string> currentFolder)
+            private static ImmutableArray<ImmutableArray<string>> FindCandidateFolders(
+                FolderInfo currentFolderInfo, 
+                ImmutableArray<string> parts, 
+                ImmutableArray<string> currentFolder)
             {
-                if (parts.Length == 0)
+                if (parts.Length == 0 || parts.Length == 1 && parts[0].Length == 0)
                 {
                     return ImmutableArray.Create(currentFolder);
                 }
 
                 var partsArray = parts.ToArray();
+
+                // Try to figure out all possible folder names that can match the target namespace.
+                // For example, if the target is "A.B.C", then the matching folder names include
+                // "A", "A.B" and "A.B.C". The item "index" in the result tuple is the number 
+                // of items in namespace parts used to construct iten "foldername".
                 var candidates = Enumerable.Range(1, parts.Length)
-                    .Select(i => (foldername: string.Join(".", partsArray, 0, i), index: i))     // index is the number of items in parts used to construct key
+                    .Select(i => (foldername: string.Join(".", partsArray, 0, i), index: i)) 
                     .ToImmutableDictionary(t => t.foldername, t => t.index, PathUtilities.Comparer);
 
-                var subFolders = currentFolderInfo.Folders;
+                var subFolders = currentFolderInfo.ChildFolders;
 
                 var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
                 foreach ((var folderName, var index) in candidates)
@@ -99,6 +115,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     }
                 }
 
+                // Make sure we always have the default path as an available option to the user 
+                // (which might have been found by the search above, therefore the check here)
+                // For example, if the target namespace is "A.B.C.D", and there's folder <ROOT>\A.B\,
+                // the search above would only return "<ROOT>\A.B\C\D". We'd want to provide 
+                // "<ROOT>\A\B\C\D" as the default path.
                 var defaultPathBasedOnCurrentFolder = currentFolder.AddRange(parts);
                 if (builder.All(folders => !folders.SequenceEqual(defaultPathBasedOnCurrentFolder, PathUtilities.Comparer)))
                 {
@@ -110,16 +131,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private class FolderInfo
             {
-                private Dictionary<string, FolderInfo> _folders;
+                private Dictionary<string, FolderInfo> _childFolders;
 
                 public string Name { get; }
 
-                public IReadOnlyDictionary<string, FolderInfo> Folders => _folders;
+                public IReadOnlyDictionary<string, FolderInfo> ChildFolders => _childFolders;
 
                 private FolderInfo(string name)
                 {
                     Name = name;
-                    _folders = new Dictionary<string, FolderInfo>(StringComparer.Ordinal);
+                    _childFolders = new Dictionary<string, FolderInfo>(StringComparer.Ordinal);
                 }
 
                 private void AddFolder(IEnumerable<string> folder)
@@ -130,10 +151,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     }
 
                     var firstFolder = folder.First();
-                    if (!_folders.TryGetValue(firstFolder, out var firstFolderInfo))
+                    if (!_childFolders.TryGetValue(firstFolder, out var firstFolderInfo))
                     {
                         firstFolderInfo = new FolderInfo(firstFolder);
-                        _folders[firstFolder] = firstFolderInfo;
+                        _childFolders[firstFolder] = firstFolderInfo;
                     }
 
                     firstFolderInfo.AddFolder(folder.Skip(1));
@@ -141,9 +162,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // TODO: 
                 // Since we are getting folder data from documents, only non-empty folders 
-                // in the project are discovered. It's possible get complete folder structure
-                // from VS but it requires UI thread to do so. We might want to revisit this
-                // later.
+                // in the project are discovered. It's possible to get complete folder structure
+                // from VS but it requires UI thread to do so. We might want to revisit this later.
                 public static FolderInfo CreateFolderHierarchyForProject(Project project)
                 {
                     var handledFolders = new HashSet<string>(StringComparer.Ordinal);
