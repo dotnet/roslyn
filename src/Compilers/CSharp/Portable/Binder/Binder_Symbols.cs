@@ -1323,6 +1323,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, node.Location);
         }
 
+        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxToken token)
+        {
+            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
+            return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, token.GetLocation());
+        }
+
         /// <summary>
         /// Reports use-site diagnostics for the specified symbol.
         /// </summary>

@@ -254,6 +254,16 @@ namespace Microsoft.CodeAnalysis
         public const string GetEnumeratorMethodName = "GetEnumerator";
 
         /// <summary>
+        /// The required name for the <c>GetAsyncEnumerator</c> method used in a ForEach statement.
+        /// </summary>
+        public const string GetAsyncEnumeratorMethodName = "GetAsyncEnumerator";
+
+        /// <summary>
+        /// The required name for the <c>MoveNextAsync</c> method used in a ForEach-await statement.
+        /// </summary>
+        public const string MoveNextAsyncMethodName = "MoveNextAsync";
+
+        /// <summary>
         /// The required name for the <c>Deconstruct</c> method used in a deconstruction.
         /// </summary>
         public const string DeconstructMethodName = "Deconstruct";

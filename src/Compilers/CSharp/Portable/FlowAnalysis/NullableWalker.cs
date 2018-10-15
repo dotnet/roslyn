@@ -160,6 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // For purpose of nullability analysis, awaits create pending branches, so async usings do too
+        public sealed override bool AsyncUsingAddsPendingBranch => true;
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
@@ -3946,14 +3949,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
-            if (node.Type.IsValueType || node.HasErrors || (object)node.GetResult == null)
+            if (node.Type.IsValueType || node.HasErrors || (object)node.AwaitableInfo.GetResult == null)
             {
                 SetResult(node);
             }
             else
             {
                 // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
-                _resultType = node.GetResult.ReturnType;
+                _resultType = node.AwaitableInfo.GetResult.ReturnType;
             }
             return result;
         }

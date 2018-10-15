@@ -1585,6 +1585,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
         WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
 
+        ERR_NoConvToIAsyncDisp = 8410,
+        ERR_AsyncForEachMissingMember = 8411,
+        ERR_BadGetAsyncEnumerator = 8412,
+        ERR_MultipleIAsyncEnumOfT = 8413,
+        ERR_ForEachMissingMemberWrongAsync = 8414,
+        ERR_AsyncForEachMissingMemberWrongAsync = 8415,
+        ERR_BadDynamicAsyncForEach = 8416,
+
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,
@@ -1623,6 +1631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
 
         #endregion diagnostics introduced for C# 8.0
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
-    // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }
