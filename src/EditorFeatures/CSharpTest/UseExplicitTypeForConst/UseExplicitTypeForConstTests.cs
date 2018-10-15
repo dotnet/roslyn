@@ -221,21 +221,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTypeForConst
         }
 
         [Fact]
-        public async Task TestWithMultipleDeclarators()
+        public async Task TestNotWithMultipleDeclarators()
         {
-            await TestInRegularAndScript1Async(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
-        const [|var|] a = true, b = 0;
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        const bool a = true, b = 0;
+        const [|var|] a = 0, b = 0;
     }
 }");
         }
