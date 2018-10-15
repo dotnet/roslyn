@@ -258,10 +258,8 @@ d.cs
             var sdkDir = parentDir.CreateDirectory("sdk");
             var sdkPath = sdkDir.Path;
 
-            var file = sdkDir.CreateFile("mscorlib.dll");
-
             var parser = CSharpCommandLineParser.Default.Parse(new[] { $"-sdkPath:{sdkPath}" }, null, null);
-            Assert.Equal(file.Path, parser.MetadataReferences[0].Reference);
+            AssertEx.Equal(ImmutableArray.Create(sdkPath), parser.ReferencePaths);
         }
 
         [Fact]
