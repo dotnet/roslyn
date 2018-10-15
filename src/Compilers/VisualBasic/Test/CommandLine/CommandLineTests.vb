@@ -3194,6 +3194,28 @@ print Goodbye, World"
             AssertEx.Equal(ImmutableArray.Create(Of String)(), args.KeyFileSearchPaths)
         End Sub
 
+        <Fact>
+        Public Sub SdkPathArg()
+            Dim parentDir = Temp.CreateDirectory()
+
+            Dim sdkDir = parentDir.CreateDirectory("sdk")
+            Dim sdkPath = sdkDir.Path
+
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({$"-sdkPath:{sdkPath}"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray.Create(sdkPath), parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        Public Sub SdkPathNoArg()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", "-sdkPath", $"-out:{parentDir.Path}"}, parentDir.Path, Nothing)
+            parser.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired, arguments:={"sdkpath", ":<path>"}).WithLocation(1, 1),
+                Diagnostic(ERRID.WRN_CannotFindStandardLibrary1).WithArguments("System.dll").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
+        End Sub
+
+
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapPdbDeterminism()
