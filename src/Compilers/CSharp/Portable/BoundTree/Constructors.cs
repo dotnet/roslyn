@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundFieldAccess)receiver).IsByValue;
 
                 case BoundKind.Local:
-                    return !((BoundLocal)receiver).LocalSymbol.IsWritableVariable;
+                    return !(((BoundLocal)receiver).LocalSymbol.IsWritableVariable || ((BoundLocal)receiver).LocalSymbol.IsRef);
 
                 default:
                     return false;
