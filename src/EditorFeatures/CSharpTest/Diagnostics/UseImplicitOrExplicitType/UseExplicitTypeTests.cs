@@ -1903,5 +1903,77 @@ class Program
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task ConstVar()
+        {
+            var before = @"
+class C
+{
+    void M()
+    {
+        const [|var|] v = 0;
+    }
+}";
+            var after = @"
+class C
+{
+    void M()
+    {
+        const int v = 0;
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task ConstVar_NonConstInitializer()
+        {
+            var before = @"
+class C
+{
+    void M()
+    {
+        const [|var|] v = System.Console.ReadLine();
+    }
+}";
+            var after = @"
+class C
+{
+    void M()
+    {
+        const string v = System.Console.ReadLine();
+    }
+}";
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task ConstVar_NotWithLambda()
+        {
+            var before = @"
+class C
+{
+    void M()
+    {
+        const [|var|] v = () => { };
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeEverywhere()));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task ConstVar_NotWithAnonymousType()
+        {
+            var before = @"
+class C
+{
+    void M()
+    {
+        const [|var|] v = new { a = 0 };
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeEverywhere()));
+        }
     }
 }

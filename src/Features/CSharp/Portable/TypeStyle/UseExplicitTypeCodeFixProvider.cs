@@ -21,8 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExplicitType), Shared]
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private const string CS0822 = nameof(CS0822); // Implicitly-typed variables cannot be constant
+
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
+            ImmutableArray.Create(CS0822, IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -51,40 +53,29 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var declarationContext = node.Parent;
 
-            TypeSyntax typeSyntax = null;
+            if (node is VariableDeclarationSyntax variableDeclaration)
+            {
+                // CS0822 is reported on the declaration, not the type.
+                node = variableDeclaration.Type;
+            }
+
             ParenthesizedVariableDesignationSyntax parensDesignation = null;
-            if (declarationContext is RefTypeSyntax refType)
+            if (node.Parent is DeclarationExpressionSyntax declarationExpression &&
+                declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
-                declarationContext = declarationContext.Parent;
+                node = node.Parent;
+                parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
             }
 
-            if (declarationContext is VariableDeclarationSyntax varDecl)
+            var typeSymbol = semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+            if (typeSymbol.IsAnonymousType)
             {
-                typeSyntax = varDecl.Type;
-            }
-            else if (declarationContext is ForEachStatementSyntax forEach)
-            {
-                typeSyntax = forEach.Type;
-            }
-            else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
-            {
-                typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
-                {
-                    parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
-                }
-            }
-            else
-            {
-                Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
+                typeSymbol = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
             }
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
-
                 // We're going to be passed through the simplifier.  Tell it to not just convert
                 // this back to var (as that would defeat the purpose of this refactoring entirely).
                 var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
@@ -96,14 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
-
                 var leadingTrivia = node.GetLeadingTrivia()
                     .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
-                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
+                var tupleDeclaration = GenerateTupleDeclaration(typeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
 
-                editor.ReplaceNode(declarationContext, tupleDeclaration);
+                editor.ReplaceNode(node, tupleDeclaration);
             }
         }
 
