@@ -5580,12 +5580,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitNonNullTypesAttribute" xml:space="preserve">
     <value>Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.</value>
   </data>
-  <data name="WRN_PragmaNonNullTypes" xml:space="preserve">
-    <value>Non-null reference types are off.</value>
-  </data>
-  <data name="WRN_PragmaNonNullTypes_Title" xml:space="preserve">
-    <value>Non-null reference types are off.</value>
-  </data>
   <data name="ERR_NonNullDirectiveQualifierExpected" xml:space="preserve">
     <value>Expected disable or restore</value>
   </data>

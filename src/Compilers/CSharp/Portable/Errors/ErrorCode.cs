@@ -1622,7 +1622,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
 
         ERR_ExplicitNonNullTypesAttribute = 8635,
-        WRN_PragmaNonNullTypes = 8636, // PROTOTYPE(NullableReferenceTypes): Remove this fake warning once we have full support for new directive.
         ERR_NonNullDirectiveQualifierExpected = 8637,
 
         #endregion diagnostics introduced for C# 8.0
