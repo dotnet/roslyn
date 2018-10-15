@@ -6804,7 +6804,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType.TypeSymbol, hasErrors);
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var resultType = rank == 1 &&
+                convertedArguments[0].Type == GetWellKnownType(WellKnownType.System_Range, ref useSiteDiagnostics)
+                ? arrayType
+                : arrayType.ElementType.TypeSymbol;
+
+            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors);
         }
 
         private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics)
@@ -6824,7 +6830,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt32, node, diagnostics) ??
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int64, node, diagnostics) ??
-                TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt64, node, diagnostics);
+                TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt64, node, diagnostics) ??
+                TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics) ??
+                TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
 
             if (result == null)
             {
@@ -6842,21 +6850,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, WellKnownType wellKnownType, SyntaxNode node, DiagnosticBag diagnostics)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol type = GetWellKnownType(wellKnownType, ref useSiteDiagnostics);
+
+            if (!type.IsErrorType())
+            {
+                var attemptDiagnostics = DiagnosticBag.GetInstance();
+                var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
+                if (!(result is null))
+                {
+                    diagnostics.AddRange(attemptDiagnostics);
+                }
+                attemptDiagnostics.Free();
+                return result;
+            }
+
+            return null;
+        }
+
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, DiagnosticBag diagnostics)
         {
             DiagnosticBag attemptDiagnostics = DiagnosticBag.GetInstance();
 
             TypeSymbol type = GetSpecialType(specialType, attemptDiagnostics, node);
 
+            var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
+
+            if (!(result is null))
+            {
+                diagnostics.AddRange(attemptDiagnostics);
+            }
+
+            attemptDiagnostics.Free();
+            return result;
+        }
+
+        private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, TypeSymbol targetType, SyntaxNode node, DiagnosticBag diagnostics)
+        {
             Debug.Assert(expr != null);
-            Debug.Assert((object)type != null);
+            Debug.Assert((object)targetType != null);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, type, ref useSiteDiagnostics);
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                attemptDiagnostics.Free();
                 return null;
             }
 
@@ -6865,11 +6905,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: type, diagnostics: attemptDiagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: targetType, diagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
-
-            diagnostics.AddRange(attemptDiagnostics);
-            attemptDiagnostics.Free();
 
             return result;
         }

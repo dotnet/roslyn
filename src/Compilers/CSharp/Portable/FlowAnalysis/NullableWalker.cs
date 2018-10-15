@@ -1356,7 +1356,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(i);
             }
 
-            _resultType = type?.ElementType ?? default;
+            if (node.Indices.Length == 1 &&
+                node.Indices[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                _resultType = TypeSymbolWithAnnotations.Create(type);
+            }
+            else
+            {
+                _resultType = type?.ElementType ?? default;
+            }
+
             return null;
         }
 
