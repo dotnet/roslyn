@@ -60,44 +60,22 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 node = variableDeclaration.Type;
             }
 
-            var declarationContext = node.Parent;
-
-            TypeSyntax typeSyntax = null;
             ParenthesizedVariableDesignationSyntax parensDesignation = null;
-            if (declarationContext is RefTypeSyntax refType)
+            if (node.Parent is DeclarationExpressionSyntax declarationExpression &&
+                declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
-                declarationContext = declarationContext.Parent;
+                node = node.Parent;
+                parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
             }
 
-            if (declarationContext is VariableDeclarationSyntax varDecl)
+            var typeSymbol = semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+            if (typeSymbol.IsAnonymousType)
             {
-                typeSyntax = varDecl.Type;
-            }
-            else if (declarationContext is ForEachStatementSyntax forEach)
-            {
-                typeSyntax = forEach.Type;
-            }
-            else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
-            {
-                typeSyntax = declarationExpression.Type;
-                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
-                {
-                    parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
-                }
-            }
-            else
-            {
-                Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
+                typeSymbol = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
             }
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded(), cancellationToken).ConvertedType;
-                if (typeSymbol.IsAnonymousType)
-                {
-                    typeSymbol = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
-                }
-
                 // We're going to be passed through the simplifier.  Tell it to not just convert
                 // this back to var (as that would defeat the purpose of this refactoring entirely).
                 var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
@@ -109,14 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
-
                 var leadingTrivia = node.GetLeadingTrivia()
                     .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
-                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
+                var tupleDeclaration = GenerateTupleDeclaration(typeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
 
-                editor.ReplaceNode(declarationContext, tupleDeclaration);
+                editor.ReplaceNode(node, tupleDeclaration);
             }
         }
 
