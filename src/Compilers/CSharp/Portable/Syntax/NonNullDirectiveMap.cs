@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal sealed class NonNullDirectiveMap
     {
-        private static readonly NonNullDirectiveMap Empty = new NonNullDirectiveMap(ImmutableArray<(int, bool)>.Empty);
+        private static readonly NonNullDirectiveMap Empty = new NonNullDirectiveMap(ImmutableArray<(int Position, bool State)>.Empty);
 
-        private readonly ImmutableArray<(int, bool)> _directives;
+        private readonly ImmutableArray<(int Position, bool State)> _directives;
 
         internal static NonNullDirectiveMap Create(SyntaxTree tree)
         {
@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return directives.IsEmpty ? Empty : new NonNullDirectiveMap(directives);
         }
 
-        private NonNullDirectiveMap(ImmutableArray<(int, bool)> directives)
+        private NonNullDirectiveMap(ImmutableArray<(int Position, bool State)> directives)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
             {
-                Debug.Assert(directives[i - 1].Item1 < directives[i].Item1);
+                Debug.Assert(directives[i - 1].Position < directives[i].Position);
             }
 #endif
             _directives = directives;
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return null;
             }
-            Debug.Assert(_directives[index].Item1 <= position);
-            Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Item1);
-            return _directives[index].Item2;
+            Debug.Assert(_directives[index].Position <= position);
+            Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
+            return _directives[index].State;
         }
 
-        private static ImmutableArray<(int, bool)> GetDirectives(SyntaxTree tree)
+        private static ImmutableArray<(int Position, bool State)> GetDirectives(SyntaxTree tree)
         {
-            var builder = ArrayBuilder<(int, bool)>.GetInstance();
+            var builder = ArrayBuilder<(int Position, bool State)>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
             {
                 if (d.Kind() != SyntaxKind.NonNullDirectiveTrivia)
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return builder.ToImmutableAndFree();
         }
 
-        private sealed class PositionComparer : IComparer<(int, bool)>
+        private sealed class PositionComparer : IComparer<(int Position, bool State)>
         {
             internal static readonly PositionComparer Instance = new PositionComparer();
 
-            public int Compare((int, bool) x, (int, bool) y)
+            public int Compare((int Position, bool State) x, (int Position, bool State) y)
             {
-                return x.Item1.CompareTo(y.Item1);
+                return x.Position.CompareTo(y.Position);
             }
         }
     }
