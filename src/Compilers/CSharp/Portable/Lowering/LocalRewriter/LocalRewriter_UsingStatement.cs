@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Rewrite a using statement into a try finally statement.  Four forms are possible:
         ///   1) using (expr) stmt
-        ///   2) using await (expr) stmt
+        ///   2) await using (expr) stmt
         ///   3) using (C c = expr) stmt
-        ///   4) using await (C c = expr) stmt
+        ///   4) await using (C c = expr) stmt
         ///
         /// The first two are handled by RewriteExpressionUsingStatement and the latter two are handled by
         /// RewriteDeclarationUsingStatement (called in a loop, once for each local declared).

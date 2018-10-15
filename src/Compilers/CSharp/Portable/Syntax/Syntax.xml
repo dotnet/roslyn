@@ -2148,11 +2148,11 @@
 
   <!-- Because there are two forms of the foreach loop, we make an abstract base. -->
   <AbstractNode Name="CommonForEachStatementSyntax" Base="StatementSyntax">
-    <Field Name="ForEachKeyword" Type="SyntaxToken">
-      <Kind Name="ForEachKeyword"/>
-    </Field>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="AwaitKeyword"/>
+    </Field>
+    <Field Name="ForEachKeyword" Type="SyntaxToken">
+      <Kind Name="ForEachKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
@@ -2170,11 +2170,11 @@
   <Node Name="ForEachStatementSyntax" Base="CommonForEachStatementSyntax">
     <!-- This is the existing C# 6 node. -->
     <Kind Name="ForEachStatement"/>
-    <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
-      <Kind Name="ForEachKeyword"/>
-    </Field>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AwaitKeyword"/>
+    </Field>
+    <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="ForEachKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
@@ -2200,11 +2200,11 @@
        into) the old one. -->
   <Node Name="ForEachVariableStatementSyntax" Base="CommonForEachStatementSyntax">
     <Kind Name="ForEachVariableStatement"/>
-    <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
-      <Kind Name="ForEachKeyword"/>
-    </Field>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AwaitKeyword"/>
+    </Field>
+    <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="ForEachKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenParenToken"/>
@@ -2231,15 +2231,15 @@
 
   <!--
   - using (...) { ... }
-  - using await (...) { ... }
+  - await using (...) { ... }
   -->
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
     <Kind Name="UsingStatement"/>
-    <Field Name="UsingKeyword" Type="SyntaxToken">
-      <Kind Name="UsingKeyword"/>
-    </Field>
     <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="AwaitKeyword"/>
+    </Field>
+    <Field Name="UsingKeyword" Type="SyntaxToken">
+      <Kind Name="UsingKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>

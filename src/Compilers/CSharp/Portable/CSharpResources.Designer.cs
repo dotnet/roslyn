@@ -712,18 +712,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
         /// </summary>
-        internal static string ERR_AsyncForEachMissingMember {
+        internal static string ERR_AwaitForEachMissingMember {
             get {
-                return ResourceManager.GetString("ERR_AsyncForEachMissingMember", resourceCulture);
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMember", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;foreach await&apos;?.
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;await foreach&apos;?.
         /// </summary>
-        internal static string ERR_AsyncForEachMissingMemberWrongAsync {
+        internal static string ERR_AwaitForEachMissingMemberWrongAsync {
             get {
-                return ResourceManager.GetString("ERR_AsyncForEachMissingMemberWrongAsync", resourceCulture);
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMemberWrongAsync", resourceCulture);
             }
         }
         
@@ -1432,9 +1432,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Cannot use a collection of dynamic type in an asynchronous foreach.
         /// </summary>
-        internal static string ERR_BadDynamicAsyncForEach {
+        internal static string ERR_BadDynamicAwaitForEach {
             get {
-                return ResourceManager.GetString("ERR_BadDynamicAsyncForEach", resourceCulture);
+                return ResourceManager.GetString("ERR_BadDynamicAwaitForEach", resourceCulture);
             }
         }
         
@@ -4967,7 +4967,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach await&apos;?.
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;await foreach&apos;?.
         /// </summary>
         internal static string ERR_ForEachMissingMemberWrongAsync {
             get {

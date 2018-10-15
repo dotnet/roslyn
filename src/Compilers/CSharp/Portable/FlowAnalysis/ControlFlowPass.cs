@@ -290,8 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RestorePending(oldPending1);
         }
 
-        // For purpose of control flow analysis, awaits do not create pending branches, so async usings don't either
-        public sealed override bool AsyncUsingAddsPendingBranch => false;
+        // For purpose of control flow analysis, awaits do not create pending branches, so asynchronous usings don't either
+        public sealed override bool AwaitUsingAddsPendingBranch => false;
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {

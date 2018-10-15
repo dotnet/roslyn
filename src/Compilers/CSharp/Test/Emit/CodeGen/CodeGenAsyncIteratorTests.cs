@@ -93,7 +93,7 @@ class C
     }
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var s in M())
+        await foreach (var s in M())
         {
         }
     }
@@ -665,7 +665,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        using await (var enumerator = M().GetAsyncEnumerator())
+        await using (var enumerator = M().GetAsyncEnumerator())
         {
             var found = await enumerator.MoveNextAsync();
             if (!found) throw null;
@@ -702,7 +702,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write(i);
         }
@@ -1101,7 +1101,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M(3))
+        await foreach (var i in M(3))
         {
             Write(i);
         }
@@ -1134,7 +1134,7 @@ class D
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in C<int>.M(3))
+        await foreach (var i in C<int>.M(3))
         {
             Write(i);
         }
@@ -1166,7 +1166,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""Start "");
-        foreach await (var i in M(10))
+        await foreach (var i in M(10))
         {
             Write(""Value "");
         }
@@ -1199,7 +1199,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""Start "");
-        foreach await (var i in new C().M())
+        await foreach (var i in new C().M())
         {
             Write(""Value "");
         }
@@ -1250,7 +1250,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write($""{i} "");
         }
@@ -1281,7 +1281,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write($""{i} "");
         }
@@ -1310,7 +1310,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write($""{i} "");
         }
@@ -1339,7 +1339,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write($""{i} "");
         }
@@ -1373,7 +1373,7 @@ label2:
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write($""{i} "");
         }
@@ -1417,7 +1417,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {{
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {{
             Write($""{{i}} "");
         }}
@@ -1440,7 +1440,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {{
         Write(""0 "");
-        foreach await (var i in local())
+        await foreach (var i in local())
         {{
             Write($""{{i}} "");
         }}
@@ -1518,7 +1518,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         Write(""0 "");
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             Write($""{i} "");
         }
@@ -1561,7 +1561,7 @@ class C
     }
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             System.Console.Write(i);
         }
@@ -1588,7 +1588,7 @@ class C
     }
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in M())
+        await foreach (var i in M())
         {
             System.Console.Write(""SKIPPED"");
         }

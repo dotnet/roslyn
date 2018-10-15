@@ -1003,7 +1003,7 @@ async () => {
         }
 
         [Fact]
-        public void UsingAwaitTest()
+        public void AwaitUsingTest()
         {
             UsingNode(@"
 async () => {
@@ -1550,7 +1550,7 @@ async () => {
         }
 
         [Fact]
-        public void UsingAwaitExpressionInSyncContext()
+        public void AwaitUsingExpressionInSyncContext()
         {
             UsingNode(@"
 () => {
