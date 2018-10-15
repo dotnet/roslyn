@@ -21,11 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
 
-                Dim x = If(fromAllContexts,
+                Dim unnecessaryImports = If(fromAllContexts,
                     Await GetCommonUnnecessaryImportsOfAllContextAsync(document, predicate, cancellationToken).ConfigureAwait(False),
                     Await GetUnnecessaryImportsAsync(document, predicate, cancellationToken).ConfigureAwait(False))
-                Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(
-                    document, predicate, cancellationToken).ConfigureAwait(False)
                 If unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
                     Return document
                 End If

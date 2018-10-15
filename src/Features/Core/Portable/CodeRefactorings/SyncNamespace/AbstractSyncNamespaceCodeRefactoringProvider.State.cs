@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// This refactoring only supports non-linked document and linked document in the form of
             /// documents in multi-targeting project. Also for simplicity, we also don't support document
             /// what has different file path and logical path in project (i.e. [ProjectRoot] + `Document.Folders`). 
-            /// If the requirements above is met, we will return IDs of all documents linked to the specified document 
-            /// (inclusive), an array of single element will be returned for non-linked document.
+            /// If the requirements above is met, we will return IDs of all documents linked to the specified 
+            /// document (inclusive), an array of single element will be returned for non-linked document.
             /// </summary>
             private static bool IsSupportedLinkedDocument(Document document, out ImmutableArray<DocumentId> allDocumentIds)
             {
@@ -190,23 +190,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 TextSpan textSpan, 
                 CancellationToken cancellationToken)
             {
-                if (document.Project.FilePath == null)
-                {
-                    return null;
-                }
-
-                if (!textSpan.IsEmpty)
-                {
-                    return null;
-                }
-
-                var workspace = document.Project.Solution.Workspace;
-                if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-                {
-                    return null;
-                }
-
-                if (document.IsGeneratedCode(cancellationToken))
+                if (document.Project.FilePath == null
+                    || !textSpan.IsEmpty
+                    || document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles
+                    || document.IsGeneratedCode(cancellationToken))
                 {
                     return null;
                 }
@@ -244,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Only provide "move file" action if root namespace contains declared namespace.
                 // It makes no sense to match folder hierarchy with namespace if it's not rooted at the root namespace of the project. 
-                TryGetRelativeNamespace(defaultNamespace, declaredNamespace, out var relativeNamespace);                                                                           
+                var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
                                                                                                                           
                 return new State(solution, documentIds, defaultNamespace, targetNamespace, declaredNamespace, relativeNamespace);
             }

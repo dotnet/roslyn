@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
     internal sealed class CSharpSyncNamespaceCodeRefactoringProvider :
         AbstractSyncNamespaceCodeRefactoringProvider<NamespaceDeclarationSyntax, CompilationUnitSyntax>
     {
-        protected override IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode node)
+        protected override IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl)
         {
-            if (node is NamespaceDeclarationSyntax namespaceDecl)
+            if (compilationUnitOrNamespaceDecl is NamespaceDeclarationSyntax namespaceDecl)
             {
                 return namespaceDecl.Members;
             }
-            else if (node is CompilationUnitSyntax compilationUnit)
+            else if (compilationUnitOrNamespaceDecl is CompilationUnitSyntax compilationUnit)
             {
                 return compilationUnit.Members;
             }
@@ -100,12 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 old = @new = null;
                 return false;
             } 
-        }
-
-        protected override SyntaxNode CreateUsingDirective(ImmutableArray<string> namespaceParts)
-        {
-            var name = CreateNameSyntax(namespaceParts, aliasQualifier: null, namespaceParts.Length - 1);
-            return SyntaxFactory.UsingDirective(name).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         protected override string EscapeIdentifier(string identifier)

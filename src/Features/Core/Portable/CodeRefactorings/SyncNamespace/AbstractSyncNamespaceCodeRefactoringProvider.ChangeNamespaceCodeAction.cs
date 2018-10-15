@@ -124,22 +124,35 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 //      }
                 //
 
-                var builder = ArrayBuilder<SyntaxNode>.GetInstance();
-                for (var i = 1; i <= OldNamespaceParts.Length; ++i)
-                {
-                    builder.Add(_service.CreateUsingDirective(ImmutableArray.Create(OldNamespaceParts, 0, i)));
-                }
-                var imports = builder.ToImmutableAndFree();
+                solution = await RemoveUnnecessaryImportsAsync(solution, _state.DocumentIds, CreateAllContainingNamespaces(OldNamespaceParts), cancellationToken)
+                    .ConfigureAwait(false);
 
-                solution = await RemoveUnnecessaryImportsAsync(solution, _state.DocumentIds, imports, cancellationToken).ConfigureAwait(false);
-
-                imports = ImmutableArray.Create(
-                    _service.CreateUsingDirective(OldNamespaceParts),
-                    _service.CreateUsingDirective(NewNamespaceParts));
-
-                solution = await RemoveUnnecessaryImportsAsync(solution, referenceDocuments.ToImmutableArray(), imports, cancellationToken).ConfigureAwait(false);
+                solution = await RemoveUnnecessaryImportsAsync(
+                    solution, referenceDocuments.ToImmutableArray(), ImmutableArray.Create(_state.DeclaredNamespace, _state.TargetNamespace), cancellationToken)
+                    .ConfigureAwait(false);
 
                 return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solution));
+            }
+
+            private ImmutableArray<string> CreateAllContainingNamespaces(ImmutableArray<string> parts)
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                for (var i = 1; i <= OldNamespaceParts.Length; ++i)
+                {
+                    builder.Add(string.Join(".", OldNamespaceParts.Take(i)));
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names)
+            {
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var builder = ArrayBuilder<SyntaxNode>.GetInstance(names.Length);
+                for (var i = 0; i < names.Length; ++i)
+                {
+                    builder.Add(generator.NamespaceImportDeclaration(names[i]));
+                }
+                return builder.ToImmutableAndFree();
             }
 
             private async Task<(Solution, ImmutableArray<DocumentId>)> ChangeNamespaceToMatchFoldersAsync(Solution solution, DocumentId id, CancellationToken cancellationToken)
@@ -173,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 foreach (var declaredSymbol in declaredSymbols)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var refSymbols = await SymbolFinder.FindReferencesAsync(
                       declaredSymbol,
                       solution,
@@ -244,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 if (refLocations.Count > 0)
                 {
-                    (document, containers) = await FixReferencesAsync(document, addImportService, refLocations, NewNamespaceParts, cancellationToken);
+                    (document, containers) = await FixReferencesAsync(document, addImportService, refLocations, NewNamespaceParts, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -256,17 +272,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
                 Debug.Assert(containers.Count > 0);
 
-                // Create import for all levels of old namespace and add them to the document (if it's not global namespace) 
-                var builder = ArrayBuilder<SyntaxNode>.GetInstance();
-                for (var i = 1; i <= OldNamespaceParts.Length; ++i)
-                {
-                    builder.Add(_service.CreateUsingDirective(ImmutableArray.Create(OldNamespaceParts, 0, i)));
-                }
-                var imports = builder.ToImmutableAndFree();
+                // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
+                var namesToImport = CreateAllContainingNamespaces(OldNamespaceParts);
 
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-                document = await AddImportsInContainersAsync(document, addImportService, containers, imports, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                document = await AddImportsInContainersAsync(
+                    document, 
+                    addImportService, 
+                    containers, 
+                    namesToImport, 
+                    placeSystemNamespaceFirst, 
+                    cancellationToken).ConfigureAwait(false);
 
                 root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 root = _service.ChangeNamespaceDeclaration(root, OldNamespaceParts, NewNamespaceParts);
@@ -294,21 +311,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
-                var newImport = _service.CreateUsingDirective(NewNamespaceParts);
                 document = await AddImportsInContainersAsync(
                     document, 
                     addImportService,
                     containers,
-                    ImmutableArray.Create(newImport), 
+                    ImmutableArray.Create(_state.TargetNamespace), 
                     placeSystemNamespaceFirst, 
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 return await Simplifier.ReduceAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
             /// Fix each reference and return a collection of proper containers 
-            /// that new import should be added to based on refrence locations.
+            /// that new import should be added to based on reference locations.
             /// Depends on whether <paramref name="namespaceParts"/> is specified,
             /// the fix would be:
             ///     1. qualify the reference with new namespace and mark it for simplification, or
@@ -324,6 +340,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
                 var root = editor.OriginalRoot;
                 var containers = new HashSet<SyntaxNode>();
+                var dummyImport = _service.CreateUsingDirective(document, "Dummy");
 
                 foreach (var refLoc in refLocations)
                 {
@@ -354,7 +371,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         editor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
                     }
 
-                    var container = addImportService.GetImportContainer(root, refNode, DummyUsingDircetive);
+                    // Use a dummy import node to figure out which container the new import will be added to.
+                    var container = addImportService.GetImportContainer(root, refNode, dummyImport);
                     containers.Add(container);
                 }
 
@@ -368,29 +386,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 return (document, containers.Select(c => root.GetCurrentNode(c)).ToImmutableHashSet());
             }
 
-            private SyntaxNode _dummyUsingDirective;
-            private SyntaxNode DummyUsingDircetive
-            {
-                get
-                {
-                    if (_dummyUsingDirective == null)
-                    {
-                        _dummyUsingDirective = _service.CreateUsingDirective(ImmutableArray.Create("Dummy"));
-                    }
-                    return _dummyUsingDirective;
-                }
-            }
-
             private async Task<Solution> RemoveUnnecessaryImportsAsync(
                 Solution solution, 
                 ImmutableArray<DocumentId> ids, 
-                ImmutableArray<SyntaxNode> imports, 
+                ImmutableArray<string> names, 
                 CancellationToken cancellationToken)
             {
                 foreach (var id in ids)
                 {
                     var document = solution.GetDocument(id);
-                    document = await RemoveUnnecessaryImportsAsync(document, imports, cancellationToken).ConfigureAwait(false);
+                    document = await RemoveUnnecessaryImportsAsync(document, CreateImports(document, names), cancellationToken)
+                        .ConfigureAwait(false);
                     solution = document.Project.Solution;
                 }
                 return solution;
@@ -413,10 +419,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 Document document,
                 IAddImportsService addImportService,
                 ImmutableHashSet<SyntaxNode> containers, 
-                ImmutableArray<SyntaxNode> imports,
+                ImmutableArray<string> names,
                 bool placeSystemNamespaceFirst, 
                 CancellationToken cancellationToken)
             {
+                var imports = CreateImports(document, names);
                 foreach (var container in containers)
                 {
                     var contextLocation = container is TNamespaceDeclarationSyntax 

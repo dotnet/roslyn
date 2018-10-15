@@ -270,7 +270,6 @@ namespace [||]A.B.C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task NoAction_FileNotRooted()
         {
-            var folders = new[] { "A", "B" };
             var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Foo.cs");
 
             var code =
