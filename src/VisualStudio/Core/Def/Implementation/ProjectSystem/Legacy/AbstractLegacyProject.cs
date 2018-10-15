@@ -31,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
+        private static readonly char[] PathSeparatorCharacters = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
         #region Mutable fields that should only be used from the UI thread
 
         private readonly VsENCRebuildableProjectImpl _editAndContinueProject;
@@ -128,6 +130,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (itemid != VSConstants.VSITEMID_NIL)
             {
                 folders = GetFolderNamesForDocument(itemid);
+            }
+
+            VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
+        }
+
+        protected void AddFile(
+            string filename,
+            string linkMetadata,
+            SourceCodeKind sourceCodeKind)
+        {
+            // We have tests that assert that XOML files should not get added; this was similar
+            // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
+            // them. XOML support is planned to go away for Dev16, but for now leave the logic there.
+            if (filename.EndsWith(".xoml"))
+            {
+                return;
+            }
+
+            var folders = ImmutableArray<string>.Empty;
+            if (!string.IsNullOrEmpty(linkMetadata))
+            {
+                var linkFolderPath = Path.GetDirectoryName(linkMetadata);
+                folders = linkFolderPath.Split(PathSeparatorCharacters).ToImmutableArray();
             }
 
             VisualStudioProject.AddSourceFile(filename, sourceCodeKind, folders);
