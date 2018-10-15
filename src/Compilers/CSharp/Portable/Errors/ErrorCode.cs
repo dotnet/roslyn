@@ -1620,8 +1620,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_MissingNonNullTypesContextForAnnotation = 8632,
         WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
         WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
-
-        ERR_ExplicitNonNullTypesAttribute = 8635,
+        //ERR_TripleDotNotAllowed = 8635,
+        ERR_ExplicitNonNullTypesAttribute = 8636,
         ERR_NonNullDirectiveQualifierExpected = 8637,
 
         #endregion diagnostics introduced for C# 8.0

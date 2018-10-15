@@ -33018,7 +33018,7 @@ class P
 ";
             var comp = CreateCompilationWithIL("[module: System.Runtime.CompilerServices.NonNullTypes(true)]", il);
             comp.VerifyDiagnostics(
-                // (1,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (1,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "System.Runtime.CompilerServices.NonNullTypes(true)").WithLocation(1, 10)
                 );
@@ -47917,22 +47917,22 @@ class D
             comp.VerifyDiagnostics(
                 // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1),
-                // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (7,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
                 // (11,18): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(11, 18),
-                // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2));
 
             var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
-                // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (7,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
-                // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2),
                 // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
@@ -48553,25 +48553,25 @@ class A
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: NonNullTypes] // 1
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(3, 10),
-                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes] // 2
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(5, 2),
-                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 3
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(8, 6),
                 // (9,12): warning CS0169: The field 'A.F1' is never used
                 //     string F1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 4
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(11, 6),
-                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 5
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(14, 6),
-                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 6
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(17, 6),
                 // (18,25): warning CS0067: The event 'A.E1' is never used
@@ -48606,25 +48606,25 @@ class A
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: NonNullTypes(false)] // 1
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(3, 10),
-                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(false)] // 2
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(5, 2),
-                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 3
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(8, 6),
                 // (9,12): warning CS0169: The field 'A.F1' is never used
                 //     string F1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 4
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(11, 6),
-                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 5
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(14, 6),
-                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 6
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(17, 6),
                 // (18,25): warning CS0067: The event 'A.E1' is never used
@@ -48659,25 +48659,25 @@ class A
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: NonNullTypes(true)] // 1
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(3, 10),
-                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(true)] // 2
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(5, 2),
-                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 3
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(8, 6),
                 // (9,12): warning CS0169: The field 'A.F1' is never used
                 //     string F1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 4
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(11, 6),
-                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 5
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(14, 6),
-                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 6
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(17, 6),
                 // (18,25): warning CS0067: The event 'A.E1' is never used
