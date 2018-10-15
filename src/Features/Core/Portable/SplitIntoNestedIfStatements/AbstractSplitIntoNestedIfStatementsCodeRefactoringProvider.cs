@@ -59,22 +59,17 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode expression)
+        private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)
         {
-            if (token.Parent.RawKind == syntaxKind)
+            SyntaxNodeOrToken current = token;
+
+            while (current.Parent?.RawKind == syntaxKind)
             {
-                expression = token.Parent;
-
-                while (expression.Parent != null && expression.Parent.RawKind == syntaxKind)
-                {
-                    expression = expression.Parent;
-                }
-
-                return true;
+                current = current.Parent;
             }
 
-            expression = null;
-            return false;
+            rootExpression = current.AsNode();
+            return current.IsNode;
         }
 
         private static (TExpressionSyntax left, TExpressionSyntax right) SplitBinaryExpressionChain(
