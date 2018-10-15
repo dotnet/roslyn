@@ -1354,6 +1354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!IsConditionalState);
             Debug.Assert(!node.Expression.Type.IsValueType);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(node.Expression);
 
             var type = _resultType.TypeSymbol as ArrayTypeSymbol;
@@ -1943,6 +1945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
             {
                 VisitRvalue(receiverOpt);
+                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+                // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
                 // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
             }
@@ -3303,6 +3307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null)
             {
                 VisitRvalue(receiverOpt);
+                // https://github.com/dotnet/roslyn/issues/30563: Should not check receiver here.
+                // That check should be handled when applying the method group conversion,
+                // when we have a specific method, to avoid reporting null receiver warnings
+                // for extension method delegates.
                 CheckPossibleNullReceiver(receiverOpt);
             }
 
@@ -3672,6 +3680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiverOpt = node.ReceiverOpt;
             VisitRvalue(receiverOpt);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiverOpt);
 
             // https://github.com/dotnet/roslyn/issues/29964 Update indexer based on inferred receiver type.
@@ -3698,6 +3708,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!member.IsStatic)
                 {
                     member = AsMemberOfResultType(member);
+                    // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
+                    // after RHS has been visited, and only if the receiver has not changed.
                     CheckPossibleNullReceiver(receiverOpt);
                 }
 
@@ -4206,6 +4218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverOpt = node.ReceiverOpt;
             if (!node.Event.IsStatic)
             {
+                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+                // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
             }
             VisitRvalue(node.Argument);
@@ -4294,6 +4308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiver);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
 
@@ -4309,6 +4325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckPossibleNullReceiver(BoundExpression receiverOpt)
         {
+            Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
             {
 #if DEBUG
@@ -4320,6 +4337,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !resultType.IsValueType)
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                    int slot = MakeSlot(receiverOpt);
+                    if (slot > 0)
+                    {
+                        this.State[slot] = true;
+                    }
                 }
             }
         }
