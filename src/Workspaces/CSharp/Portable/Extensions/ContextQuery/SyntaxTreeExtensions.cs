@@ -1563,25 +1563,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // for ( |
                 // foreach ( |
+                // await foreach ( |
                 // using ( |
+                // await using ( |
                 var previous = token.GetPreviousToken(includeSkipped: true);
                 if (previous.IsKind(SyntaxKind.ForKeyword) ||
                     previous.IsKind(SyntaxKind.ForEachKeyword) ||
                     previous.IsKind(SyntaxKind.UsingKeyword))
                 {
                     return true;
-                }
-
-                // await foreach ( |
-                // await using ( |
-                if (previous.IsKind(SyntaxKind.AwaitKeyword))
-                {
-                    var secondPrevious = previous.GetPreviousToken(includeSkipped: true);
-                    if (secondPrevious.IsKind(SyntaxKind.ForEachKeyword, SyntaxKind.UsingKeyword))
-                    {
-                        return true;
-
-                    }
                 }
             }
 

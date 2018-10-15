@@ -59,9 +59,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAsyncUsingStatement()
+        public async Task TestUsingStatement()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     void goo()
@@ -78,40 +78,14 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsyncUsingStatement()
+        public async Task TestForeachStatement()
         {
             await VerifyAbsenceAsync(@"
-class Program
-{
-    void goo()
-    {
-        using await $$
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAsyncForeachStatement()
-        {
-            await VerifyKeywordAsync(@"
 class Program
 {
     void goo()
     {
         foreach $$
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsyncForeachStatement()
-        {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    void goo()
-    {
-        foreach await $$
     }
 }");
         }

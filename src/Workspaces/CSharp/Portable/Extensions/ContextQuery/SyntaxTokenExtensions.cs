@@ -101,6 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // for ( ; ; Goo(), |
 
+            // await |
+
             switch (token.Kind())
             {
                 case SyntaxKind.OpenBraceToken when token.Parent.IsKind(SyntaxKind.Block):
@@ -168,6 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 case SyntaxKind.ElseKeyword:
                     return true;
+
+            }
+
+            if (token.ValueText == "await")
+            {
+                // await foreach
+                // await using
+                return true;
             }
 
             return false;
