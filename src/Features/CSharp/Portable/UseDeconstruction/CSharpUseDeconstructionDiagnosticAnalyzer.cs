@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,

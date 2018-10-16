@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.UseInferredMemberName
 {
-    internal abstract class AbstractUseInferredMemberNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractUseInferredMemberNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         abstract protected void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, OptionSet optionSet);
 

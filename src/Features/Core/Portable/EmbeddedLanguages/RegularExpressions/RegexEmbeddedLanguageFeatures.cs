@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     internal class RegexEmbeddedLanguageFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
         public IDocumentHighlightsService DocumentHighlightsService { get; }
-        public AbstractCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        public AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
 
         public RegexEmbeddedLanguageFeatures(EmbeddedLanguageInfo info) : base(info)
         {
