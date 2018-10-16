@@ -184,6 +184,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
+        public async Task NotSplitOnBitwiseAndOperator()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a [||]& b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotSplitOnAndOperatorOutsideIfStatement()
         {
             await TestMissingInRegularAndScriptAsync(

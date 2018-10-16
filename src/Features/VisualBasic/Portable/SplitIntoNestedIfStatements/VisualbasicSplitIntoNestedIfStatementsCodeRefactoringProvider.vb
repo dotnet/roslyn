@@ -35,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
                                                              SyntaxFactory.Token(SyntaxKind.ThenKeyword))
             Dim innerIfBlock = SyntaxFactory.MultiLineIfBlock(innerIfStatement,
                                                               currentIfBlock.Statements,
-                                                              SyntaxFactory.List(Of ElseIfBlockSyntax),
-                                                              Nothing)
+                                                              currentIfBlock.ElseIfBlocks,
+                                                              currentIfBlock.ElseBlock)
             Dim outerIfBlock = currentIfBlock _
                               .WithIfStatement(currentIfBlock.IfStatement.WithCondition(condition1)) _
                               .WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(innerIfBlock))
