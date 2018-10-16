@@ -101,7 +101,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEndQuoteToken(Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEqualsToken(Microsoft.CodeAnalysis.SyntaxToken equalsToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithStartQuoteToken(Microsoft.CodeAnalysis.SyntaxToken startQuoteToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.NonNullDirectiveTrivia = 9056 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.NonNullDirectiveTrivia = 9055 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.NonNullKeyword = 8486 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SuppressNullableWarningExpression = 9054 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion

@@ -593,20 +593,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        internal ReportDiagnostic? GetPragmaDirectiveSpecificWarningState(string id, int position)
+        /// <summary>
+        /// Returns true if the `#nonnull` directive preceding the position is
+        /// `restore`, false if `disable`, and null if no preceding directive.
+        /// </summary>
+        internal bool? GetNonNullDirectiveState(int position)
         {
-            if (_lazyPragmaWarningStateMap == null)
+            if (_lazyNonNullDirectiveMap == null)
             {
-                // Create the warning state map on demand.
-                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this), null);
+                // Create the #nonnull directive map on demand.
+                Interlocked.CompareExchange(ref _lazyNonNullDirectiveMap, NonNullDirectiveMap.Create(this), null);
             }
 
-            return _lazyPragmaWarningStateMap.GetSpecificWarningState(id, position);
+            return _lazyNonNullDirectiveMap.GetDirectiveState(position);
         }
 
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
-
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
+        private NonNullDirectiveMap _lazyNonNullDirectiveMap;
 
         private LinePosition GetLinePosition(int position)
         {

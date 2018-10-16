@@ -507,16 +507,6 @@
         <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PragmaNonNullTypes">
-        <source>Non-null reference types are off.</source>
-        <target state="new">Non-null reference types are off.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PragmaNonNullTypes_Title">
-        <source>Non-null reference types are off.</source>
-        <target state="new">Non-null reference types are off.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SuppressionOperatorNotReferenceType">
         <source>The suppression operator (!) can only be applied to reference types.</source>
         <target state="new">The suppression operator (!) can only be applied to reference types.</target>

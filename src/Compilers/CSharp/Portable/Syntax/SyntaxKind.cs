@@ -570,6 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ThrowExpression = 9052,
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
-        NonNullDirectiveTrivia = 9056,
+        NonNullDirectiveTrivia = 9055,
     }
 }

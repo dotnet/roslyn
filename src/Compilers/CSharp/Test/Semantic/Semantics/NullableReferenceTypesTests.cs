@@ -49,6 +49,255 @@ class C
                 );
         }
 
+        [Fact]
+        public void Directive_NullableDefault()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T, U> { }
+class B
+{
+    static A<object, string?> F1;
+    static void G1()
+    {
+        object o1;
+        o1 = F1/*T:A<object, string?>*/;
+        o1 = F2/*T:A<object, string?>*/;
+        o1 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull disable
+    static A<object, string?> F2;
+    static void G2()
+    {
+        object o2;
+        o2 = F1/*T:A<object, string?>*/;
+        o2 = F2/*T:A<object, string?>*/;
+        o2 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull restore
+    static A<object, string?> F3;
+    static void G3()
+    {
+        object o3;
+        o3 = F1/*T:A<object, string?>*/;
+        o3 = F2/*T:A<object, string?>*/;
+        o3 = F3/*T:A<object!, string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F1;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 28),
+                // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F2;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 28));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void Directive_NullableFalse()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T, U> { }
+class B
+{
+    static A<object, string?> F1;
+    static void G1()
+    {
+        object o1;
+        o1 = F1/*T:A<object, string?>*/;
+        o1 = F2/*T:A<object, string?>*/;
+        o1 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull disable
+    static A<object, string?> F2;
+    static void G2()
+    {
+        object o2;
+        o2 = F1/*T:A<object, string?>*/;
+        o2 = F2/*T:A<object, string?>*/;
+        o2 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull restore
+    static A<object, string?> F3;
+    static void G3()
+    {
+        object o3;
+        o3 = F1/*T:A<object, string?>*/;
+        o3 = F2/*T:A<object, string?>*/;
+        o3 = F3/*T:A<object!, string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullable(false));
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F1;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 28),
+                // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F2;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 28));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void Directive_NullableTrue()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T, U> { }
+class B
+{
+    static A<object, string?> F1;
+    static void G1()
+    {
+        object o1;
+        o1 = F1/*T:A<object!, string?>!*/;
+        o1 = F2/*T:A<object, string?>*/;
+        o1 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull disable
+    static A<object, string?> F2;
+    static void G2()
+    {
+        object o2;
+        o2 = F1/*T:A<object!, string?>!*/;
+        o2 = F2/*T:A<object, string?>*/;
+        o2 = F3/*T:A<object!, string?>!*/;
+    }
+#nonnull restore
+    static A<object, string?> F3;
+    static void G3()
+    {
+        object o3;
+        o3 = F1/*T:A<object!, string?>!*/;
+        o3 = F2/*T:A<object, string?>*/;
+        o3 = F3/*T:A<object!, string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullable(true));
+            comp.VerifyDiagnostics(
+                // (14,28): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                //     static A<object, string?> F2;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 28));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void Directive_PartialClasses()
+        {
+            var source0 =
+@"class Base<T> { }
+class Program
+{
+#nonnull restore
+    static void F(Base<object?> b)
+    {
+    }
+    static void Main()
+    {
+        F(new C1());
+        F(new C2());
+        F(new C3());
+        F(new C4());
+        F(new C5());
+        F(new C6());
+        F(new C7());
+        F(new C8());
+        F(new C9());
+    }
+}";
+            var source1 =
+@"#pragma warning disable 8632
+partial class C1 : Base<object> { }
+partial class C2 { }
+partial class C3 : Base<object> { }
+#nonnull disable
+partial class C4 { }
+partial class C5 : Base<object> { }
+partial class C6 { }
+#nonnull restore
+partial class C7 : Base<object> { }
+partial class C8 { }
+partial class C9 : Base<object> { }
+";
+            var source2 =
+@"#pragma warning disable 8632
+partial class C1 { }
+partial class C4 : Base<object> { }
+partial class C7 { }
+#nonnull disable
+partial class C2 : Base<object> { }
+partial class C5 { }
+partial class C8 : Base<object> { }
+#nonnull restore
+partial class C3 { }
+partial class C6 : Base<object> { }
+partial class C9 { }
+";
+
+            // -nullable (default):
+            var comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C3());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C6());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
+                // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C7());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
+                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C8());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
+                // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C9());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
+
+            // -nullable-:
+            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullable(false));
+            comp.VerifyDiagnostics(
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C3());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C6());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
+                // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C7());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
+                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C8());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
+                // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C9());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
+
+            // -nullable+:
+            comp = CreateCompilation(new[] { source0, source1, source2 }, options: TestOptions.DebugDll.WithNullable(true));
+            comp.VerifyDiagnostics(
+                // (10,11): warning CS8620: Nullability of reference types in argument of type 'C1' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C1());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C1()").WithArguments("C1", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(10, 11),
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'C3' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C3());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C3()").WithArguments("C3", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(12, 11),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'C6' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C6());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C6()").WithArguments("C6", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(15, 11),
+                // (16,11): warning CS8620: Nullability of reference types in argument of type 'C7' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C7());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C7()").WithArguments("C7", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(16, 11),
+                // (17,11): warning CS8620: Nullability of reference types in argument of type 'C8' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C8());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C8()").WithArguments("C8", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(17, 11),
+                // (18,11): warning CS8620: Nullability of reference types in argument of type 'C9' doesn't match target type 'Base<object?>' for parameter 'b' in 'void Program.F(Base<object?> b)'.
+                //         F(new C9());
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
+        }
+
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
         public void IsOperatorOnNonNullExpression()
         {
@@ -277,11 +526,10 @@ class C2
                 );
 
             var c2 = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes pragma for old language version
             c2.VerifyDiagnostics(
-                //// (10,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(10, 2)
+                // (10,2): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nonnull").WithArguments("static null checking", "8.0").WithLocation(10, 2)
                 );
         }
 
@@ -32884,7 +33132,7 @@ class P
 ";
             var comp = CreateCompilationWithIL("[module: System.Runtime.CompilerServices.NonNullTypes(true)]", il);
             comp.VerifyDiagnostics(
-                // (1,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (1,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: System.Runtime.CompilerServices.NonNullTypes(true)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "System.Runtime.CompilerServices.NonNullTypes(true)").WithLocation(1, 10)
                 );
@@ -32931,23 +33179,25 @@ public class D
 }
 ";
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
-            // PROTOTYPE(NullableReferenceTypes): Should get a diagnostics about usage of NonNullTypes pragma for old language version
             comp.VerifyDiagnostics(
-                //// (2,2): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                //// [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(2, 2),
-                //// (12,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(12, 6),
-                //// (15,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(15, 6),
-                //// (18,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(18, 6),
-                //// (9,6): error CS8630: Please use language version 8.0 or greater to use the NonNullTypes attribute.
-                ////     [System.Runtime.CompilerServices.NonNullTypes]
-                //Diagnostic(ErrorCode.ERR_NonNullTypesNotAvailable, "System.Runtime.CompilerServices.NonNullTypes").WithArguments("8.0").WithLocation(9, 6)
+                // (2,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(2, 2),
+                // (9,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(9, 2),
+                // (12,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(12, 2),
+                // (15,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(15, 2),
+                // (18,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull restore
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(18, 2),
+                // (20,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
+                // #nonnull disable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(20, 2)
                 );
         }
 
@@ -47781,22 +48031,22 @@ class D
             comp.VerifyDiagnostics(
                 // error CS8630: Invalid 'Nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("Nullable", "True", "7.3", "8.0").WithLocation(1, 1),
-                // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (7,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
                 // (11,18): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("static null checking", "8.0").WithLocation(11, 18),
-                // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2));
 
             var comp2 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp2.VerifyDiagnostics(
-                // (7,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (7,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A>.True)").WithLocation(7, 2),
-                // (11,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(B<A?>.True)]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(B<A?>.True)").WithLocation(11, 2),
                 // (11,15): warning CS8631: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
@@ -48417,25 +48667,25 @@ class A
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: NonNullTypes] // 1
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(3, 10),
-                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes] // 2
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(5, 2),
-                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 3
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(8, 6),
                 // (9,12): warning CS0169: The field 'A.F1' is never used
                 //     string F1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 4
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(11, 6),
-                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 5
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(14, 6),
-                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes] // 6
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes").WithLocation(17, 6),
                 // (18,25): warning CS0067: The event 'A.E1' is never used
@@ -48470,25 +48720,25 @@ class A
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: NonNullTypes(false)] // 1
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(3, 10),
-                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(false)] // 2
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(5, 2),
-                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 3
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(8, 6),
                 // (9,12): warning CS0169: The field 'A.F1' is never used
                 //     string F1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 4
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(11, 6),
-                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 5
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(14, 6),
-                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(false)] // 6
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(false)").WithLocation(17, 6),
                 // (18,25): warning CS0067: The event 'A.E1' is never used
@@ -48523,25 +48773,25 @@ class A
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (3,10): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: NonNullTypes(true)] // 1
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(3, 10),
-                // (5,2): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (5,2): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [NonNullTypes(true)] // 2
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(5, 2),
-                // (8,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (8,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 3
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(8, 6),
                 // (9,12): warning CS0169: The field 'A.F1' is never used
                 //     string F1;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F1").WithArguments("A.F1").WithLocation(9, 12),
-                // (11,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (11,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 4
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(11, 6),
-                // (14,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (14,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 5
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(14, 6),
-                // (17,6): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
+                // (17,6): error CS8636: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 //     [NonNullTypes(true)] // 6
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "NonNullTypes(true)").WithLocation(17, 6),
                 // (18,25): warning CS0067: The event 'A.E1' is never used

@@ -867,29 +867,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool? GetNonNullTypesFromSyntax()
         {
             bool? result = null;
-            string id = "CS" + ((int)ErrorCode.WRN_PragmaNonNullTypes).ToString("0000");
-
             foreach (Location location in Locations)
             {
                 SyntaxTree tree = location.SourceTree;
-
-                if (tree != null)
+                if (tree == null)
                 {
-                    ReportDiagnostic? state = ((CSharpSyntaxTree)tree).GetPragmaDirectiveSpecificWarningState(id, location.SourceSpan.Start);
-                    if (state.HasValue)
-                    {
-                        if (state.GetValueOrDefault() == ReportDiagnostic.Suppress)
-                        {
-                            result = false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
+                    continue;
                 }
+                bool? state = ((CSharpSyntaxTree)tree).GetNonNullDirectiveState(location.SourceSpan.Start);
+                if (state == null)
+                {
+                    continue;
+                }
+                if (state == true)
+                {
+                    return true;
+                }
+                result = false;
             }
-
             return result;
         }
 

@@ -7262,6 +7262,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected disable or restore.
+        /// </summary>
+        internal static string ERR_NonNullDirectiveQualifierExpected {
+            get {
+                return ResourceManager.GetString("ERR_NonNullDirectiveQualifierExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
         internal static string ERR_NonTaskMainCantBeAsync {
@@ -14987,24 +14996,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_PossibleMistakenNullStatement_Title {
             get {
                 return ResourceManager.GetString("WRN_PossibleMistakenNullStatement_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Non-null reference types are off..
-        /// </summary>
-        internal static string WRN_PragmaNonNullTypes {
-            get {
-                return ResourceManager.GetString("WRN_PragmaNonNullTypes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Non-null reference types are off..
-        /// </summary>
-        internal static string WRN_PragmaNonNullTypes_Title {
-            get {
-                return ResourceManager.GetString("WRN_PragmaNonNullTypes_Title", resourceCulture);
             }
         }
         

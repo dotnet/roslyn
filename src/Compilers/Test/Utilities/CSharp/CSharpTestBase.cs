@@ -122,12 +122,12 @@ namespace System.Runtime.CompilerServices
 
         protected static string NonNullTypesOff()
         {
-            return $"#pragma warning disable {(int)ErrorCode.WRN_PragmaNonNullTypes}";
+            return "#nonnull disable";
         }
 
         internal static string NonNullTypesOn()
         {
-            return $"#pragma warning restore {(int)ErrorCode.WRN_PragmaNonNullTypes}";
+            return "#nonnull restore";
         }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
