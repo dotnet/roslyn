@@ -290,6 +290,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
+        bool IsStatementContainer(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
+
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
 

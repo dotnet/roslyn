@@ -1824,6 +1824,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return nodes.FindInnermostCommonExecutableBlock()
         End Function
 
+        Public Function IsStatementContainer(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatementContainer
+            Return IsExecutableBlock(node)
+        End Function
+
+        Public Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFactsService.GetStatementContainerStatements
+            Return GetExecutableBlockStatements(node)
+        End Function
+
         Private Function ISyntaxFactsService_GetLeadingBlankLines(node As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFactsService.GetLeadingBlankLines
             Return MyBase.GetLeadingBlankLines(node)
         End Function

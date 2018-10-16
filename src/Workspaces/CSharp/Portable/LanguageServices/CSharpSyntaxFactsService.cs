@@ -1895,13 +1895,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ((EqualsValueClauseSyntax)node)?.Value;
 
         public bool IsExecutableBlock(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block);
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
 
         public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
-            => ((BlockSyntax)node).Statements;
+        {
+            switch (node)
+            {
+                case BlockSyntax block:
+                    return block.Statements;
+                case SwitchSectionSyntax switchSection:
+                    return switchSection.Statements;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
             => nodes.FindInnermostCommonBlock();
+
+        public bool IsStatementContainer(SyntaxNode node)
+            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
+
+        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node) => IsExecutableBlock(node)
+                ? GetExecutableBlockStatements(node)
+                : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;
