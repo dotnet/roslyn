@@ -182,15 +182,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 }
             }
 
-            const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
+            var syntaxRemoveOptions = CreateSyntaxRemoveOptions(nodeToRemove);
             if (fieldDocument == propertyDocument)
             {
                 // Same file.  Have to do this in a slightly complicated fashion.
                 var declaratorTreeRoot = await fieldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Workspace);
-                editor.RemoveNode(nodeToRemove, options);
                 editor.ReplaceNode(property, updatedProperty);
+                editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
                 newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var fieldTreeRoot = await fieldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var propertyTreeRoot = await propertyDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, options);
+                var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
                 newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
@@ -214,6 +214,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)
+        {
+            var syntaxRemoveOptions = SyntaxGenerator.DefaultRemoveOptions;
+            var hasDirective = nodeToRemove.GetLeadingTrivia().Any(t => t.IsDirective);
+
+            if (hasDirective)
+            {
+                syntaxRemoveOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+            }
+
+            return syntaxRemoveOptions;
         }
 
         private bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
