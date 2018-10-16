@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         /// will be replaced with given namespace in the new node.</param>
         /// <param name="old">The node to be replaced. This might be an ancestor of original reference.</param>
         /// <param name="new">The replacement node.</param>
-        protected override bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new)
+        public override bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new)
         {
             if (reference is SimpleNameSyntax nameRef)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 old = outerMostNode;
 
                 // If no namespace is specified, we just find and return the full NameSyntax.
-                if (outerMostNode == nameRef || newNamespaceParts.IsDefault)
+                if (outerMostNode == nameRef || newNamespaceParts.IsDefaultOrEmpty)
                 {
                     @new = outerMostNode;
                 }

@@ -155,6 +155,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 return builder.ToImmutableAndFree();
             }
 
+            private SyntaxNode CreateImport(Document document, string name)
+            {
+                var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
+                return syntaxGenerator.NamespaceImportDeclaration(name);
+            }
+
             private async Task<(Solution, ImmutableArray<DocumentId>)> ChangeNamespaceToMatchFoldersAsync(Solution solution, DocumentId id, CancellationToken cancellationToken)
             {
                 //todo
@@ -259,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 if (refLocations.Count > 0)
                 {
-                    (document, containers) = await FixReferencesAsync(document, addImportService, refLocations, NewNamespaceParts, cancellationToken)
+                    (document, containers) = await FixReferencesAsync(document, addImportService, _service, refLocations, NewNamespaceParts, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 else
@@ -304,9 +310,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // 4. Remove unnecessary usings related to old and new namespace.
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
+                var syncNamespaceService = document.GetLanguageService<ISyncNamespaceService>();
 
                 ImmutableHashSet<SyntaxNode> containers;
-                (document, containers) = await FixReferencesAsync(document, addImportService, refLocations, NewNamespaceParts, cancellationToken);
+                (document, containers) = 
+                    await FixReferencesAsync(document, addImportService, syncNamespaceService, refLocations, NewNamespaceParts, cancellationToken)
+                    .ConfigureAwait(false);
 
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
@@ -333,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private async Task<(Document, ImmutableHashSet<SyntaxNode>)> FixReferencesAsync(
                 Document document, 
                 IAddImportsService addImportService, 
+                ISyncNamespaceService syncNamespaceService,
                 IEnumerable<ReferenceLocation> refLocations, 
                 ImmutableArray<string> namespaceParts,          // No namespace replacement if this is default.  
                 CancellationToken cancellationToken)
@@ -340,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
                 var root = editor.OriginalRoot;
                 var containers = new HashSet<SyntaxNode>();
-                var dummyImport = _service.CreateUsingDirective(document, "Dummy");
+                var dummyImport = CreateImport(document, "Dummy");
 
                 foreach (var refLoc in refLocations)
                 {
@@ -366,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     // have exact same span.
 
                     var refNode = root.FindNode(refLoc.Location.SourceSpan, getInnermostNodeForTie: true);
-                    if (_service.TryGetReplacementReferenceSyntax(refNode, namespaceParts, out var oldNode, out var newNode))
+                    if (syncNamespaceService.TryGetReplacementReferenceSyntax(refNode, namespaceParts, out var oldNode, out var newNode))
                     {
                         editor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
                     }

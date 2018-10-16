@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -31,39 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             return CreateCodeActions(this, state);
         }
 
-        private static ImmutableArray<CodeAction> CreateCodeActions(
-            AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, State state)
-        {
-            var builder = ArrayBuilder<CodeAction>.GetInstance();
-
-            // No move file action if rootnamespace isn't a prefix of current declared namespace
-            if (state.RelativeDeclaredNamespace != null)
-            {
-                builder.AddRange(MoveFileCodeAction.Create(state));
-            }
-
-            // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
-            if (state.TargetNamespace != null)
-            {
-                builder.Add(new ChangeNamespaceCodeAction(service, state));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
-        /// namespce to be changed. If this reference is the right side of a qualified name, the new node returned would
-        /// be the entire qualified name. Depends on whether <paramref name="newNamespaceParts"/> is provided, the name 
-        /// in the new node might be qualified with this new namespace instead.
-        /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated 
-        /// based on results from `SymbolFinder.FindReferencesAsync`.</param>
-        /// <param name="newNamespaceParts">If specified, the namespace of original reference will be replaced with given 
-        /// namespace in the replacement node.</param>
-        /// <param name="old">The node to be replaced. This might be an ancestor of original </param>
-        /// <param name="new">The replacement node.</param>
-        abstract protected bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
+        abstract public bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
 
         abstract protected string EscapeIdentifier(string identifier);
 
@@ -120,15 +87,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             return null;
         }
 
-        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+        private static ImmutableArray<CodeAction> CreateCodeActions(
+            AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, State state)
         {
-            return !parts.IsDefaultOrEmpty && parts.Length == 1 && parts[1].Length == 0;
-        }
+            var builder = ArrayBuilder<CodeAction>.GetInstance();
 
-        private SyntaxNode CreateUsingDirective(Document document, string name)
-        {
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            return syntaxGenerator.NamespaceImportDeclaration(name);
+            // No move file action if rootnamespace isn't a prefix of current declared namespace
+            if (state.RelativeDeclaredNamespace != null)
+            {
+                builder.AddRange(MoveFileCodeAction.Create(state));
+            }
+
+            // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
+            if (state.TargetNamespace != null)
+            {
+                builder.Add(new ChangeNamespaceCodeAction(service, state));
+            }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }
