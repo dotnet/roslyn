@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!ShouldCheckConstraintsNullability)
                             {
                                 diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), location);
-                                conversions = conversions.WithNullability(includeNullability: false);
+                                conversions = this.Conversions.WithNullability(includeNullability: false);
                             }
                             type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
                         }
@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (includeNullability && !ShouldCheckConstraintsNullability)
                 {
                     diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), typeSyntax.GetLocation());
-                    conversions = conversions.WithNullability(includeNullability: false);
+                    conversions = this.Conversions.WithNullability(includeNullability: false);
                 }
                 type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }

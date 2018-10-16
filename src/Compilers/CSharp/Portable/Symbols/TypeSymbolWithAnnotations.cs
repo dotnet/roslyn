@@ -260,6 +260,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbolWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
         public TypeSymbolWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
+        /// <summary>
+        /// Merges top-level and nested nullability from an otherwise identical type.
+        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
+        /// merging nullability and warning should be reported by the caller.
+        /// </summary>
+        internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            bool? isNullable = MergeIsNullable(IsNullable, other.IsNullable, variance, out bool hadTopLevelMismatch);
+            TypeSymbol type = TypeSymbol.MergeNullability(other.TypeSymbol, variance, out bool hadNestedMismatch);
+            Debug.Assert((object)type != null);
+            hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
+            return Create(type, isNullable, CustomModifiers);
+        }
+
+        /// <summary>
+        /// Merges nullability.
+        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict.
+        /// </summary>
+        private static bool? MergeIsNullable(bool? a, bool? b, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            hadNullabilityMismatch = false;
+            if (a == b)
+            {
+                return a;
+            }
+            switch (variance)
+            {
+                case VarianceKind.In:
+                    return (a == false || b == false) ? (bool?)false : null;
+                case VarianceKind.Out:
+                    return (a == true || b == true) ? (bool?)true : null;
+                default:
+                    if (a == null)
+                    {
+                        return b;
+                    }
+                    if (b == null)
+                    {
+                        return a;
+                    }
+                    hadNullabilityMismatch = true;
+                    return null;
+            }
+        }
+
         public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);
         public TypeSymbolWithAnnotations WithNonNullTypesContext(INonNullTypesContext nonNullTypesContext) =>
