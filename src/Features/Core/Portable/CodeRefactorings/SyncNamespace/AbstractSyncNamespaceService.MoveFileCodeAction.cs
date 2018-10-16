@@ -39,25 +39,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private async Task<ImmutableArray<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
             {
-                var solution = _state.Solution;
-                DocumentId newDocumentId = default;
-                (solution, newDocumentId) = await MoveFileWorker(solution, _state.DocumentIds.First(), cancellationToken).ConfigureAwait(false);
+                var (newSolution, newDocumentId) = await MoveFileWorker(_state.Solution, _state.OriginalDocumentId, cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(solution),
+                    new ApplyChangesOperation(newSolution),
                     new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
             }
 
             private async Task<(Solution, DocumentId)> MoveFileWorker(Solution solution, DocumentId Id, CancellationToken cancellationToken)
             {
                 var document = solution.GetDocument(Id);
-
-                var newSolution = document.Project.Solution.RemoveDocument(Id);
                 var newDocumentId = DocumentId.CreateNewId(document.Project.Id, document.Name);
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                newSolution = newSolution.AddDocument(newDocumentId, document.Name, text: string.Empty, folders: _newfolders);
-                return (newSolution.WithDocumentText(newDocumentId, text, PreservationMode.PreserveIdentity), newDocumentId);
+                var newSolution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
+
+                newSolution = newSolution.RemoveDocument(Id);
+
+                return (newSolution, newDocumentId);
             }
             
             public static ImmutableArray<MoveFileCodeAction> Create(State state)

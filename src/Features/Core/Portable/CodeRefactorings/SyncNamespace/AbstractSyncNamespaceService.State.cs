@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             public Solution Solution { get; }
 
+            public DocumentId OriginalDocumentId { get; }
+
             public ImmutableArray<DocumentId> DocumentIds { get;  }
 
             /// <summary>
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private State(
                 Solution solution,
+                DocumentId originalDocumentId,
                 ImmutableArray<DocumentId> documentIds,
                 string rootNamespce,
                 string targetNamespace,
@@ -63,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 string relativeDeclaredNamespace)
             {
                 Solution = solution;
+                OriginalDocumentId = originalDocumentId;
                 DocumentIds = documentIds;
                 DefaultNamespace = rootNamespce;
                 TargetNamespace = targetNamespace;
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // It makes no sense to match folder hierarchy with namespace if it's not rooted at the root namespace of the project. 
                 var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
                                                                                                                           
-                return new State(solution, documentIds, defaultNamespace, targetNamespace, declaredNamespace, relativeNamespace);
+                return new State(solution, document.Id, documentIds, defaultNamespace, targetNamespace, declaredNamespace, relativeNamespace);
             }
 
             /// <summary>
