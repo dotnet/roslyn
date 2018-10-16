@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var declarationSyntax =
-                root.FindNode(selection)?.GetAncestor<TLocalDeclarationSyntax>()
+                root.FindNode(selection)?.GetAncestorOrThis<TLocalDeclarationSyntax>()
                 ?? root.FindTokenOnLeftOfPosition(selection.End).GetAncestor<TLocalDeclarationSyntax>();
 
             if (declarationSyntax is null)
@@ -78,10 +78,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
 
             var declarator = localDeclaration.Declarators[0];
-            if (declarator.Initializer is null)
-            {
-                return default;
-            }
 
             var localType = declarator.Symbol?.Type;
             if (localType is null)
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 return default;
             }
 
-            var initializer = declarator.Initializer.Value;
+            var initializer = (localDeclaration.Initializer ?? declarator.Initializer).Value;
             if (initializer is null || initializer.Kind == OperationKind.Invalid)
             {
                 return default;
@@ -149,8 +145,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                     trailingTrivia.sameLine,
                     statementsToSurround)
                     .WithLeadingTrivia(declarationStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(trailingTrivia.endOfLine)
-                    .WithAdditionalAnnotations(Formatter.Annotation);
+                    .WithTrailingTrivia(trailingTrivia.endOfLine);
 
             if (statementsToSurround.Any())
             {
@@ -164,11 +159,13 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                         .Concat(new[] { usingStatement })
                         .Concat(parentStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
 
-                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement.Parent, newParent));
+                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement.Parent, newParent
+                    .WithAdditionalAnnotations(Formatter.Annotation)));
             }
             else
             {
-                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingStatement));
+                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingStatement
+                    .WithAdditionalAnnotations(Formatter.Annotation)));
             }
         }
 
