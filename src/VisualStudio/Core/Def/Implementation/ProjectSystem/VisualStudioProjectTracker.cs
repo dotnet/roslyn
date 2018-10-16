@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal ImmutableArray<AbstractProject> ImmutableProjects => ImmutableArray<AbstractProject>.Empty;
 
         internal HostWorkspaceServices WorkspaceServices => _workspace.Services;
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        private readonly Dictionary<ProjectId, AbstractProject> _typeScriptProjects = new Dictionary<ProjectId, AbstractProject>();
 
         public VisualStudioProjectTracker(Workspace workspace, VisualStudioProjectFactory projectFactory, IThreadingContext threadingContext)
         {
@@ -54,8 +58,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == filePath)?.Id ?? ProjectId.CreateNewId("ProjectNotFound");
         }
 
+        [Obsolete("This is a compatibility shim for TypeScript and F#; please do not use it.")]
         public AbstractProject GetProject(ProjectId projectId)
         {
+            // HACK: if we have a TypeScript project, they expect to return the real thing deriving from AbstractProject
+            if (_typeScriptProjects.TryGetValue(projectId, out var typeScriptProject))
+            {
+                return typeScriptProject;
+            }
+
             // HACK: to keep F# working, we will ensure that if there is a project with that ID, we will return a non-null value, otherwise we'll return null.
             // It doesn't actually matter *what* the project is, so we'll just return something silly
             var project = _workspace.CurrentSolution.GetProject(projectId);
@@ -104,6 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language);
             project.UpdateVisualStudioProjectProperties();
+        
+            _typeScriptProjects[project.Id] = project;
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -116,6 +129,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public void RemoveProject(AbstractProject project)
         {
+            _typeScriptProjects.Remove(project.Id);
+
             project.VisualStudioProject.RemoveFromWorkspace();
             project.VisualStudioProject = null;
         }
