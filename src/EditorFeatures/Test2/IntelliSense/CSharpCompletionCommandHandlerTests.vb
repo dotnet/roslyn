@@ -2865,6 +2865,185 @@ class C
 
         End Function
 
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround3(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class TARIFE { }
+        class C
+        {
+            void goo(int x)
+            {
+                var t = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARIFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround4(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              İFADE ifade = null;
+              $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround5(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              İFADE ifade = null;
+                $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround6(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class TARİFE { }
+        class C
+        {
+            void goo(int x)
+            {
+                var obj = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARİFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround7(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              var obj = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("İFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround8(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class IFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              var obj = new $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("IFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround9(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class IFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              IFADE ifade = null;
+              $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround10(completionImplementation As CompletionImplementation) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                               <Document><![CDATA[
+        class İFADE {}
+        class ifTest {}
+        class C
+        {
+            void goo(int x)
+            {
+              İFADE ifade = null;
+                $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("if")
+                End Using
+            End Using
+
+        End Function
+
+
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TargetTypePreselection1(completionImplementation As CompletionImplementation) As Task
