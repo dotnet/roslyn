@@ -135,6 +135,50 @@ End Program</a>.Value
             Await VerifyItemExistsAsync(text, "goo")
         End Function
 
+        <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint1() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {IExample, New})()
+        Return New T With { .$$
+    End Function
+End Class
+
+Interface IExample
+    Property A As String
+    Property B As String
+End Interface</a>.Value
+
+            Await VerifyItemExistsAsync(text, "A")
+            Await VerifyItemExistsAsync(text, "B")
+        End Function
+
+        <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint2() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {New})()
+        Return New T With { .$$
+    End Function
+End Class
+</a>.Value
+
+            Await VerifyNoItemsExistAsync(text)
+        End Function
+
+        <WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint3() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {Structure})()
+        Return New T With {.$$
+    End Function
+End Class
+</a>.Value
+
+            Await VerifyNoItemsExistAsync(text)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOneItemAfterComma() As Task
             Dim text = <a>Public Class C

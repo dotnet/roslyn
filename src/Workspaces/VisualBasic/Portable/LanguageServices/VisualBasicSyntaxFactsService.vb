@@ -186,9 +186,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
 
-        Public Function IsConditionalMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalMemberAccessExpression
+        Public Function IsConditionalAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAccessExpression
             Return TypeOf node Is ConditionalAccessExpressionSyntax
         End Function
+
+        Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalAccessExpression
+            Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
+            expression = conditionalAccess.Expression
+            whenNotNull = conditionalAccess.WhenNotNull
+        End Sub
 
         Public Function IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
             Return TypeOf node Is InvocationExpressionSyntax
@@ -202,8 +208,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is GenericNameSyntax
         End Function
 
+        Public Function IsQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQualifiedName
+            Return node.IsKind(SyntaxKind.QualifiedName)
+        End Function
+
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
+        End Function
+
+        Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFactsService.GetNameOfParameter
+            Return TryCast(node, ParameterSyntax)?.Identifier?.Identifier
         End Function
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
@@ -597,17 +611,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Public Function GetExpressionOfConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalAccessExpression
-            Return TryCast(node, ConditionalAccessExpressionSyntax)?.Expression
-        End Function
+        Public Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfElementAccessExpression
+            Dim invocation = TryCast(node, InvocationExpressionSyntax)
+            If invocation IsNot Nothing Then
+                expression = invocation?.Expression
+                argumentList = invocation?.ArgumentList
+                Return
+            End If
 
-        Public Function GetExpressionOfElementAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfElementAccessExpression
-            Return TryCast(node, InvocationExpressionSyntax)?.Expression
-        End Function
+            If node.Kind() = SyntaxKind.DictionaryAccessExpression Then
+                GetPartsOfMemberAccessExpression(node, expression, argumentList)
+                Return
+            End If
 
-        Public Function GetArgumentListOfElementAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetArgumentListOfElementAccessExpression
-            Return TryCast(node, InvocationExpressionSyntax)?.ArgumentList
-        End Function
+            Return
+        End Sub
 
         Public Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInterpolation
             Return TryCast(node, InterpolationSyntax)?.Expression
@@ -945,12 +963,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
-            Contract.Requires(list.Count > 0)
+            Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
         Private Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
-            Contract.Requires(list.Count > 0)
+            Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
@@ -1115,7 +1133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function GetMethodLevelMemberId(root As SyntaxNode, node As SyntaxNode) As Integer Implements ISyntaxFactsService.GetMethodLevelMemberId
-            Contract.Requires(root.SyntaxTree Is node.SyntaxTree)
+            Debug.Assert(root.SyntaxTree Is node.SyntaxTree)
 
             Dim currentId As Integer = Nothing
             Dim currentNode As SyntaxNode = Nothing
@@ -1469,6 +1487,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+            ' VB only has assignment statements, so this can just delegate to that helper
+            GetPartsOfAssignmentExpressionOrStatement(statement, left, operatorToken, right)
+        End Sub
+
+        Public Sub GetPartsOfAssignmentExpressionOrStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentExpressionOrStatement
             Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
             left = assignment.Left
             operatorToken = assignment.OperatorToken
@@ -1519,6 +1542,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsExpressionOfInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfInvocationExpression
             Return node IsNot Nothing AndAlso TryCast(node.Parent, InvocationExpressionSyntax)?.Expression Is node
+        End Function
+
+        Public Function IsAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAwaitExpression
+            Return node.IsKind(SyntaxKind.AwaitExpression)
         End Function
 
         Public Function IsExpressionOfAwaitExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionOfAwaitExpression
@@ -1599,6 +1626,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
             Return node.Kind() = SyntaxKind.OrElseExpression
         End Function
+
+        Public Function IsTupleExpression(node As syntaxnode) As Boolean Implements ISyntaxFactsService.IsTupleExpression
+            Return node.Kind() = SyntaxKind.TupleExpression
+        End Function
+
+        Public Function IsTupleType(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTupleType
+            Return node.Kind() = SyntaxKind.TupleType
+        End Function
+
+        Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(
+                node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfTupleExpression
+
+            Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
+            openParen = tupleExpr.OpenParenToken
+            arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
+            closeParen = tupleExpr.CloseParenToken
+        End Sub
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
             Return DirectCast(node, UnaryExpressionSyntax).Operand
@@ -1753,6 +1797,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLiteralExpression
             Return TypeOf node Is LiteralExpressionSyntax
+        End Function
+
+        Public Function IsThisExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThisExpression
+            Return node.IsKind(SyntaxKind.MeExpression)
+        End Function
+
+        Public Function IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
+            Return node.IsKind(SyntaxKind.MyBaseExpression)
         End Function
 
         Public Function IsFalseLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression

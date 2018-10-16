@@ -871,6 +871,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (SourceModuleSymbol)this.Modules[0]; }
         }
 
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                return SourceModule.NonNullTypes;
+            }
+        }
+
         internal override bool RequiresCompletion
         {
             get { return true; }
@@ -1909,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (conclusion == IVTConclusion.PublicKeyDoesntMatch)
                         bag.Add(ErrorCode.ERR_FriendRefNotEqualToThis, NoLocation.Singleton,
-                                                                      otherAssembly.Identity);
+                                                                      otherAssembly.Identity, this.Identity);
                     else if (conclusion == IVTConclusion.OneSignedOneNot)
                         bag.Add(ErrorCode.ERR_FriendRefSigningMismatch, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
@@ -2189,7 +2197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString.Contains('*');
+                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString?.Contains('*') == true;
                     arguments.Diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
@@ -2506,7 +2514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.Locations[0], field, DefaultValue(field.Type));
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.Locations[0], field, DefaultValue(field.Type.TypeSymbol));
                     }
                 }
 

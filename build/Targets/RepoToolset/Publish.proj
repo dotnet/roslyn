@@ -1,0 +1,148 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project DefaultTargets="Publish">
+  <!--
+    Optional variables:
+      AzureFeedUrl                      Target Azure feed URL.
+      AzureAccountKey                   Azure account key.
+      DotNetOutputBlobFeedDir           Source Build publishing directory
+      DotNetSymbolServerTokenMsdl       Personal access token for MSDL symbol server. Available from variable group DotNet-Symbol-Publish.
+      DotNetSymbolServerTokenSymWeb     Personal access token for SymWeb symbol server. Available from variable group DotNet-Symbol-Publish.
+      DotNetSymbolExpirationInDays      Symbol expiration time in days (defaults to 10 years).
+
+    TODO: 
+      Unify this logic between Source and Orchestrated build (https://github.com/dotnet/arcade/issues/101)
+  -->
+
+  <Import Project="BuildStep.props" />
+
+  <PropertyGroup>
+    <PublishToAzure>false</PublishToAzure>
+    <PublishToAzure Condition="'$(AzureFeedUrl)' != ''">true</PublishToAzure>
+
+    <PublishToSourceBuildStorage>false</PublishToSourceBuildStorage>
+    <PublishToSourceBuildStorage Condition="'$(DotNetOutputBlobFeedDir)' != ''">true</PublishToSourceBuildStorage>
+    
+    <PublishToSymbolServer>false</PublishToSymbolServer>
+    <PublishToSymbolServer Condition="'$(UsingToolSymbolUploader)' == 'true' and '$(AzureFeedUrl)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">true</PublishToSymbolServer>
+    <AssetManifestFilePath>$(ArtifactsLogDir)AssetManifest\$(OS)-$(PlatformName).xml</AssetManifestFilePath>
+  </PropertyGroup>
+
+  <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" Condition="$(PublishToAzure)"/>
+  <Import Project="$(NuGetPackageRoot)microsoft.symboluploader.build.task\$(MicrosoftSymbolUploaderBuildTaskVersion)\build\PublishSymbols.targets" Condition="$(PublishToSymbolServer)"/>
+
+  <Target Name="Publish" Condition="$(PublishToAzure) or $(PublishToSourceBuildStorage) or $(PublishToSymbolServer)">
+    <PropertyGroup>
+      <SymbolPackagesDir>$(ArtifactsTmpDir)SymbolPackages\</SymbolPackagesDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ExistingSymbolPackages Include="$(ArtifactsShippingPackagesDir)*.symbols.nupkg" IsShipping="true" />
+      <ExistingSymbolPackages Include="$(ArtifactsNonShippingPackagesDir)*.symbols.nupkg" IsShipping="false" />
+
+      <PackagesToPublish Include="$(ArtifactsShippingPackagesDir)*.nupkg" IsShipping="true" />
+      <PackagesToPublish Include="$(ArtifactsNonShippingPackagesDir)*.nupkg" IsShipping="false" />
+      <PackagesToPublish Remove="@(ExistingSymbolPackages)" />
+
+      <PackagesToPublish Update="@(PackagesToPublish)">
+        <SymbolPackageToGenerate Condition="!Exists('%(RootDir)%(Directory)%(Filename).symbols.nupkg')">$(SymbolPackagesDir)%(Filename).symbols.nupkg</SymbolPackageToGenerate>
+      </PackagesToPublish>
+
+      <SymbolPackagesToGenerate Include="@(PackagesToPublish->'%(SymbolPackageToGenerate)')" Condition="'%(PackagesToPublish.SymbolPackageToGenerate)' != ''">
+        <OriginalPackage>%(PackagesToPublish.Identity)</OriginalPackage>
+        <IsShipping>%(PackagesToPublish.IsShipping)</IsShipping>
+      </SymbolPackagesToGenerate>
+    </ItemGroup>
+
+    <!--
+      If a symbol package doesn't exist yet we assume that the regular package contains Portable PDBs.
+      Such packages can act as symbol packages since they have the same structure.
+      We just need to copy them to *.symbols.nupkg.
+    -->
+    <MakeDir Directories="$(SymbolPackagesDir)" />
+    <Copy SourceFiles="@(SymbolPackagesToGenerate->'%(OriginalPackage)')" DestinationFiles="@(SymbolPackagesToGenerate)" />
+
+    <!-- Orchestrated Build blob storage -->
+    <ItemGroup>
+      <ItemsToPushToBlobFeed Include="@(PackagesToPublish);@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)">
+        <ManifestArtifactData Condition="!%(IsShipping)">NonShipping=true</ManifestArtifactData>
+      </ItemsToPushToBlobFeed>
+    </ItemGroup>
+
+    <PushToBlobFeed ExpectedFeedUrl="$(AzureFeedUrl)"
+                    AccountKey="$(AzureAccountKey)"
+                    ItemsToPush="@(ItemsToPushToBlobFeed)"
+                    ManifestBuildData="Location=$(AzureFeedUrl)"
+                    ManifestRepoUri="$(BUILD_REPOSITORY_URI)"
+                    ManifestBranch="$(BUILD_SOURCEBRANCH)"
+                    ManifestBuildId="$(BUILD_BUILDNUMBER)"
+                    ManifestCommit="$(BUILD_SOURCEVERSION)" 
+                    AssetManifestPath="$(AssetManifestFilePath)"
+                    Condition="$(PublishToAzure)"/>
+
+    <!-- Source Build local storage -->    
+    <Copy SourceFiles="@(PackagesToPublish)" DestinationFolder="$(DotNetOutputBlobFeedDir)packages" Condition="$(PublishToSourceBuildStorage)" />
+    <Copy SourceFiles="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)" DestinationFolder="$(DotNetOutputBlobFeedDir)assets" Condition="$(PublishToSourceBuildStorage)" />
+
+    <!-- Symbol publishing -->
+
+    <PropertyGroup>
+      <DotNetSymbolExpirationInDays Condition="'$(DotNetSymbolExpirationInDays)' == ''">3650</DotNetSymbolExpirationInDays>
+      <DryRun>false</DryRun>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(OfficialBuild)' != 'true'">
+      <DryRun>true</DryRun>
+      <DotNetSymbolServerTokenSymWeb>DryRunPTA</DotNetSymbolServerTokenSymWeb>
+      <DotNetSymbolServerTokenMsdl>DryRunPTA</DotNetSymbolServerTokenMsdl>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <!-- 
+        Publish Windows PDBs produced by SymStore.targets (by default, only shipping PDBs are placed there).
+        SymbolUploader doesn't support embedded PDBs yet, so let SymStore.targets do the conversion for now.
+        https://github.com/dotnet/core-eng/issues/3645
+      -->
+      <FilesToPublishToSymbolServer Include="$(ArtifactsSymStoreDirectory)**\*.pdb"/>
+
+      <!--
+        Publish Portable PDBs contained in symbol packages.
+      -->
+      <PackagesToPublishToSymbolServer Include="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <PublishToSymbolServer Condition="'@(FilesToPublishToSymbolServer)' == '' and '@(PackagesToPublishToSymbolServer)' == ''">false</PublishToSymbolServer>
+    </PropertyGroup>
+
+    <!-- Symbol Uploader: MSDL -->
+    <Message Importance="High" Text="Publishing symbol packages to MSDL ..." />
+    <PublishSymbols PackagesToPublish="@(PackagesToPublishToSymbolServer)"
+                    FilesToPublish="@(FilesToPublishToSymbolServer)"
+                    PersonalAccessToken="$(DotNetSymbolServerTokenMsdl)"
+                    SymbolServerPath="https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection"
+                    ExpirationInDays="$(DotNetSymbolExpirationInDays)"
+                    VerboseLogging="true"
+                    DryRun="$(DryRun)"
+                    ConvertPortablePdbsToWindowsPdbs="false"
+                    PdbConversionTreatAsWarning=""
+                    Condition="$(PublishToSymbolServer)"/>
+
+    <!-- 
+      Symbol Uploader: SymWeb 
+      Watson, VS insertion testings and the typical internal dev usage require SymWeb.
+      Currently we need to call the task twice (https://github.com/dotnet/core-eng/issues/3489).
+    -->
+    <Message Importance="High" Text="Publishing symbol packages to SymWeb ..." />
+    <PublishSymbols PackagesToPublish="@(PackagesToPublishToSymbolServer)"
+                    FilesToPublish="@(FilesToPublishToSymbolServer)"
+                    PersonalAccessToken="$(DotNetSymbolServerTokenSymWeb)"
+                    SymbolServerPath="https://microsoft.artifacts.visualstudio.com/DefaultCollection"
+                    ExpirationInDays="$(DotNetSymbolExpirationInDays)"
+                    VerboseLogging="true"
+                    DryRun="$(DryRun)"
+                    ConvertPortablePdbsToWindowsPdbs="false"
+                    PdbConversionTreatAsWarning=""
+                    Condition="$(PublishToSymbolServer)"/>
+  </Target>
+
+</Project>

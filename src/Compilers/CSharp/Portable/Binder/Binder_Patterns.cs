@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
+            var pattern = BindPattern(expression, node.Pattern, expressionType, hasErrors, diagnostics);
             if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
             {
                 diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundPattern BindPattern(
+            BoundExpression sourceExpression,
             PatternSyntax node,
             TypeSymbol operandType,
             bool hasErrors,
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern(
-                        (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
+                        sourceExpression, (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
                     var constantPattern = (ConstantPatternSyntax)node;
@@ -234,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPattern BindDeclarationPattern(
+            BoundExpression sourceExpression,
             DeclarationPatternSyntax node,
             TypeSymbol operandType,
             bool hasErrors,
@@ -245,26 +247,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
-                declType = operandType;
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, operandType);
             }
 
-            if (declType == (object)null)
+            if (declType.IsNull)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType("var");
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, this.CreateErrorType("var"));
             }
 
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
+            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);
             if (IsOperatorErrors(node, operandType, boundDeclType, diagnostics))
             {
                 hasErrors = true;
             }
             else
             {
-                hasErrors |= CheckValidPatternType(typeSyntax, operandType, declType,
+                hasErrors |= CheckValidPatternType(typeSyntax, operandType, declType.TypeSymbol,
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
@@ -290,13 +292,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 localSymbol.SetType(declType);
+                localSymbol.SetValEscape(GetValEscape(sourceExpression, LocalScopeDepth));
 
                 // Check for variable declaration errors.
                 hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                 if (!hasErrors)
                 {
-                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
+                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.TypeSymbol, diagnostics, typeSyntax);
                 }
 
                 return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);

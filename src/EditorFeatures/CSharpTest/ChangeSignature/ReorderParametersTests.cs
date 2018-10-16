@@ -803,7 +803,7 @@ class C
 class C
 {
     /// <summary>
-    /// See <see cref=""M( string,int)""/> and <see cref=""M""/>
+    /// See <see cref=""M(string, int)""/> and <see cref=""M""/>
     /// </summary>
     void M(string y, int x)
     { }

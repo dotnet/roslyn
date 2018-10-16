@@ -51,9 +51,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             faultInjector?.OnNewConnection();
 
-            // Enable shared cache so that multiple connections inside of same process share cache
+            // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can be used provided each
+            // one is only used from a single thread at a time.
             // see https://sqlite.org/threadsafe.html for more detail
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
-        public Stream ReadBlob(byte[] dataTableName, byte[] dataColumnName, long rowId)
+        public Stream ReadBlob(string dataTableName, string dataColumnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
             // following: https://www.sqlite.org/c3ref/blob_open.html
@@ -204,12 +205,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return stream;
         }
 
-
-        private static readonly byte[] mainPtr = Util.ToUtf8WithNullTerminator("main");
-        private Stream ReadBlob_InTransaction(byte[] tableName, byte[] columnName, long rowId)
+        private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;
-            var result = raw.sqlite3_blob_open(_handle, mainPtr, tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+            var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
             if (result == raw.SQLITE_ERROR)
             {
                 // can happen when rowId points to a row that hasn't been written to yet.

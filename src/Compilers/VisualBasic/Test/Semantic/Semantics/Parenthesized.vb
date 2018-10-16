@@ -262,7 +262,7 @@ L4
 L5
 L7
 F1
-1]]>.Value.Replace(vbLf, vbCrLf))
+1]]>.Value.Replace(vbLf, Environment.NewLine))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -483,7 +483,7 @@ F1
 L2
 F1
 L4
-L5]]>.Value.Replace(vbLf, vbCrLf))
+L5]]>.Value.Replace(vbLf, Environment.NewLine))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -713,7 +713,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
-                                            "System.Func`2[System.Int32,System.Double]" & vbCrLf &
+                                            "System.Func`2[System.Int32,System.Double]" & Environment.NewLine &
                                             "System.Func`2[System.Guid,System.Decimal]")
         End Sub
 

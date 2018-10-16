@@ -64,7 +64,7 @@ public class C
 }
 ";
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestSpansPresentInResource()
         {
             var c = CreateCompilation(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
@@ -115,7 +115,7 @@ public class C
             VerifySpans(reader, reader.Methods[8]);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void ResourceStatementKinds()
         {
             string source = @"
@@ -263,7 +263,7 @@ public class C
             VerifySpans(reader, reader.Methods[1]);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void TestMethodSpansWithAttributes()
         {
             string source = @"

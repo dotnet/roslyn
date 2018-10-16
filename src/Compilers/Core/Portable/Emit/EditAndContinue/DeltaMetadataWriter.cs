@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
-                        _parameterDefList.Add(KeyValuePair.Create(methodDef, paramDef));
+                        _parameterDefList.Add(KeyValuePairUtil.Create(methodDef, paramDef));
                     }
 
                     if (methodDef.GenericParameterCount > 0)
@@ -1443,6 +1443,9 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 _changes = writer._changes;
             }
+
+            protected override bool ProcessReferencesInCurrentModule
+                => false;
 
             public override void Visit(CommonPEModuleBuilder module)
             {

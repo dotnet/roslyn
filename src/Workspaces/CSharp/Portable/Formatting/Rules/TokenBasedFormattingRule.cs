@@ -201,6 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // new (int, int)[]
+            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                previousToken.Kind() == SyntaxKind.NewKeyword &&
+                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
@@ -335,6 +343,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // nullable
             if (currentToken.Kind() == SyntaxKind.QuestionToken &&
                 currentToken.Parent.Kind() == SyntaxKind.NullableType)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // No space between an array type and ?
+            if (currentToken.IsKind(SyntaxKind.QuestionToken) &&
+                previousToken.Parent?.IsParentKind(SyntaxKind.ArrayType) == true)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
+            if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
+                currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

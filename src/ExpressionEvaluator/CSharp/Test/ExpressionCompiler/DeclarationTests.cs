@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -504,7 +505,7 @@ class C
                     out error,
                     testData);
 
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
@@ -753,7 +754,7 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

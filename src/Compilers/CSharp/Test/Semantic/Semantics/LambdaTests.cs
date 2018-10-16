@@ -162,7 +162,7 @@ class C
     // (52,28): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
     //         Action q11 = ()=>{ return 1; };
     Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(52, 28),
-    // (54,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (54,26): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         Action q12 = ()=>1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(54, 26),
     // (56,42): warning CS0162: Unreachable code detected
@@ -591,7 +591,7 @@ class Program
     // (9,32): error CS0020: Division by constant zero
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(9, 32),
-    // (9,32): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,32): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         ((Func<int>)delegate { 1 / 0; })();
     Diagnostic(ErrorCode.ERR_IllegalStatement, "1 / 0").WithLocation(9, 32),
     // (9,21): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
@@ -642,10 +642,10 @@ class Program
             // statement expression.
 
             CreateCompilation(csSource).VerifyDiagnostics(
-                // (7,21): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,21): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         D d = () => new D(() => { });
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(() => { })"),
-                // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         new D(()=>{});
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
@@ -1345,7 +1345,7 @@ class Program
 }
 ");
             comp.VerifyDiagnostics(
-                // (6,41): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         var d = new System.Action(() => (new object()));
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
         }
@@ -1567,7 +1567,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1605,7 +1605,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -2350,23 +2350,23 @@ class C
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
             var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
 

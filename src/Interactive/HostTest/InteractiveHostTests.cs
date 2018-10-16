@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public InteractiveHostTests()
         {
-            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: -1);
+            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
 
             RedirectOutput();
 
@@ -92,8 +92,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
             ClearOutput();
-            _host.Output = _synchronizedOutput;
-            _host.ErrorOutput = _synchronizedErrorOutput;
+            _host.SetOutput(_synchronizedOutput);
+            _host.SetErrorOutput(_synchronizedErrorOutput);
+        }
+
+        private static ImmutableArray<string> SplitLines(string text)
+        {
+            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         private bool LoadReference(string reference)
@@ -492,7 +497,7 @@ WriteLine(5);
             Assert.True(Execute("new System.Data.DataSet()"));
         }
 
-        [ConditionalFact(typeof(Framework35Installed), Skip = "https://github.com/dotnet/roslyn/issues/5167")]
+        [ConditionalFact(typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
         public void AddReference_VersionUnification1()
         {
             // V3.5 unifies with the current Framework version:
@@ -984,11 +989,10 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public void Script_NoHostNamespaces()
         {
-            Execute("nameof(Microsoft.CodeAnalysis)");
-
+            Execute("nameof(Microsoft.Missing)");
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "CodeAnalysis", "Microsoft") }",
-                ReadErrorOutputToEnd());
+(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
+    ReadErrorOutputToEnd());
 
             Assert.Equal("", ReadOutputToEnd());
         }
@@ -1169,6 +1173,22 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
         }
 
+        [Fact]
+        public async Task Bitness()
+        {
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: true));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: false));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+        }
+
         #region Submission result printing - null/void/value.
 
         [Fact]
@@ -1210,10 +1230,5 @@ goo()
         }
 
         #endregion
-
-        private static ImmutableArray<string> SplitLines(string text)
-        {
-            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
-        }
     }
 }

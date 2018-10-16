@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -44,6 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private const string ExternalFlightName = "keybindgoldbarext";
         private const string KeybindingsFwLink = "https://go.microsoft.com/fwlink/?linkid=864209";
         private const string ReSharperExtensionName = "ReSharper Ultimate";
+        private const string ReSharperKeyboardMappingName = "ReSharper (Visual Studio)";
+        private const string VSCodeKeyboardMappingName = "Visual Studio Code";
 
         // Resharper commands and package
         private const uint ResumeId = 707;
@@ -72,7 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private bool _infoBarOpen = false;
 
         [ImportingConstructor]
-        public KeybindingResetDetector(VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public KeybindingResetDetector(IThreadingContext threadingContext, VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
@@ -86,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return Task.CompletedTask;
             }
 
-            return InvokeBelowInputPriority(InitializeCore);
+            return InvokeBelowInputPriorityAsync(InitializeCore);
         }
 
         private void InitializeCore()
@@ -191,15 +196,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
                          _experimentationService.IsExperimentEnabled(ExternalFlightName));
 
-            string message = ServicesVSResources.Disabling_the_extension_0_unbound_your_keyboard_bindings;
+            string message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
                 string.Format(message, ReSharperExtensionName),
-                new InfoBarUI(title: ServicesVSResources.Restore_Visual_Studio_keybindings,
+                new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,
                               action: RestoreVsKeybindings),
-                new InfoBarUI(title: ServicesVSResources.Use_Keybindings_for_extensions,
+                new InfoBarUI(title: string.Format(ServicesVSResources.Apply_0_keymapping_scheme, ReSharperKeyboardMappingName),
+                              kind: InfoBarUI.UIKind.Button,
+                              action: OpenExtensionsHyperlink),
+                new InfoBarUI(title: string.Format(ServicesVSResources.Apply_0_keymapping_scheme, VSCodeKeyboardMappingName),
                               kind: InfoBarUI.UIKind.Button,
                               action: OpenExtensionsHyperlink),
                 new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
@@ -265,6 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private void OpenExtensionsHyperlink()
         {
             ThisCanBeCalledOnAnyThread();
+
             if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out Uri fwLink))
             {
                 // We're providing a constant, known-good link. This should be impossible.
@@ -310,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
-                Task.Run(() => InvokeBelowInputPriority(UpdateStateMachine));
+                Task.Run(() => InvokeBelowInputPriorityAsync(UpdateStateMachine));
             }
 
             // No matter the command, we never actually want to respond to it, so always return not supported. We're just monitoring.
@@ -326,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // extra QueryStatus.
             if (args.TransitionType == StateTransitionType.Exit)
             {
-                InvokeBelowInputPriority(UpdateStateMachine);
+                InvokeBelowInputPriorityAsync(UpdateStateMachine);
             }
         }
 

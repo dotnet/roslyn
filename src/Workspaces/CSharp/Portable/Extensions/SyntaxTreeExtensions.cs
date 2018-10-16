@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
             this SyntaxNode root, TextSpan textSpan)
         {
-            var token = root.FindToken(textSpan.Start);
+            var token = root.FindTokenOnRightOfPosition(textSpan.Start);
             var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
             if (firstMember != null)
             {

@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -24,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters)
-            : base(assertIsForeground: true)
+        public VsReadOnlyDocumentTracker(IThreadingContext threadingContext, IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters)
+            : base(threadingContext, assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
 
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 if (!_isDisposed)
                 {

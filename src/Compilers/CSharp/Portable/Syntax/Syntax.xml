@@ -198,6 +198,12 @@
     <Field Name="CloseBracketToken" Type="SyntaxToken">
       <Kind Name="CloseBracketToken"/>
     </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
+    </Field>
   </Node>
   <Node Name="PointerTypeSyntax" Base="TypeSyntax">
     <Kind Name="PointerType"/>
@@ -424,6 +430,7 @@
   <Node Name="PostfixUnaryExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="PostIncrementExpression"/>
     <Kind Name="PostDecrementExpression"/>
+    <Kind Name="SuppressNullableWarningExpression"/>
     <Field Name="Operand" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>ExpressionSyntax representing the operand of the postfix unary expression.</summary>
@@ -432,6 +439,7 @@
     <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="PlusPlusToken"/>
       <Kind Name="MinusMinusToken"/>
+      <Kind Name="ExclamationToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
       </PropertyComment>
@@ -620,6 +628,7 @@
       <Kind Name="OrAssignmentExpression"/>
       <Kind Name="LeftShiftAssignmentExpression"/>
       <Kind Name="RightShiftAssignmentExpression"/>
+      <Kind Name="CoalesceAssignmentExpression" />
       <Field Name="Left" Type="ExpressionSyntax">
         <PropertyComment>
           <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
@@ -637,6 +646,7 @@
         <Kind Name="BarEqualsToken"/>
         <Kind Name="LessThanLessThanEqualsToken"/>
         <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+        <Kind Name="QuestionQuestionEqualsToken" />
         <PropertyComment>
           <summary>SyntaxToken representing the operator of the assignment expression.</summary>
         </PropertyComment>
@@ -3132,6 +3142,12 @@
       </PropertyComment>
       <Kind Name="ClassKeyword"/>
       <Kind Name="StructKeyword"/>
+    </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
     </Field>
   </Node>
   <Node Name="TypeConstraintSyntax" Base="TypeParameterConstraintSyntax">

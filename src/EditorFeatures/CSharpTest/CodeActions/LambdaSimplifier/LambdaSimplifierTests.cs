@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -324,7 +325,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 
 class A
@@ -344,6 +345,54 @@ class A
     static void Main()
     {
         Bar(x => [||]Goo(x));
+    }
+}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        public async Task TestOnAmbiguity()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(x => [||]Goo(x));
+    }
+}",
+@"using System;
+
+class A
+{
+    static void Goo<T>(T x) where T : class
+    {
+    }
+
+    static void Bar(Action<int> x)
+    {
+    }
+
+    static void Bar(Action<string> x)
+    {
+    }
+
+    static void Main()
+    {
+        Bar(Goo);
     }
 }");
         }

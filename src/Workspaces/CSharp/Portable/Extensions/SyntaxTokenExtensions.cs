@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.SyntaxNodeOrTokenExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -322,5 +323,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return false;
         }
+
+        public static SyntaxToken WithCommentsFrom(
+            this SyntaxToken token,
+            IEnumerable<SyntaxTrivia> leadingTrivia,
+            IEnumerable<SyntaxTrivia> trailingTrivia,
+            params SyntaxNodeOrToken[] trailingNodesOrTokens)
+            => token
+                .WithPrependedLeadingTrivia(leadingTrivia)
+                .WithTrailingTrivia((
+                    token.TrailingTrivia.Concat(SyntaxNodeOrTokenExtensions.GetTrivia(trailingNodesOrTokens).Concat(trailingTrivia))).FilterComments(addElasticMarker: false));
+
+        public static SyntaxToken KeepCommentsAndAddElasticMarkers(this SyntaxToken token)
+            => token
+                    .WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
+                    .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
     }
 }

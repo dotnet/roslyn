@@ -4821,6 +4821,50 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleArrayCreation()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new(string a, string b) [1];
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new (string a, string b)[1];
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleArrayCreation2()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new(
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        (string a, string b)[] ab = new (
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
@@ -4850,6 +4894,36 @@ void bar()
     void bar()
     {
         (int x1, var (x2, x3)) = (1, (2, 3));
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInSuppressNullableWarningExpression()
+        {
+            var code =
+@"class C
+{
+    static object F()
+    {
+        object? o[] = null;
+        object? x = null;
+        object? y = null;
+        return x ! ?? (y) ! ?? o[0] !;
+    }
+}";
+            var expectedCode =
+@"class C
+{
+    static object F()
+    {
+        object? o[] = null;
+        object? x = null;
+        object? y = null;
+        return x! ?? (y)! ?? o[0]!;
     }
 }";
 
@@ -7851,6 +7925,33 @@ switch (o)
 {
     case Point    p   :
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
+        public async Task FormatNullableArray()
+        {
+            var code = @"
+class C
+{
+    object[]? F = null;
+}";
+            await AssertFormatAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(23703, "https://github.com/dotnet/roslyn/issues/23703")]
+        public async Task FormatConditionalWithArrayAccess()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = array[1] ? 2 : 3;
+    }
+}";
+            await AssertFormatAsync(code, code);
         }
 
         private Task AssertFormatBodyAsync(string expected, string input)

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -477,13 +478,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var diagnostics = await analyzerDriverOpt.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
                         LogSyntaxInfo(document, analyzer, diagnostics, tree);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     case AnalysisKind.Semantic:
                         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         diagnostics = await analyzerDriverOpt.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, oneAnalyzers, cancellationToken).ConfigureAwait(false);
 
-                        Contract.Requires(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
+                        Debug.Assert(diagnostics.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, analyzerDriverOpt.Compilation).Count());
                         return diagnostics.ToImmutableArrayOrEmpty();
                     default:
                         return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
@@ -601,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    if (span.HasValue && !span.Value.Contains(diagnostic.Location.SourceSpan))
+                    if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
                     {
                         continue;
                     }

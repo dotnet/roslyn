@@ -104,8 +104,7 @@ end class")
     end property|]
 end class",
 "class Class1
-    readonly property P as integer
-= 1
+    readonly property P as integer = 1
 end class")
         End Function
 
@@ -152,6 +151,72 @@ end class")
         end get
     end property|]
 end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        Public Async Function TestInitializer_Boolean() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    Private _b As Boolean = True
+    Public Property [|P|]() As Boolean
+        Get
+            Return _b
+        End Get
+        Set(value As Boolean)
+            _b = value
+        End Set
+    End Property
+End Class",
+"Public Class C
+    Public Property P() As Boolean = True
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        Public Async Function TestInitializer_BooleanWithComments() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    Private _b As Boolean = True 'Comments1
+    Public Property [|P|]() As Boolean 'Comments2
+        Get
+            Return _b
+        End Get
+        Set(value As Boolean)
+            _b = value
+        End Set
+    End Property
+End Class",
+"Public Class C
+    Public Property P() As Boolean = True 'Comments2 'Comments1
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(28989, "https://github.com/dotnet/roslyn/issues/28989")>
+        Public Async Function TestInitializer_Multiline() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class C
+    Dim [|_b|] = {
+        ""one"",
+        ""two"",
+        ""three""}
+    Public Property P()
+        Get
+            Return _b
+        End Get
+        Set
+            _b = Value
+        End Set
+    End Property
+End Class",
+"Public Class C
+    Public Property P() = {
+        ""one"",
+        ""two"",
+        ""three""}
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -597,6 +662,116 @@ end class",
 end class")
         End Function
 
+        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestWriteInMultiLineSubLambdaInConstructor() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [|dim i as integer|]
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+
+    sub new()
+        dim x = sub()
+                    i = 1
+                end sub
+    end sub
+end class",
+"class C
+    property P as integer
+
+    sub new()
+        dim x = sub()
+                    P = 1
+                end sub
+    end sub
+end class")
+        End Function
+
+        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestWriteInMultiLineFunctionLambdaInConstructor() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [|dim i as integer|]
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+
+    sub new()
+        dim x = function()
+                    i = 1
+                    return 0
+                end function
+    end sub
+end class",
+"class C
+    property P as integer
+
+    sub new()
+        dim x = function()
+                    P = 1
+                    return 0
+                end function
+    end sub
+end class")
+        End Function
+
+        <WorkItem(30108, "https://github.com/dotnet/roslyn/issues/30108")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestWriteInSingleLineSubLambdaInConstructor() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    [|dim i as integer|]
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+
+    sub new()
+        dim x = sub() i = 1
+    end sub
+end class",
+"class C
+    property P as integer
+
+    sub new()
+        dim x = sub() P = 1
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestReadInSingleLineFunctionLambdaInConstructor() As Task
+            ' Since the lambda is a function lambda, the `=` is a comparison, not an assignment.
+            Await TestInRegularAndScriptAsync(
+"class C
+    [|dim i as integer|]
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+
+    sub new()
+        dim x = function() i = 1
+    end sub
+end class",
+"class C
+    readonly property P as integer
+
+    sub new()
+        dim x = function() P = 1
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestAlreadyAutoProperty() As Task
             Await TestMissingInRegularAndScriptAsync("Class Class1
@@ -618,7 +793,7 @@ Namespace RoslynSandbox
 
         Private [|_bar|] As Object
 
-		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+        Private ReadOnly Property Bar() As Object Implements IFoo.Bar
             Get
                 Return _bar
             End Get
@@ -639,7 +814,7 @@ Namespace RoslynSandbox
     Friend Class Foo
         Implements IFoo
 
-		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+        Private ReadOnly Property Bar() As Object Implements IFoo.Bar
 
         Public Sub New(bar As Object)
             Me.Bar = bar
