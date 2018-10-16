@@ -267,17 +267,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task LeadingCommentTriviaIsPlacedOnUsingStatement()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         // Comment
         var x = disposable;[||]
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         // Comment
         using (var x = disposable)
@@ -291,16 +291,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task CommentOnTheSameLineStaysOnTheSameLine()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         var x = disposable;[||] // Comment
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         using (var x = disposable) // Comment
         {
@@ -313,17 +313,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         var x = disposable;[||]
         // Comment
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         using (var x = disposable)
         {
@@ -337,18 +337,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task ValidPreprocessorStaysValid()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
 #if true
         var x = disposable;[||]
 #endif
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
 #if true
         using (var x = disposable)
@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task InvalidPreprocessorStaysInvalid()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
 #if true
         var x = disposable;[||]
@@ -373,9 +373,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         _ = x;
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
 #if true
         using (var x = disposable)
@@ -391,9 +391,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task StatementsAreSurroundedByMinimalScope()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         M(null);
         var x = disposable;[||]
@@ -402,9 +402,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         M(null);
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         M(null);
         using (var x = disposable)
@@ -421,9 +421,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         var x = disposable;[||]
         // A
@@ -431,9 +431,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         // C
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         using (var x = disposable)
         {
@@ -449,9 +449,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task WorksInSwitchSections()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         switch (disposable)
         {
@@ -462,9 +462,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         }
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         switch (disposable)
         {
@@ -483,17 +483,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         public async Task WorksOnInvalidEmbeddedStatements()
         {
             await TestInRegularAndScriptAsync(
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         if (disposable != null)
             var x = disposable;[||]
     }
 }",
-@"class C<T> where T : System.IDisposable
+@"class C
 {
-    void M(T disposable)
+    void M(System.IDisposable disposable)
     {
         if (disposable != null)
             using (var x = disposable)
