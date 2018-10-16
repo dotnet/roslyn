@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
         {
-            throw new NotSupportedException();
+            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
         }
 
         public void QueueSpaceReservationStackRefresh()
@@ -361,6 +361,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             if (this.IsImmediateWindow)
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void QueuePostLayoutAction(Action action) => _innerTextView.QueuePostLayoutAction(action);
+
+        public bool TryGetTextViewLines(out ITextViewLineCollection textViewLines) => _innerTextView.TryGetTextViewLines(out textViewLines);
+
+        public bool TryGetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition, out ITextViewLine textViewLine)
+        {
+            // This implementation confirms with the Editor implementation.
+            try
+            {
+                textViewLine = this.GetTextViewLineContainingBufferPosition(bufferPosition);
+                return textViewLine != null;
+            }
+            catch
+            {
+                textViewLine = null;
+                return false;
             }
         }
 
