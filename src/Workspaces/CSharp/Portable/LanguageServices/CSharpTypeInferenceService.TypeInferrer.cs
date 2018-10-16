@@ -168,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement);
                     case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement);
+                    case WhenClauseSyntax whenClause: return InferTypeInWhenClause(whenClause);
                     case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement);
                     case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -238,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement, token);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement, token);
                     case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement, token);
+                    case WhenClauseSyntax whenClause: return InferTypeInWhenClause(whenClause, token);
                     case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement, token);
                     case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement, token);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -2148,6 +2150,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tupleType = GetTupleType(tuple);
                 elementTypesBuilder.Add(tupleType);
                 elementNamesBuilder.Add(null);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInWhenClause(WhenClauseSyntax whenClause, SyntaxToken? previousToken = null)
+            {
+                // If we have a position, we have to be after the "when"
+                if (previousToken.HasValue && previousToken.Value != whenClause.WhenKeyword)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Boolean)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInWhileStatement(WhileStatementSyntax whileStatement, SyntaxToken? previousToken = null)
