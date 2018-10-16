@@ -7932,5 +7932,45 @@ class Class
     }
 }");
         }
+
+        [WorkItem(24138, "https://github.com/dotnet/roslyn/issues/24138")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInCaseWhenClause()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void M(object goo)
+    {
+        switch (goo)
+        {
+            case int i when [|GreaterThanZero(i)|]:
+                break;
+        }
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void M(object goo)
+    {
+        switch (goo)
+        {
+            case int i when GreaterThanZero(i):
+                break;
+        }
+    }
+
+    private bool GreaterThanZero(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }
