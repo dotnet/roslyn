@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
         protected override IfStatementSyntax SplitIfStatement(
             IfStatementSyntax currentIfStatement, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
-            var innerIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement);
+            var innerIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement, currentIfStatement.Else);
             var outerIfStatement = currentIfStatement
                 .WithCondition(condition1)
                 .WithStatement(SyntaxFactory.Block(innerIfStatement));
