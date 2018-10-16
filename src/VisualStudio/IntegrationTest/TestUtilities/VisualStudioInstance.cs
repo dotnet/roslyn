@@ -185,12 +185,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             if (!IsRunning)
             {
+                CloseRemotingService(allowInProcCalls: false);
                 return;
             }
 
-            CleanUp();
+            try
+            {
+                CleanUp();
+            }
+            catch
+            {
+                // A cleanup failure occurred, but we still need to close the communication channel from this side
+                CloseRemotingService(allowInProcCalls: false);
+                throw;
+            }
 
-            CloseRemotingService();
+            CloseRemotingService(allowInProcCalls: true);
 
             if (exitHostProcess)
             {
@@ -204,11 +214,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess(HostProcess);
         }
 
-        private void CloseRemotingService()
+        private void CloseRemotingService(bool allowInProcCalls)
         {
             try
             {
-                StopRemoteIntegrationService();
+                if (allowInProcCalls)
+                {
+                    StopRemoteIntegrationService();
+                }
             }
             finally
             {

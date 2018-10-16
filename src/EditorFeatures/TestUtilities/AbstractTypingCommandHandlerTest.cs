@@ -7,35 +7,38 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
+namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     [UseExportProvider]
-    public abstract class AbstractBlockCommentEditingTests
+    public abstract class AbstractTypingCommandHandlerTest<TCommandArgs> where TCommandArgs : VSCommanding.CommandArgs
     {
-        internal abstract VSCommanding.ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(
+        internal abstract VSCommanding.ICommandHandler<TCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService);
 
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        
+        protected abstract (TCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer);
 
-        protected void Verify(string initialMarkup, string expectedMarkup)
+        protected void Verify(string initialMarkup, string expectedMarkup, Action<TestWorkspace> initializeWorkspace = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
+                initializeWorkspace?.Invoke(workspace);
+
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
                 var commandHandler = CreateCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), workspace.GetService<IEditorOperationsFactoryService>());
 
-                var args = new ReturnKeyCommandArgs(view, view.TextBuffer);
-                var nextHandler = CreateInsertTextHandler(view, "\r\n");
+                var (args, insertionText) = CreateCommandArgs(view, view.TextBuffer);
+                var nextHandler = CreateInsertTextHandler(view, insertionText);
 
                 if (!commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create()))
                 {

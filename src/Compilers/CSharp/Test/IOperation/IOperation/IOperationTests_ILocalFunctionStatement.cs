@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1628,6 +1632,114 @@ Block[B2] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_11()
+        {
+            string source = @"
+struct C
+{
+    void M()
+/*<bind>*/{
+        void d1()
+        {
+            void d2(bool result1, bool input1)
+            {
+                result1 = input1;
+            }
+        };
+    }/*</bind>*/
+}
+";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First()));
+
+            Assert.NotNull(graphM);
+            Assert.Null(graphM.Parent);
+
+            IMethodSymbol localFunctionD1 = getLocalFunction(graphM);
+            Assert.NotNull(localFunctionD1);
+            Assert.Equal("d1", localFunctionD1.Name);
+
+            var graphD1 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD1);
+            Assert.NotNull(graphD1);
+            Assert.Same(graphM, graphD1.Parent);
+            var graphD1_FromExtension = graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
+            Assert.Same(graphD1, graphD1_FromExtension);
+
+            IMethodSymbol localFunctionD2 = getLocalFunction(graphD1);
+            Assert.NotNull(localFunctionD2);
+            Assert.Equal("d2", localFunctionD2.Name);
+
+            var graphD2 = graphD1.GetLocalFunctionControlFlowGraph(localFunctionD2);
+            Assert.NotNull(graphD2);
+            Assert.Same(graphD1, graphD2.Parent);
+
+            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraph(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraph(localFunctionD2));
+            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD2));
+
+            IMethodSymbol getLocalFunction(ControlFlowGraph graph)
+            {
+                return graph.LocalFunctions.Single();
+            }
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_12()
+        {
+            string source = @"
+struct C
+{
+    void M()
+/*<bind>*/{
+        void d1() { }
+        void d2()
+        {
+            d1();
+        }
+    }/*</bind>*/
+}
+";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First()));
+
+            Assert.NotNull(graphM);
+            Assert.Null(graphM.Parent);
+
+            IMethodSymbol localFunctionD1 = getLocalFunction(graphM, "d1");
+            Assert.NotNull(localFunctionD1);
+            IMethodSymbol localFunctionD2 = getLocalFunction(graphM, "d2");
+            Assert.NotNull(localFunctionD2);
+
+            var graphD1 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD1);
+            Assert.NotNull(graphD1);
+            Assert.Same(graphM, graphD1.Parent);
+            var graphD2 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD2);
+            Assert.NotNull(graphD2);
+            Assert.Same(graphM, graphD2.Parent);
+
+            var graphD1_FromExtension = graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
+            Assert.Same(graphD1, graphD1_FromExtension);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphD2.GetLocalFunctionControlFlowGraph(localFunctionD1));
+            graphD1_FromExtension = graphD2.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
+            Assert.Same(graphD1, graphD1_FromExtension);
+
+            IMethodSymbol getLocalFunction(ControlFlowGraph graph, string name)
+            {
+                return graph.LocalFunctions.Single(l => l.Name == name);
+            }
         }
     }
 }

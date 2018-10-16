@@ -430,6 +430,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Determines if the specified node is a descendant of this node.
+        /// Returns true for current node.
         /// </summary>
         public bool Contains(SyntaxNode node)
         {

@@ -243,6 +243,13 @@ d.cs
             Assert.Equal(basePath, args.BaseDirectory);
         }
 
+        [Fact]
+        public void NullBaseDirectoryNotAddedToKeyFileSearchPaths()
+        {
+            var parser = CSharpCommandLineParser.Default.Parse(new string[0], null, SdkDirectory);
+            AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {
@@ -542,7 +549,7 @@ d.cs
             CleanupAllGeneratedFiles(tmpFileName);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void Win32ResQuotes()
         {
             string[] responseFile = new string[] {

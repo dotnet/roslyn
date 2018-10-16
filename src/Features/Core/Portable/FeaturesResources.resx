@@ -1490,4 +1490,16 @@ This version used in: {2}</value>
   <data name="argument_list" xml:space="preserve">
     <value>argument list</value>
   </data>
+  <data name="Introduce_constant" xml:space="preserve">
+    <value>Introduce constant</value>
+  </data>
+  <data name="Introduce_field" xml:space="preserve">
+    <value>Introduce field</value>
+  </data>
+  <data name="Introduce_local" xml:space="preserve">
+    <value>Introduce local</value> 
+  </data> 
+  <data name="Introduce_query_variable" xml:space="preserve">
+    <value>Introduce query variable</value>
+  </data>
 </root>
