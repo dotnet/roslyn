@@ -741,7 +741,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _documentFileChangeContext.Dispose();
 
-            // TODO: clean up open files
             _workspace.ApplyChangeToWorkspace(w => w.OnProjectRemoved(Id));
         }
 

@@ -735,7 +735,6 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)
         {
-            CheckDocumentIsClosed(documentId);
         }
 
         /// <summary>

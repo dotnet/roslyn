@@ -404,9 +404,10 @@ class D { }
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
-                Assert.Throws<ArgumentException>(() => workspace.OnDocumentRemoved(document.Id));
+                workspace.OnDocumentRemoved(document.Id);
 
-                workspace.CloseDocument(document.Id);
+                Assert.Empty(workspace.CurrentSolution.Projects.Single().Documents);
+
                 workspace.OnProjectRemoved(project1.Id);
             }
         }
