@@ -38,12 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
             Return ImmutableArray.ToImmutableArray(Of SyntaxNode)(ifStatement.ElseIfBlocks).Add(ifStatement.ElseBlock)
         End Function
 
-        Protected Overrides Function MergeIfStatements(outerIfBlock As MultiLineIfBlockSyntax, innerIfBlock As MultiLineIfBlockSyntax, generator As SyntaxGenerator) As MultiLineIfBlockSyntax
-            Dim newCondition = SyntaxFactory.BinaryExpression(SyntaxKind.AndAlsoExpression,
-                                                              DirectCast(generator.AddParentheses(outerIfBlock.IfStatement.Condition), ExpressionSyntax),
-                                                              SyntaxFactory.Token(SyntaxKind.AndAlsoKeyword),
-                                                              DirectCast(generator.AddParentheses(innerIfBlock.IfStatement.Condition), ExpressionSyntax))
-            Return outerIfBlock.WithIfStatement(outerIfBlock.IfStatement.WithCondition(newCondition)).WithStatements(innerIfBlock.Statements)
+        Protected Overrides Function MergeIfStatements(outerIfBlock As MultiLineIfBlockSyntax, innerIfBlock As MultiLineIfBlockSyntax, condition As SyntaxNode) As MultiLineIfBlockSyntax
+            Return outerIfBlock.WithIfStatement(outerIfBlock.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax))) _
+                               .WithStatements(innerIfBlock.Statements)
         End Function
     End Class
 End Namespace

@@ -736,6 +736,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (node.Kind() == SyntaxKind.IfStatement);
         }
 
+        public SyntaxNode GetIfStatementCondition(SyntaxNode ifStatement)
+            => ((IfStatementSyntax)ifStatement).Condition;
+
         public bool IsAttribute(SyntaxNode node)
         {
             return node is AttributeSyntax;

@@ -665,6 +665,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (node.Kind() = SyntaxKind.IfStatement)
         End Function
 
+        Public Function GetIfStatementCondition(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetIfStatementCondition
+            Return DirectCast(node, MultiLineIfBlockSyntax).IfStatement.Condition
+        End Function
+
         Public Function IsAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
             Return TypeOf node Is AttributeSyntax
         End Function

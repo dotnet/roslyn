@@ -51,13 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
             return ImmutableArray.Create<SyntaxNode>(ifStatement.Else);
         }
 
-        protected override IfStatementSyntax MergeIfStatements(IfStatementSyntax outerIfStatement, IfStatementSyntax innerIfStatement, SyntaxGenerator generator)
+        protected override IfStatementSyntax MergeIfStatements(IfStatementSyntax outerIfStatement, IfStatementSyntax innerIfStatement, SyntaxNode condition)
         {
-            var newCondition = SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalAndExpression,
-                (ExpressionSyntax)generator.AddParentheses(outerIfStatement.Condition),
-                (ExpressionSyntax)generator.AddParentheses(innerIfStatement.Condition));
-            return outerIfStatement.WithCondition(newCondition).WithStatement(innerIfStatement.Statement);
+            return outerIfStatement.WithCondition((ExpressionSyntax)condition).WithStatement(innerIfStatement.Statement);
         }
     }
 }

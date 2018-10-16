@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
         protected abstract ImmutableArray<SyntaxNode> GetElseClauses(TIfStatementSyntax ifStatement);
 
-        protected abstract TIfStatementSyntax MergeIfStatements(TIfStatementSyntax outerIfStatement, TIfStatementSyntax innerIfStatement, SyntaxGenerator generator);
+        protected abstract TIfStatementSyntax MergeIfStatements(TIfStatementSyntax outerIfStatement, TIfStatementSyntax innerIfStatement, SyntaxNode condition);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -61,7 +61,14 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             Contract.ThrowIfFalse(IsTokenOfIfStatement(token, out var ifStatement));
             Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(ifStatement, out var parentIfStatement));
 
-            var newIfStatement = MergeIfStatements(parentIfStatement, ifStatement, document.GetLanguageService<SyntaxGenerator>());
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+
+            var newCondition = generator.LogicalAndExpression(
+                syntaxFacts.GetIfStatementCondition(parentIfStatement),
+                syntaxFacts.GetIfStatementCondition(ifStatement));
+
+            var newIfStatement = MergeIfStatements(parentIfStatement, ifStatement, newCondition);
 
             var newRoot = root.ReplaceNode(parentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
             return document.WithSyntaxRoot(newRoot);
