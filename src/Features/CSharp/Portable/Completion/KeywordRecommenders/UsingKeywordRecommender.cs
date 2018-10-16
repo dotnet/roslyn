@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
-                IsUsingDirectiveContext(context, cancellationToken);
+                IsUsingDirectiveContext(context, cancellationToken) ||
+                context.IsAwaitStatementContext(position, cancellationToken);
         }
 
         private static bool IsUsingDirectiveContext(CSharpSyntaxContext context, CancellationToken cancellationToken)

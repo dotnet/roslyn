@@ -6667,7 +6667,7 @@ tryAgain:
                     {
                         return this.ParseUnsafeStatement();
                     }
-                    goto default;
+                    break;
                 case SyntaxKind.UsingKeyword:
                     return this.ParseUsingStatement(awaitTokenOpt: default);
                 case SyntaxKind.WhileKeyword:
@@ -6693,22 +6693,9 @@ tryAgain:
                     {
                         return this.ParseExpressionStatement(this.ParseQueryExpression(0));
                     }
-                    goto default;
-
-                default:
-                    return ParseExpressionStatementIfPossible(allowAnyExpression);
+                    break;
             }
-        }
 
-        private SyntaxToken ParseAwaitKeywordForAsyncStreams()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-            return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
-        }
-
-        private StatementSyntax ParseExpressionStatementIfPossible(bool allowAnyExpression)
-        {
             if (this.IsPossibleLocalDeclarationStatement(allowAnyExpression))
             {
                 return null;
@@ -6717,6 +6704,13 @@ tryAgain:
             {
                 return this.ParseExpressionStatement();
             }
+        }
+
+        private SyntaxToken ParseAwaitKeywordForAsyncStreams()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
+            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+            return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
         }
 
         private bool IsPossibleLabeledStatement()
