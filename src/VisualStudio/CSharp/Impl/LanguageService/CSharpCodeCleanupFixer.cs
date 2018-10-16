@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -8,9 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -25,9 +30,229 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
     internal class CSharpCodeCleanUpFixer : CodeCleanUpFixer
     {
+        private const string RemoveUnusedImportsFixId = "RemoveUnusedImportsFixId";
+        private const string SortImportsFixId = "SortImportsFixId";
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences))]
+        public FixIdDefinition UseImplicitTypeDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences))]
+        public FixIdDefinition UseExplicitTypeDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.AddQualificationDiagnosticId)]
+        [Name(IDEDiagnosticIds.AddQualificationDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_this_qualification_preferences))]
+        public FixIdDefinition AddQualificationDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.RemoveQualificationDiagnosticId)]
+        [Name(IDEDiagnosticIds.RemoveQualificationDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_this_qualification_preferences))]
+        public FixIdDefinition RemoveQualificationDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
+        [Name(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_language_framework_type_preferences))]
+        public FixIdDefinition PreferBuiltInOrFrameworkTypeDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.AddBracesDiagnosticId)]
+        [Name(IDEDiagnosticIds.AddBracesDiagnosticId)]
+        [Order(After = SortImportsFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
+        public FixIdDefinition AddBracesDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
+        [Name(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.AddBracesDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_accessibility_modifiers))]
+        public FixIdDefinition AddAccessibilityModifiersDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [Name(IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Sort_accessibility_modifiers))]
+        public FixIdDefinition OrderModifiersDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
+        [Name(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.AddQualificationDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Make_private_field_readonly_when_possible))]
+        public FixIdDefinition MakeFieldReadonlyDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [Name(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Remove_unnecessary_casts))]
+        public FixIdDefinition RemoveUnnecessaryCastDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForConstructorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForMethodsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForConversionOperatorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForOperatorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForPropertiesDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForIndexersDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public FixIdDefinition UseExpressionBodyForAccessorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
+        [Name(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_inline_out_variable_preferences))]
+        public FixIdDefinition InlineDeclarationDiagnosticId;
+
+        [Export]
+        [FixId(CSharpRemoveUnusedVariableCodeFixProvider.CS0168)]
+        [Name(CSharpRemoveUnusedVariableCodeFixProvider.CS0168)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Remove_unused_variables))]
+        public FixIdDefinition CS0168;
+
+        [Export]
+        [FixId(CSharpRemoveUnusedVariableCodeFixProvider.CS0219)]
+        [Name(CSharpRemoveUnusedVariableCodeFixProvider.CS0219)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Remove_unused_variables))]
+        public FixIdDefinition CS0219;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_object_collection_initialization_preferences))]
+        public FixIdDefinition UseObjectInitializerDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_object_collection_initialization_preferences))]
+        public FixIdDefinition UseCollectionInitializerDiagnosticId;
+
+        [Export]
+        [FixId(RemoveUnusedImportsFixId)]
+        [Name(RemoveUnusedImportsFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [ExportMetadata("EnableByDefault", true)]
+        [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Remove_unnecessary_usings))]
+        public FixIdDefinition RemoveUnusedImports;
+
+        [Export]
+        [FixId(SortImportsFixId)]
+        [Name(SortImportsFixId)]
+        [Order(After = RemoveUnusedImportsFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [ExportMetadata("EnableByDefault", true)]
+        [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Sort_usings))]
+        public FixIdDefinition SortImports;
+
         public override Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
-            switch(scope)
+            switch (scope)
             {
                 case TextBufferCodeCleanUpScope textBufferScope:
                     return FixTextBufferAsync(textBufferScope, context, cancellationToken);
@@ -35,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return FixHierarchyContentAsync(hierarchyContentScope, context, cancellationToken);
                 default:
                     return Task.FromResult(false);
-            }            
+            }
         }
 
         private Task<bool> FixHierarchyContentAsync(IVsHierarchyCodeCleanupScope hierarchyContent, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
@@ -90,7 +315,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                     // TODO: enable all diagnostics for now, need to be replace by inclusion/ exclusion list from .editorconfig
                     // https://github.com/dotnet/roslyn/issues/30163
-                    var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+                    var allDiagnostics = codeCleanupService.GetAllDiagnostics();
+
+                    var enabedDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
+
+                    foreach (var diagnostic in allDiagnostics.Diagnostics)
+                    {
+                        foreach (var diagnosticId in diagnostic.DiagnosticIds)
+                        {
+                            if (context.EnabledFixIds.IsFixIdEnabled(diagnosticId))
+                            {
+                                enabedDiagnosticSets.Add(diagnostic);
+                                break;
+                            }
+                        }
+                    }
+
+                    var isRemoveUnusedUsingsEnabled = context.EnabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
+                    var isSortUsingsEnabled = context.EnabledFixIds.IsFixIdEnabled(SortImportsFixId);
+                    var enabledDiagnostics = new EnabledDiagnosticOptions(enabedDiagnosticSets.ToImmutableArray(),
+                        new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
                     var newDoc = await codeCleanupService.CleanupAsync(
                         document, enabledDiagnostics, progressTracker, cancellationToken);
