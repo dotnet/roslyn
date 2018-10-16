@@ -1,21 +1,13 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project DefaultTargets="Publish">
   <!--
-    Optional variables: 
+    Optional variables:
       AzureFeedUrl                      Target Azure feed URL.
       AzureAccountKey                   Azure account key.
       DotNetOutputBlobFeedDir           Source Build publishing directory
       DotNetSymbolServerTokenMsdl       Personal access token for MSDL symbol server. Available from variable group DotNet-Symbol-Publish.
       DotNetSymbolServerTokenSymWeb     Personal access token for SymWeb symbol server. Available from variable group DotNet-Symbol-Publish.
       DotNetSymbolExpirationInDays      Symbol expiration time in days (defaults to 10 years).
-      
-    TODO: Roslyn specific
-      PublishStableVersions, VersionStampToPublish: Determine what packages to push for the .NET Core build.
-        - PublishStableVersions = false - Push PerBuildPreRelease
-        - PublishStableVersions = true - Push either PreRelease or Release, based on VersionStampToPublish value
-        - VersionStampToPublish = '' - Push Release
-        - VersionStampToPublish != '' - Push PreRelease
-        - PublishStableVersions = false and VersionStampToPublish == '' - Error, no per build versioning of release builds
 
     TODO: 
       Unify this logic between Source and Orchestrated build (https://github.com/dotnet/arcade/issues/101)
@@ -32,13 +24,7 @@
     
     <PublishToSymbolServer>false</PublishToSymbolServer>
     <PublishToSymbolServer Condition="'$(UsingToolSymbolUploader)' == 'true' and '$(AzureFeedUrl)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">true</PublishToSymbolServer>
-  </PropertyGroup>
-
-  <!-- TODO: Roslyn specific -->
-  <PropertyGroup>
-    <PublishPackagesDir Condition="'$(PublishStableVersions)' == 'false'">$(ArtifactsPackagesDir)PerBuildPreRelease</PublishPackagesDir>
-    <PublishPackagesDir Condition="'$(PublishStableVersions)' == 'true' and '$(VersionStampToPublish)' == ''">$(ArtifactsPackagesDir)Release</PublishPackagesDir>
-    <PublishPackagesDir Condition="'$(PublishStableVersions)' == 'true' and '$(VersionStampToPublish)' != ''">$(ArtifactsPackagesDir)PreRelease</PublishPackagesDir>
+    <AssetManifestFilePath>$(ArtifactsLogDir)AssetManifest\$(OS)-$(PlatformName).xml</AssetManifestFilePath>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" Condition="$(PublishToAzure)"/>
@@ -50,16 +36,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ExistingSymbolPackages Include="$(PublishPackagesDir)*.symbols.nupkg" />
+      <ExistingSymbolPackages Include="$(ArtifactsShippingPackagesDir)*.symbols.nupkg" IsShipping="true" />
+      <ExistingSymbolPackages Include="$(ArtifactsNonShippingPackagesDir)*.symbols.nupkg" IsShipping="false" />
 
-      <PackagesToPublish Include="$(PublishPackagesDir)*.nupkg" />
+      <PackagesToPublish Include="$(ArtifactsShippingPackagesDir)*.nupkg" IsShipping="true" />
+      <PackagesToPublish Include="$(ArtifactsNonShippingPackagesDir)*.nupkg" IsShipping="false" />
       <PackagesToPublish Remove="@(ExistingSymbolPackages)" />
+
       <PackagesToPublish Update="@(PackagesToPublish)">
         <SymbolPackageToGenerate Condition="!Exists('%(RootDir)%(Directory)%(Filename).symbols.nupkg')">$(SymbolPackagesDir)%(Filename).symbols.nupkg</SymbolPackageToGenerate>
       </PackagesToPublish>
 
       <SymbolPackagesToGenerate Include="@(PackagesToPublish->'%(SymbolPackageToGenerate)')" Condition="'%(PackagesToPublish.SymbolPackageToGenerate)' != ''">
         <OriginalPackage>%(PackagesToPublish.Identity)</OriginalPackage>
+        <IsShipping>%(PackagesToPublish.IsShipping)</IsShipping>
       </SymbolPackagesToGenerate>
     </ItemGroup>
 
@@ -72,13 +62,21 @@
     <Copy SourceFiles="@(SymbolPackagesToGenerate->'%(OriginalPackage)')" DestinationFiles="@(SymbolPackagesToGenerate)" />
 
     <!-- Orchestrated Build blob storage -->
+    <ItemGroup>
+      <ItemsToPushToBlobFeed Include="@(PackagesToPublish);@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)">
+        <ManifestArtifactData Condition="!%(IsShipping)">NonShipping=true</ManifestArtifactData>
+      </ItemsToPushToBlobFeed>
+    </ItemGroup>
+
     <PushToBlobFeed ExpectedFeedUrl="$(AzureFeedUrl)"
                     AccountKey="$(AzureAccountKey)"
-                    ItemsToPush="@(PackagesToPublish);@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)"
-                    ManifestName="$(BUILD_REPOSITORY_NAME)"
+                    ItemsToPush="@(ItemsToPushToBlobFeed)"
+                    ManifestBuildData="Location=$(AzureFeedUrl)"
+                    ManifestRepoUri="$(BUILD_REPOSITORY_URI)"
                     ManifestBranch="$(BUILD_SOURCEBRANCH)"
                     ManifestBuildId="$(BUILD_BUILDNUMBER)"
                     ManifestCommit="$(BUILD_SOURCEVERSION)" 
+                    AssetManifestPath="$(AssetManifestFilePath)"
                     Condition="$(PublishToAzure)"/>
 
     <!-- Source Build local storage -->    
@@ -98,23 +96,28 @@
       <DotNetSymbolServerTokenMsdl>DryRunPTA</DotNetSymbolServerTokenMsdl>
     </PropertyGroup>
 
-    <!-- 
-      Publish Windows PDBs produced by SymStore.targets.
-      SymbolUploader doesn't support embedded PDBs yet, so let SymStore.targets do the conversion for now.
-      https://github.com/dotnet/core-eng/issues/3645
-    -->
     <ItemGroup>
-      <FilesToPublish Include="$(ArtifactsSymStoreDirectory)**\*.pdb"/>
+      <!-- 
+        Publish Windows PDBs produced by SymStore.targets (by default, only shipping PDBs are placed there).
+        SymbolUploader doesn't support embedded PDBs yet, so let SymStore.targets do the conversion for now.
+        https://github.com/dotnet/core-eng/issues/3645
+      -->
+      <FilesToPublishToSymbolServer Include="$(ArtifactsSymStoreDirectory)**\*.pdb"/>
+
+      <!--
+        Publish Portable PDBs contained in symbol packages.
+      -->
+      <PackagesToPublishToSymbolServer Include="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)"/>
     </ItemGroup>
 
     <PropertyGroup>
-      <PublishToSymbolServer Condition="'@(FilesToPublish)' == '' and '@(ExistingSymbolPackages)' == '' and '@(SymbolPackagesToGenerate)' == ''">false</PublishToSymbolServer>
+      <PublishToSymbolServer Condition="'@(FilesToPublishToSymbolServer)' == '' and '@(PackagesToPublishToSymbolServer)' == ''">false</PublishToSymbolServer>
     </PropertyGroup>
 
     <!-- Symbol Uploader: MSDL -->
     <Message Importance="High" Text="Publishing symbol packages to MSDL ..." />
-    <PublishSymbols PackagesToPublish="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)"
-                    FilesToPublish="@(FilesToPublish)"
+    <PublishSymbols PackagesToPublish="@(PackagesToPublishToSymbolServer)"
+                    FilesToPublish="@(FilesToPublishToSymbolServer)"
                     PersonalAccessToken="$(DotNetSymbolServerTokenMsdl)"
                     SymbolServerPath="https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection"
                     ExpirationInDays="$(DotNetSymbolExpirationInDays)"
@@ -130,8 +133,8 @@
       Currently we need to call the task twice (https://github.com/dotnet/core-eng/issues/3489).
     -->
     <Message Importance="High" Text="Publishing symbol packages to SymWeb ..." />
-    <PublishSymbols PackagesToPublish="@(ExistingSymbolPackages);@(SymbolPackagesToGenerate)"
-                    FilesToPublish="@(FilesToPublish)"
+    <PublishSymbols PackagesToPublish="@(PackagesToPublishToSymbolServer)"
+                    FilesToPublish="@(FilesToPublishToSymbolServer)"
                     PersonalAccessToken="$(DotNetSymbolServerTokenSymWeb)"
                     SymbolServerPath="https://microsoft.artifacts.visualstudio.com/DefaultCollection"
                     ExpirationInDays="$(DotNetSymbolExpirationInDays)"

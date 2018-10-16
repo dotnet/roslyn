@@ -101,7 +101,7 @@ End Module")
 
         private static void ReferenceNetstandardDllIfCoreClr(TempDirectory currentDirectory, List<string> arguments)
         {
-#if NETCOREAPP2_0
+#if !NET46
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
             File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
             arguments.Add("/nostdlib");
@@ -1193,7 +1193,7 @@ End Module
 {
     public System.Exception GetException()
     {
-        return null;
+        return new System.Exception();
     }
 }
 "}};
@@ -1416,7 +1416,7 @@ class Program
             });
             using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
-                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, new BuildRequest.Argument[0]);
+                var request = new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
                 var compileTask = ServerUtil.Send(serverData.PipeName, request);
                 var response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);

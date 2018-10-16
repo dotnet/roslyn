@@ -93,9 +93,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
 
-            // Ensure the new and old property share the same trailing trivia.
-            updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
-
             // Note: rename will try to update all the references in linked files as well.  However, 
             // this can lead to some very bad behavior as we will change the references in linked files
             // but only remove the field and update the property in a single document.  So, you can
@@ -185,15 +182,15 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 }
             }
 
-            const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
+            var syntaxRemoveOptions = CreateSyntaxRemoveOptions(nodeToRemove);
             if (fieldDocument == propertyDocument)
             {
                 // Same file.  Have to do this in a slightly complicated fashion.
                 var declaratorTreeRoot = await fieldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var editor = new SyntaxEditor(declaratorTreeRoot, fieldDocument.Project.Solution.Workspace);
-                editor.RemoveNode(nodeToRemove, options);
                 editor.ReplaceNode(property, updatedProperty);
+                editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
                 newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
@@ -206,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var fieldTreeRoot = await fieldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var propertyTreeRoot = await propertyDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, options);
+                var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
                 newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
@@ -217,6 +214,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)
+        {
+            var syntaxRemoveOptions = SyntaxGenerator.DefaultRemoveOptions;
+            var hasDirective = nodeToRemove.GetLeadingTrivia().Any(t => t.IsDirective);
+
+            if (hasDirective)
+            {
+                syntaxRemoveOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+            }
+
+            return syntaxRemoveOptions;
         }
 
         private bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
@@ -268,11 +278,16 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                                                        .WhereNotNull()
                                                        .ToSet();
             return renameLocations.Locations.Any(
-                loc => IsWrittenToOutsideOfConstructorOrProperty(loc, propertyDeclaration, constructorNodes, cancellationToken));
+                loc => IsWrittenToOutsideOfConstructorOrProperty(
+                    renameLocations.Solution, loc, propertyDeclaration, constructorNodes, cancellationToken));
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
-            RenameLocation location, TPropertyDeclaration propertyDeclaration, ISet<TConstructorDeclaration> constructorNodes, CancellationToken cancellationToken)
+            Solution solution,
+            RenameLocation location,
+            TPropertyDeclaration propertyDeclaration,
+            ISet<TConstructorDeclaration> constructorNodes,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -282,8 +297,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return false;
             }
 
+            var syntaxFacts = solution.GetDocument(location.DocumentId).GetLanguageService<ISyntaxFactsService>();
             var node = location.Location.FindToken(cancellationToken).Parent;
-            while (node != null)
+
+            while (node != null && !syntaxFacts.IsAnonymousOrLocalFunction(node))
             {
                 if (node == propertyDeclaration)
                 {

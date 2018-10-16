@@ -65,7 +65,7 @@
          identifier to the end of the output path
          https://github.com/dotnet/roslyn/issues/23547
     -->
-    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != ''">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
+    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != '' AND '$(MSBuildProjectName)' != 'IlAsmDeploy'">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
     <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' == ''">$(OutputPath)$(TargetFramework)\$(PublishDirName)\</PublishDir>
 
     <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
@@ -103,17 +103,19 @@
   </Choose>
 
   <!--
-    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
+    If the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFramework.ReferenceAssemblies nuget package.
     Use the latest Framework toolset to build, but set msbuild properties below
     so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
   -->
-  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net20'">
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
     <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\$(MicrosoftNetFX20Version)\lib\net20</FrameworkPathOverride>
     <ExecuteAsTool>false</ExecuteAsTool>
     <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+    
+    <!-- Bypass a check in msbuild that .NET Framework 3.5 is installed on the machine when targeting .NET < 4.0 -->
+    <BypassFrameworkInstallChecks>true</BypassFrameworkInstallChecks>
   </PropertyGroup>
 
 </Project>

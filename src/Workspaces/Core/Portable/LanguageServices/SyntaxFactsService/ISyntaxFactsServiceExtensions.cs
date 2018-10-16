@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return token;
         }
 
-        public static bool IsAnonymousOrLocalFunctionStatement(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        public static bool IsAnonymousOrLocalFunction(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
             => syntaxFacts.IsAnonymousFunction(node) ||
                syntaxFacts.IsLocalFunctionStatement(node);
 
@@ -149,6 +149,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             syntaxFacts.GetPartsOfElementAccessExpression(node, out _, out var argumentList);
             return argumentList;
+        }
+
+        public static SyntaxNode GetExpressionOfConditionalAccessExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfConditionalAccessExpression(node, out var expression, out _);
+            return expression;
         }
     }
 }

@@ -6,11 +6,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Test\Resources\Core\ResourceLoader.cs" Link="ResourceLoader.cs" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
@@ -24,29 +26,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="CommandLineTestResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CommandLineTestResources.resx</DependentUpon>
-    </Compile>
+    <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="CommandLineTestResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineTestResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

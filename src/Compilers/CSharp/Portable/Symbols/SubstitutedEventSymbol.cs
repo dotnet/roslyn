@@ -2,11 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -14,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations.Builder _lazyType;
 
         internal SubstitutedEventSymbol(SubstitutedNamedTypeSymbol containingType, EventSymbol originalDefinition)
             : base(originalDefinition)
@@ -23,16 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
-                if ((object)_lazyType == null)
+                if (_lazyType.IsNull)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type).Type, null);
+                    _lazyType.InterlockedInitialize(_containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type));
                 }
 
-                return _lazyType;
+                return _lazyType.ToType();
             }
         }
 

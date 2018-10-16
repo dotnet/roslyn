@@ -373,6 +373,24 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferCompoundAssignments As String = $"
+Imports System
+
+Class Customer
+    Sub M1(value as integer)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        value += 10
+//]
+    End Sub
+    Sub M2(value as integer)
+//[
+        ' {ServicesVSResources.Over_colon}
+        value = value + 10
+//]
+    End Sub
+End Class"
+
 #Region "arithmetic binary parentheses"
 
         Private Shared ReadOnly s_arithmeticBinaryAlwaysForClarity As String = $"
@@ -561,6 +579,8 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, Me, optionSet, expressionPreferencesGroupTitle))
+
             ' nothing preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))

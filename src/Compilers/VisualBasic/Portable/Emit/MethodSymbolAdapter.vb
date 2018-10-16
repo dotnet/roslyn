@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return privateImplClass
             End If
 
-            Return Me.ContainingType
+            Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=True)
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements IReference.Dispatch

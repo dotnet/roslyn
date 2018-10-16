@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void CapReached()
         {
-            Assert.True(false, "Test produced more output than expected (" + _expectedLength + " characters). Is it in an infinite loop? Output so far:\r\n" + GetStringBuilder());
+            throw new Exception($"Test produced more output than expected ({_expectedLength} characters). Is it in an infinite loop? Output so far:\r\n{GetStringBuilder()}");
         }
 
         public override void Write(char value)

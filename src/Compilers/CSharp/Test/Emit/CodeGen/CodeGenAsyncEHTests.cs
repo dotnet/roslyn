@@ -839,7 +839,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void AsyncInFinally002()
         {
             var source = @"

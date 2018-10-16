@@ -1,1 +1,1 @@
-powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\microbuild.ps1" -release
+REM stub file (remove once netci.groovy is updated)

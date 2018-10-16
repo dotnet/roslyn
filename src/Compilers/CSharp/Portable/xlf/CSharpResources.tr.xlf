@@ -12,9 +12,59 @@
         <target state="new">Cannot create constructed generic type from non-generic type.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
+        <target state="new">To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
+        <source>Cannot use a nullable reference type in object creation.</source>
+        <target state="new">Cannot use a nullable reference type in object creation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureIsExperimental">
+        <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
+        <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NonNullTypesNotAvailable">
+        <source>Please use language version {0} or greater to use the NonNullTypes attribute.</source>
+        <target state="new">Please use language version {0} or greater to use the NonNullTypes attribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
+        <source>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</source>
+        <target state="new">A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="new">An out variable cannot be declared as a ref local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAltInterpolatedVerbatimStrings">
+        <source>alternative interpolated verbatim strings</source>
+        <target state="new">alternative interpolated verbatim strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCoalesceAssignmentExpression">
+        <source>coalescing assignment</source>
+        <target state="new">coalescing assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
+        <source>object generic type constraint</source>
+        <target state="new">object generic type constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
+        <source>unconstrained type parameters in null coalescing operator</source>
+        <target state="new">unconstrained type parameters in null coalescing operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_InjectedDeclaration">
+        <source>injected declaration</source>
+        <target state="new">injected declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -395,6 +445,66 @@
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
+        <source>'default' is converted to 'null', not 'default({0})'</source>
+        <target state="new">'default' is converted to 'null', not 'default({0})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title">
+        <source>'default' is converted to 'null'</source>
+        <target state="new">'default' is converted to 'null'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContext">
+        <source>The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</source>
+        <target state="new">The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
+        <source>The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContext_Title">
+        <source>The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</source>
+        <target state="new">The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation">
+        <source>Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</source>
+        <target state="new">Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
+        <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
+        <target state="new">Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
+        <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</source>
+        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</source>
+        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SuppressionOperatorNotReferenceType">
+        <source>The suppression operator (!) can only be applied to reference types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SuppressionOperatorNotReferenceType_Title">
+        <source>The suppression operator (!) can only be applied to reference types.</source>
+        <target state="new">The suppression operator (!) can only be applied to reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
@@ -8763,6 +8873,281 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticNullChecking">
+        <source>static null checking</source>
+        <target state="new">static null checking</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullAsNonNullable">
+        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
+        <target state="new">Cannot convert null literal to non-nullable reference or unconstrained type parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullAsNonNullable_Title">
+        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
+        <target state="new">Cannot convert null literal to non-nullable reference or unconstrained type parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceAssignment">
+        <source>Possible null reference assignment.</source>
+        <target state="new">Possible null reference assignment.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceAssignment_Title">
+        <source>Possible null reference assignment.</source>
+        <target state="new">Possible null reference assignment.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReceiver">
+        <source>Possible dereference of a null reference.</source>
+        <target state="new">Possible dereference of a null reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReceiver_Title">
+        <source>Possible dereference of a null reference.</source>
+        <target state="new">Possible dereference of a null reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReturn">
+        <source>Possible null reference return.</source>
+        <target state="new">Possible null reference return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceReturn_Title">
+        <source>Possible null reference return.</source>
+        <target state="new">Possible null reference return.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceArgument">
+        <source>Possible null reference argument for parameter '{0}' in '{1}'.</source>
+        <target state="new">Possible null reference argument for parameter '{0}' in '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceArgument_Title">
+        <source>Possible null reference argument.</source>
+        <target state="new">Possible null reference argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
+        <source>Result of the comparison is possibly always true.</source>
+        <target state="new">Result of the comparison is possibly always true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
+        <source>Result of the comparison is possibly always true.</source>
+        <target state="new">Result of the comparison is possibly always true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
+        <source>Result of the comparison is possibly always false.</source>
+        <target state="new">Result of the comparison is possibly always false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
+        <source>Result of the comparison is possibly always false.</source>
+        <target state="new">Result of the comparison is possibly always false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
+        <source>Expression is probably never null.</source>
+        <target state="new">Expression is probably never null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
+        <source>Expression is probably never null.</source>
+        <target state="new">Expression is probably never null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
+        <source>Nullability of reference types in return type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in return type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
+        <source>Nullability of reference types in return type doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in return type doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
+        <source>Nullability of reference types in type of parameter doesn't match overridden member.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match overridden member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
+        <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match partial method declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</source>
+        <target state="new">Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
+        <target state="new">Nullability of reference types in type doesn't match implicitly implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type doesn't match implemented member '{0}'.</source>
+        <target state="new">Nullability of reference types in type doesn't match implemented member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type doesn't match implemented member.</source>
+        <target state="new">Nullability of reference types in type doesn't match implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}'.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member.</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField">
+        <source>Non-nullable {0} '{1}' is uninitialized.</source>
+        <target state="new">Non-nullable {0} '{1}' is uninitialized.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableField_Title">
+        <source>Non-nullable field is uninitialized.</source>
+        <target state="new">Non-nullable field is uninitialized.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInAssignment">
+        <source>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</source>
+        <target state="new">Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInAssignment_Title">
+        <source>Nullability of reference types in value doesn't match target type.</source>
+        <target state="new">Nullability of reference types in value doesn't match target type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgument">
+        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
+        <target state="new">Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
+        <source>Nullability of reference types in argument doesn't match target type.</source>
+        <target state="new">Nullability of reference types in argument doesn't match target type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
+        <source>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in return type doesn't match the target delegate.</source>
+        <target state="new">Nullability of reference types in return type doesn't match the target delegate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in type of parameter doesn't match the target delegate.</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match the target delegate.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitNullableAttribute">
+        <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
+        <target state="new">Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
+        <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
+        <target state="new">No best nullability for operands of conditional expression '{0}' and '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
+        <source>No best nullability for operands of conditional expression.</source>
+        <target state="new">No best nullability for operands of conditional expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="new">Converting null literal or possible null value to non-nullable type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="new">Converting null literal or possible null value to non-nullable type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
+        <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
+        <target state="new">The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint_Title">
+        <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</source>
+        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</target>
         <note />
       </trans-unit>
     </body>

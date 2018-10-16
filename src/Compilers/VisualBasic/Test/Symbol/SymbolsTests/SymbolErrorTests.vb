@@ -22031,7 +22031,7 @@ Public Partial Class C
     End Sub
 End Class
     ]]></file>
-</compilation>)
+</compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             Dim expectedErrors = <errors><![CDATA[
 BC36716: Visual Basic 15.0 does not support Private Protected.

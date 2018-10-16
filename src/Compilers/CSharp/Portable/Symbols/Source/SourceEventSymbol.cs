@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationModifiers _modifiers;
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
-        protected SymbolCompletionState state;
+        private SymbolCompletionState _state;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private string _lazyDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasComplete(CompletionPart part)
         {
-            return state.HasComplete(part);
+            return _state.HasComplete(part);
         }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            state.DefaultForceComplete(this);
+            _state.DefaultForceComplete(this, cancellationToken);
         }
 
         public override abstract string Name { get; }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public override abstract TypeSymbol Type { get; }
+        public override abstract TypeSymbolWithAnnotations Type { get; }
 
         public sealed override Symbol ContainingSymbol
         {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
-                var wasCompletedThisThread = state.NotePartComplete(CompletionPart.Attributes);
+                var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(wasCompletedThisThread);
             }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonEventWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected EventWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonEventWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (EventWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -285,15 +285,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<EventWellKnownAttributeData>().HasSpecialNameAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
-                arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+                arguments.GetOrCreateData<EventWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
+            {
+                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<EventWellKnownAttributeData>().NonNullTypes = value;
             }
         }
 
@@ -301,19 +311,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            var type = this.Type;
+
+            if (type.TypeSymbol.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, customModifiersCount: 0));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length));
             }
 
-            if (Type.ContainsTupleNames())
+            if (type.TypeSymbol.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+            }
+
+            if (type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
-        
+
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
@@ -323,6 +340,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
+            }
+        }
+
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
 
@@ -505,9 +531,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev10 reports different errors for field-like events (ERR_BadVisFieldType) and custom events (ERR_BadVisPropertyType).
                 // Both seem odd, so add a new one.
 
-                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type);
+                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type.TypeSymbol);
             }
-            else if (!this.Type.IsDelegateType() && !this.Type.IsErrorType())
+            else if (!this.Type.TypeSymbol.IsDelegateType() && !this.Type.IsErrorType())
             {
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);
@@ -531,18 +557,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbol type, AssemblySymbol containingAssembly)
+        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly, Symbol nonNullTypesContext)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
+            Debug.Assert(nonNullTypesContext != null);
 
-            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type;
+            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type.TypeSymbol;
 
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-            if (type.Equals(overriddenEventType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
+            if (type.TypeSymbol.Equals(overriddenEventType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
             {
-                type = CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type, containingAssembly);
+                type = type.WithTypeAndModifiers(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, containingAssembly, nonNullTypesContext),
+                                   eventWithCustomModifiers.Type.CustomModifiers);
             }
         }
 
@@ -642,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (isAdder ? "add_" : "remove_") + eventName;
         }
 
-        protected TypeSymbol BindEventType(Binder binder, TypeSyntax typeSyntax, DiagnosticBag diagnostics)
+        protected TypeSymbolWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, DiagnosticBag diagnostics)
         {
             // NOTE: no point in reporting unsafe errors in the return type - anything unsafe will either
             // fail to be a delegate or will be (invalidly) passed as a type argument.
@@ -654,8 +682,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            var location = this.Locations[0];
+
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
+            this.Type.CheckAllConstraints(conversions, location, diagnostics);
+
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
         }
     }
 }

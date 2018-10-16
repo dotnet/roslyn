@@ -32,39 +32,29 @@ steps:
     feed: '8f470c7e-ac49-4afe-a6ee-cf784e438b93'
 
 - task: CmdLine@1
+  displayName: Create output directory
   inputs:
     filename: mkdir
     arguments: 'Binaries\$(BuildConfiguration)'
 
-- task: VSBuild@1
+- script: build\scripts\cibuild.cmd
+            -configuration $(BuildConfiguration) -official -testDesktop -procdump
+            /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
+            /p:DotNetSignType=$(PB_SignType)
+            /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+            /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
+  displayName: Build
+  condition: succeeded()
+
+- task: PowerShell@2
+  displayName: Publish Assets
   inputs:
-    solution: 'src/Tools/MicroBuild/Build.proj'
-    vsVersion: 15.0
-    msbuildArgs: >- 
-        /p:TreatWarningsAsErrors=true 
-        /p:DeployExtension=false 
-        /p:TrackFileAccess=false
-        /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
-        /p:VisualStudioVersion=14.0 
-        /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log 
-        /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn 
-        /flp3:ErrorsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.err 
-        /p:RoslynMyGetApiKey=$(Roslyn.MyGetApiKey) 
-        /p:RoslynNuGetApiKey=$(Roslyn.NuGetApiKey) 
-        /p:RoslynGitHubEmail=$(Roslyn.GitHubEmail) 
-        /p:RoslynGitHubToken=$(Roslyn.GitHubToken) 
-        /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) 
-        /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
-        /p:PublishStableVersions=false 
-        /p:VersionStampToPublish=prerelease
-        /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-        /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-    platform: '$(BuildPlatform)'
-    configuration: '$(BuildConfiguration)'
-    maximumCpuCount: true
-    logProjectEvents: false
+    arguments: '-config $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+    filePath: 'build\scripts\publish-assets.ps1'
+  condition: succeeded()
 
 - task: PublishBuildArtifacts@1
+  displayName: Publish Logs
   inputs:
     PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
     ArtifactName: 'Build Diagnostic Files'
@@ -73,6 +63,7 @@ steps:
   condition: succeededOrFailed()
 
 - task: PublishTestResults@1
+  displayName: Publish Test Results
   inputs:
     testRunner: XUnit
     testResultsFiles: '**/xUnitResults/*.xml'
@@ -83,8 +74,8 @@ steps:
 - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
   displayName: Upload VSTS Drop
   inputs:
-    DropFolder: 'Binaries\$(BuildConfiguration)\Insertion'
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
+    DropFolder: 'Binaries\VSSetup\$(BuildConfiguration)\Insertion'
+  condition: succeeded()
 
 - task: NuGetCommand@2
   displayName: NuGet CoreXT publish
@@ -94,10 +85,12 @@ steps:
     packagesToPush: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
     publishVstsFeed: '97a41293-2972-4f48-8c0e-05493ae82010'
     allowPackageConflicts: true
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
+  condition: succeeded()
 
+# Publish VSTS artifact that the RoslynInsertionTool is able to find by its name.
+# The backing storage of the artifact is a file share.
 - task: PublishBuildArtifacts@1
-  displayName: Publish Drop (parallel)
+  displayName: Publish Drop - Binaries
   inputs:
     PathtoPublish: 'Binaries\$(BuildConfiguration)'
     ArtifactName: '$(Build.BuildNumber)'
@@ -105,6 +98,14 @@ steps:
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
     Parallel: true
     ParallelCount: 64
+  condition: succeededOrFailed()
+
+# Copy additional files to the drop directory
+- task: PowerShell@2
+  displayName: Publish Drop - VSSetup
+  inputs:
+    arguments: '-Source Binaries\VSSetup\$(BuildConfiguration)\Insertion -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Insertion -ParallelCount 8'
+    filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
 - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1
@@ -118,5 +119,5 @@ steps:
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
-  condition: and(succeededOrFailed(), contains(variables['PB_PublishType'], 'vsts'))
+  condition: succeededOrFailed()
 

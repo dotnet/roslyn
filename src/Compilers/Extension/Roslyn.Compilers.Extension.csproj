@@ -7,16 +7,13 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Compilers.Extension</RootNamespace>
     <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
-    <ImportVSSDKTargets>True</ImportVSSDKTargets>
+    <RoslynProjectType>Vsix</RoslynProjectType>
+
+    <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -141,12 +138,7 @@
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="$(MicrosoftVisualStudioProjectSystemManagedVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" Version="$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />

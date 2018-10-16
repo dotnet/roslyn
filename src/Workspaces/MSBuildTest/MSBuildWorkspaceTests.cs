@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 Assert.Equal("CSharpProject.dll", Path.GetFileName(p1.OutputFilePath));
                 Assert.False(File.Exists(p1.OutputFilePath));
 
-                // prove that vb project refers to csharp project via generated metadata (skeleton) assembly. 
+                // prove that vb project refers to csharp project via generated metadata (skeleton) assembly.
                 // it should be a MetadataImageReference
                 var c2 = await p2.GetCompilationAsync();
                 var pref = c2.References.OfType<PortableExecutableReference>().FirstOrDefault(r => r.Display == "CSharpProject");
@@ -1762,7 +1762,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public async Task TestParseOptions_CSharp_LanguageVersion_Latest()
+        public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7, options => options.LanguageVersion);
@@ -2465,7 +2465,7 @@ class C1
                 csdoc1Text = await csdoc1.GetTextAsync();
                 var csdoc5 = AssertSemanticVersionChanged(csdoc1, csdoc1Text.Replace(new TextSpan(startOfClassInterior, 0), "\r\npublic int X = 20;\r\n"));
 
-                // change initializer value 
+                // change initializer value
                 var csdoc5Root = await csdoc5.GetSyntaxRootAsync();
                 var literal = csdoc5Root.DescendantNodes().OfType<CS.Syntax.LiteralExpressionSyntax>().First(x => x.Token.ValueText == "20");
                 var csdoc5Text = await csdoc5.GetTextAsync();
@@ -3029,6 +3029,20 @@ class C1
                 var library2Project = solution.Projects.FirstOrDefault(p => p.Name == "Library2");
                 Assert.NotNull(library2Project);
                 Assert.Empty(library2Project.AllProjectReferences);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestOpenProject_CSharp_WithMissingDebugType()
+        {
+            CreateFiles(new FileSet(
+                (@"ProjectLoadErrorOnMissingDebugType.sln", Resources.SolutionFiles.ProjectLoadErrorOnMissingDebugType),
+                (@"ProjectLoadErrorOnMissingDebugType\ProjectLoadErrorOnMissingDebugType.csproj", Resources.ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType)));
+            var solutionFilePath = GetSolutionFileName(@"ProjectLoadErrorOnMissingDebugType.sln");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                await workspace.OpenSolutionAsync(solutionFilePath);
             }
         }
 

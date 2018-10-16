@@ -747,4 +747,58 @@
   <data name="Refactoring_Only" xml:space="preserve">
     <value>Refactoring Only</value>
   </data>
+  <data name="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories" xml:space="preserve">
+    <value>Remove the line below if you want to inherit .editorconfig settings from higher directories</value>
+  </data>
+  <data name="Core_EditorConfig_Options" xml:space="preserve">
+    <value>Core EditorConfig Options</value>
+  </data>
+  <data name="CSharp_files" xml:space="preserve">
+    <value>C# files</value>
+  </data>
+  <data name="dot_NET_Coding_Conventions" xml:space="preserve">
+    <value>.NET Coding Conventions</value>
+  </data>
+  <data name="Expression_level_preferences" xml:space="preserve">
+    <value>Expression-level preferences</value>
+  </data>
+  <data name="Field_preferences" xml:space="preserve">
+    <value>Field preferences</value>
+  </data>
+  <data name="Indentation_and_spacing" xml:space="preserve">
+    <value>Indentation and spacing</value>
+  </data>
+  <data name="Language_keywords_vs_BCL_types_preferences" xml:space="preserve">
+    <value>Language keywords vs BCL types preferences</value>
+  </data>
+  <data name="Modifier_preferences" xml:space="preserve">
+    <value>Modifier preferences</value>
+  </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
+  </data>
+  <data name="Organize_usings" xml:space="preserve">
+    <value>Organize usings</value>
+  </data>
+  <data name="Parentheses_preferences" xml:space="preserve">
+    <value>Parentheses preferences</value>
+  </data>
+  <data name="this_dot_and_Me_dot_preferences" xml:space="preserve">
+    <value>this. and Me. preferences</value>
+  </data>
+  <data name="Visual_Basic_files" xml:space="preserve">
+    <value>Visual Basic files</value>
+  </data>
+  <data name="ValueUsageInfo_NameOnly" xml:space="preserve">
+    <value>NameOnly</value>
+  </data>
+  <data name="ValueUsageInfo_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="ValueUsageInfo_Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="ValueUsageInfo_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
 </root>

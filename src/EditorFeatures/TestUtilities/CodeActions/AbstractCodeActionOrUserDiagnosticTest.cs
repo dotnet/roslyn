@@ -26,7 +26,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     [UseExportProvider]
-    public abstract class AbstractCodeActionOrUserDiagnosticTest : TestBase
+    public abstract class AbstractCodeActionOrUserDiagnosticTest
     {
         public struct TestParameters
         {
@@ -115,14 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
-            var (actions, actionToInvoke) = await GetCodeActionsWorkerAsync(workspace, parameters);
-            return (MassageActions(actions), actionToInvoke);
-        }
-
-        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsWorkerAsync(
+        protected abstract Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
@@ -568,6 +561,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ? a.NestedCodeActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }
+
+        protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
+            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
 
         protected (OptionKey, object) SingleOption<T>(Option<T> option, T enabled)
             => (new OptionKey(option), enabled);

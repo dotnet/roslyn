@@ -80,6 +80,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add await.
+        /// </summary>
+        internal static string Add_await {
+            get {
+                return ResourceManager.GetString("Add_await", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add await and ConfigureAwait(false).
+        /// </summary>
+        internal static string Add_Await_and_ConfigureAwaitFalse {
+            get {
+                return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add parentheses.
         /// </summary>
         internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
@@ -383,6 +401,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Convert_to_switch {
             get {
                 return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare as nullable.
+        /// </summary>
+        internal static string Declare_as_nullable {
+            get {
+                return ResourceManager.GetString("Declare_as_nullable", resourceCulture);
             }
         }
         

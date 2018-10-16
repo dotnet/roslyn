@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -1533,11 +1534,12 @@ class C
         End Function
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoKeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                        <Workspace>
+                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
+                                <Document>
 class Goo
 {
     void Test()
@@ -1550,13 +1552,41 @@ class Goo
     {
     }
 }
-                              </Document>)
+                              </Document>
+                            </Project>
+                        </Workspace>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num:"))
                 Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
                 Assert.False(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
+            End Using
+        End Function
+
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function KeywordsOrSymbolsAfterNamedParameter() As Task
+            Using state = TestState.CreateCSharpTestState(
+                                <Document>
+class Goo
+{
+    void Test()
+    {
+        object m = null;
+        Method(obj:m, $$
+    }
+
+    void Method(object obj, int num = 23, string str = "")
+    {
+    }
+}
+                         </Document>)
+
+                state.SendTypeChars("a")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 
@@ -2513,7 +2543,7 @@ class C
                 state.SendTypeChars("Thing1")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Thing1")
-                Assert.True(state.GetSelectedItem().Tags.Contains(CompletionTags.Warning))
+                Assert.True(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(WellKnownTags.Warning))
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
@@ -2523,7 +2553,7 @@ class C
                 state.SendTypeChars("M")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("M")
-                Assert.False(state.GetSelectedItem().Tags.Contains(CompletionTags.Warning))
+                Assert.False(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(WellKnownTags.Warning))
             End Using
         End Function
 

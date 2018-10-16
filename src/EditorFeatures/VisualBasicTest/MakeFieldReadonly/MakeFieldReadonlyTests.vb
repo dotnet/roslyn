@@ -576,6 +576,54 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        Public Async Function FieldReturnedInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_s|] As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s
+    End Function
+End Class",
+"Class C
+    Private ReadOnly _s As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29746, "https://github.com/dotnet/roslyn/issues/29746")>
+        Public Async Function FieldReadInMethod() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_s|] As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s.ToUpper()
+    End Function
+End Class",
+"Class C
+    Private ReadOnly _s As String
+    Sub New(s As String)
+        _s = s
+    End Sub
+    Public Function Method() As String
+        Return _s.ToUpper()
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldAssignedInProperty() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -844,6 +892,18 @@ End Class",
     Sub Goo()
         _goo = 0
     End Sub
+End Class")
+        End Function
+
+        <WorkItem(26850, "https://github.com/dotnet/roslyn/issues/26850")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function FieldNotAssigned_FieldPartiallyDeclaredWithDim() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim [|_goo|]
+End Class",
+"Class C
+    ReadOnly _goo
 End Class")
         End Function
     End Class
