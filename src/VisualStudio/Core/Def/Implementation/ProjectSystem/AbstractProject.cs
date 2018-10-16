@@ -74,6 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Set the default value for last design time build result to be true, until the project system lets us know that it failed.
             LastDesignTimeBuildSucceeded = true;
 
+            if (projectFilePath != null && File.Exists(projectFilePath))
+            {
+                ProjectFilePath = projectFilePath;
+            }
+
             if (ProjectFilePath != null)
             {
                 Version = VersionStamp.Create(File.GetLastWriteTimeUtc(ProjectFilePath));
