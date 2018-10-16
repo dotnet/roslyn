@@ -637,13 +637,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             isComReceiver = false;
 
+            var @params = methodOrIndexer.GetParameters();
+
             // An applicable "vararg" method could not possibly be applicable in its expanded
             // form, and cannot possibly have named arguments or used optional parameters, 
             // because the __arglist() argument has to be positional and in the last position. 
 
             if (methodOrIndexer.GetIsVararg())
             {
-                Debug.Assert(rewrittenArguments.Length == methodOrIndexer.GetParameterCount() + 1);
+                Debug.Assert(rewrittenArguments.Length == @params.Length + 1);
                 Debug.Assert(argsToParamsOpt.IsDefault);
                 Debug.Assert(!expanded);
                 return true;
@@ -652,12 +654,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!ignoreComReceiver)
             {
                 var receiverNamedType = invokedAsExtensionMethod ?
-                                        ((MethodSymbol)methodOrIndexer).Parameters[0].Type.TypeSymbol as NamedTypeSymbol :
+                                        @params[0].Type.TypeSymbol as NamedTypeSymbol :
                                         methodOrIndexer.ContainingType;
                 isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
             }
 
-            var @params = methodOrIndexer.GetParameters();
             if (!@params.IsDefaultOrEmpty)
             {
                 var thisParam = @params[0];
@@ -667,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
+            return rewrittenArguments.Length == @params.Length &&
                 argsToParamsOpt.IsDefault &&
                 !expanded &&
                 !isComReceiver;
