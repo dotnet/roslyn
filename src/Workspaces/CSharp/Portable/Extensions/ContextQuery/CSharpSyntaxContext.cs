@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
-            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.Parent.IsParentKind(SyntaxKind.ExpressionStatement);
+            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.GetPreviousToken().IsBeginningOfStatementContext();
         }
     }
 }
