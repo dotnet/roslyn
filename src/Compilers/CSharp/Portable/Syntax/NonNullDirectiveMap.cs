@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             int index = _directives.BinarySearch((position, false), PositionComparer.Instance);
             if (index < 0)
             {
+                // If no exact match, BinarySearch returns the complement
+                // of the index of the next higher value.
                 index = ~index - 1;
             }
             if (index < 0)
