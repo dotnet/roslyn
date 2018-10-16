@@ -5429,6 +5429,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_MissingNonNullTypesContext_Title" xml:space="preserve">
     <value>The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</value>
   </data>
+  <data name="WRN_CantInferNullabilityOfMethodTypeArgs" xml:space="preserve">
+    <value>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
+  </data>
+  <data name="WRN_CantInferNullabilityOfMethodTypeArgs_Title" xml:space="preserve">
+    <value>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
+  </data>
+  <data name="WRN_NoBestNullabilityArrayElements" xml:space="preserve">
+    <value>No best nullability found for implicitly-typed array.</value>
+  </data>
+  <data name="WRN_NoBestNullabilityArrayElements_Title" xml:space="preserve">
+    <value>No best nullability found for implicitly-typed array.</value>
+  </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
   </data>

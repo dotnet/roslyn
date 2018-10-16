@@ -12573,6 +12573,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The nullability of type arguments for method &apos;{0}&apos; cannot be inferred from the usage. Try specifying the type arguments explicitly..
+        /// </summary>
+        internal static string WRN_CantInferNullabilityOfMethodTypeArgs {
+            get {
+                return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly..
+        /// </summary>
+        internal static string WRN_CantInferNullabilityOfMethodTypeArgs_Title {
+            get {
+                return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Arrays as attribute arguments is not CLS-compliant.
         /// </summary>
         internal static string WRN_CLS_ArrayArgumentToAttribute {
@@ -14402,6 +14420,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NoAnalyzerInAssembly_Title {
             get {
                 return ResourceManager.GetString("WRN_NoAnalyzerInAssembly_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability found for implicitly-typed array..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityArrayElements {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability found for implicitly-typed array..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityArrayElements_Title {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements_Title", resourceCulture);
             }
         }
         
