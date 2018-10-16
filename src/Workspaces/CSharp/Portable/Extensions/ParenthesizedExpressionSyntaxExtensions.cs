@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
         {
+            if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
+            {
+                // int x = (3;
+                return false;
+            }
+
             var expression = node.Expression;
 
             // The 'direct' expression that contains this parenthesized node.  Note: in the case

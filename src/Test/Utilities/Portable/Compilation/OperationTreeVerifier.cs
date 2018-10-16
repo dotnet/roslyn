@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return "null";
             }
 
-            var text = syntax.ToString();
+            var text = syntax.ToString().Trim(Environment.NewLine.ToCharArray());
             var lines = text.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToArray();
             if (lines.Length <= 1 && text.Length < 25)
             {
@@ -1794,6 +1794,54 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.Local, " (Local Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        {
+            LogString(nameof(IFromEndIndexOperation));
+
+            if (operation.IsLifted)
+            {
+                LogString(" (IsLifted)");
+            }
+
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Operand, nameof(operation.Operand));
+        }
+
+        public override void VisitRangeOperation(IRangeOperation operation)
+        {
+            LogString(nameof(IRangeOperation));
+
+            if (operation.IsLifted)
+            {
+                LogString(" (IsLifted)");
+            }
+
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.LeftOperand, nameof(operation.LeftOperand));
+            Visit(operation.RightOperand, nameof(operation.RightOperand));
+        }
+
+        public override void VisitReDim(IReDimOperation operation)
+        {
+            LogString(nameof(IReDimOperation));
+            if (operation.Preserve)
+            {
+                LogString(" (Preserve)");
+            }
+            LogCommonPropertiesAndNewLine(operation);
+            VisitArray(operation.Clauses, "Clauses", logElementCount: true);
+        }
+
+        public override void VisitReDimClause(IReDimClauseOperation operation)
+        {
+            LogString(nameof(IReDimClauseOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Operand, "Operand");
+            VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
         }
 
         #endregion

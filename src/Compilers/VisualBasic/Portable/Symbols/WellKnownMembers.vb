@@ -628,6 +628,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return method.ReturnsByRef
             End Function
 
+            Protected Overrides Function IsByRefProperty(ByVal [property] As PropertySymbol) As Boolean
+                Return [property].ReturnsByRef
+            End Function
+
             Protected Overrides Function IsGenericMethodTypeParam(type As TypeSymbol, paramPosition As Integer) As Boolean
                 If type.Kind <> SymbolKind.TypeParameter Then
                     Return False

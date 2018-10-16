@@ -143,8 +143,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-            return await GetDiagnosticAndFixesAsync(
+            var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
                 dxs, provider, fixer, testDriver, document, span, annotation, parameters.index);
+
+            // If we are also testing non-fixable diagnostics,
+            // then the result diagnostics need to include all diagnostics,
+            // not just the fixable ones returned from GetDiagnosticAndFixesAsync.
+            if (parameters.retainNonFixableDiagnostics)
+            {
+                resultDiagnostics = diagnostics;
+            }
+
+            return (resultDiagnostics, codeActions, actionToInvoke);
         }
 
         protected async Task TestDiagnosticInfoAsync(

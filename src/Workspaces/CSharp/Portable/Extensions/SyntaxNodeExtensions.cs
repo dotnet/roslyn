@@ -45,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node != null && IsKind(node.Parent, kind1, kind2, kind3);
         }
 
+        public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
+        {
+            return node != null && IsKind(node.Parent, kind1, kind2, kind3, kind4);
+        }
+
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
         {
             if (node == null)

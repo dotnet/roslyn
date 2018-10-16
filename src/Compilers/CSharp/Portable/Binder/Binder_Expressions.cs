@@ -449,6 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BitwiseNotExpression:
                     return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.IndexExpression:
+                    return BindFromEndIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.RangeExpression:
+                    return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.AddressOfExpression:
                     return BindAddressOfExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
@@ -1891,6 +1897,129 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindCastCore(node, operand, targetTypeWithNullability, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
         }
 
+        private BoundExpression BindFromEndIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.OperatorToken.IsKind(SyntaxKind.CaretToken));
+
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
+
+            // Used in lowering as the second argument to the constructor. Example: new Index(value, fromEnd: true)
+            GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+
+            BoundExpression boundOperand = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+
+            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
+            {
+                // Used in lowering to construct the nullable
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                if (!indexType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, node, nullableType, nullableType.TypeParameters.Single(), indexType);
+                }
+
+                intType = nullableType.Construct(intType);
+                indexType = nullableType.Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, intType, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, node, conversion, boundOperand, intType);
+            }
+
+            BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
+            MethodSymbol symbolOpt = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
+
+            return new BoundFromEndIndexExpression(node, boundConversion, symbolOpt, indexType);
+        }
+
+        private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
+
+            TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
+            MethodSymbol symbolOpt = null;
+
+            if (!rangeType.IsErrorType())
+            {
+                WellKnownMember requiredRangeMethod;
+
+                if (node.LeftOperand is null)
+                {
+                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__All : WellKnownMember.System_Range__ToEnd;
+                }
+                else
+                {
+                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
+                }
+
+                symbolOpt = GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node) as MethodSymbol;
+            }
+
+            BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
+            BoundExpression right = BindRangeExpressionOperand(node.RightOperand, diagnostics);
+
+            if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
+            {
+                // Used in lowering to construct the nullable
+                GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, node);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                if (!rangeType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, node, nullableType, nullableType.TypeParameters.Single(), rangeType);
+                }
+
+                rangeType = nullableType.Construct(rangeType);
+            }
+
+            return new BoundRangeExpression(node, left, right, symbolOpt, rangeType);
+        }
+
+        private BoundExpression BindRangeExpressionOperand(ExpressionSyntax operand, DiagnosticBag diagnostics)
+        {
+            if (operand is null)
+            {
+                return null;
+            }
+
+            BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
+
+            if (boundOperand.Type?.IsNullableType() == true)
+            {
+                // Used in lowering to construct the nullable
+                GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, operand);
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand);
+
+                if (!indexType.IsNonNullableValueType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_ValConstraintNotSatisfied, operand, nullableType, nullableType.TypeParameters.Single(), indexType);
+                }
+
+                indexType = nullableType.Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref useSiteDiagnostics);
+            diagnostics.Add(operand, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, operand, conversion, boundOperand, indexType);
+            }
+
+            return CreateConversion(boundOperand, conversion, indexType, diagnostics);
+        }
+
         private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbolWithAnnotations targetTypeWithNullability, bool wasCompilerGenerated, DiagnosticBag diagnostics)
         {
             TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
@@ -2704,9 +2833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: rank);
 
-            bool hadMultipleCandidates;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out _, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
@@ -2733,7 +2861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out _, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)

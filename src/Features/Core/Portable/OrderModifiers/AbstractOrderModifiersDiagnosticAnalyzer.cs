@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
-    internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private readonly ISyntaxFactsService _syntaxFacts;
         private readonly Option<CodeStyleOption<string>> _option;
