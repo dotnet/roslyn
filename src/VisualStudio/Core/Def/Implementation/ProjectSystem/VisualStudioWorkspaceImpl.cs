@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private ImmutableDictionary<string, VisualStudioProject> _projectNameToProjectMap = ImmutableDictionary<string, VisualStudioProject>.Empty;
+        private ImmutableDictionary<string, VisualStudioProject> _projectUniqueNameToProjectMap = ImmutableDictionary<string, VisualStudioProject>.Empty;
 
         /// <summary>
         /// A set of documents that were added by <see cref="VisualStudioProject.AddSourceTextContainer"/>, and aren't otherwise
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
                 _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
-                _projectNameToProjectMap = _projectNameToProjectMap.Add(projectUniqueName, project);
+                _projectUniqueNameToProjectMap = _projectUniqueNameToProjectMap.Add(projectUniqueName, project);
             }
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal VisualStudioProject GetProjectForUniqueName(string projectName)
         {
             // This doesn't take a lock since _projectNameToProjectMap is immutable
-            return _projectNameToProjectMap.GetValueOrDefault(projectName, defaultValue: null);
+            return _projectUniqueNameToProjectMap.GetValueOrDefault(projectName, defaultValue: null);
         }
 
         [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
@@ -1292,12 +1292,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                var project = this.CurrentSolution.GetProject(projectId);
-
                 _projectReferenceInfo.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
-                _projectNameToProjectMap = _projectNameToProjectMap.Remove(project.Name);
+
+                foreach (var pair in _projectUniqueNameToProjectMap)
+                {
+                    if (pair.Value.Id == projectId)
+                    {
+                        _projectUniqueNameToProjectMap = _projectUniqueNameToProjectMap.Remove(pair.Key);
+                        break;
+                    }
+                }
 
                 base.OnProjectRemoved(projectId);
             }
