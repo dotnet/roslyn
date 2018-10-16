@@ -18977,6 +18977,28 @@ class C
         }
 
         [Fact]
+        public void ImplicitlyTypedArrayCreation_Empty()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var a = new[] { };
+        var b = new[] { null };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0826: No best type found for implicitly-typed array
+                //         var a = new[] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { }").WithLocation(5, 17),
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var b = new[] { null };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { null }").WithLocation(6, 17));
+        }
+
+        [Fact]
         public void ExplicitlyTypedArrayCreation()
         {
             var source =

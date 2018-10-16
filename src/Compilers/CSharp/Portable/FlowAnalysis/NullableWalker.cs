@@ -1279,17 +1279,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(VisitRvalueWithResult(element));
             }
 
-            bool checkConversions;
+            bool checkConversions = true;
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
             if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
-                if (node.HasErrors)
-                {
-                    elementType = elementType.SetUnknownNullabilityForReferenceTypes();
-                    checkConversions = false;
-                }
-                else
+                TypeSymbol bestType = null;
+                if (!node.HasErrors)
                 {
                     var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
                     for (int i = 0; i < n; i++)
@@ -1299,24 +1295,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var placeholders = placeholderBuilder.ToImmutableAndFree();
                     bool hadNullabilityMismatch;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
-                    Debug.Assert((object)bestType != null);
+                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
                     if (hadNullabilityMismatch)
                     {
                         ReportDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
                         checkConversions = false;
                     }
-                    else
-                    {
-                        checkConversions = true;
-                    }
+                }
+                if ((object)bestType == null)
+                {
+                    elementType = elementType.SetUnknownNullabilityForReferenceTypes();
+                    checkConversions = false;
+                }
+                else
+                {
                     elementType = TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: BestTypeInferrer.GetIsNullable(resultBuilder));
                 }
                 arrayType = arrayType.WithElementType(elementType);
-            }
-            else
-            {
-                checkConversions = true;
             }
 
             if (checkConversions && !elementType.IsValueType)
