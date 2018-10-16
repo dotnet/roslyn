@@ -186,7 +186,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn Toolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
-    Restore-Project $dotnet "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
+    Restore-Project "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
 
     Write-Host "Restoring RepoToolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RepoToolset.binlog" } else { "" }
@@ -194,7 +194,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-Roslyn.binlog" } else { "" }
-    Restore-Project $dotnet "Roslyn.sln" $logFilePath
+    Restore-Project "Roslyn.sln" $logFilePath
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
@@ -262,7 +262,7 @@ function Build-Artifacts() {
 
 function Build-InsertionItems() {
 
-    $setupDir = Join-Path $repoDir "src\Setup"
+    $setupDir = Join-Path $RepoRoot "src\Setup"
     Push-Location $setupDir
     try {
         Write-Host "Building VS Insertion artifacts"
@@ -490,11 +490,11 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
@@ -531,13 +531,14 @@ function Stop-VSProcesses() {
 }
 
 try {
-    . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
-
-    Write-Host "Repo Dir $repoDir"
-    Write-Host "Binaries Dir $binariesDir"
-
     Process-Arguments
+
+   . (Join-Path $PSScriptRoot "build-utils.ps1")
+
+    Push-Location $RepoRoot
+
+    Write-Host "Repo Dir $RepoRoot"
+    Write-Host "Binaries Dir $binariesDir"
 
     $msbuild = Ensure-MSBuild
     $dotnet = Ensure-DotnetSdk

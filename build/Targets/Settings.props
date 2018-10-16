@@ -18,6 +18,7 @@
   <Import Project="RepoToolset\ProjectLayout.props" />
   <Import Project="RepoToolset\DefaultVersions.props"/>
   <Import Project="RepoToolset\ProjectDefaults.props" />
+  <Import Project="RepoToolset\BuildTasks.props" />
   <Import Project="RepoToolset\StrongName.props" />
   <Import Project="RepoToolset\VisualStudio.props"/>
   <Import Project="Tools.props" />

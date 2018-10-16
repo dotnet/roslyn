@@ -19,7 +19,7 @@ $ErrorActionPreference="Stop"
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
+    Push-Location $RepoRoot
     $releaseArg = if ($configuration -eq "Release") { "-release" } else { "" }
     $configDir = Join-Path $binariesDir $configuration
 
@@ -30,7 +30,7 @@ try {
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln -r $repoDir $releaseArg"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln -r $RepoRoot $releaseArg"
     Write-Host ""
 
     # Verify the state of our generated syntax files
