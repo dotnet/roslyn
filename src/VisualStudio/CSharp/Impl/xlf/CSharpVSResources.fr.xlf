@@ -732,7 +732,7 @@
         <target state="translated">Afficher les s_uggestions de nom</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Générer un abonnement à des événements</target>
         <note />
