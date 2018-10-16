@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly ProjectId _id;
         private readonly string _name;
-        private readonly IEnumerable<ProjectReference> _projectReferences;
         private readonly IEnumerable<MetadataReference> _metadataReferences;
         private readonly IEnumerable<AnalyzerReference> _analyzerReferences;
         private readonly CompilationOptions _compilationOptions;
@@ -34,20 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public IEnumerable<TestHostDocument> Documents;
         public IEnumerable<TestHostDocument> AdditionalDocuments;
+        public IEnumerable<ProjectReference> ProjectReferences;
 
         public string Name
         {
             get
             {
                 return _name;
-            }
-        }
-
-        public IEnumerable<ProjectReference> ProjectReferences
-        {
-            get
-            {
-                return _projectReferences;
             }
         }
 
@@ -190,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
-            _projectReferences = SpecializedCollections.EmptyEnumerable<ProjectReference>();
+            ProjectReferences = SpecializedCollections.EmptyEnumerable<ProjectReference>();
             _isSubmission = isSubmission;
             _hostObjectType = hostObjectType;
             _version = VersionStamp.Create();
@@ -240,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _parseOptions = parseOptions ?? this.LanguageServiceProvider.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
             this.Documents = documents ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TestHostDocument>();
-            _projectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
+            ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
             _metadataReferences = metadataReferences ?? new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";

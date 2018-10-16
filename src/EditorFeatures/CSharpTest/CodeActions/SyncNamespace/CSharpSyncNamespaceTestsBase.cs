@@ -138,11 +138,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected async Task TestChangeNamespaceAsync(
             string initialMarkUp,
             string expectedSourceOriginal,
-            string expectedSourceReference = null)
+            string expectedSourceReference = null,
+            bool hasTwoProjects = false)
         {
             var testOptions = new TestParameters();
             using (var workspace = CreateWorkspaceFromOptions(initialMarkUp, testOptions))
             {
+                if (hasTwoProjects)
+                {
+                    var project = workspace.Documents.Single(doc => !doc.SelectedSpans.IsEmpty()).Project;
+                    var dependentProject = workspace.Projects.Single(proj => proj.Id != project.Id);
+                    var references = dependentProject.ProjectReferences.ToList();
+                    references.Add(new ProjectReference(project.Id));
+                    dependentProject.ProjectReferences = references;
+                    workspace.OnProjectReferenceAdded(dependentProject.Id, new ProjectReference(project.Id));
+                }
+
                 if (expectedSourceOriginal != null)
                 {
                     var originalDocument = workspace.Documents.Single(doc => !doc.SelectedSpans.IsEmpty());

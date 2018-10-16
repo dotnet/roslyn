@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1323,6 +1320,93 @@ namespace Foo
     }
 }";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithReferencesInVBDocument()
+        {
+            var defaultNamespace = "A.B.C";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public class Class1
+    {{ 
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document> 
+Imports {declaredNamespace}
+
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    public class Class1
+    { 
+    }
+}";
+            var expectedSourceReference =
+@"
+Imports A.B.C
+
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_WithQualifiedReferencesInVBDocument()
+        {
+            var defaultNamespace = "A.B.C";
+            var declaredNamespace = "A.B.C.D";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public class Class1
+    {{ 
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+Public Class VBClass
+    Public ReadOnly Property C1 As A.B.C.D.Class1
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    public class Class1
+    { 
+    }
+}";
+            var expectedSourceReference =
+@"Public Class VBClass
+    Public ReadOnly Property C1 As A.B.C.Class1
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
         }
     }
 }
