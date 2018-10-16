@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Utilities
             return -1;
         }
 
+        public static T TrySingleOrDefault<T>(this IReadOnlyList<T> list)
+            => list.Count == 1 ? list[0] : default;
+
         private class ReadOnlyList<T> : IReadOnlyList<T>
         {
             private readonly IList<T> _list;

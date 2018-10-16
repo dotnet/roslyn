@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -18,16 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
             If TypeOf token.Parent Is IfStatementSyntax AndAlso TypeOf token.Parent.Parent Is MultiLineIfBlockSyntax Then
                 ifStatement = DirectCast(token.Parent.Parent, MultiLineIfBlockSyntax)
                 Return True
-            End If
-
-            ifStatement = Nothing
-            Return False
-        End Function
-
-        Protected Overrides Function IsFirstStatementOfIfStatement(statement As SyntaxNode, ByRef ifStatement As MultiLineIfBlockSyntax) As Boolean
-            If TypeOf statement.Parent Is MultiLineIfBlockSyntax Then
-                ifStatement = DirectCast(statement.Parent, MultiLineIfBlockSyntax)
-                Return ifStatement.Statements.FirstOrDefault() Is statement
             End If
 
             ifStatement = Nothing

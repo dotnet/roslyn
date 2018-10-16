@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
         protected abstract bool IsTokenOfIfStatement(SyntaxToken token, out TIfStatementSyntax ifStatement);
 
-        protected abstract bool IsFirstStatementOfIfStatement(SyntaxNode statement, out TIfStatementSyntax ifStatement);
-
         protected abstract ImmutableArray<SyntaxNode> GetElseClauses(TIfStatementSyntax ifStatement);
 
         protected abstract TIfStatementSyntax MergeIfStatements(TIfStatementSyntax outerIfStatement, TIfStatementSyntax innerIfStatement, SyntaxNode condition);
@@ -42,29 +40,28 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
                 return;
             }
 
+            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+
             if (IsTokenOfIfStatement(token, out var ifStatement) &&
-                IsFirstStatementOfIfStatement(ifStatement, out var parentIfStatement) &&
+                IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement) &&
                 await CanBeMergedAsync(context.Document, parentIfStatement, ifStatement, context.CancellationToken))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
-                        c => FixAsync(context.Document, context.Span, c),
+                        c => FixAsync(context.Document, context.Span, syntaxFacts, c),
                         IfKeywordText));
             }
         }
 
-        private async Task<Document> FixAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> FixAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
 
             Contract.ThrowIfFalse(IsTokenOfIfStatement(token, out var ifStatement));
-            Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(ifStatement, out var parentIfStatement));
+            Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement));
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-
-            var newCondition = generator.LogicalAndExpression(
+            var newCondition = document.GetLanguageService<SyntaxGenerator>().LogicalAndExpression(
                 syntaxFacts.GetIfStatementCondition(parentIfStatement),
                 syntaxFacts.GetIfStatementCondition(ifStatement));
 
@@ -72,6 +69,30 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
             var newRoot = root.ReplaceNode(parentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private static bool IsFirstStatementOfIfStatement(
+            ISyntaxFactsService syntaxFacts, SyntaxNode statement, out TIfStatementSyntax ifStatement)
+        {
+            if (syntaxFacts.IsStatementContainer(statement.Parent) &&
+                syntaxFacts.GetStatementContainerStatements(statement.Parent).FirstOrDefault() == statement)
+            {
+                do
+                {
+                    if (statement.Parent is TIfStatementSyntax s)
+                    {
+                        ifStatement = s;
+                        return true;
+                    }
+
+                    statement = statement.Parent;
+                }
+                while (syntaxFacts.IsStatementContainer(statement.Parent) &&
+                       syntaxFacts.GetStatementContainerStatements(statement.Parent).TrySingleOrDefault() == statement);
+            }
+
+            ifStatement = null;
+            return false;
         }
 
         private async Task<bool> CanBeMergedAsync(
