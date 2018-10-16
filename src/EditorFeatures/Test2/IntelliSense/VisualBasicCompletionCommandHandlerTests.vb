@@ -175,8 +175,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/30276")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionAdjustInsertionText_CommitsOnOpenParens2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -416,7 +415,7 @@ End Class
         End Function
 
         <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29110")>
+        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation(completionImplementation As CompletionImplementation) As Task
             ' Simulate a very slow completionImplementation provider.
@@ -455,7 +454,7 @@ End Class
         End Function
 
         <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29110")>
+        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation(completionImplementation As CompletionImplementation) As Task
             ' Simulate a very slow completionImplementation provider.
