@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertTupleToStruct)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ExtractMethod)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertConditional)]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,

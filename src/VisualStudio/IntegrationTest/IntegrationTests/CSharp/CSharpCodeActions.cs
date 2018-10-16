@@ -392,11 +392,12 @@ class Program
             var generateImplicitTitle = "Generate implicit conversion operator in 'C'";
             var expectedItems = new[]
             {
+                "Extract Method",
+                "Introduce constant",
                 "Introduce constant for '2'",
                 "Introduce constant for all occurrences of '2'",
                 "Introduce local constant for '2'",
                 "Introduce local constant for all occurrences of '2'",
-                "Extract Method",
                 generateImplicitTitle,
                 "Suppress CS0612",
                 "in Source",
