@@ -70,7 +70,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
         [Fact]
-        public void IUsingAwaitStatement_SimpleUsingAwait()
+        public void IUsingAwaitStatement_SimpleAwaitUsing()
         {
             string source = @"
 using System;
@@ -81,7 +81,7 @@ class C
 {
     public static async Task M1(IAsyncDisposable disposable)
     {
-        /*<bind>*/using await (var c = disposable)
+        /*<bind>*/await using (var c = disposable)
         {
             Console.WriteLine(c.ToString());
         }/*</bind>*/
@@ -90,7 +90,7 @@ class C
 ";
             // https://github.com/dotnet/roslyn/issues/30362 should show `await`
             string expectedOperationTree = @"
-IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using await ... }')
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'await using ... }')
   Locals: Local_1: System.IAsyncDisposable c
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var c = disposable')
@@ -125,7 +125,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using await ... }')
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
         [Fact]
-        public void UsingFlow_SimpleUsingAwait()
+        public void UsingFlow_SimpleAwaitUsing()
         {
             string source = @"
 using System;
@@ -136,7 +136,7 @@ class C
 {
     public static async Task M1(IAsyncDisposable disposable)
     /*<bind>*/{
-        using await (var c = disposable)
+        await using (var c = disposable)
         {
             Console.WriteLine(c.ToString());
         }

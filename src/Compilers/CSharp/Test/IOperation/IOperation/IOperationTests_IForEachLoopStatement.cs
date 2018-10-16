@@ -3791,14 +3791,14 @@ Block[B7] - Exit
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
-        public void IForEachAwaitLoopStatement_SimpleForEachAwaitLoop()
+        public void IForEachLoopStatement_SimpleAwaitForEachLoop()
         {
             string source = @"
 class Program
 {
     static async System.Threading.Tasks.Task Main(System.Collections.Generic.IAsyncEnumerable<string> pets)
     {
-        /*<bind>*/foreach await (string value in pets)
+        /*<bind>*/await foreach (string value in pets)
         {
             System.Console.WriteLine(value);
         }/*</bind>*/
@@ -3807,7 +3807,7 @@ class Program
 ";
             // https://github.com/dotnet/roslyn/issues/30362 how do we flag `await`?
             string expectedOperationTree = @"
-IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach awa ... }')
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'await forea ... }')
   Locals: Local_1: System.String value
   LoopControlVariable: 
     IVariableDeclaratorOperation (Symbol: System.String value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'string')
@@ -3834,7 +3834,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.AsyncStreams)]
         [Fact]
-        public void ForEachAwaitFlow_SimpleForEachAwaitLoop()
+        public void ForEachAwaitFlow_SimpleAwaitForEachLoop()
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -3844,7 +3844,7 @@ class Program
 {
     static async Task Main(System.Collections.Generic.IAsyncEnumerable<string> pets)
     /*<bind>*/{
-        foreach await (string value in pets)
+        await foreach (string value in pets)
         {
             System.Console.WriteLine(value);
         }

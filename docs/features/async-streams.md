@@ -60,7 +60,7 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 
 ### Detailed design for `await using` statement
 
-An asynchronous `using` is lowered just like a regular `using`, except that `Dipose()` is replaced with `await DisposeAsync()`.
+An asynchronous `using` is lowered just like a regular `using`, except that `Dispose()` is replaced with `await DisposeAsync()`.
 
 ### Detailed design for `await foreach` statement
 

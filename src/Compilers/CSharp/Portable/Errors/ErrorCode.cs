@@ -1590,8 +1590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadGetAsyncEnumerator = 8412,
         ERR_MultipleIAsyncEnumOfT = 8413,
         ERR_ForEachMissingMemberWrongAsync = 8414,
-        ERR_AsyncForEachMissingMemberWrongAsync = 8415,
-        ERR_BadDynamicAsyncForEach = 8416,
+        ERR_AwaitForEachMissingMemberWrongAsync = 8415,
+        ERR_BadDynamicAwaitForEach = 8416,
         ERR_NoConvToIAsyncDispWrongAsync = 8417,
         ERR_NoConvToIDispWrongAsync = 8418,
 

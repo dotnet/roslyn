@@ -780,7 +780,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'using await'?
+                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using'?
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 16)
                 );
@@ -805,7 +805,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'using await'?
+                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using'?
                 //         using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 16)
                 );
@@ -842,14 +842,14 @@ class C : System.IAsyncDisposable, System.IDisposable
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void TestIDisposableInAsyncUsing()
+        public void TestIDisposableInAwaitUsing()
         {
             string source = @"
 class C : System.IDisposable
 {
     async System.Threading.Tasks.Task<int> M()
     {
-        using await (var x = new C())
+        await using (var x = new C())
         {
             return 1;
         }
@@ -860,21 +860,21 @@ class C : System.IDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'using await'?
-                //         using await (var x = new C())
+                // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
+                //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 22)
                 );
         }
 
         [Fact]
-        public void TestIDisposableInAsyncUsing_Expression()
+        public void TestIDisposableInAwaitUsing_Expression()
         {
             string source = @"
 class C : System.IDisposable
 {
     async System.Threading.Tasks.Task<int> M()
     {
-        using await (new C())
+        await using (new C())
         {
             return 1;
         }
@@ -885,8 +885,8 @@ class C : System.IDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'using await'?
-                //         using await (new C())
+                // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
+                //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 22)
                 );
         }
