@@ -595,13 +595,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns true if the `#nonnull` directive preceding the position is
-        /// `restore`, false for if `disable`, and null if no preceding directive.
+        /// `restore`, false if `disable`, and null if no preceding directive.
         /// </summary>
         internal bool? GetNonNullDirectiveState(int position)
         {
             if (_lazyNonNullDirectiveMap == null)
             {
-                // Create the nonnull directive map on demand.
+                // Create the #nonnull directive map on demand.
                 Interlocked.CompareExchange(ref _lazyNonNullDirectiveMap, NonNullDirectiveMap.Create(this), null);
             }
 

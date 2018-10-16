@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         /// <summary>
         /// Returns true if the `#nonnull` directive preceding the position is
-        /// `restore`, false for if `disable`, and null if no preceding directive.
+        /// `restore`, false if `disable`, and null if no preceding directive.
         /// </summary>
         internal bool? GetDirectiveState(int position)
         {
