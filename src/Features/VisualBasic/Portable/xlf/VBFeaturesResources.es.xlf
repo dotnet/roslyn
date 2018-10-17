@@ -62,6 +62,11 @@
         <target state="translated">Conflicto(s) detectado(s).</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="new">Introduce 'Using' statement</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Mueva la instrucción '{0}' a la línea {1}.</target>
