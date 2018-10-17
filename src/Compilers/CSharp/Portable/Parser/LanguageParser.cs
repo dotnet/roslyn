@@ -6613,19 +6613,6 @@ tryAgain:
         /// </remarks>
         private StatementSyntax ParseStatementNoDeclaration(bool allowAnyExpression)
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
-            {
-                switch (this.PeekToken(1).Kind)
-                {
-                    case SyntaxKind.UsingKeyword:
-                        return this.ParseUsingStatement(ParseAwaitKeywordForAsyncStreams());
-                    case SyntaxKind.ForEachKeyword:
-                        return this.ParseForEachStatement(ParseAwaitKeywordForAsyncStreams());
-                    default:
-                        break;
-                }
-            }
-
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.FixedKeyword:
@@ -6677,7 +6664,15 @@ tryAgain:
                 case SyntaxKind.SemicolonToken:
                     return _syntaxFactory.EmptyStatement(this.EatToken());
                 case SyntaxKind.IdentifierToken:
-                    if (this.IsPossibleLabeledStatement())
+                    if (isPossibleAwaitForEach())
+                    {
+                        return this.ParseForEachStatement(parseAwaitKeywordForAsyncStreams());
+                    }
+                    else if (isPossibleAwaitUsing())
+                    {
+                        return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                    }
+                    else if (this.IsPossibleLabeledStatement())
                     {
                         return this.ParseLabeledStatement();
                     }
@@ -6704,13 +6699,25 @@ tryAgain:
             {
                 return this.ParseExpressionStatement();
             }
-        }
 
-        private SyntaxToken ParseAwaitKeywordForAsyncStreams()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-            return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+            bool isPossibleAwaitForEach()
+            {
+                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
+                    this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword;
+            }
+
+            bool isPossibleAwaitUsing()
+            {
+                return this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
+                    this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
+            }
+
+            SyntaxToken parseAwaitKeywordForAsyncStreams()
+            {
+                Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
+                SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+                return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+            }
         }
 
         private bool IsPossibleLabeledStatement()
