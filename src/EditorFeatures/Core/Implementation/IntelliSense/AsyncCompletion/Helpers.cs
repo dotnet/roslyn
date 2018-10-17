@@ -41,8 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                     roslynTrigger = RoslynTrigger.CreateDeletionTrigger(c);
                     return true;
                 case AsyncCompletionData.CompletionTriggerReason.Backspace:
-
-
                     roslynTrigger = RoslynTrigger.CreateDeletionTrigger(c);
                     return true;
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private bool QuestionMarkIsPrecededByIdentifierAndWhitespace(
+        internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(
             SourceText text, int questionPosition, ISyntaxFactsService syntaxFacts)
         {
             var startOfLine = text.Lines.GetLineFromPosition(questionPosition).Start;

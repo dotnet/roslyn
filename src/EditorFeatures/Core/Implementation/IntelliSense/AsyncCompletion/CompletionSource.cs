@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -60,12 +61,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 trigger.Reason != AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique && 
                 !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
             {
-                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+                if (!(trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion &&
+                trigger.Character == '\t' &&
+                TryInvokeSnippetCompletion(service, document, sourceText, triggerLocation.Position)))
+                {
+                    return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+                }
             }
 
             return new AsyncCompletionData.CompletionStartData(
                 participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
                 applicableToSpan: new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()));
+        }
+
+        private static bool TryInvokeSnippetCompletion(
+            CompletionService completionService, Document document, SourceText text, int caretPoint)
+        {
+            var rules = completionService.GetRules();
+            if (rules.SnippetsRule != SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
+            {
+                return false;
+            }
+
+            var syntaxFactsOpt = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsOpt == null ||
+                caretPoint < 3 ||
+                text[caretPoint - 2] != '?' ||
+                !Controller.QuestionMarkIsPrecededByIdentifierAndWhitespace(text, caretPoint - 2, syntaxFactsOpt))
+            {
+                return false;
+            }
+
+            // Because <question><tab> is actually a command to bring up snippets,
+            // we delete the last <question> that was typed.
+            var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 2, caretPoint), string.Empty);
+            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChange, CancellationToken.None);
+
+            return true;
         }
 
         public async Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
