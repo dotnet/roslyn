@@ -408,10 +408,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
                 {
-                    var fullPath = Path.GetFullPath(path);
-                    if (File.Exists(fullPath))
+                    string fullPath;
+
+                    if (PathUtilities.IsAbsolute(path))
                     {
-                        analyzerLoader.AddDependencyLocation(fullPath);
+                        fullPath = FileUtilities.TryNormalizeAbsolutePath(path);
+
+                        if (fullPath != null && File.Exists(fullPath))
+                        {
+                            analyzerLoader.AddDependencyLocation(fullPath);
+                        }
                     }
                 }
 

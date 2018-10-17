@@ -3597,6 +3597,8 @@ class C { }";
 
                 // Project should open without an exception being thrown.
                 Assert.NotNull(project);
+
+                Assert.Contains(project.AdditionalDocuments, doc => doc.Name == "TEST::");
             }
         }
 
