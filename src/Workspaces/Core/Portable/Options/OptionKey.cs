@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override string ToString()
         {
+            if (Option is null)
+            {
+                return "";
+            }
+
             var languageDisplay = Option.IsPerLanguage
                 ? $"({Language}) "
                 : string.Empty;
