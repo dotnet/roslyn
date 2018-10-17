@@ -374,6 +374,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return list;
             }
 
+            /// <param name="bestEffort">When false, variables whose data flow is not understood
+            /// will be returned in <paramref name="failedVariables"/>. When true, we assume any
+            /// variable we don't understand has <see cref="VariableStyle.None"/></param>
             private void GenerateVariableInfoMap(
                 bool bestEffort,
                 SemanticModel model,

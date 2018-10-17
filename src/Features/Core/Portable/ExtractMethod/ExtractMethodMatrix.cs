@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            Contract.ThrowIfFalse(s_matrix.ContainsKey(key), $"Matrix does not contain Key '{key}'.");
-
             if (s_matrix.TryGetValue(key, out variableStyle))
             {
                 return true;
@@ -87,6 +85,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             if (bestEffort)
             {
+                // In best effort mode, even though we didn't know precisely what to do, we still
+                // allow the user to keep going, assuming that this variable is a very basic one.
                 variableStyle = VariableStyle.None;
                 return true;
             }
