@@ -39,7 +39,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             // don't actually run the compiler
             { PropertyNames.SkipCompilerExecution, bool.TrueString },
 
-            { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue }
+            { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue },
+
+            // this ensures that the parent project's configuration and platform will be used for
+            // referenced projects. So, setting Configuration=Release will also cause any project
+            // references to also be built with Configuration=Release. This is necessary for getting
+            // the correct output path from project references.
+            { PropertyNames.ShouldUnsetParentConfigurationAndPlatform, bool.FalseString }
         }.ToImmutableDictionary();
 
         private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;

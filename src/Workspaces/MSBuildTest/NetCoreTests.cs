@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public async Task TestOpenSolution_ReferenceConfigurationSpecificMetadata()
+        public async Task TestOpenProject_ReferenceConfigurationSpecificMetadata()
         {
             var files = GetBaseFiles()
                 .WithFile(@"Solution.sln", Resources.SolutionFiles.Issue30174_Solution)
