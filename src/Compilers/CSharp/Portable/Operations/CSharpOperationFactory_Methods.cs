@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             internal static bool IsPostfixIncrementOrDecrement(CSharp.UnaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.UnaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.UnaryOperatorKind.PostfixIncrement:
                     case CSharp.UnaryOperatorKind.PostfixDecrement:
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static bool IsDecrement(CSharp.UnaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.UnaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.UnaryOperatorKind.PrefixDecrement:
                     case CSharp.UnaryOperatorKind.PostfixDecrement:
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static UnaryOperatorKind DeriveUnaryOperatorKind(CSharp.UnaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.UnaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.UnaryOperatorKind.UnaryPlus:
                         return UnaryOperatorKind.Plus;

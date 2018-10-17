@@ -447,6 +447,32 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_EmbeddedAttribute__ctor,
 
+        System_Index__ctor,
+        System_Range__Create,
+        System_Range__ToEnd,
+        System_Range__FromStart,
+        System_Range__All,
+
+        System_IAsyncDisposable__DisposeAsync,
+        System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+        System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
+        System_Collections_Generic_IAsyncEnumerator_T__get_Current,
+
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
+        System_Runtime_CompilerServices_IStrongBox_T__Value,
+        System_Runtime_CompilerServices_IStrongBox_T__get_Value,
+        System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
+        System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
+        System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
+        System_Threading_Tasks_ValueTask_T__ctor,
+
         Count
     }
 }

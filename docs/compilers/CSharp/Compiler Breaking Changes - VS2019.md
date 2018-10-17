@@ -29,3 +29,7 @@ Each entry should include a short description of the break, followed by either a
 
 3. Previously, you could refer to a `System.Runtime.CompilerServices.NonNullTypesAttribute` type declared in a referenced assembly.
     In Visual Studio 2019, the type from assembly is ignored in favor of the injected declaration of that type.
+
+4. https://github.com/dotnet/roslyn/issues/29656 Previously, ref-returning async local functions would compile, by ignoring the `ref` modifier of the return type.
+    In Visual Studio 2019, this now produces an error, just like ref-returning async methods do.
+

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     // we will re-enable it once the issue is addressed.
     // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
     // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();

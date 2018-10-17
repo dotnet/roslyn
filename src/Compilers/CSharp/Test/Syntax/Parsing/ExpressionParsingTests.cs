@@ -4025,5 +4025,359 @@ select t";
             }
             EOF();
         }
+
+        [Fact]
+        public void IndexExpression()
+        {
+            UsingExpression("^1");
+            N(SyntaxKind.IndexExpression);
+            {
+                N(SyntaxKind.CaretToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ThreeDots()
+        {
+            UsingExpression("1...2",
+                // (1,2): error CS8401: Unexpected character sequence '...'
+                // 1...2
+                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
+        }
+
+        [Fact]
+        public void RangeExpression_Binary()
+        {
+            UsingExpression("1..1");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithIndexes()
+        {
+            UsingExpression("^5..^3");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "5");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator()
+        {
+            UsingExpression("1<<2..3>>4");
+            N(SyntaxKind.RightShiftExpression);
+            {
+                N(SyntaxKind.LeftShiftExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.LessThanLessThanToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                }
+                N(SyntaxKind.GreaterThanGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithAHigherPrecedenceOperator()
+        {
+            UsingExpression("1+2..3-4");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.SubtractExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "4");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Right()
+        {
+            UsingExpression("..1");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Right_WithIndexes()
+        {
+            UsingExpression("..^3");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Left()
+        {
+            UsingExpression("1..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Left_WithIndexes()
+        {
+            UsingExpression("^5..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "5");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_NoOperands()
+        {
+            UsingExpression("..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_NoOperands_WithOtherOperators()
+        {
+            UsingExpression("1+..<<2");
+            N(SyntaxKind.LeftShiftExpression);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                    }
+                }
+                N(SyntaxKind.LessThanLessThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_DotSpaceDot()
+        {
+            UsingExpression("1. .2",
+                // (1,1): error CS1073: Unexpected token '.2'
+                // 1. .2
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1. ").WithArguments(".2").WithLocation(1, 1),
+                // (1,4): error CS1001: Identifier expected
+                // 1. .2
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".2").WithLocation(1, 4));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_NoOperands()
+        {
+            UsingExpression(".. .ToString()",
+                // (1,1): error CS1073: Unexpected token '.'
+                // .. .ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments(".").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_LeftOperand()
+        {
+            UsingExpression("1.. .ToString()",
+                // (1,1): error CS1073: Unexpected token '.'
+                // 1.. .ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1..").WithArguments(".").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_RightOperand()
+        {
+            UsingExpression("..2 .ToString()");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_TwoOperands()
+        {
+            UsingExpression("1..2 .ToString()");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ConditionalAccessExpression()
+        {
+            UsingExpression("c?..b",
+                // (1,6): error CS1003: Syntax error, ':' expected
+                // c?..b
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 6),
+                // (1,6): error CS1733: Expected expression
+                // c?..b
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
+        }
     }
 }

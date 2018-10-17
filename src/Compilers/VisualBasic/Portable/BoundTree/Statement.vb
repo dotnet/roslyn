@@ -53,22 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Partial Friend Class BoundRedimStatement
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return StaticCast(Of BoundNode).From(Me.Clauses)
-            End Get
-        End Property
-    End Class
-
-    Partial Friend Class BoundRedimClause
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return StaticCast(Of BoundNode).From(Me.Indices.Insert(0, Me.Operand))
-            End Get
-        End Property
-    End Class
-
     Partial Friend Class BoundEraseStatement
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get

@@ -305,6 +305,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.TypeSymbol.IsGenericTaskType(compilation);
         }
 
+        /// <summary>
+        /// Returns whether this method is async and returns an IAsyncEnumerable`1.
+        /// </summary>
+        public static bool IsIAsyncEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        {
+            return method.IsAsync
+                && method.ReturnType.TypeSymbol.IsIAsyncEnumerableType(compilation);
+        }
+
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
             method = method.PartialDefinitionPart ?? method;

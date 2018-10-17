@@ -770,11 +770,12 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'ReDim intArray(x, x, x)')
-  Children(1):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'intArray(x, x, x)')
-        Children(4):
-            ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,,)) (Syntax: 'intArray')
+IReDimOperation (OperationKind.ReDim, Type: null) (Syntax: 'ReDim intArray(x, x, x)')
+  Clauses(1):
+      IReDimClauseOperation (OperationKind.ReDimClause, Type: null) (Syntax: 'intArray(x, x, x)')
+        Operand: 
+          ILocalReferenceOperation: intArray (OperationKind.LocalReference, Type: System.Int32(,,)) (Syntax: 'intArray')
+        DimensionSizes(3):
             IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x')
               Left: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')

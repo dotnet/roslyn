@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool TryCreate(SyntheticBoundNodeFactory F, MethodSymbol method, TypeMap typeMap, out AsyncMethodBuilderMemberCollection collection)
         {
-            if (method.IsVoidReturningAsync())
+            if (method.IsVoidReturningAsync() || method.IsIterator)
             {
                 var builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
                 Debug.Assert((object)builderType != null);

@@ -53,4 +53,7 @@
   <ItemGroup>
     <Compile Remove="Resources\**\*.*" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Issue29122\" />
+  </ItemGroup>
 </Project>

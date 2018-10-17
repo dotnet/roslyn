@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
         private readonly bool _constructedSuccessfully;
         private readonly int _methodOrdinal;
-        private readonly bool _ignoreAccessibility;
 
         private FieldSymbol _builderField;
 
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
             _methodOrdinal = methodOrdinal;
-            _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
         }
 
         /// <summary>
@@ -50,13 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
-            var typeKind = compilationState.Compilation.Options.EnableEditAndContinue ? TypeKind.Class : TypeKind.Struct;
+            // For async-iterators, we also need to generate a class.
+            var typeKind = (compilationState.Compilation.Options.EnableEditAndContinue || method.IsIterator) ? TypeKind.Class : TypeKind.Struct;
 
             var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
 
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+
+            AsyncRewriter rewriter = method.IsIterator
+                ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+                : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
@@ -81,8 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DiagnosticBag bag = DiagnosticBag.GetInstance();
 
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
-            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
+            VerifyPresenceOfRequiredAPIs(bag);
 
             bool hasErrors = bag.HasAnyErrors();
             if (hasErrors)
@@ -92,6 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bag.Free();
             return !hasErrors && _constructedSuccessfully;
+        }
+
+        protected virtual void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+        {
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
         }
 
         private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)
@@ -131,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
-            // If the state machine is a class there is no copy made and thus the initialization is not necessary. 
+            // If the state machine is a class there is no copy made and thus the initialization is not necessary.
             // In fact it is an error to reinitialize the builder since it already is initialized.
             if (F.CurrentType.TypeKind == TypeKind.Class)
             {
@@ -229,12 +236,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.ToImmutableAndFree());
         }
 
-        private void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
+        protected virtual void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
         {
             var rewriter = new AsyncMethodToStateMachineRewriter(
                 method: method,
                 methodOrdinal: _methodOrdinal,
                 asyncMethodBuilderMemberCollection: _asyncMethodBuilderMemberCollection,
+                asyncIteratorInfo: null,
                 F: F,
                 state: stateField,
                 builder: _builderField,

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -139,7 +138,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             lock (_gate)
                             {
                                 _lazyPendingMemberSymbolsMapOpt = _lazyPendingMemberSymbolsMapOpt ?? new Dictionary<ISymbol, HashSet<ISymbol>>();
-                                _lazyPendingMemberSymbolsMapOpt.Add(symbol, dependentSymbols);
+
+                                // Guard against entry added from another thread.
+                                VerifyNewEntryForPendingMemberSymbolsMap(symbol, dependentSymbols);
+                                _lazyPendingMemberSymbolsMapOpt[symbol] = dependentSymbols;
                             }
                         }
 
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         foreach (var member in members)
                         {
-                            if (!member.IsImplicitlyDeclared)
+                            if (!member.IsImplicitlyDeclared && member.IsInSource())
                             {
                                 memberSet = memberSet ?? new HashSet<ISymbol>();
                                 memberSet.Add(member);
@@ -179,6 +181,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 processMembers(typeMember.GetMembers());
                             }
                         }
+                    }
+                }
+            }
+
+            [Conditional("DEBUG")]
+            private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol> dependentSymbols)
+            {
+                if (_lazyPendingMemberSymbolsMapOpt.TryGetValue(symbol, out var existingDependentSymbols))
+                {
+                    if (existingDependentSymbols == null)
+                    {
+                        Debug.Assert(dependentSymbols == null);
+                    }
+                    else
+                    {
+                        Debug.Assert(dependentSymbols != null);
+                        Debug.Assert(dependentSymbols.SetEquals(existingDependentSymbols));
                     }
                 }
             }
@@ -240,6 +259,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
                         {
+                            foreach (var descriptor in supportedDiagnosticsLocal)
+                            {
+                                if (descriptor == null)
+                                {
+                                    // Disallow null descriptors.
+                                    throw new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzer.ToString()), nameof(DiagnosticAnalyzer.SupportedDiagnostics));
+                                }
+                            }
+
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
@@ -344,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    Debug.Assert(_lazyPendingSymbolEndActionsOpt == null || _lazyPendingSymbolEndActionsOpt.Count == 0);
+                    Debug.Assert(_lazyPendingMemberSymbolsMapOpt == null || _lazyPendingMemberSymbolsMapOpt.Count == 0);
                     Debug.Assert(_lazyPendingSymbolEndActionsOpt == null || _lazyPendingSymbolEndActionsOpt.Count == 0);
                 }
             }

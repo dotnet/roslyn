@@ -8770,12 +8770,12 @@ class C
                 // (15,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, new[] { x, x });
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(15, 14),
-                // (17,25): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                // (17,14): warning CS8639: No best nullability found for implicitly-typed array.
                 //         G(x, new[] { x, y, z });
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(17, 25),
-                // (17,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y, z }").WithLocation(17, 14),
+                // (17,14): warning CS8620: Nullability of reference types in argument of type 'I<object>?[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, new[] { x, y, z });
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(17, 14),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>?[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(17, 14),
                 // (18,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y: new[] { x, x }, x: y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 14),
@@ -10633,6 +10633,10 @@ public class C
         /// </summary>
         private static void VerifyOutVar(CSharpCompilation compilation, string expectedType)
         {
+            if (SkipVerify(expectedType))
+            {
+                return;
+            }
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
             var outVar = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
@@ -10646,6 +10650,10 @@ public class C
         /// </summary>
         private static void VerifyVarLocal(CSharpCompilation compilation, string expectedType)
         {
+            if (SkipVerify(expectedType))
+            {
+                return;
+            }
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
             var varDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(d => d.Declaration.Type.IsVar).Single();
@@ -10653,6 +10661,16 @@ public class C
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(variable);
             Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetSymbolInfo(variable).Symbol);
+        }
+
+        // https://github.com/dotnet/roslyn/issues/30150: VerifyOutVar and VerifyVarLocal are currently
+        // checking the type and nullability from initial binding, but there are many cases where initial binding
+        // sets nullability to unknown - in particular, for method type inference which is used in many
+        // of the existing callers of these methods. Re-enable these methods when we're checking the
+        // nullability from NullableWalker instead of initial binding.
+        private static bool SkipVerify(string expectedType)
+        {
+            return expectedType.Contains('?') || expectedType.Contains('!');
         }
 
         [Fact]
@@ -11032,18 +11050,21 @@ public class C
     public void Main(string? key)
     {
         Copy(key, out string s);
-        s/*T:string!*/.ToString();
+        s/*T:string?*/.ToString();
     }
     public static void Copy<T>(T key, out T value) => throw null;
 }
 " }, options: WithNonNullTypesTrue());
 
-            VerifyOutVar(c, "string!");
-            c.VerifyTypes(); // https://github.com/dotnet/roslyn/issues/29857: is string! correct?
+            VerifyOutVar(c, "string?");
+            c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (6,14): warning CS8604: Possible null reference argument for parameter 'key' in 'void C.Copy<string>(string key, out string value)'.
+                // (6,23): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         Copy(key, out string s);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "key").WithArguments("key", "void C.Copy<string>(string key, out string value)").WithLocation(6, 14)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "string s").WithLocation(6, 23),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
                 );
         }
 
@@ -15273,47 +15294,39 @@ class C
         {
             var source =
 @"#pragma warning disable 0649
-class A<T>
-{
-    internal T F;
-    internal T P { get; }
-}
+class A<T> { }
 class B1 : A<object?> { }
 class B2 : A<object> { }
 class C
 {
-    static void F(bool b, A<object> x, B1 y)
+    static void F(bool b, A<object> x, A<object?> y, B1 z, B2 w)
     {
-        (b ? x : y)/*T:A<object>!*/.F.ToString();
-        (b ? y : x)/*T:A<object>!*/.P.ToString();
-    }
-    static void G(bool b, A<object?> x, B2 y)
-    {
-        (b ? x : y)/*T:A<object>!*/.F.ToString();
-        (b ? y : x)/*T:A<object>!*/.P.ToString();
+        object o;
+        o = (b ? x : z)/*T:A<object!>!*/;
+        o = (b ? x : w)/*T:A<object!>!*/;
+        o = (b ? z : x)/*T:A<object!>!*/;
+        o = (b ? w : x)/*T:A<object!>!*/;
+        o = (b ? y : z)/*T:A<object?>!*/;
+        o = (b ? y : w)/*T:A<object?>!*/;
+        o = (b ? z : y)/*T:A<object?>!*/;
+        o = (b ? w : y)/*T:A<object?>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (2,7): warning CS8618: Non-nullable property 'P' is uninitialized.
-                // class A<T>
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("property", "P").WithLocation(2, 7),
-                // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
-                // class A<T>
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(2, 7),
-                // (13,10): warning CS8626: No best nullability for operands of conditional expression 'A<object>' and 'B1'.
-                //         (b ? x : y)/*T:A<object>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object>", "B1").WithLocation(13, 10),
-                // (14,10): warning CS8626: No best nullability for operands of conditional expression 'B1' and 'A<object>'.
-                //         (b ? y : x)/*T:A<object>!*/.P.ToString();
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B1", "A<object>").WithLocation(14, 10),
-                // (18,10): warning CS8626: No best nullability for operands of conditional expression 'A<object?>' and 'B2'.
-                //         (b ? x : y)/*T:A<object>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object?>", "B2").WithLocation(18, 10),
-                // (19,10): warning CS8626: No best nullability for operands of conditional expression 'B2' and 'A<object?>'.
-                //         (b ? y : x)/*T:A<object>!*/.P.ToString();
-                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B2", "A<object?>").WithLocation(19, 10));
+                // (10,22): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<object>'.
+                //         o = (b ? x : z)/*T:A<object!>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "z").WithArguments("B1", "A<object>").WithLocation(10, 22),
+                // (12,18): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<object>'.
+                //         o = (b ? z : x)/*T:A<object!>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "z").WithArguments("B1", "A<object>").WithLocation(12, 18),
+                // (15,22): warning CS8619: Nullability of reference types in value of type 'B2' doesn't match target type 'A<object?>'.
+                //         o = (b ? y : w)/*T:A<object?>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("B2", "A<object?>").WithLocation(15, 22),
+                // (17,18): warning CS8619: Nullability of reference types in value of type 'B2' doesn't match target type 'A<object?>'.
+                //         o = (b ? w : y)/*T:A<object?>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("B2", "A<object?>").WithLocation(17, 18));
         }
 
         [Fact]
@@ -15775,6 +15788,355 @@ class C
                 // (31,9): warning CS8602: Possible dereference of a null reference.
                 //         (b ? ref x4 : ref y4)/*T:IOut<string?>!*/.P.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? ref x4 : ref y4)/*T:IOut<string?>!*/.P").WithLocation(31, 9));
+        }
+
+        [Fact]
+        public void ConditionalOperator_TopLevelNullability()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static void F(bool b, object? x, object y)
+    {
+        var z = A.F/*T:object*/;
+        object? o;
+        o = (b ? x : x)/*T:object?*/;
+        o = (b ? x : y)/*T:object?*/;
+        o = (b ? x : z)/*T:object?*/;
+        o = (b ? y : x)/*T:object?*/;
+        o = (b ? y : y)/*T:object!*/;
+        o = (b ? y : z)/*T:object*/;
+        o = (b ? z : x)/*T:object?*/;
+        o = (b ? z : y)/*T:object*/;
+        o = (b ? z : z)/*T:object*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [Fact]
+        public void ConditionalOperator_NestedNullability_Invariant()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateB(A.F) returns B<object> rather than B<object>!.
+            var source =
+@"class B<T> { }
+class C
+{
+    static B<T> CreateB<T>(T t)
+    {
+        throw null;
+    }
+    static void F(bool b, B<object?> x, B<object> y)
+    {
+        var z = CreateB(A.F)/*T:B<object>*/;
+        object o;
+        o = (b ? x : x)/*T:B<object?>!*/;
+        o = (b ? x : y)/*T:B<object>!*/;
+        o = (b ? x : z)/*T:B<object?>*/;
+        o = (b ? y : x)/*T:B<object>!*/;
+        o = (b ? y : y)/*T:B<object!>!*/;
+        o = (b ? y : z)/*T:B<object!>*/;
+        o = (b ? z : x)/*T:B<object?>*/;
+        o = (b ? z : y)/*T:B<object!>*/;
+        o = (b ? z : z)/*T:B<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (13,14): warning CS8626: No best nullability for operands of conditional expression 'B<object?>' and 'B<object>'.
+                //         o = (b ? x : y)/*T:B<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("B<object?>", "B<object>").WithLocation(13, 14),
+                // (15,14): warning CS8626: No best nullability for operands of conditional expression 'B<object>' and 'B<object?>'.
+                //         o = (b ? y : x)/*T:B<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B<object>", "B<object?>").WithLocation(15, 14));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ConditionalOperator_NestedNullability_Variant()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<object> rather than I<object>!.
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static I<T> CreateI<T>(T t) => throw null;
+    static void F1(bool b, I<object> x, I<object?> y)
+    {
+        var z = CreateI(A.F)/*T:I<object>*/;
+        object o;
+        o = (b ? x : x)/*T:I<object!>!*/;
+        o = (b ? x : y)/*T:I<object>!*/;
+        o = (b ? x : z)/*T:I<object!>*/;
+        o = (b ? y : x)/*T:I<object>!*/;
+        o = (b ? y : y)/*T:I<object?>!*/;
+        o = (b ? y : z)/*T:I<object?>*/;
+        o = (b ? z : x)/*T:I<object!>*/;
+        o = (b ? z : y)/*T:I<object?>*/;
+        o = (b ? z : z)/*T:I<object>*/;
+    }
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static void F2(bool b, IIn<object> x, IIn<object?> y)
+    {
+        var z = CreateIIn(A.F)/*T:IIn<object>*/;
+        object o;
+        o = (b ? x : x)/*T:IIn<object!>!*/;
+        o = (b ? x : y)/*T:IIn<object!>!*/;
+        o = (b ? x : z)/*T:IIn<object!>*/;
+        o = (b ? y : x)/*T:IIn<object!>!*/;
+        o = (b ? y : y)/*T:IIn<object?>!*/;
+        o = (b ? y : z)/*T:IIn<object>*/;
+        o = (b ? z : x)/*T:IIn<object!>*/;
+        o = (b ? z : y)/*T:IIn<object>*/;
+        o = (b ? z : z)/*T:IIn<object>*/;
+    }
+    static IOut<T> CreateIOut<T>(T t) => throw null;
+    static void F3(bool b, IOut<object> x, IOut<object?> y)
+    {
+        var z = CreateIOut(A.F)/*T:IOut<object>*/;
+        object o;
+        o = (b ? x : x)/*T:IOut<object!>!*/;
+        o = (b ? x : y)/*T:IOut<object?>!*/;
+        o = (b ? x : z)/*T:IOut<object>*/;
+        o = (b ? y : x)/*T:IOut<object?>!*/;
+        o = (b ? y : y)/*T:IOut<object?>!*/;
+        o = (b ? y : z)/*T:IOut<object?>*/;
+        o = (b ? z : x)/*T:IOut<object>*/;
+        o = (b ? z : y)/*T:IOut<object?>*/;
+        o = (b ? z : z)/*T:IOut<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (12,14): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         o = (b ? x : y)/*T:I<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(12, 14),
+                // (14,14): warning CS8626: No best nullability for operands of conditional expression 'I<object?>' and 'I<object>'.
+                //         o = (b ? y : x)/*T:I<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("I<object?>", "I<object>").WithLocation(14, 14));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ConditionalOperator_NestedNullability_VariantAndInvariant()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F1;
+    public static string F2;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateIIn(A.F1, A.F2) returns IIn<object, string> rather than IIn<object, string>!.
+            var source =
+@"interface IIn<in T, U> { }
+interface IOut<T, out U> { }
+class C
+{
+    static IIn<T, U> CreateIIn<T, U>(T t, U u) => throw null;
+    static void F1(bool b, IIn<object, string> x1, IIn<object?, string?> y1)
+    {
+        var z1 = CreateIIn(A.F1, A.F2)/*T:IIn<object, string>*/;
+        object o;
+        o = (b ? x1 : x1)/*T:IIn<object!, string!>!*/;
+        o = (b ? x1 : y1)/*T:IIn<object!, string>!*/;
+        o = (b ? x1 : z1)/*T:IIn<object!, string!>*/;
+        o = (b ? y1 : x1)/*T:IIn<object!, string>!*/;
+        o = (b ? y1 : y1)/*T:IIn<object?, string?>!*/;
+        o = (b ? y1 : z1)/*T:IIn<object, string?>*/;
+        o = (b ? z1 : x1)/*T:IIn<object!, string!>*/;
+        o = (b ? z1 : y1)/*T:IIn<object, string?>*/;
+        o = (b ? z1 : z1)/*T:IIn<object, string>*/;
+    }
+    static IOut<T, U> CreateIOut<T, U>(T t, U u) => throw null;
+    static void F2(bool b, IOut<object, string> x2, IOut<object?, string?> y2)
+    {
+        var z2 = CreateIOut(A.F1, A.F2)/*T:IOut<object, string>*/;
+        object o;
+        o = (b ? x2 : x2)/*T:IOut<object!, string!>!*/;
+        o = (b ? x2 : y2)/*T:IOut<object, string?>!*/;
+        o = (b ? x2 : z2)/*T:IOut<object!, string>*/;
+        o = (b ? y2 : x2)/*T:IOut<object, string?>!*/;
+        o = (b ? y2 : y2)/*T:IOut<object?, string?>!*/;
+        o = (b ? y2 : z2)/*T:IOut<object?, string?>*/;
+        o = (b ? z2 : x2)/*T:IOut<object!, string>*/;
+        o = (b ? z2 : y2)/*T:IOut<object?, string?>*/;
+        o = (b ? z2 : z2)/*T:IOut<object, string>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8626: No best nullability for operands of conditional expression 'IIn<object, string>' and 'IIn<object?, string?>'.
+                //         o = (b ? x1 : y1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x1 : y1").WithArguments("IIn<object, string>", "IIn<object?, string?>").WithLocation(11, 14),
+                // (11,23): warning CS8619: Nullability of reference types in value of type 'IIn<object?, string?>' doesn't match target type 'IIn<object, string>'.
+                //         o = (b ? x1 : y1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("IIn<object?, string?>", "IIn<object, string>").WithLocation(11, 23),
+                // (13,14): warning CS8626: No best nullability for operands of conditional expression 'IIn<object?, string?>' and 'IIn<object, string>'.
+                //         o = (b ? y1 : x1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y1 : x1").WithArguments("IIn<object?, string?>", "IIn<object, string>").WithLocation(13, 14),
+                // (13,18): warning CS8619: Nullability of reference types in value of type 'IIn<object?, string?>' doesn't match target type 'IIn<object, string>'.
+                //         o = (b ? y1 : x1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("IIn<object?, string?>", "IIn<object, string>").WithLocation(13, 18),
+                // (26,14): warning CS8626: No best nullability for operands of conditional expression 'IOut<object, string>' and 'IOut<object?, string?>'.
+                //         o = (b ? x2 : y2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x2 : y2").WithArguments("IOut<object, string>", "IOut<object?, string?>").WithLocation(26, 14),
+                // (26,18): warning CS8619: Nullability of reference types in value of type 'IOut<object, string>' doesn't match target type 'IOut<object, string?>'.
+                //         o = (b ? x2 : y2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("IOut<object, string>", "IOut<object, string?>").WithLocation(26, 18),
+                // (28,14): warning CS8626: No best nullability for operands of conditional expression 'IOut<object?, string?>' and 'IOut<object, string>'.
+                //         o = (b ? y2 : x2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y2 : x2").WithArguments("IOut<object?, string?>", "IOut<object, string>").WithLocation(28, 14),
+                // (28,23): warning CS8619: Nullability of reference types in value of type 'IOut<object, string>' doesn't match target type 'IOut<object, string?>'.
+                //         o = (b ? y2 : x2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("IOut<object, string>", "IOut<object, string?>").WithLocation(28, 23));
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30432, "https://github.com/dotnet/roslyn/issues/30432")]
+        [Fact]
+        public void ConditionalOperator_TopLevelNullability_Ref()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static void F(bool b, object? x, object y)
+    {
+        var z = A.F/*T:object*/;
+        ref var xx = ref b ? ref x : ref x;
+        ref var xy = ref b ? ref x : ref y;
+        ref var xz = ref b ? ref x : ref z;
+        ref var yx = ref b ? ref y : ref x;
+        ref var yy = ref b ? ref y : ref y;
+        ref var yz = ref b ? ref y : ref z;
+        ref var zx = ref b ? ref z : ref x;
+        ref var zy = ref b ? ref z : ref y;
+        ref var zz = ref b ? ref z : ref z;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            // https://github.com/dotnet/roslyn/issues/30432: Report warnings for combinations of `object?` and `object!`.
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30432, "https://github.com/dotnet/roslyn/issues/30432")]
+        [Fact]
+        public void ConditionalOperator_NestedNullability_Ref()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static I<T> CreateI<T>(T t) => throw null;
+    static void F1(bool b, I<object> x1, I<object?> y1)
+    {
+        var z1 = CreateI(A.F)/*T:I<object>*/;
+        ref var xx = ref b ? ref x1 : ref x1;
+        ref var xy = ref b ? ref x1 : ref y1;
+        ref var xz = ref b ? ref x1 : ref z1;
+        ref var yx = ref b ? ref y1 : ref x1;
+        ref var yy = ref b ? ref y1 : ref y1;
+        ref var yz = ref b ? ref y1 : ref z1;
+        ref var zx = ref b ? ref z1 : ref x1;
+        ref var zy = ref b ? ref z1 : ref y1;
+        ref var zz = ref b ? ref z1 : ref z1;
+    }
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static void F2(bool b, IIn<object> x2, IIn<object?> y2)
+    {
+        var z2 = CreateIIn(A.F)/*T:IIn<object>*/;
+        ref var xx = ref b ? ref x2 : ref x2;
+        ref var xy = ref b ? ref x2 : ref y2;
+        ref var xz = ref b ? ref x2 : ref z2;
+        ref var yx = ref b ? ref y2 : ref x2;
+        ref var yy = ref b ? ref y2 : ref y2;
+        ref var yz = ref b ? ref y2 : ref z2;
+        ref var zx = ref b ? ref z2 : ref x2;
+        ref var zy = ref b ? ref z2 : ref y2;
+        ref var zz = ref b ? ref z2 : ref z2;
+    }
+    static IOut<T> CreateIOut<T>(T t) => throw null;
+    static void F3(bool b, IOut<object> x3, IOut<object?> y3)
+    {
+        var z3 = CreateIOut(A.F)/*T:IOut<object>*/;
+        ref var xx = ref b ? ref x3 : ref x3;
+        ref var xy = ref b ? ref x3 : ref y3;
+        ref var xz = ref b ? ref x3 : ref z3;
+        ref var yx = ref b ? ref y3 : ref x3;
+        ref var yy = ref b ? ref y3 : ref y3;
+        ref var yz = ref b ? ref y3 : ref z3;
+        ref var zx = ref b ? ref z3 : ref x3;
+        ref var zy = ref b ? ref z3 : ref y3;
+        ref var zz = ref b ? ref z3 : ref z3;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            // https://github.com/dotnet/roslyn/issues/30432: Report warnings for combinations of `IIn<object?>` and `IIn<object!>`
+            // and combinations of  `IOut<object?>` and `IOut<object!>`.
+            comp.VerifyDiagnostics(
+                // (11,26): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         ref var xy = ref b ? ref x1 : ref y1;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? ref x1 : ref y1").WithArguments("I<object>", "I<object?>").WithLocation(11, 26),
+                // (13,26): warning CS8626: No best nullability for operands of conditional expression 'I<object?>' and 'I<object>'.
+                //         ref var yx = ref b ? ref y1 : ref x1;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? ref y1 : ref x1").WithArguments("I<object?>", "I<object>").WithLocation(13, 26));
+            comp.VerifyTypes();
         }
 
         [Fact]
@@ -18187,12 +18549,12 @@ class CL0<T>
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                // (10,31): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
+                // (10,18): warning CS8639: No best nullability found for implicitly-typed array.
                 //         var u1 = new [] { x1, y1 };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(10, 31),
-                // (11,31): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new [] { x1, y1 }").WithLocation(10, 18),
+                // (11,18): warning CS8639: No best nullability found for implicitly-typed array.
                 //         var a1 = new [] { y1, x1 };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(11, 31),
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new [] { y1, x1 }").WithLocation(11, 18),
                 // (12,43): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
                 //         var v1 = new CL0<string?>[] { x1, y1 };
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 43),
@@ -18300,19 +18662,20 @@ class CL0<T>
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/30376: `!` should suppress conversion warnings.
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         c[0][0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0][0]").WithLocation(13, 9),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         d[0][0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0][0]").WithLocation(15, 9),
-                // (17,9): warning CS8602: Possible dereference of a null reference.
-                //         e[0][0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e[0][0]").WithLocation(17, 9));
+                // (12,17): warning CS8639: No best nullability found for implicitly-typed array.
+                //         var c = new[] { a, b };
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { a, b }").WithLocation(12, 17),
+                // (14,17): warning CS8639: No best nullability found for implicitly-typed array.
+                //         var d = new[] { a, b! };
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { a, b! }").WithLocation(14, 17),
+                // (16,17): warning CS8639: No best nullability found for implicitly-typed array.
+                //         var e = new[] { b!, a };
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { b!, a }").WithLocation(16, 17));
         }
 
         [Fact]
@@ -18433,58 +18796,55 @@ class CL0<T>
         }
 
         [Fact]
-        public void ImplicitlyTypedArrayCreation_07()
+        public void ImplicitlyTypedArrayCreation_NestedNullability_Derived()
         {
-            var source =
-@"#pragma warning disable 0649
-class A<T>
+            var source0 =
+@"public class A
 {
-    internal T F;
+    public static object F;
 }
-class B1 : A<object?> { }
-class B2 : A<object> { }
-class C
+public class B<T>
 {
-    static void F()
+}
+public class C0 : B<object>
+{
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C1 : B<object?> { }
+class C2 : B<object> { }
+class Program
+{
+    static B<T> CreateB<T>(T t) => throw null;
+    static void F(B<object?> x, B<object> y, C0 cz, C1 cx, C2 cy)
     {
-        var a = new[] { new A<object>(), new B1() };
-        a[0].F.ToString();
-        var b = new[] { new A<object?>(), new B2() };
-        b[0].F.ToString();
-        var c = new[] { new B1(), new A<object>() };
-        c[0].F.ToString();
-        var d = new[] { new B2(), new A<object?>() };
-        d[0].F.ToString();
+        var z = CreateB(A.F)/*T:B<object>*/;
+        object o;
+        o = (new[] { x, cx })[0]/*B<object?>*/;
+        o = (new[] { x, cy })[0]/*B<object>*/;
+        o = (new[] { x, cz })[0]/*B<object?>*/;
+        o = (new[] { y, cx })[0]/*B<object>*/;
+        o = (new[] { cy, y })[0]/*B<object!>*/;
+        o = (new[] { cz, y })[0]/*B<object!>*/;
+        o = (new[] { cx, z })[0]/*B<object?>*/;
+        o = (new[] { cy, z })[0]/*B<object!>*/;
+        o = (new[] { cz, z })[0]/*B<object>*/;
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
-                // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
-                // class A<T>
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(2, 7),
-                // (12,42): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<object>'.
-                //         var a = new[] { new A<object>(), new B1() };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new B1()").WithArguments("B1", "A<object>").WithLocation(12, 42),
-                // (14,43): warning CS8619: Nullability of reference types in value of type 'B2' doesn't match target type 'A<object?>'.
-                //         var b = new[] { new A<object?>(), new B2() };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new B2()").WithArguments("B2", "A<object?>").WithLocation(14, 43),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         b[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0].F").WithLocation(15, 9),
-                // (16,25): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<object>'.
-                //         var c = new[] { new B1(), new A<object>() };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new B1()").WithArguments("B1", "A<object>").WithLocation(16, 25),
-                // (18,25): warning CS8619: Nullability of reference types in value of type 'B2' doesn't match target type 'A<object?>'.
-                //         var d = new[] { new B2(), new A<object?>() };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new B2()").WithArguments("B2", "A<object?>").WithLocation(18, 25),
-                // (19,9): warning CS8602: Possible dereference of a null reference.
-                //         d[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0].F").WithLocation(19, 9));
+                // (11,25): warning CS8619: Nullability of reference types in value of type 'C2' doesn't match target type 'B<object?>'.
+                //         o = (new[] { x, cy })[0]/*B<object>*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "cy").WithArguments("C2", "B<object?>").WithLocation(11, 25),
+                // (13,25): warning CS8619: Nullability of reference types in value of type 'C1' doesn't match target type 'B<object>'.
+                //         o = (new[] { y, cx })[0]/*B<object>*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "cx").WithArguments("C1", "B<object>").WithLocation(13, 25));
+            comp.VerifyTypes();
         }
 
-        // https://github.com/dotnet/roslyn/issues/29888: The array element type should be nullable,
-        // even though there is no best type when considering nullability for C<object>? and
-        // C<object?>. In short, should report WRN_NullReferenceReceiver for `c[0].ToString()`
         [Fact]
         [WorkItem(29888, "https://github.com/dotnet/roslyn/issues/29888")]
         public void ImplicitlyTypedArrayCreation_08()
@@ -18513,18 +18873,24 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (8,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                // (8,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var c = new[] { a, b };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("C<object?>", "C<object>").WithLocation(8, 32),
-                // (10,32): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { a, b }").WithLocation(8, 21),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             c[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0]").WithLocation(9, 13),
+                // (10,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var d = new[] { b, a };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a").WithArguments("C<object>", "C<object?>").WithLocation(10, 32),
-                // (15,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { b, a }").WithLocation(10, 21),
+                // (11,13): warning CS8602: Possible dereference of a null reference.
+                //             d[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0]").WithLocation(11, 13),
+                // (15,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var c = new[] { a, b };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("C<object?>", "C<object>").WithLocation(15, 32),
-                // (17,32): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { a, b }").WithLocation(15, 21),
+                // (17,21): warning CS8639: No best nullability found for implicitly-typed array.
                 //             var d = new[] { b, a };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a").WithArguments("C<object>", "C<object?>").WithLocation(17, 32));
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { b, a }").WithLocation(17, 21));
         }
 
         [Fact]
@@ -18565,6 +18931,407 @@ class C
         }
 
         [Fact]
+        public void ImplicitlyTypedArrayCreation_TopLevelNullability_01()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static void F(object? x, object y)
+    {
+        var z = A.F/*T:object*/;
+        object? o;
+        o = (new[] { x, x })[0]/*T:object?*/;
+        o = (new[] { x, y })[0]/*T:object?*/;
+        o = (new[] { x, z })[0]/*T:object?*/;
+        o = (new[] { y, x })[0]/*T:object?*/;
+        o = (new[] { y, y })[0]/*T:object!*/;
+        o = (new[] { y, z })[0]/*T:object*/;
+        o = (new[] { z, x })[0]/*T:object?*/;
+        o = (new[] { z, y })[0]/*T:object*/;
+        o = (new[] { z, z })[0]/*T:object*/;
+        o = (new[] { x, y, z })[0]/*T:object?*/;
+        o = (new[] { z, y, x })[0]/*T:object?*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_TopLevelNullability_02()
+        {
+            var source =
+@"class C
+{
+    static void F<T, U>(T t, U u)
+        where T : class?
+        where U : class, T
+    {
+        object? o;
+        o = (new[] { t, t })[0]/*T:T*/;
+        o = (new[] { t, u })[0]/*T:T*/;
+        o = (new[] { u, t })[0]/*T:T*/;
+        o = (new[] { u, u })[0]/*T:U!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_NestedNullability_Invariant()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B<T> { }
+class Program
+{
+    static B<T> Create<T>(T t)
+    {
+        throw null;
+    }
+    static void F(bool b, B<object?> x, B<object> y)
+    {
+        var z = Create(A.F); // B<object~>
+        object o;
+        o = (new[] { x, y })[0]/*T:B<object>!*/;
+        o = (new[] { x, z })[0]/*T:B<object?>*/;
+        o = (new[] { y, x })[0]/*T:B<object>!*/;
+        o = (new[] { y, z })[0]/*T:B<object!>*/;
+        o = (new[] { z, x })[0]/*T:B<object?>*/;
+        o = (new[] { z, y })[0]/*T:B<object!>*/;
+        o = (new[] { x, y, z })[0]/*T:B<object>*/;
+        o = (new[] { z, y, x })[0]/*T:B<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (12,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x, y })[0]/*T:B<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y }").WithLocation(12, 14),
+                // (14,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { y, x })[0]/*T:B<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y, x }").WithLocation(14, 14),
+                // (18,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x, y, z })[0]/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y, z }").WithLocation(18, 14),
+                // (19,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { z, y, x })[0]/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { z, y, x }").WithLocation(19, 14));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_NestedNullability_Variant_01()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<object> rather than I<object>!.
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static I<T> CreateI<T>(T t) => throw null;
+    static void F(I<object> x, I<object?> y)
+    {
+        var z = CreateI(A.F)/*T:I<object>*/;
+        object o;
+        o = (new[] { x, x })[0]/*T:I<object!>!*/;
+        o = (new[] { x, y })[0]/*T:I<object>!*/;
+        o = (new[] { x, z })[0]/*T:I<object!>*/;
+        o = (new[] { y, x })[0]/*T:I<object>!*/;
+        o = (new[] { y, y })[0]/*T:I<object?>!*/;
+        o = (new[] { y, z })[0]/*T:I<object?>*/;
+        o = (new[] { z, x })[0]/*T:I<object!>*/;
+        o = (new[] { z, y })[0]/*T:I<object?>*/;
+        o = (new[] { z, z })[0]/*T:I<object>*/;
+    }
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static void F(IIn<object> x, IIn<object?> y)
+    {
+        var z = CreateIIn(A.F)/*T:IIn<object>*/;
+        object o;
+        o = (new[] { x, x })[0]/*T:IIn<object!>!*/;
+        o = (new[] { x, y })[0]/*T:IIn<object!>!*/;
+        o = (new[] { x, z })[0]/*T:IIn<object!>*/;
+        o = (new[] { y, x })[0]/*T:IIn<object!>!*/;
+        o = (new[] { y, y })[0]/*T:IIn<object?>!*/;
+        o = (new[] { y, z })[0]/*T:IIn<object>*/;
+        o = (new[] { z, x })[0]/*T:IIn<object!>*/;
+        o = (new[] { z, y })[0]/*T:IIn<object>*/;
+        o = (new[] { z, z })[0]/*T:IIn<object>*/;
+    }
+    static IOut<T> CreateIOut<T>(T t) => throw null;
+    static void F(IOut<object> x, IOut<object?> y)
+    {
+        var z = CreateIOut(A.F)/*T:IOut<object>*/;
+        object o;
+        o = (new[] { x, x })[0]/*T:IOut<object!>!*/;
+        o = (new[] { x, y })[0]/*T:IOut<object?>!*/;
+        o = (new[] { x, z })[0]/*T:IOut<object>*/;
+        o = (new[] { y, x })[0]/*T:IOut<object?>!*/;
+        o = (new[] { y, y })[0]/*T:IOut<object?>!*/;
+        o = (new[] { y, z })[0]/*T:IOut<object?>*/;
+        o = (new[] { z, x })[0]/*T:IOut<object>*/;
+        o = (new[] { z, y })[0]/*T:IOut<object?>*/;
+        o = (new[] { z, z })[0]/*T:IOut<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (12,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x, y })[0]/*T:I<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y }").WithLocation(12, 14),
+                // (14,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { y, x })[0]/*T:I<object>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y, x }").WithLocation(14, 14));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_NestedNullability_Variant_02()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns IIn<IOut<string>> rather than IIn<IOut<string>>!.
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static I<IOut<T>> Create1<T>(T t) => throw null;
+    static void G1(I<IOut<string?>> x1, I<IOut<string>> y1)
+    {
+        var z1 = Create1(A.F)/*T:I<IOut<string>>*/;
+        object o;
+        o = (new [] { x1, x1 })[0]/*T:I<IOut<string?>!>!*/;
+        o = (new [] { x1, y1 })[0]/*T:I<IOut<string>!>!*/; // 1
+        o = (new [] { x1, z1 })[0]/*T:I<IOut<string?>!>*/;
+        o = (new [] { y1, x1 })[0]/*T:I<IOut<string>!>!*/; // 2
+        o = (new [] { y1, y1 })[0]/*T:I<IOut<string!>!>!*/;
+        o = (new [] { y1, z1 })[0]/*T:I<IOut<string!>!>*/;
+        o = (new [] { z1, x1 })[0]/*T:I<IOut<string?>!>*/;
+        o = (new [] { z1, y1 })[0]/*T:I<IOut<string!>!>*/;
+        o = (new [] { z1, z1 })[0]/*T:I<IOut<string>>*/;
+    }
+    static IOut<IIn<T>> Create2<T>(T t) => throw null;
+    static void G2(IOut<IIn<string?>> x2, IOut<IIn<string>> y2)
+    {
+        var z2 = Create2(A.F)/*T:IOut<IIn<string>>*/;
+        object o;
+        o = (new [] { x2, x2 })[0]/*T:IOut<IIn<string?>!>!*/;
+        o = (new [] { x2, y2 })[0]/*T:IOut<IIn<string!>!>!*/;
+        o = (new [] { x2, z2 })[0]/*T:IOut<IIn<string>>*/;
+        o = (new [] { y2, x2 })[0]/*T:IOut<IIn<string!>!>!*/;
+        o = (new [] { y2, y2 })[0]/*T:IOut<IIn<string!>!>!*/;
+        o = (new [] { y2, z2 })[0]/*T:IOut<IIn<string!>>*/;
+        o = (new [] { z2, x2 })[0]/*T:IOut<IIn<string>>*/;
+        o = (new [] { z2, y2 })[0]/*T:IOut<IIn<string!>>*/;
+        o = (new [] { z2, z2 })[0]/*T:IOut<IIn<string>>*/;
+    }
+    static IIn<IOut<T>> Create3<T>(T t) => throw null;
+    static void G3(IIn<IOut<string?>> x3, IIn<IOut<string>> y3)
+    {
+        var z3 = Create3(A.F)/*T:IIn<IOut<string>>*/;
+        object o;
+        o = (new [] { x3, x3 })[0]/*T:IIn<IOut<string?>!>!*/;
+        o = (new [] { x3, y3 })[0]/*T:IIn<IOut<string!>!>!*/;
+        o = (new [] { x3, z3 })[0]/*T:IIn<IOut<string>!>*/;
+        o = (new [] { y3, x3 })[0]/*T:IIn<IOut<string!>!>!*/;
+        o = (new [] { y3, y3 })[0]/*T:IIn<IOut<string!>!>!*/;
+        o = (new [] { y3, z3 })[0]/*T:IIn<IOut<string!>!>*/;
+        o = (new [] { z3, x3 })[0]/*T:IIn<IOut<string>!>*/;
+        o = (new [] { z3, y3 })[0]/*T:IIn<IOut<string!>!>*/;
+        o = (new [] { z3, z3 })[0]/*T:IIn<IOut<string>>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (13,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new [] { x1, y1 })[0]/*T:I<IOut<string>>*/; // 1
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new [] { x1, y1 }").WithLocation(13, 14),
+                // (15,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new [] { y1, x1 })[0]/*T:I<IOut<string>>*/; // 2
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new [] { y1, x1 }").WithLocation(15, 14));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_NestedNullability_Variant_03()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F1;
+    public static string F2;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F1, A.F2) returns I<string> rather than I<string>!.
+            var source =
+@"class B<T>
+{
+    internal interface INone { }
+    internal interface I<U> { }
+    internal interface IIn<in U> { }
+    internal interface IOut<out U> { }
+}
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static B<T>.INone CreateINone<T>(T t) => throw null;
+    static void G0(B<object>.INone x0, B<object?>.INone y0)
+    {
+        var z0 = CreateINone(A.F1)/*T:B<object>.INone*/;
+        object o;
+        o = (new[] { x0, x0 })[0]/*T:B<object!>.INone!*/;
+        o = (new[] { x0, y0 })[0]/*T:B<object>.INone!*/;
+        o = (new[] { x0, z0 })[0]/*T:B<object!>.INone*/;
+        o = (new[] { y0, x0 })[0]/*T:B<object>.INone!*/;
+        o = (new[] { y0, y0 })[0]/*T:B<object?>.INone!*/;
+        o = (new[] { y0, z0 })[0]/*T:B<object?>.INone*/;
+        o = (new[] { z0, x0 })[0]/*T:B<object!>.INone*/;
+        o = (new[] { z0, y0 })[0]/*T:B<object?>.INone*/;
+        o = (new[] { z0, z0 })[0]/*T:B<object>.INone*/;
+    }
+    static B<T>.I<U> CreateI<T, U>(T t, U u) => throw null;
+    static void G1(B<object>.I<string> x1, B<object?>.I<string?> y1)
+    {
+        var z1 = CreateI(A.F1, A.F2)/*T:B<object>.I<string>*/;
+        object o;
+        o = (new[] { x1, x1 })[0]/*T:B<object!>.I<string!>!*/;
+        o = (new[] { x1, y1 })[0]/*T:B<object>.I<string>!*/;
+        o = (new[] { x1, z1 })[0]/*T:B<object!>.I<string!>*/;
+        o = (new[] { y1, x1 })[0]/*T:B<object>.I<string>!*/;
+        o = (new[] { y1, y1 })[0]/*T:B<object?>.I<string?>!*/;
+        o = (new[] { y1, z1 })[0]/*T:B<object?>.I<string?>*/;
+        o = (new[] { z1, x1 })[0]/*T:B<object!>.I<string!>*/;
+        o = (new[] { z1, y1 })[0]/*T:B<object?>.I<string?>*/;
+        o = (new[] { z1, z1 })[0]/*T:B<object>.I<string>*/;
+    }
+    static B<T>.IIn<U> CreateIIn<T, U>(T t, U u) => throw null;
+    static void G2(B<object>.IIn<string> x2, B<object?>.IIn<string?> y2)
+    {
+        var z2 = CreateIIn(A.F1, A.F2)/*T:B<object>.IIn<string>*/;
+        object o;
+        o = (new[] { x2, x2 })[0]/*T:B<object!>.IIn<string!>!*/;
+        o = (new[] { x2, y2 })[0]/*T:B<object>.IIn<string!>!*/;
+        o = (new[] { x2, z2 })[0]/*T:B<object!>.IIn<string!>*/;
+        o = (new[] { y2, x2 })[0]/*T:B<object>.IIn<string!>!*/;
+        o = (new[] { y2, y2 })[0]/*T:B<object?>.IIn<string?>!*/;
+        o = (new[] { y2, z2 })[0]/*T:B<object?>.IIn<string>*/;
+        o = (new[] { z2, x2 })[0]/*T:B<object!>.IIn<string!>*/;
+        o = (new[] { z2, y2 })[0]/*T:B<object?>.IIn<string>*/;
+        o = (new[] { z2, z2 })[0]/*T:B<object>.IIn<string>*/;
+    }
+    static B<T>.IOut<U> CreateIOut<T, U>(T t, U u) => throw null;
+    static void G3(B<object>.IOut<string> x3, B<object?>.IOut<string?> y3)
+    {
+        var z3 = CreateIOut(A.F1, A.F2)/*T:B<object>.IOut<string>*/;
+        object o;
+        o = (new[] { x3, x3 })[0]/*T:B<object!>.IOut<string!>!*/;
+        o = (new[] { x3, y3 })[0]/*T:B<object>.IOut<string?>!*/;
+        o = (new[] { x3, z3 })[0]/*T:B<object!>.IOut<string>*/;
+        o = (new[] { y3, x3 })[0]/*T:B<object>.IOut<string?>!*/;
+        o = (new[] { y3, y3 })[0]/*T:B<object?>.IOut<string?>!*/;
+        o = (new[] { y3, z3 })[0]/*T:B<object?>.IOut<string?>*/;
+        o = (new[] { z3, x3 })[0]/*T:B<object!>.IOut<string>*/;
+        o = (new[] { z3, y3 })[0]/*T:B<object?>.IOut<string?>*/;
+        o = (new[] { z3, z3 })[0]/*T:B<object>.IOut<string>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (17,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x0, y0 })[0]/*T:B<object>.INone!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x0, y0 }").WithLocation(17, 14),
+                // (19,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { y0, x0 })[0]/*T:B<object>.INone!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y0, x0 }").WithLocation(19, 14),
+                // (32,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x1, y1 })[0]/*T:B<object>.I<string>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x1, y1 }").WithLocation(32, 14),
+                // (34,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { y1, x1 })[0]/*T:B<object>.I<string>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y1, x1 }").WithLocation(34, 14),
+                // (47,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x2, y2 })[0]/*T:B<object>.IIn<string!>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x2, y2 }").WithLocation(47, 14),
+                // (49,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { y2, x2 })[0]/*T:B<object>.IIn<string!>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y2, x2 }").WithLocation(49, 14),
+                // (62,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { x3, y3 })[0]/*T:B<object>.IOut<string?>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x3, y3 }").WithLocation(62, 14),
+                // (64,14): warning CS8639: No best nullability found for implicitly-typed array.
+                //         o = (new[] { y3, x3 })[0]/*T:B<object>.IOut<string?>!*/;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y3, x3 }").WithLocation(64, 14));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void ImplicitlyTypedArrayCreation_Empty()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var a = new[] { };
+        var b = new[] { null };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0826: No best type found for implicitly-typed array
+                //         var a = new[] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { }").WithLocation(5, 17),
+                // (6,17): error CS0826: No best type found for implicitly-typed array
+                //         var b = new[] { null };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { null }").WithLocation(6, 17));
+        }
+
+        [Fact]
         public void ExplicitlyTypedArrayCreation()
         {
             var source =
@@ -18591,7 +19358,7 @@ class C
         }
 
         [Fact]
-        public void IdentityConversion_ArrayInitializer()
+        public void IdentityConversion_ArrayInitializer_02()
         {
             var source =
 @"interface I<T> { }
@@ -18629,24 +19396,33 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (8,21): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                // (8,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { x, y })[0].ToString(); // A1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(8, 21),
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y }").WithLocation(8, 10),
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, z })[0].ToString(); // A2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, z })[0]").WithLocation(9, 9),
-                // (10,21): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                // (10,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { x, w })[0].ToString(); // A3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("I<object?>", "I<object>").WithLocation(10, 21),
-                // (11,21): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, w }").WithLocation(10, 10),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, w })[0].ToString(); // A3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, w })[0]").WithLocation(10, 9),
+                // (11,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { y, z })[0].ToString(); // A4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "z").WithArguments("I<object>", "I<object?>").WithLocation(11, 21),
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { y, z }").WithLocation(11, 10),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { y, z })[0].ToString(); // A4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, z })[0]").WithLocation(11, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { y, w })[0].ToString(); // A5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, w })[0]").WithLocation(12, 9),
-                // (13,21): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                // (13,10): warning CS8639: No best nullability found for implicitly-typed array.
                 //         (new[] { w, z })[0].ToString(); // A6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "z").WithArguments("I<object>", "I<object?>").WithLocation(13, 21),
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { w, z }").WithLocation(13, 10),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { w, z })[0].ToString(); // A6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { w, z })[0]").WithLocation(13, 9),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, z })[0].ToString(); // B2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, z })[0]").WithLocation(18, 9),
@@ -18726,6 +19502,7 @@ public class B : A<object>
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyTypes();
+            // https://github.com/dotnet/roslyn/issues/30376: `!` should suppress conversion warnings.
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, x! })[0].ToString(); // 1
@@ -21190,6 +21967,271 @@ class C
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y => F(z => z, y), x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y => F(z => z, y), x)").WithLocation(10, 9));
+        }
+
+        [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [Fact]
+        public void LambdaReturnValue_NestedNullability_Invariant()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns B<object> rather than B<object>!.
+            var source =
+@"using System;
+class B<T> { }
+class C
+{
+    static T F<T>(Func<int, T> f) => throw null;
+    static B<T> Create<T>(T t) => throw null;
+    static void F(B<object?> x, B<object> y)
+    {
+        var z = Create(A.F)/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return x; default: return x; }})/*T:B<object?>!*/;
+        F(i => { switch (i) { case 0: return x; default: return y; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return x; default: return z; }})/*T:B<object?>*/;
+        F(i => { switch (i) { case 0: return y; default: return x; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return y; default: return y; }})/*T:B<object!>!*/;
+        F(i => { switch (i) { case 0: return y; default: return z; }})/*T:B<object!>*/;
+        F(i => { switch (i) { case 0: return z; default: return x; }})/*T:B<object?>*/;
+        F(i => { switch (i) { case 0: return z; default: return y; }})/*T:B<object!>*/;
+        F(i => { switch (i) { case 0: return z; default: return z; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return x; case 1: return y; default: return z; }})/*T:B<object>*/;
+        F(i => { switch (i) { case 0: return z; case 1: return y; default: return x; }})/*T:B<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            // https://github.com/dotnet/roslyn/issues/30480: Should report WRN_CantInferNullabilityOfMethodTypeArgs for { B<object>, B<object?> }.
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void LambdaReturnValue_NestedNullability_Variant_01()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<object> rather than I<object>!.
+            var source =
+@"using System;
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static T F<T>(Func<bool, T> f) => throw null;
+    static I<T> CreateI<T>(T t) => throw null;
+    static void F1(I<object> x, I<object?> y)
+    {
+        var z = CreateI(A.F)/*T:I<object>*/;
+        F(b => { if (b) return x; else return x; })/*T:I<object!>!*/;
+        F(b => { if (b) return x; else return y; })/*T:I<object>*/;
+        F(b => { if (b) return x; else return z; })/*T:I<object!>*/;
+        F(b => { if (b) return y; else return x; })/*T:I<object>*/;
+        F(b => { if (b) return y; else return y; })/*T:I<object?>!*/;
+        F(b => { if (b) return y; else return z; })/*T:I<object?>*/;
+        F(b => { if (b) return z; else return x; })/*T:I<object!>*/;
+        F(b => { if (b) return z; else return y; })/*T:I<object?>*/;
+        F(b => { if (b) return z; else return z; })/*T:I<object>*/;
+    }
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static void F2(IIn<object> x, IIn<object?> y)
+    {
+        var z = CreateIIn(A.F)/*T:IIn<object>*/;
+        F(b => { if (b) return x; else return x; })/*T:IIn<object!>!*/;
+        F(b => { if (b) return x; else return y; })/*T:IIn<object!>!*/;
+        F(b => { if (b) return x; else return z; })/*T:IIn<object!>*/;
+        F(b => { if (b) return y; else return x; })/*T:IIn<object!>!*/;
+        F(b => { if (b) return y; else return y; })/*T:IIn<object?>!*/;
+        F(b => { if (b) return y; else return z; })/*T:IIn<object>*/;
+        F(b => { if (b) return z; else return x; })/*T:IIn<object!>*/;
+        F(b => { if (b) return z; else return y; })/*T:IIn<object>*/;
+        F(b => { if (b) return z; else return z; })/*T:IIn<object>*/;
+    }
+    static IOut<T> CreateIOut<T>(T t) => throw null;
+    static void F3(IOut<object> x, IOut<object?> y)
+    {
+        var z = CreateIOut(A.F)/*T:IOut<object>*/;
+        F(b => { if (b) return x; else return x; })/*T:IOut<object!>!*/;
+        F(b => { if (b) return x; else return y; })/*T:IOut<object?>!*/;
+        F(b => { if (b) return x; else return z; })/*T:IOut<object>*/;
+        F(b => { if (b) return y; else return x; })/*T:IOut<object?>!*/;
+        F(b => { if (b) return y; else return y; })/*T:IOut<object?>!*/;
+        F(b => { if (b) return y; else return z; })/*T:IOut<object?>*/;
+        F(b => { if (b) return z; else return x; })/*T:IOut<object>*/;
+        F(b => { if (b) return z; else return y; })/*T:IOut<object?>*/;
+        F(b => { if (b) return z; else return z; })/*T:IOut<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            // https://github.com/dotnet/roslyn/issues/30480: Should report WRN_CantInferNullabilityOfMethodTypeArgs for { I<object>, I<object?> }.
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [Fact]
+        public void LambdaReturnValue_NestedNullability_Variant_02()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns B<object> rather than B<object>!.
+            var source =
+@"using System;
+class B<T> { }
+class C
+{
+    static B<T> CreateB<T>(T t) => throw null;
+    static Func<int, T> CreateFunc<T>(T t) => throw null;
+    static void F(B<object?> x, B<object> y)
+    {
+        var z = CreateB(A.F)/*T:B<object>*/;
+        var f = CreateFunc(y)/*Func<B<object!>>*/;
+        f = i => { switch (i) { case 0: return x; default: return x; }};
+        f = i => { switch (i) { case 0: return x; default: return y; }};
+        f = i => { switch (i) { case 0: return x; default: return z; }};
+        f = i => { switch (i) { case 0: return y; default: return x; }};
+        f = i => { switch (i) { case 0: return y; default: return y; }};
+        f = i => { switch (i) { case 0: return y; default: return z; }};
+        f = i => { switch (i) { case 0: return z; default: return x; }};
+        f = i => { switch (i) { case 0: return z; default: return y; }};
+        f = i => { switch (i) { case 0: return z; default: return z; }};
+        f = i => { switch (i) { case 0: return x; case 1: return y; default: return z; }};
+        f = i => { switch (i) { case 0: return z; case 1: return y; default: return x; }};
+        var g = CreateFunc(z)/*Func<B<object>>*/;
+        g = i => { switch (i) { case 0: return x; default: return x; }};
+        g = i => { switch (i) { case 0: return x; default: return y; }};
+        g = i => { switch (i) { case 0: return x; default: return z; }};
+        g = i => { switch (i) { case 0: return y; default: return x; }};
+        g = i => { switch (i) { case 0: return y; default: return y; }};
+        g = i => { switch (i) { case 0: return y; default: return z; }};
+        g = i => { switch (i) { case 0: return z; default: return x; }};
+        g = i => { switch (i) { case 0: return z; default: return y; }};
+        g = i => { switch (i) { case 0: return z; default: return z; }};
+        g = i => { switch (i) { case 0: return x; case 1: return y; default: return z; }};
+        g = i => { switch (i) { case 0: return z; case 1: return y; default: return x; }};
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (11,48): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return x; default: return x; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(11, 48),
+                // (11,67): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return x; default: return x; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(11, 67),
+                // (12,48): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return x; default: return y; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(12, 48),
+                // (13,48): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return x; default: return z; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(13, 48),
+                // (14,67): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return y; default: return x; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(14, 67),
+                // (17,67): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return z; default: return x; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(17, 67),
+                // (20,48): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return x; case 1: return y; default: return z; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(20, 48),
+                // (21,85): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
+                //         f = i => { switch (i) { case 0: return z; case 1: return y; default: return x; }};
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("B<object?>", "B<object>").WithLocation(21, 85));
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30432, "https://github.com/dotnet/roslyn/issues/30432")]
+        [Fact]
+        public void LambdaReturnValue_TopLevelNullability_Ref()
+        {
+            var source =
+@"delegate ref V D<T, U, V>(ref T t, ref U u);
+class C
+{
+    static V F<T, U, V>(D<T, U, V> d) => throw null;
+    static void G(bool b)
+    {
+        F((ref object? x1, ref object? y1) => { if (b) return ref x1; return ref y1; });
+        F((ref object? x2, ref object y2) => { if (b) return ref x2; return ref y2; });
+        F((ref object x3, ref object? y3) => { if (b) return ref x3; return ref y3; });
+        F((ref object x4, ref object y4) => { if (b) return ref x4; return ref y4; });
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/30432: Report warnings for combinations of `object?` and `object!`.
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30432, "https://github.com/dotnet/roslyn/issues/30432")]
+        [Fact]
+        public void LambdaReturnValue_NestedNullability_Ref()
+        {
+            var source =
+@"delegate ref V D<T, U, V>(ref T t, ref U u);
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static V F<T, U, V>(D<T, U, V> d) => throw null;
+    static void G(bool b)
+    {
+        // I<object>
+        F((ref I<object?> a1, ref I<object?> b1) => { if (b) return ref a1; return ref b1; });
+        F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; });
+        F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; });
+        F((ref I<object> a4, ref I<object> b4) => { if (b) return ref a4; return ref b4; });
+        // IIn<object>
+        F((ref IIn<object?> c1, ref IIn<object?> d1) => { if (b) return ref c1; return ref d1; });
+        F((ref IIn<object?> c2, ref IIn<object> d2) => { if (b) return ref c2; return ref d2; });
+        F((ref IIn<object> c3, ref IIn<object?> d3) => { if (b) return ref c3; return ref d3; });
+        F((ref IIn<object> c4, ref IIn<object> d4) => { if (b) return ref c4; return ref d4; });
+        // IOut<object>
+        F((ref IOut<object?> e1, ref IOut<object?> f1) => { if (b) return ref e1; return ref f1; });
+        F((ref IOut<object?> e2, ref IOut<object> f2) => { if (b) return ref e2; return ref f2; });
+        F((ref IOut<object> e3, ref IOut<object?> f3) => { if (b) return ref e3; return ref f3; });
+        F((ref IOut<object> e4, ref IOut<object> f4) => { if (b) return ref e4; return ref f4; });
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/30432: Report warnings for combinations of `IIn<object?>` and `IIn<object!>`
+            // and combinations of  `IOut<object?>` and `IOut<object!>`.
+            comp.VerifyDiagnostics(
+                // (12,11): warning CS8622: Nullability of reference types in type of parameter 'a2' of 'lambda expression' doesn't match the target delegate 'D<I<object>, I<object>, I<object>>'.
+                //         F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; }").WithArguments("a2", "lambda expression", "D<I<object>, I<object>, I<object>>").WithLocation(12, 11),
+                // (12,11): warning CS8622: Nullability of reference types in type of parameter 'b2' of 'lambda expression' doesn't match the target delegate 'D<I<object>, I<object>, I<object>>'.
+                //         F((ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(ref I<object?> a2, ref I<object> b2) => { if (b) return ref a2; return ref b2; }").WithArguments("b2", "lambda expression", "D<I<object>, I<object>, I<object>>").WithLocation(12, 11),
+                // (13,11): warning CS8622: Nullability of reference types in type of parameter 'a3' of 'lambda expression' doesn't match the target delegate 'D<I<object>, I<object>, I<object>>'.
+                //         F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; }").WithArguments("a3", "lambda expression", "D<I<object>, I<object>, I<object>>").WithLocation(13, 11),
+                // (13,11): warning CS8622: Nullability of reference types in type of parameter 'b3' of 'lambda expression' doesn't match the target delegate 'D<I<object>, I<object>, I<object>>'.
+                //         F((ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(ref I<object> a3, ref I<object?> b3) => { if (b) return ref a3; return ref b3; }").WithArguments("b3", "lambda expression", "D<I<object>, I<object>, I<object>>").WithLocation(13, 11));
+            comp.VerifyTypes();
         }
 
         [Fact]
@@ -25209,24 +26251,15 @@ class C
     static void Main(object? x)
     {
         var y = F(x);
-        G(y); // warning
+        G(y);
         if (x == null) return;
         var z =  F(x);
-        G(z); // ok
+        G(z); // warning
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29898: Several issues with implicit user-defined conversions and
-            // nested nullability: should report `'A<object?>' doesn't match ... 'A<object>'` rather than
-            // `'A<object>' doesn't match ... 'A<object?>'`; should report warning for `G(y)` only, not `G(z)`
-            // (see NullabilityWalker.ApplyConversion).
-            comp.VerifyDiagnostics(
-                // (15,11): warning CS8620: Nullability of reference types in argument of type 'A<object>' doesn't match target type 'A<object?>' for parameter 'a' in 'void C.G(A<object?> a)'.
-                //         G(y); // warning
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("A<object>", "A<object?>", "a", "void C.G(A<object?> a)").WithLocation(15, 11),
-                // (18,11): warning CS8620: Nullability of reference types in argument of type 'A<object>' doesn't match target type 'A<object?>' for parameter 'a' in 'void C.G(A<object?> a)'.
-                //         G(z); // ok
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("A<object>", "A<object?>", "a", "void C.G(A<object?> a)").WithLocation(18, 11));
+            // https://github.com/dotnet/roslyn/issues/29898: Report warning for `G(z)`?
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -31118,19 +32151,20 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/30151: ! should suppress WRN_NoBestNullabilityArrayElements.
             comp.VerifyDiagnostics(
-                // (6,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                // (6,18): warning CS8639: No best nullability found for implicitly-typed array.
                 //         var a1 = new[] { x, y }; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(6, 29),
-                // (7,30): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y }").WithLocation(6, 18),
+                // (7,18): warning CS8639: No best nullability found for implicitly-typed array.
                 //         var a2 = new[] { x!, y }; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(7, 30),
-                // (8,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x!, y }").WithLocation(7, 18),
+                // (8,18): warning CS8639: No best nullability found for implicitly-typed array.
                 //         var a3 = new[] { x, y! }; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 29),
-                // (9,30): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x, y! }").WithLocation(8, 18),
+                // (9,18): warning CS8639: No best nullability found for implicitly-typed array.
                 //         var a4 = new[] { x!, y! }; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(9, 30)
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, "new[] { x!, y! }").WithLocation(9, 18)
                 );
         }
 
@@ -35267,21 +36301,15 @@ static class E
                 // (7,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(ref (string, string?) t)'.
                 //         F(ref t1).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t1").WithArguments("(string, string)", "(string, string?)", "t", "string C.F<string>(ref (string, string?) t)").WithLocation(7, 15),
-                // (11,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(ref (T, T?))'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // (11,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(ref (T, T?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(ref t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(ref (T, T?))", "T", "string?").WithLocation(11, 9),
-                // (11,15): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string?, string?)' for parameter 't' in 'string? C.F<string?>(ref (string?, string?) t)'.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(ref t3)").WithArguments("C.F<T>(ref (T, T?))").WithLocation(11, 9),
+                // (11,15): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(ref (string, string?) t)'.
                 //         F(ref t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t3").WithArguments("(string?, string)", "(string?, string?)", "t", "string? C.F<string?>(ref (string?, string?) t)").WithLocation(11, 15),
-                // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         F(ref t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(ref t3)").WithLocation(11, 9),
-                // (13,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(ref (T, T?))'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t3").WithArguments("(string?, string)", "(string, string?)", "t", "string C.F<string>(ref (string, string?) t)").WithLocation(11, 15),
+                // (13,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(ref (T, T?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(ref t4).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(ref (T, T?))", "T", "string?").WithLocation(13, 9),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         F(ref t4).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(ref t4)").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(ref t4)").WithArguments("C.F<T>(ref (T, T?))").WithLocation(13, 9));
         }
 
         [Fact]
@@ -35304,21 +36332,15 @@ static class E
                 // (6,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(out (string, string?) t)'.
                 //         F(out (string, string) t1).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string, string) t1").WithArguments("(string, string)", "(string, string?)", "t", "string C.F<string>(out (string, string?) t)").WithLocation(6, 15),
-                // (8,15): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string?, string?)' for parameter 't' in 'string? C.F<string?>(out (string?, string?) t)'.
+                // (8,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(out (T, T?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(out (string?, string) t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string?, string) t3").WithArguments("(string?, string)", "(string?, string?)", "t", "string? C.F<string?>(out (string?, string?) t)").WithLocation(8, 15),
-                // (8,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(out (T, T?))'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(out (string?, string) t3)").WithArguments("C.F<T>(out (T, T?))").WithLocation(8, 9),
+                // (8,15): warning CS8620: Nullability of reference types in argument of type '(string?, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(out (string, string?) t)'.
                 //         F(out (string?, string) t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(out (T, T?))", "T", "string?").WithLocation(8, 9),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         F(out (string?, string) t3).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(out (string?, string) t3)").WithLocation(8, 9),
-                // (9,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(out (T, T?))'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string?, string) t3").WithArguments("(string?, string)", "(string, string?)", "t", "string C.F<string>(out (string, string?) t)").WithLocation(8, 15),
+                // (9,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(out (T, T?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(out (string?, string?) t4).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(out (T, T?))", "T", "string?").WithLocation(9, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         F(out (string?, string?) t4).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(out (string?, string?) t4)").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(out (string?, string?) t4)").WithArguments("C.F<T>(out (T, T?))").WithLocation(9, 9));
         }
 
         [Fact]
@@ -35360,57 +36382,39 @@ class C
                 // (9,11): warning CS8620: Nullability of reference types in argument of type 'I<(string, string)>' doesn't match target type 'I<(string, string?)>' for parameter 't' in 'string C.F<string>(I<(string, string?)> t)'.
                 //         F(x).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<(string, string)>", "I<(string, string?)>", "t", "string C.F<string>(I<(string, string?)> t)").WithLocation(9, 11),
-                // (11,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(I<(T, T?)>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // (11,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(I<(T, T?)>)", "T", "string?").WithLocation(11, 9),
-                // (11,11): warning CS8620: Nullability of reference types in argument of type 'I<(string?, string)>' doesn't match target type 'I<(string?, string?)>' for parameter 't' in 'string? C.F<string?>(I<(string?, string?)> t)'.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(z)").WithArguments("C.F<T>(I<(T, T?)>)").WithLocation(11, 9),
+                // (11,11): warning CS8620: Nullability of reference types in argument of type 'I<(string?, string)>' doesn't match target type 'I<(string, string?)>' for parameter 't' in 'string C.F<string>(I<(string, string?)> t)'.
                 //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("I<(string?, string)>", "I<(string?, string?)>", "t", "string? C.F<string?>(I<(string?, string?)> t)").WithLocation(11, 11),
-                // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(z)").WithLocation(11, 9),
-                // (12,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(I<(T, T?)>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("I<(string?, string)>", "I<(string, string?)>", "t", "string C.F<string>(I<(string, string?)> t)").WithLocation(11, 11),
+                // (12,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(I<(T, T?)>)", "T", "string?").WithLocation(12, 9),
-                // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(w)").WithLocation(12, 9),
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(I<(T, T?)>)").WithLocation(12, 9),
                 // (17,11): warning CS8620: Nullability of reference types in argument of type 'IIn<(string, string)>' doesn't match target type 'IIn<(string, string?)>' for parameter 't' in 'string C.F<string>(IIn<(string, string?)> t)'.
                 //         F(x).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IIn<(string, string)>", "IIn<(string, string?)>", "t", "string C.F<string>(IIn<(string, string?)> t)").WithLocation(17, 11),
-                // (19,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(IIn<(T, T?)>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // (19,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IIn<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(IIn<(T, T?)>)", "T", "string?").WithLocation(19, 9),
-                // (19,11): warning CS8620: Nullability of reference types in argument of type 'IIn<(string?, string)>' doesn't match target type 'IIn<(string?, string?)>' for parameter 't' in 'string? C.F<string?>(IIn<(string?, string?)> t)'.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(z)").WithArguments("C.F<T>(IIn<(T, T?)>)").WithLocation(19, 9),
+                // (19,11): warning CS8620: Nullability of reference types in argument of type 'IIn<(string?, string)>' doesn't match target type 'IIn<(string, string?)>' for parameter 't' in 'string C.F<string>(IIn<(string, string?)> t)'.
                 //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IIn<(string?, string)>", "IIn<(string?, string?)>", "t", "string? C.F<string?>(IIn<(string?, string?)> t)").WithLocation(19, 11),
-                // (19,9): warning CS8602: Possible dereference of a null reference.
-                //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(z)").WithLocation(19, 9),
-                // (20,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(IIn<(T, T?)>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IIn<(string?, string)>", "IIn<(string, string?)>", "t", "string C.F<string>(IIn<(string, string?)> t)").WithLocation(19, 11),
+                // (20,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IIn<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(IIn<(T, T?)>)", "T", "string?").WithLocation(20, 9),
-                // (20,9): warning CS8602: Possible dereference of a null reference.
-                //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(w)").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(IIn<(T, T?)>)").WithLocation(20, 9),
                 // (25,11): warning CS8620: Nullability of reference types in argument of type 'IOut<(string, string)>' doesn't match target type 'IOut<(string, string?)>' for parameter 't' in 'string C.F<string>(IOut<(string, string?)> t)'.
                 //         F(x).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IOut<(string, string)>", "IOut<(string, string?)>", "t", "string C.F<string>(IOut<(string, string?)> t)").WithLocation(25, 11),
-                // (27,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(IOut<(T, T?)>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // (27,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IOut<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(IOut<(T, T?)>)", "T", "string?").WithLocation(27, 9),
-                // (27,11): warning CS8620: Nullability of reference types in argument of type 'IOut<(string?, string)>' doesn't match target type 'IOut<(string?, string?)>' for parameter 't' in 'string? C.F<string?>(IOut<(string?, string?)> t)'.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(z)").WithArguments("C.F<T>(IOut<(T, T?)>)").WithLocation(27, 9),
+                // (27,11): warning CS8620: Nullability of reference types in argument of type 'IOut<(string?, string)>' doesn't match target type 'IOut<(string, string?)>' for parameter 't' in 'string C.F<string>(IOut<(string, string?)> t)'.
                 //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IOut<(string?, string)>", "IOut<(string?, string?)>", "t", "string? C.F<string?>(IOut<(string?, string?)> t)").WithLocation(27, 11),
-                // (27,9): warning CS8602: Possible dereference of a null reference.
-                //         F(z).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(z)").WithLocation(27, 9),
-                // (28,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(IOut<(T, T?)>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IOut<(string?, string)>", "IOut<(string, string?)>", "t", "string C.F<string>(IOut<(string, string?)> t)").WithLocation(27, 11),
+                // (28,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IOut<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(IOut<(T, T?)>)", "T", "string?").WithLocation(28, 9),
-                // (28,9): warning CS8602: Possible dereference of a null reference.
-                //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(w)").WithLocation(28, 9));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(IOut<(T, T?)>)").WithLocation(28, 9));
         }
 
         [Fact]
@@ -35814,9 +36818,12 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (13,22): error CS1061: '(object?, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object?, int)' could be found (are you missing a using directive or an assembly reference?)
+                // (13,9): warning CS8638: The nullability of type arguments for method 'E.F<T>(C<T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         c.F((o, -1)).x.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object?, int)", "x").WithLocation(13, 22));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "c.F((o, -1))").WithArguments("E.F<T>(C<T>, T)").WithLocation(13, 9),
+                // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no accessible extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         c.F((o, -1)).x.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
         }
 
         [Fact]
@@ -35866,7 +36873,10 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8638: The nullability of type arguments for method 'E.F<T>(C<T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         c.F((x, y)).Item1.G();
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "c.F((x, y))").WithArguments("E.F<T>(C<T>, T)").WithLocation(13, 9));
         }
 
         // Assert failure in ConversionsBase.IsValidExtensionMethodThisArgConversion.
@@ -37560,57 +38570,648 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("I<string>", "I<string?>", "t", "string C.F2<string>(I<string?> t)").WithLocation(19, 12));
         }
 
+        [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
         [Fact]
-        public void TypeInference_04()
+        public void TypeInference_LowerBounds_TopLevelNullability_01()
         {
             var source0 =
 @"public class A
 {
-}
-public class B
-{
-    public A F;
+    public static A F;
 }";
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/27961: The result of type inference with null-oblivious
-            // depends on the order possible type arguments are considered. For instance,
-            // the type inferred for F(x, z) is A? and the type inferred for F(z, x) is A.
             var source =
 @"class C
 {
-    static T F<T>(T x, T y) => x;
-    static void G(A? x, A y, B b)
+    static T F<T>(T x, T y) => throw null;
+    static void G(A? x, A y)
     {
-        var z = b.F;
-        F(x, x)/*T:A?*/.ToString(); // 1
-        F(x, y)/*T:A?*/.ToString(); // 2
-        F(x, z)/*T:A?*/.ToString(); // 3
-        F(y, x)/*T:A?*/.ToString(); // 4
-        F(y, y)/*T:A!*/.ToString();
-        F(y, z)/*T:A!*/.ToString();
-        F(z, x)/*T:A*/.ToString(); // 5
-        F(z, y)/*T:A*/.ToString();
-        F(z, z)/*T:A*/.ToString();
+        var z = A.F;
+        F(x, x)/*T:A?*/;
+        F(x, y)/*T:A?*/;
+        F(x, z)/*T:A?*/;
+        F(y, x)/*T:A?*/;
+        F(y, y)/*T:A!*/;
+        F(y, z)/*T:A*/;
+        F(z, x)/*T:A?*/;
+        F(z, y)/*T:A*/;
+        F(z, z)/*T:A*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_02()
+        {
+            var source =
+@"class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static void G<T, U>(T t, U u)
+        where T : class?
+        where U : class, T
+    {
+        F(t, t)/*T:T*/;
+        F(t, u)/*T:T*/;
+        F(u, t)/*T:T*/;
+        F(u, u)/*T:U!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [Fact]
+        public void TypeInference_ExactBounds_TopLevelNullability_01()
+        {
+            var source0 =
+@"public class A
+{
+    public static A F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static T F<T>(out T x, out T y) => throw null;
+    static void G(A? x, A y)
+    {
+        var z = A.F;
+        F(out x, out x)/*T:A?*/;
+        F(out x, out y)/*T:A*/;
+        F(out x, out z)/*T:A?*/;
+        F(out y, out x)/*T:A*/;
+        F(out y, out y)/*T:A!*/;
+        F(out y, out z)/*T:A!*/;
+        F(out z, out x)/*T:A?*/;
+        F(out z, out y)/*T:A!*/;
+        F(out z, out z)/*T:A*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, x)/*T:A?*/.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, x)").WithLocation(7, 9),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, y)/*T:A?*/.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, y)").WithLocation(8, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, z)/*T:A?*/.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, z)").WithLocation(9, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, x)/*T:A?*/.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(10, 9));
+                // (8,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(out T, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(out x, out y)/*T:A*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(out x, out y)").WithArguments("C.F<T>(out T, out T)").WithLocation(8, 9),
+                // (10,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(out T, out T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(out y, out x)/*T:A*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(out y, out x)").WithArguments("C.F<T>(out T, out T)").WithLocation(10, 9));
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Variant_01()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<string> rather than I<string>!.
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static I<T> CreateI<T>(T t) => throw null;
+    static void G1(I<string> x1, I<string?> y1)
+    {
+        var z1 = CreateI(A.F)/*T:I<string>*/;
+        F(x1, x1)/*T:I<string!>!*/;
+        F(x1, y1)/*T:I<string>!*/; // 1
+        F(x1, z1)/*T:I<string!>*/;
+        F(y1, x1)/*T:I<string>!*/; // 2
+        F(y1, y1)/*T:I<string?>!*/;
+        F(y1, z1)/*T:I<string?>*/;
+        F(z1, x1)/*T:I<string!>*/;
+        F(z1, y1)/*T:I<string?>*/;
+        F(z1, z1)/*T:I<string>*/;
+    }
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static void G2(IIn<string> x2, IIn<string?> y2)
+    {
+        var z2 = CreateIIn(A.F)/*T:IIn<string>*/;
+        F(x2, x2)/*T:IIn<string!>!*/;
+        F(x2, y2)/*T:IIn<string!>!*/;
+        F(x2, z2)/*T:IIn<string!>*/;
+        F(y2, x2)/*T:IIn<string!>!*/;
+        F(y2, y2)/*T:IIn<string?>!*/;
+        F(y2, z2)/*T:IIn<string>*/;
+        F(z2, x2)/*T:IIn<string!>*/;
+        F(z2, y2)/*T:IIn<string>*/;
+        F(z2, z2)/*T:IIn<string>*/;
+    }
+    static IOut<T> CreateIOut<T>(T t) => throw null;
+    static void G3(IOut<string> x3, IOut<string?> y3)
+    {
+        var z3 = CreateIOut(A.F)/*T:IOut<string>*/;
+        F(x3, x3)/*T:IOut<string!>!*/;
+        F(x3, y3)/*T:IOut<string?>!*/;
+        F(x3, z3)/*T:IOut<string>*/;
+        F(y3, x3)/*T:IOut<string?>!*/;
+        F(y3, y3)/*T:IOut<string?>!*/;
+        F(y3, z3)/*T:IOut<string?>*/;
+        F(z3, x3)/*T:IOut<string>*/;
+        F(z3, y3)/*T:IOut<string?>*/;
+        F(z3, z3)/*T:IOut<string>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x1, y1)/*T:I<string>*/; // 1
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x1, y1)").WithArguments("C.F<T>(T, T)").WithLocation(12, 9),
+                // (14,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y1, x1)/*T:I<string>*/; // 2
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, x1)").WithArguments("C.F<T>(T, T)").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Variant_02()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<string> rather than I<string>!.
+            var source =
+@"interface IOut<out T, out U> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static T F<T>(T x, T y, T z) => throw null;
+    static IOut<T, U> CreateIOut<T, U>(T t, U u) => throw null;
+    static void G(string x, string? y)
+    {
+        var z = A.F/*T:string*/;
+        F(CreateIOut(x, x), CreateIOut(x, y))/*T:IOut<string!, string?>*/;
+        F(CreateIOut(x, x), CreateIOut(x, z))/*T:IOut<string!, string>*/;
+        F(CreateIOut(y, x), CreateIOut(x, x))/*T:IOut<string?, string!>*/;
+        F(CreateIOut(y, z), CreateIOut(z, x))/*T:IOut<string?, string>*/;
+        F(CreateIOut(x, x), CreateIOut(x, y), CreateIOut(x, z))/*T:IOut<string!, string?>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Variant_03()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns IIn<IOut<string>> rather than IIn<IOut<string>>!.
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static I<IOut<T>> Create1<T>(T t) => throw null;
+    static void G1(I<IOut<string?>> x1, I<IOut<string>> y1)
+    {
+        var z1 = Create1(A.F)/*T:I<IOut<string>>*/;
+        F(x1, x1)/*T:I<IOut<string?>!>!*/;
+        F(x1, y1)/*T:I<IOut<string>!>!*/; // 1
+        F(x1, z1)/*T:I<IOut<string?>!>*/;
+        F(y1, x1)/*T:I<IOut<string>!>!*/; // 2
+        F(y1, y1)/*T:I<IOut<string!>!>!*/;
+        F(y1, z1)/*T:I<IOut<string!>!>*/;
+        F(z1, x1)/*T:I<IOut<string?>!>*/;
+        F(z1, y1)/*T:I<IOut<string!>!>*/;
+        F(z1, z1)/*T:I<IOut<string>>*/;
+    }
+    static IOut<IIn<T>> Create2<T>(T t) => throw null;
+    static void G2(IOut<IIn<string?>> x2, IOut<IIn<string>> y2)
+    {
+        var z2 = Create2(A.F)/*T:IOut<IIn<string>>*/;
+        F(x2, x2)/*T:IOut<IIn<string?>!>!*/;
+        F(x2, y2)/*T:IOut<IIn<string!>!>!*/;
+        F(x2, z2)/*T:IOut<IIn<string>>*/;
+        F(y2, x2)/*T:IOut<IIn<string!>!>!*/;
+        F(y2, y2)/*T:IOut<IIn<string!>!>!*/;
+        F(y2, z2)/*T:IOut<IIn<string!>>*/;
+        F(z2, x2)/*T:IOut<IIn<string>>*/;
+        F(z2, y2)/*T:IOut<IIn<string!>>*/;
+        F(z2, z2)/*T:IOut<IIn<string>>*/;
+    }
+    static IIn<IOut<T>> Create3<T>(T t) => throw null;
+    static void G3(IIn<IOut<string?>> x3, IIn<IOut<string>> y3)
+    {
+        var z3 = Create3(A.F)/*T:IIn<IOut<string>>*/;
+        F(x3, x3)/*T:IIn<IOut<string?>!>!*/;
+        F(x3, y3)/*T:IIn<IOut<string!>!>!*/;
+        F(x3, z3)/*T:IIn<IOut<string>!>*/;
+        F(y3, x3)/*T:IIn<IOut<string!>!>!*/;
+        F(y3, y3)/*T:IIn<IOut<string!>!>!*/;
+        F(y3, z3)/*T:IIn<IOut<string!>!>*/;
+        F(z3, x3)/*T:IIn<IOut<string>!>*/;
+        F(z3, y3)/*T:IIn<IOut<string!>!>*/;
+        F(z3, z3)/*T:IIn<IOut<string>>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x1, y1)/*T:I<IOut<string>>*/; // 1
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x1, y1)").WithArguments("C.F<T>(T, T)").WithLocation(12, 9),
+                // (14,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y1, x1)/*T:I<IOut<string>>*/; // 2
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, x1)").WithArguments("C.F<T>(T, T)").WithLocation(14, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void TypeInference_ExactBounds_TopLevelNullability_02()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B<T> { }
+class C
+{
+    static T F<T>(B<T> x, B<T> y) => throw null;
+    static B<T> CreateB<T>(T t) => throw null;
+    static void G(B<string?> x, B<string> y)
+    {
+        var z = CreateB(A.F)/*T:B<string>*/;
+        F(x, x)/*T:string?*/;
+        F(x, y)/*T:string*/; // 1
+        F(x, z)/*T:string?*/;
+        F(y, x)/*T:string*/; // 2
+        F(y, y)/*T:string!*/;
+        F(y, z)/*T:string!*/;
+        F(z, x)/*T:string?*/;
+        F(z, y)/*T:string!*/;
+        F(z, z)/*T:string*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(B<T>, B<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y)/*T:string*/; // 1
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y)").WithArguments("C.F<T>(B<T>, B<T>)").WithLocation(10, 9),
+                // (12,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(B<T>, B<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, x)/*T:string*/; // 2
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, x)").WithArguments("C.F<T>(B<T>, B<T>)").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void TypeInference_ExactBounds_NestedNullability()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B<T> { }
+class Program
+{
+    static T F<T>(T x, T y, T z) => throw null;
+    static B<T> CreateB<T>(T t) => throw null;
+    static void G(B<object?> x, B<object> y)
+    {
+        var z = CreateB(A.F)/*T:B<object>*/;
+        F(x, x, x)/*T:B<object?>!*/;
+        F(x, x, y)/*T:B<object>!*/;
+        F(x, x, z)/*T:B<object?>*/;
+        F(x, y, x)/*T:B<object>!*/;
+        F(x, y, y)/*T:B<object>!*/;
+        F(x, y, z)/*T:B<object>*/;
+        F(x, z, x)/*T:B<object?>*/;
+        F(x, z, y)/*T:B<object>*/;
+        F(x, z, z)/*T:B<object?>*/;
+        F(y, x, x)/*T:B<object>!*/;
+        F(y, x, y)/*T:B<object>!*/;
+        F(y, x, z)/*T:B<object>*/;
+        F(y, y, x)/*T:B<object>!*/;
+        F(y, y, y)/*T:B<object!>!*/;
+        F(y, y, z)/*T:B<object!>*/;
+        F(y, z, x)/*T:B<object>*/;
+        F(y, z, y)/*T:B<object!>*/;
+        F(y, z, z)/*T:B<object!>*/;
+        F(z, x, x)/*T:B<object?>*/;
+        F(z, x, y)/*T:B<object>*/;
+        F(z, x, z)/*T:B<object?>*/;
+        F(z, y, x)/*T:B<object>*/;
+        F(z, y, y)/*T:B<object!>*/;
+        F(z, y, z)/*T:B<object!>*/;
+        F(z, z, x)/*T:B<object?>*/;
+        F(z, z, y)/*T:B<object!>*/;
+        F(z, z, z)/*T:B<object>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, x, y)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, x, y)").WithArguments("Program.F<T>(T, T, T)").WithLocation(10, 9),
+                // (12,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y, x)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y, x)").WithArguments("Program.F<T>(T, T, T)").WithLocation(12, 9),
+                // (13,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y, y)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y, y)").WithArguments("Program.F<T>(T, T, T)").WithLocation(13, 9),
+                // (14,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y, z)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y, z)").WithArguments("Program.F<T>(T, T, T)").WithLocation(14, 9),
+                // (16,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, z, y)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, z, y)").WithArguments("Program.F<T>(T, T, T)").WithLocation(16, 9),
+                // (18,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, x, x)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, x, x)").WithArguments("Program.F<T>(T, T, T)").WithLocation(18, 9),
+                // (19,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, x, y)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, x, y)").WithArguments("Program.F<T>(T, T, T)").WithLocation(19, 9),
+                // (20,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, x, z)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, x, z)").WithArguments("Program.F<T>(T, T, T)").WithLocation(20, 9),
+                // (21,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, y, x)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, y, x)").WithArguments("Program.F<T>(T, T, T)").WithLocation(21, 9),
+                // (24,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, z, x)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, z, x)").WithArguments("Program.F<T>(T, T, T)").WithLocation(24, 9),
+                // (28,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(z, x, y)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(z, x, y)").WithArguments("Program.F<T>(T, T, T)").WithLocation(28, 9),
+                // (30,9): warning CS8638: The nullability of type arguments for method 'Program.F<T>(T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(z, y, x)/*T:B<object>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(z, y, x)").WithArguments("Program.F<T>(T, T, T)").WithLocation(30, 9));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void TypeInference_ExactAndLowerBounds_TopLevelNullability()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B<T> { }
+class C
+{
+    static T F<T>(T x, B<T> y) => throw null;
+    static B<T> CreateB<T>(T t) => throw null;
+    static void G(string? x, string y)
+    {
+        var z = A.F/*T:string*/;
+        F(x, CreateB(x))/*T:string?*/;
+        F(x, CreateB(y))/*T:string?*/; // 1
+        F(x, CreateB(z))/*T:string?*/;
+        F(y, CreateB(x))/*T:string?*/;
+        F(y, CreateB(y))/*T:string!*/;
+        F(y, CreateB(z))/*T:string*/;
+        F(z, CreateB(x))/*T:string?*/;
+        F(z, CreateB(y))/*T:string*/;
+        F(z, CreateB(z))/*T:string*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (10,14): warning CS8620: Nullability of reference types in argument of type 'B<string>' doesn't match target type 'B<string?>' for parameter 'y' in 'string? C.F<string?>(string? x, B<string?> y)'.
+                //         F(x, CreateB(y))/*T:string?*/; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "CreateB(y)").WithArguments("B<string>", "B<string?>", "y", "string? C.F<string?>(string? x, B<string?> y)").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void TypeInference_ExactAndUpperBounds_TopLevelNullability()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"interface IIn<in T> { }
+class B<T> { }
+class C
+{
+    static T F<T>(IIn<T> x, B<T> y) => throw null;
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static B<T> CreateB<T>(T t) => throw null;
+    static void G(string? x, string y)
+    {
+        var z = A.F/*T:string*/;
+        F(CreateIIn(x), CreateB(x))/*T:string?*/;
+        F(CreateIIn(x), CreateB(y))/*T:string!*/;
+        F(CreateIIn(x), CreateB(z))/*T:string*/;
+        F(CreateIIn(y), CreateB(x))/*T:string!*/; // 1
+        F(CreateIIn(y), CreateB(y))/*T:string!*/;
+        F(CreateIIn(y), CreateB(z))/*T:string!*/;
+        F(CreateIIn(z), CreateB(x))/*T:string*/;
+        F(CreateIIn(z), CreateB(y))/*T:string!*/;
+        F(CreateIIn(z), CreateB(z))/*T:string*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (14,25): warning CS8620: Nullability of reference types in argument of type 'B<string?>' doesn't match target type 'B<string>' for parameter 'y' in 'string C.F<string>(IIn<string> x, B<string> y)'.
+                //         F(CreateIIn(y), CreateB(x))/*T:string*/; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "CreateB(x)").WithArguments("B<string?>", "B<string>", "y", "string C.F<string>(IIn<string> x, B<string> y)").WithLocation(14, 25));
+        }
+
+        [Fact]
+        public void TypeInference_MixedBounds_NestedNullability()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F1;
+    public static string F2;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            // https://github.com/dotnet/roslyn/issues/29837: CreateIIn(A.F1, A.F2) returns IIn<object, string> rather than IIn<object, string>!.
+            var source =
+@"interface IIn<in T, U> { }
+interface IOut<T, out U> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static IIn<T, U> CreateIIn<T, U>(T t, U u) => throw null;
+    static void F1(bool b, IIn<object, string> x1, IIn<object?, string?> y1)
+    {
+        var z1 = CreateIIn(A.F1, A.F2)/*T:IIn<object, string>*/;
+        F(x1, x1)/*T:IIn<object!, string!>!*/;
+        F(x1, y1)/*T:IIn<object!, string>!*/;
+        F(x1, z1)/*T:IIn<object!, string!>*/;
+        F(y1, x1)/*T:IIn<object!, string>!*/;
+        F(y1, y1)/*T:IIn<object?, string?>!*/;
+        F(y1, z1)/*T:IIn<object, string?>*/;
+        F(z1, x1)/*T:IIn<object!, string!>*/;
+        F(z1, y1)/*T:IIn<object, string?>*/;
+        F(z1, z1)/*T:IIn<object, string>*/;
+    }
+    static IOut<T, U> CreateIOut<T, U>(T t, U u) => throw null;
+    static void F2(bool b, IOut<object, string> x2, IOut<object?, string?> y2)
+    {
+        var z2 = CreateIOut(A.F1, A.F2)/*T:IOut<object, string>*/;
+        F(x2, x2)/*T:IOut<object!, string!>!*/;
+        F(x2, y2)/*T:IOut<object, string?>!*/;
+        F(x2, z2)/*T:IOut<object!, string>*/;
+        F(y2, x2)/*T:IOut<object, string?>!*/;
+        F(y2, y2)/*T:IOut<object?, string?>!*/;
+        F(y2, z2)/*T:IOut<object?, string?>*/;
+        F(z2, x2)/*T:IOut<object!, string>*/;
+        F(z2, y2)/*T:IOut<object?, string?>*/;
+        F(z2, z2)/*T:IOut<object, string>*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x1, y1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x1, y1)").WithArguments("C.F<T>(T, T)").WithLocation(11, 9),
+                // (11,15): warning CS8620: Nullability of reference types in argument of type 'IIn<object?, string?>' doesn't match target type 'IIn<object, string>' for parameter 'y' in 'IIn<object, string> C.F<IIn<object, string>>(IIn<object, string> x, IIn<object, string> y)'.
+                //         F(x1, y1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y1").WithArguments("IIn<object?, string?>", "IIn<object, string>", "y", "IIn<object, string> C.F<IIn<object, string>>(IIn<object, string> x, IIn<object, string> y)").WithLocation(11, 15),
+                // (13,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y1, x1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, x1)").WithArguments("C.F<T>(T, T)").WithLocation(13, 9),
+                // (13,11): warning CS8620: Nullability of reference types in argument of type 'IIn<object?, string?>' doesn't match target type 'IIn<object, string>' for parameter 'x' in 'IIn<object, string> C.F<IIn<object, string>>(IIn<object, string> x, IIn<object, string> y)'.
+                //         F(y1, x1)/*T:IIn<object!, string>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y1").WithArguments("IIn<object?, string?>", "IIn<object, string>", "x", "IIn<object, string> C.F<IIn<object, string>>(IIn<object, string> x, IIn<object, string> y)").WithLocation(13, 11),
+                // (25,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x2, y2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x2, y2)").WithArguments("C.F<T>(T, T)").WithLocation(25, 9),
+                // (25,11): warning CS8620: Nullability of reference types in argument of type 'IOut<object, string>' doesn't match target type 'IOut<object, string?>' for parameter 'x' in 'IOut<object, string?> C.F<IOut<object, string?>>(IOut<object, string?> x, IOut<object, string?> y)'.
+                //         F(x2, y2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IOut<object, string>", "IOut<object, string?>", "x", "IOut<object, string?> C.F<IOut<object, string?>>(IOut<object, string?> x, IOut<object, string?> y)").WithLocation(25, 11),
+                // (27,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y2, x2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y2, x2)").WithArguments("C.F<T>(T, T)").WithLocation(27, 9),
+                // (27,15): warning CS8620: Nullability of reference types in argument of type 'IOut<object, string>' doesn't match target type 'IOut<object, string?>' for parameter 'y' in 'IOut<object, string?> C.F<IOut<object, string?>>(IOut<object, string?> x, IOut<object, string?> y)'.
+                //         F(y2, x2)/*T:IOut<object, string?>!*/;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IOut<object, string>", "IOut<object, string?>", "y", "IOut<object, string?> C.F<IOut<object, string?>>(IOut<object, string?> x, IOut<object, string?> y)").WithLocation(27, 15));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_MismatchedTypes()
+        {
+            var source =
+@"interface IOut<out T> { }
+class Program
+{
+    static T F<T>(T x, T y) => throw null;
+    static void G(IOut<object> x, IOut<string?> y)
+    {
+        F(x, y)/*T:IOut<object!>!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // Ideally we'd infer IOut<object?> but the spec doesn't require merging nullability
+            // across distinct types (in this case, the lower bounds IOut<object!> and IOut<string?>).
+            // Instead, method type inference infers IOut<object!> and a warning is reported
+            // converting the second argument to the inferred parameter type.
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (7,14): warning CS8620: Nullability of reference types in argument of type 'IOut<string?>' doesn't match target type 'IOut<object>' for parameter 'y' in 'IOut<object> Program.F<IOut<object>>(IOut<object> x, IOut<object> y)'.
+                //         F(x, y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IOut<string?>", "IOut<object>", "y", "IOut<object> Program.F<IOut<object>>(IOut<object> x, IOut<object> y)").WithLocation(7, 14));
+        }
+
+        [Fact]
+        public void TypeInference_LowerAndUpperBounds_NestedNullability()
+        {
+            var source =
+@"interface IIn<in T> { }
+interface IOut<out T> { }
+class Program
+{
+    static T FIn<T>(T x, T y, IIn<T> z) => throw null;
+    static T FOut<T>(T x, T y, IOut<T> z) => throw null;
+    static IIn<T> CreateIIn<T>(T t) => throw null;
+    static IOut<T> CreateIOut<T>(T t) => throw null;
+    static void G1(IIn<string?> x1, IIn<string> y1)
+    {
+        FIn(x1, y1, CreateIIn(x1))/*T:IIn<string!>!*/; // 1
+        FIn(x1, y1, CreateIIn(y1))/*T:IIn<string!>!*/;
+        FOut(x1, y1, CreateIOut(x1))/*T:IIn<string!>!*/;
+        FOut(x1, y1, CreateIOut(y1))/*T:IIn<string!>!*/;
+    }
+    static void G2(IOut<string?> x2, IOut<string> y2)
+    {
+        FIn(x2, y2, CreateIIn(x2))/*T:IOut<string?>!*/;
+        FIn(x2, y2, CreateIIn(y2))/*T:IOut<string?>!*/; // 2
+        FOut(x2, y2, CreateIOut(x2))/*T:IOut<string?>!*/;
+        FOut(x2, y2, CreateIOut(y2))/*T:IOut<string?>!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // Ideally we'd fail to infer nullability for // 1 and // 2 rather than inferring the
+            // wrong nullability and then reporting a warning converting the arguments.
+            // (See MethodTypeInferrer.TryMergeAndReplaceIfStillCandidate which ignores
+            // the variance used merging earlier candidates when merging later candidates.)
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (11,21): warning CS8620: Nullability of reference types in argument of type 'IIn<IIn<string?>>' doesn't match target type 'IIn<IIn<string>>' for parameter 'z' in 'IIn<string> Program.FIn<IIn<string>>(IIn<string> x, IIn<string> y, IIn<IIn<string>> z)'.
+                //         FIn(x1, y1, CreateIIn(x1))/*T:IIn<string!>!*/; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "CreateIIn(x1)").WithArguments("IIn<IIn<string?>>", "IIn<IIn<string>>", "z", "IIn<string> Program.FIn<IIn<string>>(IIn<string> x, IIn<string> y, IIn<IIn<string>> z)").WithLocation(11, 21),
+                // (19,21): warning CS8620: Nullability of reference types in argument of type 'IIn<IOut<string>>' doesn't match target type 'IIn<IOut<string?>>' for parameter 'z' in 'IOut<string?> Program.FIn<IOut<string?>>(IOut<string?> x, IOut<string?> y, IIn<IOut<string?>> z)'.
+                //         FIn(x2, y2, CreateIIn(y2))/*T:IOut<string?>!*/; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "CreateIIn(y2)").WithArguments("IIn<IOut<string>>", "IIn<IOut<string?>>", "z", "IOut<string?> Program.FIn<IOut<string?>>(IOut<string?> x, IOut<string?> y, IIn<IOut<string?>> z)").WithLocation(19, 21));
         }
 
         [Fact]
@@ -37677,65 +39278,358 @@ public class B
         }
 
         [Fact]
-        public void TypeInference_07()
+        public void TypeInference_LowerBounds_NestedNullability_MismatchedNullability()
         {
+            var source0 =
+@"public class A
+{
+    public static object F;
+    public static string G;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
             var source =
-@"using System.Collections.Generic;
+@"class B<T, U> { }
 class C
 {
-    static T F<T>(T x, List<T> y) => x;
-    static void G(C x, C? y)
+    static T F<T>(T x, T y) => throw null;
+    static B<T, U> CreateB<T, U>(T t, U u) => throw null;
+    static void G(object? t1, object t2, string? u1, string u2)
     {
-        F(x, new List<C?>() { y }).ToString();
-        F(y, new List<C>() { x }).ToString();
+        var t3 = A.F/*T:object*/;
+        var u3 = A.G/*T:string*/;
+        var x = CreateB(t1, u2)/*T:B<object?, string!>*/;
+        var y = CreateB(t2, u1)/*T:B<object!, string?>*/;
+        var z = CreateB(t1, u3)/*T:B<object?, string>*/;
+        var w = CreateB(t3, u2)/*T:B<object, string!>*/;
+        F(x, y)/*T:B<object, string>*/;
+        F(x, z)/*T:B<object?, string!>*/;
+        F(x, w)/*T:B<object?, string!>*/;
+        F(y, z)/*T:B<object, string?>*/;
+        F(y, w)/*T:B<object!, string>*/;
+        F(w, z)/*T:B<object?, string!>*/;
     }
 }";
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, new List<C?>() { y }).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, new List<C?>() { y })").WithLocation(7, 9),
-                // (8,11): warning CS8604: Possible null reference argument for parameter 'x' in 'C C.F<C>(C x, List<C> y)'.
-                //         F(y, new List<C>() { x }).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "C C.F<C>(C x, List<C> y)").WithLocation(8, 11));
+                // (14,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y)/*T:B<object, string>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y)").WithArguments("C.F<T>(T, T)").WithLocation(14, 9),
+                // (17,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, z)/*T:B<object, string?>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, z)").WithArguments("C.F<T>(T, T)").WithLocation(17, 9),
+                // (18,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, w)/*T:B<object!, string>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, w)").WithArguments("C.F<T>(T, T)").WithLocation(18, 9));
         }
 
         [Fact]
-        public void TypeInference_08()
+        public void TypeInference_UpperBounds_NestedNullability_MismatchedNullability()
         {
+            var source0 =
+@"public class A
+{
+    public static object F;
+    public static string G;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
             var source =
-@"class A { }
-class B { }
-class C<T, U> { }
+@"interface IIn<in T> { }
+class B<T, U> { }
 class C
 {
-    static void F<T>(T x, T y) { }
-    static void G(C<A, B?> x, C<A?, B> y, C<A, B> z, C<A?, B?> w)
+    static T F<T>(IIn<T> x, IIn<T> y) => throw null;
+    static IIn<B<T, U>> CreateB<T, U>(T t, U u) => throw null;
+    static void G(object? t1, object t2, string? u1, string u2)
     {
-        F(x, y);
-        F(y, x);
-        F(z, w);
-        F(w, z);
+        var t3 = A.F/*T:object*/;
+        var u3 = A.G/*T:string*/;
+        var x = CreateB(t1, u2)/*T:IIn<B<object?, string!>>*/;
+        var y = CreateB(t2, u1)/*T:IIn<B<object!, string?>>*/;
+        var z = CreateB(t1, u3)/*T:IIn<B<object?, string>>*/;
+        var w = CreateB(t3, u2)/*T:IIn<B<object, string!>>*/;
+        F(x, y)/*T:B<object, string>*/;
+        F(x, z)/*T:B<object?, string!>*/;
+        F(x, w)/*T:B<object?, string!>*/;
+        F(y, z)/*T:B<object, string?>*/;
+        F(y, w)/*T:B<object!, string>*/;
+        F(w, z)/*T:B<object?, string!>*/;
     }
 }";
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (9,14): warning CS8620: Nullability of reference types in argument of type 'C<A?, B>' doesn't match target type 'C<A, B?>' for parameter 'y' in 'void C.F<C<A, B?>>(C<A, B?> x, C<A, B?> y)'.
-                //         F(x, y);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<A?, B>", "C<A, B?>", "y", "void C.F<C<A, B?>>(C<A, B?> x, C<A, B?> y)").WithLocation(9, 14),
-                // (10,14): warning CS8620: Nullability of reference types in argument of type 'C<A, B?>' doesn't match target type 'C<A?, B>' for parameter 'y' in 'void C.F<C<A?, B>>(C<A?, B> x, C<A?, B> y)'.
-                //         F(y, x);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C<A, B?>", "C<A?, B>", "y", "void C.F<C<A?, B>>(C<A?, B> x, C<A?, B> y)").WithLocation(10, 14),
-                // (11,14): warning CS8620: Nullability of reference types in argument of type 'C<A?, B?>' doesn't match target type 'C<A, B>' for parameter 'y' in 'void C.F<C<A, B>>(C<A, B> x, C<A, B> y)'.
-                //         F(z, w);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "w").WithArguments("C<A?, B?>", "C<A, B>", "y", "void C.F<C<A, B>>(C<A, B> x, C<A, B> y)").WithLocation(11, 14),
-                // (12,14): warning CS8620: Nullability of reference types in argument of type 'C<A, B>' doesn't match target type 'C<A?, B?>' for parameter 'y' in 'void C.F<C<A?, B?>>(C<A?, B?> x, C<A?, B?> y)'.
-                //         F(w, z);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<A, B>", "C<A?, B?>", "y", "void C.F<C<A?, B?>>(C<A?, B?> x, C<A?, B?> y)").WithLocation(12, 14));
+                // (15,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IIn<T>, IIn<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y)/*T:B<object, string>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y)").WithArguments("C.F<T>(IIn<T>, IIn<T>)").WithLocation(15, 9),
+                // (18,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IIn<T>, IIn<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, z)/*T:B<object, string?>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, z)").WithArguments("C.F<T>(IIn<T>, IIn<T>)").WithLocation(18, 9),
+                // (19,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IIn<T>, IIn<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, w)/*T:B<object!, string>*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, w)").WithArguments("C.F<T>(IIn<T>, IIn<T>)").WithLocation(19, 9));
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_TypeParameters()
+        {
+            var source =
+@"interface IOut<out T> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static void G<T>(IOut<T?> x, IOut<T> y) where T : class
+    {
+        F(x, x)/*T:IOut<T?>!*/;
+        F(x, y)/*T:IOut<T?>!*/;
+        F(y, x)/*T:IOut<T?>!*/;
+        F(y, y)/*T:IOut<T!>!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Arrays()
+        {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static void G(string?[] x, string[] y)
+    {
+        var z = (new[] { A.F })/*T:string[]!*/;
+        F(x, x)/*T:string?[]!*/;
+        F(x, y)/*T:string[]!*/;
+        F(x, z)/*T:string?[]!*/;
+        F(y, x)/*T:string[]!*/;
+        F(y, y)/*T:string![]!*/;
+        F(y, z)/*T:string![]!*/;
+        F(z, x)/*T:string?[]!*/;
+        F(z, y)/*T:string![]!*/;
+        F(z, z)/*T:string[]!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y)/*T:string[]!*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y)").WithArguments("C.F<T>(T, T)").WithLocation(8, 9),
+                // (10,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, x)/*T:string[]!*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, x)").WithArguments("C.F<T>(T, T)").WithLocation(10, 9));
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Dynamic()
+        {
+            var source =
+@"interface IOut<out T> { }
+class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static void G(IOut<dynamic?> x, IOut<dynamic> y)
+    {
+        F(x, x)/*T:IOut<dynamic?>!*/;
+        F(x, y)/*T:IOut<dynamic?>!*/;
+        F(y, x)/*T:IOut<dynamic?>!*/;
+        F(y, y)/*T:IOut<dynamic!>!*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Pointers()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"unsafe class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static T* CreatePointer<T>(T t) => throw null;
+    static void G(object?* x, object* y)
+    {
+        var z = CreatePointer(A.F)/*T:object**/;
+        F(x, x)/*T:object**/;
+        F(x, y)/*T:object**/;
+        F(x, z)/*T:object**/;
+        F(y, x)/*T:object**/;
+        F(y, y)/*T:object**/;
+        F(y, z)/*T:object**/;
+        F(z, x)/*T:object**/;
+        F(z, y)/*T:object**/;
+        F(z, z)/*T:object**/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(TestOptions.UnsafeDebugDll), references: new[] { ref0 });
+            // NullableWalker.VisitCall is currently skipping F(x, y), etc. because
+            // each BoundCall has errors.
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
+                //     static T* CreatePointer<T>(T t) => throw null;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T").WithLocation(4, 12),
+                // (5,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+                //     static void G(object?* x, object* y)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "object?*").WithArguments("object").WithLocation(5, 19),
+                // (5,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+                //     static void G(object?* x, object* y)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object").WithLocation(5, 31),
+                // (8,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(x, x)/*T:object?*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(8, 9),
+                // (9,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(x, y)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(9, 9),
+                // (10,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(x, z)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(10, 9),
+                // (11,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(y, x)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(11, 9),
+                // (12,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(y, y)/*T:object!*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(12, 9),
+                // (13,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(y, z)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(13, 9),
+                // (14,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(z, x)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(14, 9),
+                // (15,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(z, y)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(15, 9),
+                // (16,9): error CS0306: The type 'object*' may not be used as a type argument
+                //         F(z, z)/*T:object*!*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("object*").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void TypeInference_LowerBounds_NestedNullability_Tuples()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+    public static string G;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static void G(object? t1, object t2, string? u1, string u2)
+    {
+        var t3 = A.F/*T:object*/;
+        var u3 = A.G/*T:string*/;
+        var x = (t1, u2)/*T:(object? t1, string! u2)*/;
+        var y = (t2, u1)/*T:(object! t2, string? u1)*/;
+        var z = (t1, u3)/*T:(object? t1, string u3)*/;
+        var w = (t3, u2)/*T:(object t3, string! u2)*/;
+        F(x, y)/*T:(object, string)*/;
+        F(x, z)/*T:(object? t1, string!)*/;
+        F(x, w)/*T:(object?, string! u2)*/;
+        F(y, z)/*T:(object, string?)*/;
+        F(y, w)/*T:(object!, string)*/;
+        F(w, z)/*T:(object?, string!)*/;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x, y)/*T:(object, string)*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x, y)").WithArguments("C.F<T>(T, T)").WithLocation(12, 9),
+                // (15,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, z)/*T:(object, string?)*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, z)").WithArguments("C.F<T>(T, T)").WithLocation(15, 9),
+                // (16,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(y, w)/*T:(object!, string)*/;
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y, w)").WithArguments("C.F<T>(T, T)").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void Assignment_NestedNullability_MismatchedNullability()
+        {
+            var source0 =
+@"public class A
+{
+    public static object F;
+    public static string G;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"class B<T, U> { }
+class C
+{
+    static B<T, U> CreateB<T, U>(T t, U u) => throw null;
+    static void G(object? t1, object t2, string? u1, string u2)
+    {
+        var t3 = A.F/*T:object*/;
+        var u3 = A.G/*T:string*/;
+        var x0 = CreateB(t1, u2)/*T:B<object?, string!>*/;
+        var y0 = CreateB(t2, u1)/*T:B<object!, string?>*/;
+        var z0 = CreateB(t1, u3)/*T:B<object?, string>*/;
+        var w0 = CreateB(t3, u2)/*T:B<object, string!>*/;
+        var x = x0;
+        var y = y0;
+        var z = z0;
+        var w = w0;
+        x = y0; // 1
+        x = z0;
+        x = w0;
+        y = z0; // 2
+        y = w0; // 3
+        w = z0;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8619: Nullability of reference types in value of type 'B<object, string?>' doesn't match target type 'B<object?, string>'.
+                //         x = y0; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y0").WithArguments("B<object, string?>", "B<object?, string>").WithLocation(17, 13),
+                // (20,13): warning CS8619: Nullability of reference types in value of type 'B<object?, string>' doesn't match target type 'B<object, string?>'.
+                //         y = z0; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "z0").WithArguments("B<object?, string>", "B<object, string?>").WithLocation(20, 13),
+                // (21,13): warning CS8619: Nullability of reference types in value of type 'B<object, string>' doesn't match target type 'B<object, string?>'.
+                //         y = w0; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w0").WithArguments("B<object, string>", "B<object, string?>").WithLocation(21, 13));
         }
 
         [Fact]
@@ -37753,10 +39647,10 @@ class C
     }
     static void G1(I<string> x1, I<string?> y1)
     {
-        F(x1, x1).ToString();
-        F(x1, y1).ToString();
-        F(y1, x1).ToString();
-        F(y1, y1).ToString();
+        F(x1, x1)/*T:string!*/.ToString();
+        F(x1, y1)/*T:string*/.ToString();
+        F(y1, x1)/*T:string*/.ToString();
+        F(y1, y1)/*T:string?*/.ToString();
     }
     static T F<T>(IIn<T> x, IIn<T> y)
     {
@@ -37764,10 +39658,10 @@ class C
     }
     static void G2(IIn<string> x2, IIn<string?> y2)
     {
-        F(x2, x2).ToString();
-        F(x2, y2).ToString();
-        F(y2, x2).ToString();
-        F(y2, y2).ToString();
+        F(x2, x2)/*T:string!*/.ToString();
+        F(x2, y2)/*T:string!*/.ToString();
+        F(y2, x2)/*T:string!*/.ToString();
+        F(y2, y2)/*T:string?*/.ToString();
     }
     static T F<T>(IOut<T> x, IOut<T> y)
     {
@@ -37775,28 +39669,23 @@ class C
     }
     static void G3(IOut<string> x3, IOut<string?> y3)
     {
-        F(x3, x3).ToString();
-        F(x3, y3).ToString();
-        F(y3, x3).ToString();
-        F(y3, y3).ToString();
+        F(x3, x3)/*T:string!*/.ToString();
+        F(x3, y3)/*T:string?*/.ToString();
+        F(y3, x3)/*T:string?*/.ToString();
+        F(y3, y3)/*T:string?*/.ToString();
     }
 }";
             var comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (13,11): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'x' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
+                // (13,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<T>, I<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(x1, y1).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "x", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(13, 11),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x1, y1).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x1, y1)").WithLocation(13, 9),
-                // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x1, y1)").WithArguments("C.F<T>(I<T>, I<T>)").WithLocation(13, 9),
+                // (14,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<T>, I<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(y1, x1).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 15),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y1, x1).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, x1)").WithLocation(14, 9),
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, x1)").WithArguments("C.F<T>(I<T>, I<T>)").WithLocation(14, 9),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y1, y1).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, y1)").WithLocation(15, 9),
@@ -37864,21 +39753,15 @@ class C
                 // (12,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
                 //         F(x1, x1).ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(12, 15),
-                // (14,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(I<T>, I<T?>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // (14,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<T>, I<T?>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(y1, x1).ToString(); // 2 and 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(I<T>, I<T?>)", "T", "string?").WithLocation(14, 9),
-                // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, x1)").WithArguments("C.F<T>(I<T>, I<T?>)").WithLocation(14, 9),
+                // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
                 //         F(y1, x1).ToString(); // 2 and 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 15),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y1, x1).ToString(); // 2 and 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, x1)").WithLocation(14, 9),
-                // (15,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(I<T>, I<T?>)'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(14, 15),
+                // (15,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<T>, I<T?>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(y1, y1).ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F").WithArguments("C.F<T>(I<T>, I<T?>)", "T", "string?").WithLocation(15, 9),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y1, y1).ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, y1)").WithLocation(15, 9),
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, y1)").WithArguments("C.F<T>(I<T>, I<T?>)").WithLocation(15, 9),
                 // (23,15): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
                 //         F(x2, x2).ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(23, 15),
@@ -37939,11 +39822,11 @@ public class NotNull
     }
     static void F2(UnknownNull x2, MaybeNull y2)
     {
-        F(x2.A1, y2.A2)/*T:A<object>*/.F.ToString();
+        F(x2.A1, y2.A2)/*T:A<object?>*/.F.ToString();
     }
     static void F3(MaybeNull x3, UnknownNull y3)
     {
-        F(x3.A2, y3.A1)/*T:A<object?>!*/.F.ToString();
+        F(x3.A2, y3.A1)/*T:A<object?>*/.F.ToString();
     }
     static void F4(MaybeNull x4, MaybeNull y4)
     {
@@ -37951,19 +39834,19 @@ public class NotNull
     }
     static void F5(UnknownNull x5, NotNull y5)
     {
-        F(x5.A1, y5.A3)/*T:A<object>*/.F.ToString();
+        F(x5.A1, y5.A3)/*T:A<object!>*/.F.ToString();
     }
     static void F6(NotNull x6, UnknownNull y6)
     {
-        F(x6.A3, y6.A1)/*T:A<object!>!*/.F.ToString();
+        F(x6.A3, y6.A1)/*T:A<object!>*/.F.ToString();
     }
     static void F7(MaybeNull x7, NotNull y7)
     {
-        F(x7.A2, y7.A3)/*T:A<object?>!*/.F.ToString();
+        F(x7.A2, y7.A3)/*T:A<object>!*/.F.ToString();
     }
     static void F8(NotNull x8, MaybeNull y8)
     {
-        F(x8.A3, y8.A2)/*T:A<object!>!*/.F.ToString();
+        F(x8.A3, y8.A2)/*T:A<object>!*/.F.ToString();
     }
     static void F9(NotNull x9, NotNull y9)
     {
@@ -37973,21 +39856,21 @@ public class NotNull
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         F(x2.A1, y2.A2)/*T:A<object?>*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x2.A1, y2.A2)/*T:A<object?>*/.F").WithLocation(10, 9),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x3.A2, y3.A1)/*T:A<object?>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x3.A2, y3.A1)/*T:A<object?>!*/.F").WithLocation(14, 9),
+                //         F(x3.A2, y3.A1)/*T:A<object?>*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x3.A2, y3.A1)/*T:A<object?>*/.F").WithLocation(14, 9),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         F(x4.A2, y4.A2)/*T:A<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x4.A2, y4.A2)/*T:A<object?>!*/.F").WithLocation(18, 9),
-                // (30,18): warning CS8620: Nullability of reference types in argument of type 'A<object>' doesn't match target type 'A<object?>' for parameter 'y' in 'A<object?> C.F<A<object?>>(A<object?> x, A<object?> y)'.
-                //         F(x7.A2, y7.A3)/*T:A<object?>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y7.A3").WithArguments("A<object>", "A<object?>", "y", "A<object?> C.F<A<object?>>(A<object?> x, A<object?> y)").WithLocation(30, 18),
-                // (30,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x7.A2, y7.A3)/*T:A<object?>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x7.A2, y7.A3)/*T:A<object?>!*/.F").WithLocation(30, 9),
-                // (34,18): warning CS8620: Nullability of reference types in argument of type 'A<object?>' doesn't match target type 'A<object>' for parameter 'y' in 'A<object> C.F<A<object>>(A<object> x, A<object> y)'.
-                //         F(x8.A3, y8.A2)/*T:A<object!>!*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y8.A2").WithArguments("A<object?>", "A<object>", "y", "A<object> C.F<A<object>>(A<object> x, A<object> y)").WithLocation(34, 18));
+                // (30,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x7.A2, y7.A3)/*T:A<object>*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x7.A2, y7.A3)").WithArguments("C.F<T>(T, T)").WithLocation(30, 9),
+                // (34,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x8.A3, y8.A2)/*T:A<object>*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(x8.A3, y8.A2)").WithArguments("C.F<T>(T, T)").WithLocation(34, 9));
         }
 
         [Fact]
