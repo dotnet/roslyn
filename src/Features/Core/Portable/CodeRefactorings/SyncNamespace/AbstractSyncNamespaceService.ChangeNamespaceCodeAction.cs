@@ -100,14 +100,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                cancellationToken = default;
-                var solution = _state.Solution;
-                var referenceDocuments = new HashSet<DocumentId>();
+                var solutionAfterNamespaceChange = _state.Solution;
+                var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
 
                 foreach (var id in _state.DocumentIds)
                 {
-                    var result = await ChangeNamespaceToMatchFoldersAsync(solution, id, cancellationToken).ConfigureAwait(false);
-                    solution = result.Item1;
+                    var result = await ChangeNamespaceToMatchFoldersAsync(solutionAfterNamespaceChange, id, cancellationToken).ConfigureAwait(false);
+                    solutionAfterNamespaceChange = result.Item1;
                     referenceDocuments.AddRange(result.Item2);
                 }
 
@@ -124,14 +123,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 //      }
                 //
 
-                solution = await RemoveUnnecessaryImportsAsync(solution, _state.DocumentIds, CreateAllContainingNamespaces(OldNamespaceParts), cancellationToken)
+                var solutionAfterFirstMerge = await MergeDiffAsync(_state.Solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
+
+                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(solutionAfterFirstMerge, _state.DocumentIds, CreateAllContainingNamespaces(OldNamespaceParts), cancellationToken)
                     .ConfigureAwait(false);
 
-                solution = await RemoveUnnecessaryImportsAsync(
-                    solution, referenceDocuments.ToImmutableArray(), ImmutableArray.Create(_state.DeclaredNamespace, _state.TargetNamespace), cancellationToken)
+                solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                    solutionAfterImportsRemoved, referenceDocuments.ToImmutableArray(), ImmutableArray.Create(_state.DeclaredNamespace, _state.TargetNamespace), cancellationToken)
                     .ConfigureAwait(false);
+                referenceDocuments.Free();
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solution));
+                var solutionAfterSecondMerge = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solutionAfterSecondMerge));
             }
 
             private ImmutableArray<string> CreateAllContainingNamespaces(ImmutableArray<string> parts)
@@ -163,7 +167,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             private async Task<(Solution, ImmutableArray<DocumentId>)> ChangeNamespaceToMatchFoldersAsync(Solution solution, DocumentId id, CancellationToken cancellationToken)
             {
-                //todo
                 var document = solution.GetDocument(id);
                 var targetNamespace = _state.TargetNamespace;
 
@@ -178,17 +181,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 var refLocationsInCurrentDocument = new List<ReferenceLocation>();
                 var refLocationsInOtherDocuments = new List<ReferenceLocation>();
-
-                // TODO: 
-                // Need to figure out how to handle MTFM projects and linked files properly.
-                // 
-                // For the document triggered the refactoring, we try to change the namespace 
-                // declaration *only in current context*, the "find reference" is invoked only 
-                // on symbols from current context as well.
-                //
-                // And for documents referencing those symbols, they can be linked/MTFM documents themselves.
-                // In which case, we treat them as independent documents and fix them individually, and at the 
-                // end rely on existing conflict resolving mechanism to merge those fixes in the same file together.
 
                 foreach (var declaredSymbol in declaredSymbols)
                 {
@@ -216,7 +208,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     }
                 }
 
-                // Transform current document(s) first
                 document = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, cancellationToken)
                     .ConfigureAwait(false);
                 solution = document.Project.Solution;
@@ -402,13 +393,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ImmutableArray<string> names, 
                 CancellationToken cancellationToken)
             {
+                var LinkedDocumentsToSkip = PooledHashSet<DocumentId>.GetInstance();
                 foreach (var id in ids)
                 {
+                    if (LinkedDocumentsToSkip.Contains(id))
+                    {
+                        continue;
+                    }
+
                     var document = solution.GetDocument(id);
+                    LinkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
+
                     document = await RemoveUnnecessaryImportsAsync(document, CreateImports(document, names), cancellationToken)
                         .ConfigureAwait(false);
                     solution = document.Project.Solution;
                 }
+                LinkedDocumentsToSkip.Free();
                 return solution;
             }
 
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 CancellationToken cancellationToken)
             {
                 var removeImportService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-                return await removeImportService.RemoveUnnecessaryImportsFromCurrentContextAsync(
+                return await removeImportService.RemoveUnnecessaryImportsAsync(
                     document,
                     import => importsToRemove.Any(importToRemove => importToRemove.IsEquivalentTo(import, topLevel: false)),
                     cancellationToken)
@@ -446,6 +446,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     document = document.WithSyntaxRoot(root);
                 }
                 return document;
+            }
+
+            private static async Task<Solution> MergeDiffAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+            {
+                var diffMergingSession = new LinkedFileDiffMergingSession(oldSolution, newSolution, newSolution.GetChanges(oldSolution), logSessionInfo: false);
+                var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return mergeResult.MergedSolution;
             }
         }
     }

@@ -19,18 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     internal partial class AbstractCSharpRemoveUnnecessaryImportsService :
         AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
     {
-        protected override async Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, 
+        public override async Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document,
             Func<SyntaxNode, bool> predicate,
-            bool fromAllContext,
             CancellationToken cancellationToken)
         {
             predicate = predicate ?? Functions<SyntaxNode>.True;
             using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
             {
-                var unnecessaryImports = fromAllContext 
-                    ? await GetCommonUnnecessaryImportsOfAllContextAsync(document, predicate, cancellationToken).ConfigureAwait(false)
-                    : await GetUnnecessaryImportsAsync(document, predicate, cancellationToken).ConfigureAwait(false);
+                var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(
+                    document, predicate, cancellationToken).ConfigureAwait(false);
                 if (unnecessaryImports == null || unnecessaryImports.Any(import => import.OverlapsHiddenPosition(cancellationToken)))
                 {
                     return document;

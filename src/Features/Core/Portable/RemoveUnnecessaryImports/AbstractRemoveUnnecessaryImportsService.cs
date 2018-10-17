@@ -12,21 +12,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsService<T> : 
-        IRemoveUnnecessaryImportsService, 
-        IUnnecessaryImportsService, 
+    internal abstract class AbstractRemoveUnnecessaryImportsService<T> :
+        IRemoveUnnecessaryImportsService,
+        IUnnecessaryImportsService,
         IEqualityComparer<T> where T : SyntaxNode
     {
         public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
             => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
-        public Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(fromDocument, predicate, fromAllContext: true, cancellationToken: cancellationToken);
-
-        public Task<Document> RemoveUnnecessaryImportsFromCurrentContextAsync(Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(document, predicate, fromAllContext: false, cancellationToken: cancellationToken);
-
-        protected abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, bool fromAllContext, CancellationToken cancellationToken);
+        public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
 
         public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
             SemanticModel model, CancellationToken cancellationToken)
@@ -54,18 +48,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         }
 
         protected abstract ImmutableArray<T> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root, 
+            SemanticModel model, SyntaxNode root,
             Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
-
-        protected async Task<HashSet<T>> GetUnnecessaryImportsAsync(Document document,
-            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-        {
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var unnecessaryImports = new HashSet<T>(this);
-            unnecessaryImports.AddRange(GetUnnecessaryImports(model, root, predicate, cancellationToken));
-            return unnecessaryImports;
-        }
 
         protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
             Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
