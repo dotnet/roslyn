@@ -732,7 +732,7 @@
         <target state="translated">顯示名稱建議(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">產生事件訂閱</target>
         <note />
