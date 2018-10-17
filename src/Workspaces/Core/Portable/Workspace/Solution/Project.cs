@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
-        /// The default namespace of the project, or null if it is not know.
+        /// The default namespace of the project, or null if it is not know or not applicable.
+        /// Default namespace is a C# only concept, where the value is defined in "rootnamespace"
+        /// property in the project file.
         /// </summary>
         internal string DefaultNamespace => _projectState.DefaultNamespace;
 
