@@ -42,6 +42,7 @@
   <ItemGroup>
     <AdditionalFiles Include="ValidAdditionalFile.txt" />
     <AdditionalFiles Include="TEST::" />
+    <AdditionalFiles Include="COM1" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
