@@ -8,7 +8,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// <summary>
     /// Info for tainted data sources.
     /// </summary>
-    internal class SourceInfo
+    internal class SourceInfo : IEquatable<SourceInfo>
     {
         /// <summary>
         /// Constructs.

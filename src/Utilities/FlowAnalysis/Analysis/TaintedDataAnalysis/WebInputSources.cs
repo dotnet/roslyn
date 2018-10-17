@@ -711,14 +711,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="wellKnownTypeProvider">Well known types cache.</param>
         /// <param name="propertyReferenceOperation">IOperation representing the property reference.</param>
         /// <returns>True if the property returns tainted data, false otherwise.</returns>
-        public static bool IsTaintedProperty(WellKnownTypeProvider wellKnownTypeProvider, IPropertyReferenceOperation propertyReferenceOperation)
+        public static bool IsTaintedProperty(ImmutableDictionary<ITypeSymbol, SourceInfo> sourcesBySymbol, IPropertyReferenceOperation propertyReferenceOperation)
         {
             return propertyReferenceOperation != null
                 && propertyReferenceOperation.Instance != null
                 && propertyReferenceOperation.Member != null
-                && wellKnownTypeProvider.TryGetFullTypeName(propertyReferenceOperation.Instance.Type, out string instanceType)
-                && SourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
-                && sourceMetadata.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
+                && sourcesBySymbol.TryGetValue(propertyReferenceOperation.Instance.Type, out SourceInfo sourceInfo)
+                && sourceInfo.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
         }
 
         /// <summary>
@@ -728,14 +727,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="instance">IOperation representing the instance.</param>
         /// <param name="method">Instance method being called.</param>
         /// <returns>True if the method returns tainted data, false otherwise.</returns>
-        public static bool IsTaintedMethod(WellKnownTypeProvider wellKnownTypeProvider, IOperation instance, IMethodSymbol method)
+        public static bool IsTaintedMethod(ImmutableDictionary<ITypeSymbol, SourceInfo> sourcesBySymbol, IOperation instance, IMethodSymbol method)
         {
             return instance != null
                 && instance.Type != null
                 && method != null
-                && wellKnownTypeProvider.TryGetFullTypeName(instance.Type, out string instanceType)
-                && SourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
-                && sourceMetadata.TaintedMethods.Contains(method.MetadataName);
+                && sourcesBySymbol.TryGetValue(instance.Type, out SourceInfo sourceInfo)
+                && sourceInfo.TaintedMethods.Contains(method.MetadataName);
+        }
+
+        public static ImmutableDictionary<ITypeSymbol, SourceInfo> BuildBySymbolMap(WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            return SourceInfos.Values.ToBySymbolMap<SourceInfo>(wellKnownTypeProvider, (SourceInfo info) => info.FullTypeName);
         }
 
         /// <summary>
@@ -747,7 +750,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             foreach (string metadataTypeName in SourceInfos.Keys)
             {
-                if (wellKnownTypeProvider.TryGetType(metadataTypeName, out INamedTypeSymbol unused))
+                if (wellKnownTypeProvider.TryGetTypeByMetadataName(metadataTypeName, out INamedTypeSymbol unused))
                 {
                     return true;
                 }

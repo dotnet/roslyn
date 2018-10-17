@@ -402,8 +402,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
                 {
-                    if (!this.WellKnownTypeProvider.TryGetFullTypeName(typeSymbol, out string typeFullName)
-                        || !this.DataFlowAnalysisContext.TaintedSanitizerInfos.TryGetValue(typeFullName, out SanitizerInfo sinkInfo))
+                    if (!this.DataFlowAnalysisContext.TaintedSanitizerInfos.TryGetValue(typeSymbol, out SanitizerInfo sinkInfo))
                     {
                         continue;
                     }
@@ -473,8 +472,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     foreach (INamedTypeSymbol interfaceSymbol in namedTypeSymbol.AllInterfaces)
                     {
-                        if (!this.WellKnownTypeProvider.TryGetFullTypeName(interfaceSymbol, out string interfaceFullName)
-                            || !this.DataFlowAnalysisContext.TaintedInterfaceSinkInfos.TryGetValue(interfaceFullName, out SinkInfo sinkInfo))
+                        if (!this.DataFlowAnalysisContext.TaintedInterfaceSinkInfos.TryGetValue(interfaceSymbol, out SinkInfo sinkInfo))
                         {
                             continue;
                         }
@@ -487,8 +485,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
                     {
-                        if (!this.WellKnownTypeProvider.TryGetFullTypeName(typeSymbol, out string typeFullName)
-                            || !this.DataFlowAnalysisContext.TaintedConcreteSinkInfos.TryGetValue(typeFullName, out SinkInfo sinkInfo))
+                        if (!this.DataFlowAnalysisContext.TaintedConcreteSinkInfos.TryGetValue(typeSymbol, out SinkInfo sinkInfo))
                         {
                             continue;
                         }
@@ -508,9 +505,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return propertyReferenceOperation != null
                     && propertyReferenceOperation.Instance != null
                     && propertyReferenceOperation.Member != null
-                    && this.WellKnownTypeProvider.TryGetFullTypeName(propertyReferenceOperation.Instance.Type, out string instanceType)
-                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
-                    && sourceMetadata.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
+                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(propertyReferenceOperation.Instance.Type, out SourceInfo sourceInfo)
+                    && sourceInfo.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
             }
 
             /// <summary>
@@ -524,9 +520,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return instance != null
                     && instance.Type != null
                     && method != null
-                    && this.WellKnownTypeProvider.TryGetFullTypeName(instance.Type, out string instanceType)
-                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(instanceType, out SourceInfo sourceMetadata)
-                    && sourceMetadata.TaintedMethods.Contains(method.MetadataName);
+                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(instance.Type, out SourceInfo sourceInfo)
+                    && sourceInfo.TaintedMethods.Contains(method.MetadataName);
             }
         }
     }

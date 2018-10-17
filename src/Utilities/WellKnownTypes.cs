@@ -16,8 +16,6 @@ namespace Analyzer.Utilities
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
-        public const string SystemCollectionsGenericICollection = "System.Collections.Generic.ICollection`1";
-        public const string SystemCollectionsGenericIReadOnlyCollection = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
         public const string SystemWebUIWebControlsSqlDataSource = "System.Web.UI.WebControls.SqlDataSource";
@@ -125,6 +123,10 @@ namespace Analyzer.Utilities
         public const string SystemWebUIWebControlsWebPartsWebPartMinimizeVerb = "System.Web.UI.WebControls.WebParts.WebPartMinimizeVerb";
         public const string SystemWebUIWebControlsWebPartsWebPartRestoreVerb = "System.Web.UI.WebControls.WebParts.WebPartRestoreVerb";
         public const string SystemWebUIWebControlsWebPartsWebPartVerb = "System.Web.UI.WebControls.WebParts.WebPartVerb";
+        public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
+        public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
+        public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
+        public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
 
         public static INamedTypeSymbol ICollection(Compilation compilation)
         {
@@ -133,12 +135,12 @@ namespace Analyzer.Utilities
 
         public static INamedTypeSymbol GenericICollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemCollectionsGenericICollection);
+            return compilation.GetTypeByMetadataName(SystemCollectionsGenericICollection1);
         }
 
         public static INamedTypeSymbol GenericIReadOnlyCollection(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(SystemCollectionsGenericIReadOnlyCollection);
+            return compilation.GetTypeByMetadataName(SystemCollectionsGenericIReadOnlyCollection1);
         }
 
         public static INamedTypeSymbol IEnumerable(Compilation compilation)

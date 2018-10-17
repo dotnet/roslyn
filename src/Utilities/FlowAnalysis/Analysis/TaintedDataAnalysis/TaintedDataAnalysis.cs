@@ -23,10 +23,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
-            ImmutableDictionary<string, SourceInfo> taintedSourceInfos,
-            ImmutableDictionary<string, SanitizerInfo> taintedSanitizerInfos,
-            ImmutableDictionary<string, SinkInfo> taintedConcreteSinkInfos,
-            ImmutableDictionary<string, SinkInfo> taintedInterfaceSinkInfos)
+            ImmutableDictionary<ITypeSymbol, SourceInfo> taintedSourceInfos,
+            ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
+            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
+            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(

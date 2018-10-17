@@ -79,6 +79,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             builder.Add(fullTypeName, sinkInfo);
         }
 
+        public static ImmutableDictionary<ITypeSymbol, SinkInfo> BuildInterfaceSinksBySymbolMap(
+            WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            return InterfaceSinks.Values.ToBySymbolMap<SinkInfo>(wellKnownTypeProvider, (SinkInfo info) => info.FullTypeName);
+        }
+
+        public static ImmutableDictionary<ITypeSymbol, SinkInfo> BuildConcreteSinksBySymbolMap(
+            WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            return ConcreteSinks.Values.ToBySymbolMap<SinkInfo>(wellKnownTypeProvider, (SinkInfo info) => info.FullTypeName);
+        }
+
         /// <summary>
         /// Determines if a compilation (via its <see cref="WellKnownTypeProvider"/>) references a tainted data sink type.
         /// </summary>
@@ -88,7 +100,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             foreach (string interfaceTypeName in InterfaceSinks.Keys)
             {
-                if (wellKnownTypeProvider.TryGetType(interfaceTypeName, out INamedTypeSymbol unused))
+                if (wellKnownTypeProvider.TryGetTypeByMetadataName(interfaceTypeName, out INamedTypeSymbol unused))
                 {
                     return true;
                 }
@@ -96,7 +108,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             
             foreach (string concreteTypeName in ConcreteSinks.Keys)
             {
-                if (wellKnownTypeProvider.TryGetType(concreteTypeName, out INamedTypeSymbol unused))
+                if (wellKnownTypeProvider.TryGetTypeByMetadataName(concreteTypeName, out INamedTypeSymbol unused))
                 {
                     return true;
                 }

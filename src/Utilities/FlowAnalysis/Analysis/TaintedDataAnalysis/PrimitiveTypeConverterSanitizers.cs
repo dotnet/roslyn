@@ -100,5 +100,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sanitizingMethods != null ? ImmutableHashSet.Create<string>(sanitizingMethods) : ImmutableHashSet<string>.Empty);
             builder.Add(fullTypeName, info);
         }
+
+        public static ImmutableDictionary<ITypeSymbol, SanitizerInfo> BuildConcreteSanitizersBySymbolMap(
+            WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            return ConcreteSanitizers.Values.ToBySymbolMap<SanitizerInfo>(wellKnownTypeProvider, (SanitizerInfo info) => info.FullTypeName);
+        }
     }
 }

@@ -32,26 +32,5 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sanitizingMethods != null ? ImmutableHashSet.Create<string>(sanitizingMethods) : ImmutableHashSet<string>.Empty);
             ConcreteSanitizers.Add(fullTypeName, info);
         }
-
-        private static IEnumerable<SanitizerInfo> GetSanitizerInfosForType(
-            WellKnownTypeProvider wellKnownTypeProvider, 
-            INamedTypeSymbol namedTypeSymbol)
-        {
-            if (namedTypeSymbol == null)
-            {
-                yield break;
-            }
-
-            for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
-            {
-                if (!wellKnownTypeProvider.TryGetFullTypeName(typeSymbol, out string typeFullName)
-                    || !ConcreteSanitizers.TryGetValue(typeFullName, out SanitizerInfo sinkInfo))
-                {
-                    continue;
-                }
-
-                yield return sinkInfo;
-            }
-        }
     }
 }
