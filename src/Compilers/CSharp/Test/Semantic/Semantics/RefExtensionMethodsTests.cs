@@ -39,6 +39,7 @@ public static class Program
         }
 
         [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
         public void ExtensionMethods_StructCollectionInitializer()
         {
             var code = @"
@@ -68,6 +69,7 @@ public static class Program
         }
 
         [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
         public void ExtensionMethods_StructCollectionInitializerInParam()
         {
             var code = @"
@@ -120,6 +122,7 @@ public static class Program
         }
 
         [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
         public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg()
         {
             var code = @"
@@ -169,6 +172,7 @@ public static class Program
         }
 
         [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
         public void ExtensionMethods_StructCollectionInitializerRefThisRefElement()
         {
             var code = @"
@@ -201,6 +205,7 @@ public static class Program
         }
 
         [Fact]
+        [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
         public void ExtensionMethods_StructCollectionInitializerInThisRefElement()
         {
             var code = @"
