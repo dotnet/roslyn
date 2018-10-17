@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -15,12 +16,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null, default(TextSpan));
+            null, null, ImmutableArray<ISymbol>.Empty, null, null, default(TextSpan));
 
         public readonly ISymbol DeclaredSymbol;
         public readonly IAliasSymbol AliasSymbol;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
         public readonly ITypeSymbol Type;
+        public readonly ITypeSymbol ConvertedType;
         public readonly TextSpan Span;
 
         public TokenSemanticInfo(
@@ -28,12 +30,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IAliasSymbol aliasSymbol,
             ImmutableArray<ISymbol> referencedSymbols,
             ITypeSymbol type,
+            ITypeSymbol convertedType,
             TextSpan span)
         {
             DeclaredSymbol = declaredSymbol;
             AliasSymbol = aliasSymbol;
             ReferencedSymbols = referencedSymbols;
             Type = type;
+            ConvertedType = convertedType;
             Span = span;
         }
 
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (includeType)
             {
-                result.AddIfNotNull(Type);
+                result.AddIfNotNull(Type ?? ConvertedType);
             }
 
             return result.ToImmutableAndFree();
@@ -178,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             IAliasSymbol aliasSymbol;
             ITypeSymbol type;
+            ITypeSymbol convertedType;
             ISymbol declaredSymbol;
             ImmutableArray<ISymbol> allSymbols;
 
@@ -191,6 +196,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 // on an "override" token, the overridden symbol is the only part of TokenSemanticInfo used by callers, so type doesn't matter
                 type = null;
+                convertedType = null;
                 declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
             }
@@ -198,7 +204,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
                 var bindableParent = syntaxFacts.GetBindableParent(token);
-                type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
+                var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+                type = typeInfo.Type;
+                convertedType = typeInfo.ConvertedType;
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
 
                 var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
@@ -237,9 +245,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
             {
                 type = null;
+                convertedType = null;
             }
 
-            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
@@ -293,6 +302,54 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
                 }
+            }
+        }
+
+        public static ValueUsageInfo GetValueUsageInfo(
+            this SemanticModel semanticModel,
+            SyntaxNode node,
+            ISemanticFactsService semanticFacts,
+            CancellationToken cancellationToken)
+        {
+            if (semanticFacts.IsInOutContext(semanticModel, node, cancellationToken))
+            {
+                return ValueUsageInfo.WritableReference;
+            }
+            else if (semanticFacts.IsInRefContext(semanticModel, node, cancellationToken))
+            {
+                return ValueUsageInfo.ReadableWritableReference;
+            }
+            else if (semanticFacts.IsInInContext(semanticModel, node, cancellationToken))
+            {
+                return ValueUsageInfo.ReadableReference;
+            }
+            else if (semanticFacts.IsOnlyWrittenTo(semanticModel, node, cancellationToken))
+            {
+                return ValueUsageInfo.Write;
+            }
+            else
+            {
+                var operation = semanticModel.GetOperation(node, cancellationToken);
+                switch (operation?.Parent)
+                {
+                    case INameOfOperation _:
+                    case ITypeOfOperation _:
+                    case ISizeOfOperation _:
+                        return ValueUsageInfo.NameOnly;
+                }
+
+                if (node.IsPartOfStructuredTrivia())
+                {
+                    return ValueUsageInfo.NameOnly;
+                }
+
+                var usageInfo = ValueUsageInfo.Read;
+                if (semanticFacts.IsWrittenTo(semanticModel, node, cancellationToken))
+                {
+                    usageInfo |= ValueUsageInfo.Write;
+                }
+
+                return usageInfo;
             }
         }
     }

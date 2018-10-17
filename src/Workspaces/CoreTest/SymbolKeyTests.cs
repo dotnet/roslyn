@@ -77,7 +77,14 @@ namespace A { namespace N { } }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
-            Assert.Equal(5, symbols.Count);
+            Assert.Equal(14, symbols.Count());
+            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N",
+                "Microsoft", "Microsoft.CodeAnalysis", "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute.EmbeddedAttribute()",
+                "System", "System.Runtime", "System.Runtime.CompilerServices",
+                "System.Runtime.CompilerServices.NonNullTypesAttribute",
+                "System.Runtime.CompilerServices.NonNullTypesAttribute.NonNullTypesAttribute(bool)" },
+                symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }
 
@@ -520,7 +527,7 @@ public class A<T1>
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
-            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().TypeParameters.Single();
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Where(n => !n.IsImplicitlyDeclared).Single().TypeParameters.Single();
 
             TestRoundTrip(typeParameter, compilation);
         }
@@ -533,7 +540,8 @@ public class A<T1>
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
-            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
+            var typeParameter = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>()
+                .Where(n => !n.IsImplicitlyDeclared).Single().GetMembers("M").OfType<IMethodSymbol>().Single().TypeParameters.Single();
 
             TestRoundTrip(typeParameter, compilation);
         }

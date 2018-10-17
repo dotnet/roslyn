@@ -75,6 +75,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests", "src\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj", "{4462B57A-7245-4146-B504-D46FDE762948}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests", "src\Compilers\CSharp\Test\IOperation\Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests.csproj", "{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests", "src\Compilers\CSharp\Test\Semantic\Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj", "{B2C33A93-DB30-4099-903E-77D75C4C3F45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests", "src\Compilers\CSharp\Test\Symbol\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj", "{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC}"
@@ -393,6 +395,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PortableFacades.Setup", "sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Setup", "src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.Setup.csproj", "{03607817-6800-40B6-BEAA-D6F437CD62B7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Installer.Package", "src\Setup\Installer\Installer.Package.csproj", "{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -458,6 +462,10 @@ Global
 		{4462B57A-7245-4146-B504-D46FDE762948}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4462B57A-7245-4146-B504-D46FDE762948}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4462B57A-7245-4146-B504-D46FDE762948}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B2C33A93-DB30-4099-903E-77D75C4C3F45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B2C33A93-DB30-4099-903E-77D75C4C3F45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2C33A93-DB30-4099-903E-77D75C4C3F45}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1050,6 +1058,10 @@ Global
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1078,6 +1090,7 @@ Global
 		{B501A547-C911-4A05-AC6E-274A50DFF30E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{50D26304-0961-4A51-ABF6-6CAD1A56D203} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{4462B57A-7245-4146-B504-D46FDE762948} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{1AF3672A-C5F1-4604-B6AB-D98C4DE9C3B1} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{B2C33A93-DB30-4099-903E-77D75C4C3F45} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{28026D16-EB0C-40B0-BDA7-11CAA2B97CCC} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{50D26304-0961-4A51-ABF6-6CAD1A56D202} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
@@ -1237,6 +1250,7 @@ Global
 		{B9843F65-262E-4F40-A0BC-2CBEF7563A44} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{952808C5-799A-4CAA-964C-2AA78458CEC7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{03607817-6800-40B6-BEAA-D6F437CD62B7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

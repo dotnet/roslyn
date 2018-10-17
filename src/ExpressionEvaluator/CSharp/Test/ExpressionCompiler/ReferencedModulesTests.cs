@@ -20,6 +20,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
@@ -1248,6 +1249,7 @@ IL_0030:  ret
         // An assembly with the expected corlib name and with System.Object should
         // be considered the corlib, even with references to external assemblies.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
+        [WorkItem(30030, "https://github.com/dotnet/roslyn/issues/30030")]
         [Fact]
         public void CorLibWithAssemblyReferences()
         {
@@ -1313,7 +1315,8 @@ namespace System
     {
     }
 }";
-                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -1541,11 +1544,6 @@ namespace System
                 }
             }
 
-            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
-            {
-                throw new NotImplementedException();
-            }
-
             public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
@@ -1555,6 +1553,18 @@ namespace System
             protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<ManagedResource> builder, DiagnosticBag diagnostics)
             {
             }
+
+            protected override void EnsureNonNullTypesAttributeExists()
+                => throw ExceptionUtilities.Unreachable;
+
+            protected override void EnsureEmbeddedAttributeExists()
+                => throw ExceptionUtilities.Unreachable;
+
+            protected override bool InjectedSymbolsAreFrozen
+                => true;
+
+            protected override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
+                => ImmutableArray<NamedTypeSymbol>.Empty;
 
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
 

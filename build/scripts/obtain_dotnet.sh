@@ -5,6 +5,8 @@
 # Source this script to ensure dotnet is installed and on the path.
 # If the FORCE_DOWNLOAD environment variable is set to "true", the system's dotnet install is ignored,
 # and dotnet is downloaded and installed locally.
+set -e
+set -u
 
 # This is a function to keep variable assignments out of the parent script (that is sourcing this file)
 install_dotnet () {

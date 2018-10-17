@@ -109,6 +109,44 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Function
 
         <Fact>
+        Public Async Function TestCSharpNullLiteralVar() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Goo
+            {    
+                void Method()
+                {
+                    var x = nu$$ll
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, "")
+        End Function
+
+        <Fact>
+        Public Async Function TestCSharpNullLiteralString() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class Goo
+            {    
+                void Method()
+                {
+                    string x = nu$$ll
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, "class System.String")
+        End Function
+      
+        <Fact>
         Public Async Function TestCSharpStaticField() As Task
             Dim workspace =
 <Workspace>
@@ -116,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         <Document>
             class Foo
             {
-                private static int $$x;
+                private static int $$x
             }
         </Document>
     </Project>
@@ -642,9 +680,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestBasicAsync(workspace, "Structure System.DateTime")
         End Function
 
-        ''' Design change from Dev10
         <Fact>
-        Public Async Function TestNothingLiteral() As Task
+        Public Async Function TestNothingLiteralDim() As Task
             Dim workspace =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -657,7 +694,40 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         </Document>
     </Project>
 </Workspace>
-            Await TestBasicAsync(workspace, "")
+            Await TestBasicAsync(workspace, "Class System.Object")
+        End Function
+
+        <Fact>
+        Public Async Function TestNothingLiteralDimAsString() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class Goo
+                Sub Method()
+                    Dim x As String = Nothin$$g
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, "Class System.String")
+        End Function
+
+        <Fact>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Option Strict On
+            Class Goo
+                Dim x = Nothin$$g
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestBasicAsync(workspace, "Class System.Object")
         End Function
 
         <Fact>

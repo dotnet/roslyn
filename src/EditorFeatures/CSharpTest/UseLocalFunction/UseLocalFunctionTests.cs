@@ -3102,5 +3102,212 @@ class Enclosing<U> : DelegateEnclosing<U>
     }
 }");
         }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        var f2 = f;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        var f2 = (Func<string>)f;
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForGenericTypeInference1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+}");
+        }
+
+        [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForGenericTypeInference2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, string> [||]f = _ => null;
+
+        Method(f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+
+    void Method(string o)
+    {
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        string f(int _) => null;
+
+        Method((Func<int, string>)f);
+    }
+
+    void Method<T>(Func<T, string> o)
+    {
+    }
+
+    void Method(string o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithCastIntroducedForOverloadResolution()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+delegate string CustomDelegate();
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}",
+@"using System;
+
+delegate string CustomDelegate();
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        Method((Func<string>)f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestAvailableWithoutCastIfUnnecessaryForOverloadResolution()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+delegate string CustomDelegate(object arg);
+
+class C
+{
+    void M()
+    {
+        Func<string> [||]f = () => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}",
+@"using System;
+
+delegate string CustomDelegate(object arg);
+
+class C
+{
+    void M()
+    {
+        string f() => null;
+
+        Method(f);
+    }
+
+    void Method(Func<string> o)
+    {
+    }
+
+    void Method(CustomDelegate o)
+    {
+    }
+}");
+        }
     }
 }
