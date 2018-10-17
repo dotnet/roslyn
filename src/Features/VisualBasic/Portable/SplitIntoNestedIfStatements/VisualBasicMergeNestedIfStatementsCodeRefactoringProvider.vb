@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), [Shared]>
     Friend NotInheritable Class VisualBasicMergeNestedIfStatementsCodeRefactoringProvider
-        Inherits AbstractMergeNestedIfStatementsCodeRefactoringProvider(Of MultiLineIfBlockSyntax)
+        Inherits AbstractMergeNestedIfStatementsCodeRefactoringProvider(Of MultiLineIfBlockSyntax, ExpressionSyntax)
 
         Protected Overrides ReadOnly Property IfKeywordText As String = SyntaxFacts.GetText(SyntaxKind.IfKeyword)
 
@@ -27,8 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
             Return ImmutableArray.ToImmutableArray(Of SyntaxNode)(ifStatement.ElseIfBlocks).Add(ifStatement.ElseBlock)
         End Function
 
-        Protected Overrides Function MergeIfStatements(outerIfBlock As MultiLineIfBlockSyntax, innerIfBlock As MultiLineIfBlockSyntax, condition As SyntaxNode) As MultiLineIfBlockSyntax
-            Return outerIfBlock.WithIfStatement(outerIfBlock.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax))) _
+        Protected Overrides Function MergeIfStatements(outerIfBlock As MultiLineIfBlockSyntax,
+                                                       innerIfBlock As MultiLineIfBlockSyntax,
+                                                       condition As ExpressionSyntax) As MultiLineIfBlockSyntax
+            Return outerIfBlock.WithIfStatement(outerIfBlock.IfStatement.WithCondition(condition)) _
                                .WithStatements(innerIfBlock.Statements)
         End Function
     End Class

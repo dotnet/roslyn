@@ -18,8 +18,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 {
     internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider<
-        TIfStatementSyntax> : CodeRefactoringProvider
+        TIfStatementSyntax, TExpressionSyntax> : CodeRefactoringProvider
         where TIfStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         protected abstract string IfKeywordText { get; }
 
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
         protected abstract ImmutableArray<SyntaxNode> GetElseClauses(TIfStatementSyntax ifStatement);
 
-        protected abstract TIfStatementSyntax MergeIfStatements(TIfStatementSyntax outerIfStatement, TIfStatementSyntax innerIfStatement, SyntaxNode condition);
+        protected abstract TIfStatementSyntax MergeIfStatements(
+            TIfStatementSyntax outerIfStatement, TIfStatementSyntax innerIfStatement, TExpressionSyntax condition);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             Contract.ThrowIfFalse(IsTokenOfIfStatement(token, out var ifStatement));
             Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement));
 
-            var newCondition = document.GetLanguageService<SyntaxGenerator>().LogicalAndExpression(
+            var newCondition = (TExpressionSyntax)document.GetLanguageService<SyntaxGenerator>().LogicalAndExpression(
                 syntaxFacts.GetIfStatementCondition(parentIfStatement),
                 syntaxFacts.GetIfStatementCondition(ifStatement));
 

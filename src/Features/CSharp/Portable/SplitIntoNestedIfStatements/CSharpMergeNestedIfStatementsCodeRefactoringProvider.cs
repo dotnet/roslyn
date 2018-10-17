@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), Shared]
     internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider
-        : AbstractMergeNestedIfStatementsCodeRefactoringProvider<IfStatementSyntax>
+        : AbstractMergeNestedIfStatementsCodeRefactoringProvider<IfStatementSyntax, ExpressionSyntax>
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
             return ImmutableArray.Create<SyntaxNode>(ifStatement.Else);
         }
 
-        protected override IfStatementSyntax MergeIfStatements(IfStatementSyntax outerIfStatement, IfStatementSyntax innerIfStatement, SyntaxNode condition)
+        protected override IfStatementSyntax MergeIfStatements(
+            IfStatementSyntax outerIfStatement, IfStatementSyntax innerIfStatement, ExpressionSyntax condition)
         {
-            return outerIfStatement.WithCondition((ExpressionSyntax)condition).WithStatement(innerIfStatement.Statement);
+            return outerIfStatement.WithCondition(condition).WithStatement(innerIfStatement.Statement);
         }
     }
 }
