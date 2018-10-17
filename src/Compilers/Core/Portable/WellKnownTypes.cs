@@ -280,6 +280,9 @@ namespace Microsoft.CodeAnalysis
         System_AttributeTargets,
         Microsoft_CodeAnalysis_EmbeddedAttribute,
 
+        System_Index,
+        System_Range,
+
         NextAvailable,
     }
 
@@ -552,6 +555,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.NonNullTypesAttribute",
             "System.AttributeTargets",
             "Microsoft.CodeAnalysis.EmbeddedAttribute",
+
+            "System.Index",
+            "System.Range",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -1764,6 +1764,8 @@ endRegion:
                 case OperationKind.CaughtException:
                 case OperationKind.StaticLocalInitializationSemaphore:
                 case OperationKind.Discard:
+                case OperationKind.ReDim:
+                case OperationKind.ReDimClause:
                     return true;
             }
 

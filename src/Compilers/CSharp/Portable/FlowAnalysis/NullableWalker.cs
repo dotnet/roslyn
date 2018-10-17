@@ -3752,6 +3752,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
+        {
+            var result = base.VisitFromEndIndexExpression(node);
+            SetResult(node);
+            return result;
+        }
+
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
             // Should be handled by VisitObjectCreationExpression.
@@ -4126,6 +4133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
         {
             var result = base.VisitPseudoVariable(node);
+            SetResult(node);
+            return result;
+        }
+
+        public override BoundNode VisitRangeExpression(BoundRangeExpression node)
+        {
+            var result = base.VisitRangeExpression(node);
             SetResult(node);
             return result;
         }

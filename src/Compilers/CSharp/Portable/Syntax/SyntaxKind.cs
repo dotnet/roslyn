@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         QuestionToken = 8219,
         HashToken = 8220,
         SlashToken = 8221,
+        DotDotToken = 8222,
 
         // additional xml tokens
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -332,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
+        RangeExpression = 8658,
 
         // binary expressions
         AddExpression = 8668,
@@ -389,6 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PostIncrementExpression = 8738,
         PostDecrementExpression = 8739,
         AwaitExpression = 8740,
+        IndexExpression = 8741,
 
         // primary expression
         ThisExpression = 8746,
