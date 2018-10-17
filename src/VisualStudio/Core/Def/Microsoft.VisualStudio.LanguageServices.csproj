@@ -50,6 +50,12 @@
     <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
       <DependentUpon>PickMembersDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Implementation\PushMemberUp\PushMemberUpDialog.xaml.cs">
+      <DependentUpon>PushMemberUpDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Implementation\PushMemberUp\PushMemberUpDialogWarning.xaml.cs">
+      <DependentUpon>PushMemberUpDialogWarning.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Implementation\Workspace\DetailedErrorInfoDialog.xaml.cs">
       <DependentUpon>DetailedErrorInfoDialog.xaml</DependentUpon>
     </Compile>
