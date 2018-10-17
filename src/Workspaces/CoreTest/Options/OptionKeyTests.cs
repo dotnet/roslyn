@@ -28,5 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
 
             Assert.Equal("(BazLanguage) FooFeature - BarName", toStringResult);
         }
+        [Fact]
+        public void ToStringForDefaultOption()
+        {
+            var optionKey = default(OptionKey);
+            var toStringResult = optionKey.ToString();
+            Assert.Equal("", toStringResult);
+        }
     }
 }
