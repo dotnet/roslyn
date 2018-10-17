@@ -167,9 +167,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private void OnDocumentClosed(uint docCookie)
         {
             RunningDocumentInfo info = _rdt.Value.GetDocumentInfo(docCookie);
-            if (_xamlProjects.TryGetValue(info.Hierarchy, out VisualStudioProject project))
+            if (info.Hierarchy != null && _xamlProjects.TryGetValue(info.Hierarchy, out VisualStudioProject project))
             {
-                project.RemoveSourceFile(info.Moniker);
+                if (project.ContainsSourceFile(info.Moniker))
+                {
+                    project.RemoveSourceFile(info.Moniker);
+                }
             }
         }
     }
