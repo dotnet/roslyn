@@ -251,6 +251,7 @@ d.cs
         }
 
         [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void SdkPathArg()
         {
             var parentDir = Temp.CreateDirectory();
@@ -263,6 +264,7 @@ d.cs
         }
 
         [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void SdkPathNoArg()
         {
             var parentDir = Temp.CreateDirectory();
