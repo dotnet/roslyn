@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         [Fact]
         public async Task NotMergedWithNestedIfInsideWhileLoop()
         {
-            // Do not consider the while loop to be a pure block (as might be suggested by some language-agnostic helpers).
+            // Do not consider the while loop to be a simple block (as might be suggested by some language-agnostic helpers).
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         [Fact]
         public async Task NotMergedWithNestedIfInsideBlockInsideUsingStatement()
         {
-            // Do not consider the using statement to be a pure block (as might be suggested by some language-agnostic helpers).
+            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         [Fact]
         public async Task NotMergedWithNestedIfInsideUsingStatementInsideBlock()
         {
-            // Do not consider the using statement to be a pure block (as might be suggested by some language-agnostic helpers).
+            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
@@ -1095,6 +1095,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
                 default:
                     break;
             }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        while (a != b)
+        {
+            if (a)
+            {
+                [||]if (b)
+                    System.Console.WriteLine(a && b);
+                else
+                    System.Console.WriteLine(a);
+
+                while (a != b)
+                    continue;
+            }
+            else
+                System.Console.WriteLine(a);
+
+            while (a != b)
+                continue;
         }
     }
 }");
