@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         <Document>
             class Foo
             {
-                private static int $$x
+                private static int $$x;
             }
         </Document>
     </Project>
