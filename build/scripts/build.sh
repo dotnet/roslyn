@@ -143,7 +143,7 @@ then
 fi
 
 # Import Arcade functions
-. $scriptroot/init-tools.sh
+. $scriptroot/tools.sh
 
 InitializeDotNetCli $restore
 

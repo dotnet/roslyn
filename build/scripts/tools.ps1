@@ -1,5 +1,5 @@
 # 
-# TODO: This file is currently a subset of Arcade's init-tools.ps1.
+# TODO: This file is currently a subset of Arcade's tools.ps1.
 # 
 $useInstalledDotNetCli = if (Test-Path variable:useInstalledCli) { $useInstalledDotNetCli } else { $true }
 

@@ -4,7 +4,7 @@ Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
 # Import Arcade functions
-. (Join-Path $PSScriptRoot "init-tools.ps1")
+. (Join-Path $PSScriptRoot "tools.ps1")
 
 [string]$binariesDir = Join-Path $RepoRoot "Binaries"
 
