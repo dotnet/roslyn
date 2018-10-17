@@ -215,6 +215,291 @@ Class C
 End Class"))
         End Sub
 
+        <Fact>
+        Public Sub IsQueryKeyword_From()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim result = $$From var1 In collection1")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_In()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim result = From var1 $$In collection1")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Where()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerOrders = From cust In customers, ord In orders
+                        $$Where cust.CustomerID = ord.CustomerID")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Select()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerOrders = From cust In customers, ord In orders
+                     Where cust.CustomerID = ord.CustomerID
+                     $$Select cust.CompanyName, ord.OrderDate")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Distinct()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerOrders = From cust In customers, ord In orders
+                     Where cust.CustomerID = ord.CustomerID
+                     Select cust.CompanyName, ord.OrderDate
+                     $$Distinct")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Aggregate()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerMaxOrder = $$Aggregate order In orders
+                       Into MaxOrder = Max(order.Total)")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupBy_Group()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customersByCountry = From cust In customers
+                         $$Group By CountryName = cust.Country
+                         Into RegionalCustomers = Group, Count()")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupBy_By()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customersByCountry = From cust In customers
+                         Group $$By CountryName = cust.Country
+                         Into RegionalCustomers = Group, Count()")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Into()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customersByCountry = From cust In customers
+                         Group By CountryName = cust.Country
+                         $$Into RegionalCustomers = Group, Count()")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_IntoAliasGroup()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customersByCountry = From cust In customers
+                         Group By CountryName = cust.Country
+                         Into RegionalCustomers = $$Group, Count()")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupJoin_Group1()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   $$Group Join ord In orders On
+                   cust.CustomerID Equals ord.CustomerID
+                   Into CustomerOrders = Group,
+                        OrderTotal = Sum(ord.Total)
+                   Select cust.CompanyName, cust.CustomerID,
+                          CustomerOrders, OrderTotal")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupJoin_Join()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   Group $$Join ord In orders On
+                   cust.CustomerID Equals ord.CustomerID
+                   Into CustomerOrders = Group,
+                        OrderTotal = Sum(ord.Total)
+                   Select cust.CompanyName, cust.CustomerID,
+                          CustomerOrders, OrderTotal")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupJoin_On()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   Group Join ord In orders $$On
+                   cust.CustomerID Equals ord.CustomerID
+                   Into CustomerOrders = Group,
+                        OrderTotal = Sum(ord.Total)
+                   Select cust.CompanyName, cust.CustomerID,
+                          CustomerOrders, OrderTotal")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupJoin_Equals()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   Group Join ord In orders On
+                   cust.CustomerID $$Equals ord.CustomerID
+                   Into CustomerOrders = Group,
+                        OrderTotal = Sum(ord.Total)
+                   Select cust.CompanyName, cust.CustomerID,
+                          CustomerOrders, OrderTotal")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_GroupJoin_Group2()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   Group Join ord In orders On
+                   cust.CustomerID Equals ord.CustomerID
+                   Into CustomerOrders = $$Group,
+                        OrderTotal = Sum(ord.Total)
+                   Select cust.CompanyName, cust.CustomerID,
+                          CustomerOrders, OrderTotal")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Join_Join()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim processes = From proc In Process.GetProcesses
+                $$Join desc In processDescriptions
+                On proc.ProcessName Equals desc.ProcessName
+                Select proc.ProcessName, proc.Id, desc.Description")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Join_In()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim processes = From proc In Process.GetProcesses
+                Join desc $$In processDescriptions
+                On proc.ProcessName Equals desc.ProcessName
+                Select proc.ProcessName, proc.Id, desc.Description")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Join_On()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim processes = From proc In Process.GetProcesses
+                Join desc In processDescriptions
+                $$On proc.ProcessName Equals desc.ProcessName
+                Select proc.ProcessName, proc.Id, desc.Description")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Join_Equals()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim processes = From proc In Process.GetProcesses
+                Join desc In processDescriptions
+                On proc.ProcessName $$Equals desc.ProcessName
+                Select proc.ProcessName, proc.Id, desc.Description")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Let()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim discountedProducts = From prod In products
+                         $$Let Discount = prod.UnitPrice * 0.1
+                         Where Discount >= 50
+                         Select prod.ProductName, prod.UnitPrice, Discount")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_OrderBy_Order()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim titlesDescendingPrice = From book In books
+                            $$Order By book.Price Descending, book.Title Ascending, book.Author
+                            Select book.Title, book.Price")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_OrderBy_By()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim titlesDescendingPrice = From book In books
+                            Order $$By book.Price Descending, book.Title Ascending, book.Author
+                            Select book.Title, book.Price")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_OrderBy_Descending()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim titlesDescendingPrice = From book In books
+                            Order By book.Price $$Descending, book.Title Ascending, book.Author
+                            Select book.Title, book.Price")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_OrderBy_Ascending()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim titlesDescendingPrice = From book In books
+                            Order By book.Price Descending, book.Title $$Ascending, book.Author
+                            Select book.Title, book.Price")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Skip_Skip()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim returnCustomers = From cust In customers
+                      $$Skip startIndex Take pageSize")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Skip_Take()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim returnCustomers = From cust In customers
+                      Skip startIndex $$Take pageSize")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_SkipWhile_Skip()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   Order By cust.Country
+                   $$Skip While IsInternationalCustomer(cust)")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_SkipWhile_While()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customerList = From cust In customers
+                   Order By cust.Country
+                   Skip $$While IsInternationalCustomer(cust)")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_TakeWhile_Take()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim customersWithOrders = From cust In customers
+                          Order By cust.Orders.Count Descending
+                          $$Take While HasOrders(cust)")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_WhileStatement_1()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Dim index As Integer = 0
+$$While index <= 10
+    index += 1
+End While")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_WhileStatement_2()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Dim index As Integer = 0
+While index <= 10
+    index += 1
+End $$While")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_DoWhileLoop()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Do $$While index <= 10
+    index += 1
+Loop")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_DoLoopWhile()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Dim index As Integer = 0
+Do
+    index += 1
+Loop $$While index < 10")))
+        End Sub
+
         Private Function IsMethodLevelMember(markup As String) As Boolean
             Dim code As String = Nothing
             Dim span As TextSpan
@@ -226,6 +511,25 @@ End Class"))
             Return service.IsMethodLevelMember(node)
         End Function
 
+        Private Function WrapInMethod(methodBody As String) As String
+            Return $"
+Class C
+    Sub M()
+        { methodBody }
+    End Sub
+End Class"
+        End Function
+
+        Private Function IsQueryKeyword(markup As String) As Boolean
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup, code, position)
+            Dim tree = SyntaxFactory.ParseSyntaxTree(code)
+            Dim token = tree.GetRoot().FindToken(position)
+            Dim service = VisualBasicSyntaxFactsService.Instance
+
+            Return service.IsQueryKeyword(token)
+        End Function
     End Class
 
 End Namespace

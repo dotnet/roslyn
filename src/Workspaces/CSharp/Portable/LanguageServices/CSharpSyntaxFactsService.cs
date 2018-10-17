@@ -321,30 +321,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (token.Kind())
             {
                 case SyntaxKind.FromKeyword:
-                case SyntaxKind.GroupKeyword:
                 case SyntaxKind.JoinKeyword:
-                case SyntaxKind.IntoKeyword:
                 case SyntaxKind.LetKeyword:
-                case SyntaxKind.ByKeyword:
-                case SyntaxKind.SelectKeyword:
                 case SyntaxKind.OrderByKeyword:
+                case SyntaxKind.WhereKeyword:
                 case SyntaxKind.OnKeyword:
                 case SyntaxKind.EqualsKeyword:
+                case SyntaxKind.InKeyword:
+                    return token.Parent is QueryClauseSyntax;
+                case SyntaxKind.ByKeyword:
+                case SyntaxKind.GroupKeyword:
+                case SyntaxKind.SelectKeyword:
+                    return token.Parent is SelectOrGroupClauseSyntax;
                 case SyntaxKind.AscendingKeyword:
                 case SyntaxKind.DescendingKeyword:
-                    return true;
-                case SyntaxKind.InKeyword:
-                    switch (token.Parent.Kind())
-                    {
-                        case SyntaxKind.FromClause:
-                        case SyntaxKind.JoinClause:
-                        case SyntaxKind.JoinIntoClause:
-                            return true;
-                        default:
-                            return false;
-                    }
-                case SyntaxKind.WhereKeyword:
-                    return token.Parent.Kind() == SyntaxKind.WhereClause; // false for e.g. type parameter constraint
+                    return token.Parent is OrderingSyntax;
+                case SyntaxKind.IntoKeyword:
+                    return token.Parent.IsKind(SyntaxKind.JoinIntoClause, SyntaxKind.QueryContinuation);
                 default:
                     return false;
             }
