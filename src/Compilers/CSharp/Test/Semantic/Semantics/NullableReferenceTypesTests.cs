@@ -39479,18 +39479,20 @@ class C
     static void G(object?* x, object* y)
     {
         var z = CreatePointer(A.F)/*T:object**/;
-        F(x, x)/*T:object?*!*/;
-        F(x, y)/*T:object*!*/;
-        F(x, z)/*T:object*!*/;
-        F(y, x)/*T:object*!*/;
-        F(y, y)/*T:object!*!*/;
-        F(y, z)/*T:object*!*/;
-        F(z, x)/*T:object*!*/;
-        F(z, y)/*T:object*!*/;
-        F(z, z)/*T:object*!*/;
+        F(x, x)/*T:object**/;
+        F(x, y)/*T:object**/;
+        F(x, z)/*T:object**/;
+        F(y, x)/*T:object**/;
+        F(y, y)/*T:object**/;
+        F(y, z)/*T:object**/;
+        F(z, x)/*T:object**/;
+        F(z, y)/*T:object**/;
+        F(z, z)/*T:object**/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(TestOptions.UnsafeDebugDll), references: new[] { ref0 });
+            // NullableWalker.VisitCall is currently skipping F(x, y), etc. because
+            // each BoundCall has errors.
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')

@@ -1623,8 +1623,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
+
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
+
             if (!isAsync && !isIterator)
             {
                 return;
@@ -1661,8 +1664,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // to have correct stepping behavior during debugging.
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
             }
-
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
         }
 
         /// <summary>
