@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RestoreKeyword:
                 case SyntaxKind.ReferenceKeyword:
                 case SyntaxKind.LoadKeyword:
-                case SyntaxKind.NonNullKeyword:
+                case SyntaxKind.NullableKeyword:
+                case SyntaxKind.EnableKeyword:
                     return true;
                 default:
                     return false;
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.LoadKeyword:
-                case SyntaxKind.NonNullKeyword:
+                case SyntaxKind.NullableKeyword:
                 case SyntaxKind.UnderscoreToken:
                     return true;
                 default:
@@ -1051,8 +1052,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ReferenceKeyword;
                 case "load":
                     return SyntaxKind.LoadKeyword;
-                case "nonnull":
-                    return SyntaxKind.NonNullKeyword;
+                case "nullable":
+                    return SyntaxKind.NullableKeyword;
+                case "enable":
+                    return SyntaxKind.EnableKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1538,8 +1541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "r";
                 case SyntaxKind.LoadKeyword:
                     return "load";
-                case SyntaxKind.NonNullKeyword:
-                    return "nonnull";
+                case SyntaxKind.NullableKeyword:
+                    return "nullable";
+                case SyntaxKind.EnableKeyword:
+                    return "enable";
 
                 // contextual keywords
                 case SyntaxKind.YieldKeyword:

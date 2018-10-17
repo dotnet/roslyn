@@ -594,23 +594,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the `#nonnull` directive preceding the position is
-        /// `restore`, false if `disable`, and null if no preceding directive.
+        /// Returns true if the `#nullable` directive preceding the position is
+        /// `enable`, false if `disable`, and null if no preceding directive.
         /// </summary>
-        internal bool? GetNonNullDirectiveState(int position)
+        internal bool? GetNullableDirectiveState(int position)
         {
-            if (_lazyNonNullDirectiveMap == null)
+            if (_lazyNullableDirectiveMap == null)
             {
-                // Create the #nonnull directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNonNullDirectiveMap, NonNullDirectiveMap.Create(this), null);
+                // Create the #nullable directive map on demand.
+                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this), null);
             }
 
-            return _lazyNonNullDirectiveMap.GetDirectiveState(position);
+            return _lazyNullableDirectiveMap.GetDirectiveState(position);
         }
 
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
-        private NonNullDirectiveMap _lazyNonNullDirectiveMap;
+        private NullableDirectiveMap _lazyNullableDirectiveMap;
 
         private LinePosition GetLinePosition(int position)
         {

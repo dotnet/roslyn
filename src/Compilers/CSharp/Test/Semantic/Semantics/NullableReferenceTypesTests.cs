@@ -50,6 +50,26 @@ class C
         }
 
         [Fact]
+        public void Directive_Qualifiers()
+        {
+            var source =
+@"#nullable
+#nullable enable
+#nullable disable
+#nullable restore
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS8637: Expected enable or disable
+                // #nullable
+                Diagnostic(ErrorCode.ERR_NullableDirectiveQualifierExpected, "").WithLocation(1, 10),
+                // (4,11): error CS8637: Expected enable or disable
+                // #nullable restore
+                Diagnostic(ErrorCode.ERR_NullableDirectiveQualifierExpected, "restore").WithLocation(4, 11));
+            comp.VerifyTypes();
+        }
+
+        [Fact]
         public void Directive_NullableDefault()
         {
             var source =
@@ -65,7 +85,7 @@ class B
         o1 = F2/*T:A<object, string?>*/;
         o1 = F3/*T:A<object!, string?>!*/;
     }
-#nonnull disable
+#nullable disable
     static A<object, string?> F2;
     static void G2()
     {
@@ -74,7 +94,7 @@ class B
         o2 = F2/*T:A<object, string?>*/;
         o2 = F3/*T:A<object!, string?>!*/;
     }
-#nonnull restore
+#nullable enable
     static A<object, string?> F3;
     static void G3()
     {
@@ -111,7 +131,7 @@ class B
         o1 = F2/*T:A<object, string?>*/;
         o1 = F3/*T:A<object!, string?>!*/;
     }
-#nonnull disable
+#nullable disable
     static A<object, string?> F2;
     static void G2()
     {
@@ -120,7 +140,7 @@ class B
         o2 = F2/*T:A<object, string?>*/;
         o2 = F3/*T:A<object!, string?>!*/;
     }
-#nonnull restore
+#nullable enable
     static A<object, string?> F3;
     static void G3()
     {
@@ -157,7 +177,7 @@ class B
         o1 = F2/*T:A<object, string?>*/;
         o1 = F3/*T:A<object!, string?>!*/;
     }
-#nonnull disable
+#nullable disable
     static A<object, string?> F2;
     static void G2()
     {
@@ -166,7 +186,7 @@ class B
         o2 = F2/*T:A<object, string?>*/;
         o2 = F3/*T:A<object!, string?>!*/;
     }
-#nonnull restore
+#nullable enable
     static A<object, string?> F3;
     static void G3()
     {
@@ -191,7 +211,7 @@ class B
 @"class Base<T> { }
 class Program
 {
-#nonnull restore
+#nullable enable
     static void F(Base<object?> b)
     {
     }
@@ -213,11 +233,11 @@ class Program
 partial class C1 : Base<object> { }
 partial class C2 { }
 partial class C3 : Base<object> { }
-#nonnull disable
+#nullable disable
 partial class C4 { }
 partial class C5 : Base<object> { }
 partial class C6 { }
-#nonnull restore
+#nullable enable
 partial class C7 : Base<object> { }
 partial class C8 { }
 partial class C9 : Base<object> { }
@@ -227,11 +247,11 @@ partial class C9 : Base<object> { }
 partial class C1 { }
 partial class C4 : Base<object> { }
 partial class C7 { }
-#nonnull disable
+#nullable disable
 partial class C2 : Base<object> { }
 partial class C5 { }
 partial class C8 : Base<object> { }
-#nonnull restore
+#nullable enable
 partial class C3 { }
 partial class C6 : Base<object> { }
 partial class C9 { }
@@ -528,8 +548,8 @@ class C2
             var c2 = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             c2.VerifyDiagnostics(
                 // (10,2): error CS8370: Feature 'static null checking' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // #nonnull restore
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nonnull").WithArguments("static null checking", "8.0").WithLocation(10, 2)
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("static null checking", "8.0").WithLocation(10, 2)
                 );
         }
 
@@ -34215,23 +34235,23 @@ public class D
             var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // (2,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                // #nonnull restore
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(2, 2),
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("static null checking", "8.0").WithLocation(2, 2),
                 // (9,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                // #nonnull restore
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(9, 2),
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("static null checking", "8.0").WithLocation(9, 2),
                 // (12,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                // #nonnull restore
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(12, 2),
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("static null checking", "8.0").WithLocation(12, 2),
                 // (15,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                // #nonnull restore
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(15, 2),
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("static null checking", "8.0").WithLocation(15, 2),
                 // (18,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                // #nonnull restore
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(18, 2),
+                // #nullable enable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("static null checking", "8.0").WithLocation(18, 2),
                 // (20,2): error CS8107: Feature 'static null checking' is not available in C# 7.0. Please use language version 8.0 or greater.
-                // #nonnull disable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nonnull").WithArguments("static null checking", "8.0").WithLocation(20, 2)
+                // #nullable disable
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "nullable").WithArguments("static null checking", "8.0").WithLocation(20, 2)
                 );
         }
 

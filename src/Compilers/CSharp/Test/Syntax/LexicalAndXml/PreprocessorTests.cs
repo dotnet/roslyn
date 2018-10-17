@@ -248,17 +248,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             Assert.Equal(exp.Text, ld.File.Value);
                         }
                         break;
-                    case SyntaxKind.NonNullDirectiveTrivia:
-                        var nn = (NonNullDirectiveTriviaSyntax)dt;
-                        var disableOrRestore = nn.DisableOrRestoreKeyword;
+                    case SyntaxKind.NullableDirectiveTrivia:
+                        var nn = (NullableDirectiveTriviaSyntax)dt;
+                        var setting = nn.SettingKeyword;
                         if (null == exp.Text)
                         {
-                            Assert.True(disableOrRestore.IsMissing);
+                            Assert.True(setting.IsMissing);
                         }
                         else
                         {
-                            Assert.Equal(exp.Text, disableOrRestore.ValueText);
-                            Assert.True(disableOrRestore.Kind() == SyntaxKind.DisableKeyword || disableOrRestore.Kind() == SyntaxKind.RestoreKeyword);
+                            Assert.Equal(exp.Text, setting.ValueText);
+                            Assert.True((setting.Kind() == SyntaxKind.IdentifierToken && setting.ContextualKind() == SyntaxKind.EnableKeyword) ||
+                                setting.Kind() == SyntaxKind.DisableKeyword);
                         }
                         break;
                     default:
@@ -3988,120 +3989,131 @@ class A
 
         #endregion
 
-        #region #nonnull
+        #region #nullable
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullCSharp7_3()
+        public void NullableCSharp7_3()
         {
-            var text = @"#nonnull restore";
+            var text = @"#nullable enable";
             var node = Parse(text, options: TestOptions.Regular7_3);
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullRestore()
+        public void NullableRestore()
         {
-            var text = @"#nonnull restore";
-            var node = Parse(text, options: TestOptions.Regular8);
-            TestRoundTripping(node, text);
-            VerifyErrorCode(node); // no errors
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void NonNullDisable()
-        {
-            var text = @"#nonnull disable // comment";
-            var node = Parse(text, options: TestOptions.Regular8);
-            TestRoundTripping(node, text);
-            VerifyErrorCode(node); // no errors
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
-        }
-
-        [Fact]
-        [Trait("Feature", "Directives")]
-        public void NonNullWithoutDisableOrRestore()
-        {
-            var text = @"#nonnull";
+            var text = @"#nullable restore";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NonNullDirectiveQualifierExpected, Status = NodeStatus.IsError });
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullExtraToken()
+        public void NullableEnable()
         {
-            var text = @"#nonnull disable true";
+            var text = @"#nullable enable";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisable()
+        {
+            var text = @"#nullable disable // comment";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableWithoutDisableOrRestore()
+        {
+            var text = @"#nullable";
+            var node = Parse(text, options: TestOptions.Regular8);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExtraToken()
+        {
+            var text = @"#nullable disable true";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_EndOfPPLineExpected, Status = NodeStatus.IsError });
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullNotDisableOrRestore()
+        public void NullableUnrecognizedSetting()
         {
-            var text = @"#nonnull disabled";
+            var text = @"#nullable disabled";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NonNullDirectiveQualifierExpected, Status = NodeStatus.IsError });
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullNotDisableOrRestoreExtraToken()
+        public void NullableUnrecognizedSettingExtraToken()
         {
-            var text = @"#nonnull disabled true";
+            var text = @"#nullable disabled true";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text, disallowErrors: false);
-            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NonNullDirectiveQualifierExpected, Status = NodeStatus.IsError });
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullExcluded()
+        public void NullableExcluded()
         {
             var text =
-@"#nonnull restore
+@"#nullable enable
 #if false
-#nonnull restore
+#nullable enable
 #endif
-#nonnull disable
+#nullable disable
 ";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" },
                 new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "restore" },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "enable" },
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
         }
 
         [Fact]
         [Trait("Feature", "Directives")]
-        public void NonNullExcludedNotDisableOrRestore()
+        public void NullableExcludedUnrecognizedSetting()
         {
             var text =
 @"#if false
-#nonnull restored
+#nullable disabled
 #endif
 ";
             var node = Parse(text, options: TestOptions.Regular8);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node,
                 new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.NonNullDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "" },
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 

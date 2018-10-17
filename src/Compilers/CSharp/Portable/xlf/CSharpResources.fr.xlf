@@ -107,9 +107,9 @@
         <target state="new">The 'new()' constraint cannot be used with the 'unmanaged' constraint</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NonNullDirectiveQualifierExpected">
-        <source>Expected disable or restore</source>
-        <target state="new">Expected disable or restore</target>
+      <trans-unit id="ERR_NullableDirectiveQualifierExpected">
+        <source>Expected enable or disable</source>
+        <target state="new">Expected enable or disable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">

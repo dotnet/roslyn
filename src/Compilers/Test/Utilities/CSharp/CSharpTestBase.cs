@@ -122,12 +122,12 @@ namespace System.Runtime.CompilerServices
 
         protected static string NonNullTypesOff()
         {
-            return "#nonnull disable";
+            return "#nullable disable";
         }
 
         internal static string NonNullTypesOn()
         {
-            return "#nonnull restore";
+            return "#nullable enable";
         }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
