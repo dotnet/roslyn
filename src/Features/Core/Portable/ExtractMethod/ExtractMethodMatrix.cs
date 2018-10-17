@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -16,7 +17,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             BuildMatrix();
         }
 
-        public static VariableStyle GetVariableStyle(
+        public static bool TryGetVariableStyle(
+            bool bestEffort,
             bool captured,
             bool dataFlowIn,
             bool dataFlowOut,
@@ -26,21 +28,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             bool writtenInside,
             bool readOutside,
             bool writtenOutside,
-            bool unsafeAddressTaken)
+            bool unsafeAddressTaken,
+            out VariableStyle variableStyle)
         {
-#if false
-            // decide not to treat capture variable special
-            if (captured)
-            {
-                // if a variable is captured, it can only be passed as ref parameter.
-                return VariableStyle.OnlyAsRefParam;
-            }
-#endif
             // bug # 12258, 12114
             // use "out" if "&" is taken for the variable
             if (unsafeAddressTaken)
             {
-                return VariableStyle.Out;
+                variableStyle = VariableStyle.Out;
+                return true;
             }
 
             var key = new Key(
@@ -84,7 +80,21 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             Contract.ThrowIfFalse(s_matrix.ContainsKey(key), $"Matrix does not contain Key '{key}'.");
 
-            return s_matrix[key];
+            if (s_matrix.TryGetValue(key, out variableStyle))
+            {
+                return true;
+            }
+
+            if (bestEffort)
+            {
+                variableStyle = VariableStyle.None;
+                return true;
+            }
+
+            // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
+            // and bail out.
+            Logger.Log(FunctionId.Refactoring_ExtractMethod_UnknownMatrixItem, key.ToString());
+            return false;
         }
 
         private static void BuildMatrix()
