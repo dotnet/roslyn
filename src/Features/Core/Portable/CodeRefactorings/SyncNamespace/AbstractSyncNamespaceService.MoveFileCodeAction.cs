@@ -34,29 +34,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 _newfolders = newFolders;
             }
 
+            internal override bool PerformFinalApplicabilityCheck => true;
+
+            internal override bool IsApplicable(Workspace workspace)
+            {
+                // Due to some existing issue, move file action is not available for CPS projects.
+                return workspace.CanRenameFilesDuringCodeActions(workspace.CurrentSolution.GetDocument(_state.OriginalDocumentId).Project);
+            }
+
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                 => await MoveFileToMatchNamespaceAsync(cancellationToken).ConfigureAwait(false);
 
             private async Task<ImmutableArray<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
             {
-                var (newSolution, newDocumentId) = await MoveFileWorker(_state.Solution, _state.OriginalDocumentId, cancellationToken).ConfigureAwait(false);
-
-                return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(newSolution),
-                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
-            }
-
-            private async Task<(Solution, DocumentId)> MoveFileWorker(Solution solution, DocumentId Id, CancellationToken cancellationToken)
-            {
-                var document = solution.GetDocument(Id);
+                var id = _state.OriginalDocumentId;
+                var solution = _state.Solution;
+                var document = solution.GetDocument(id);
                 var newDocumentId = DocumentId.CreateNewId(document.Project.Id, document.Name);
 
+                solution = solution.RemoveDocument(id);
+
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newSolution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
+                solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
 
-                newSolution = newSolution.RemoveDocument(Id);
-
-                return (newSolution, newDocumentId);
+                return ImmutableArray.Create<CodeActionOperation>(
+                    new ApplyChangesOperation(solution),
+                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
             }
             
             public static ImmutableArray<MoveFileCodeAction> Create(State state)
