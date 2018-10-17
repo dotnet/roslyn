@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
     {
         protected abstract string CodeActionTitle { get; }
 
-        protected abstract bool IsBlockLike(SyntaxNode node);
-        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode blockLike);
-        protected abstract SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<TStatementSyntax> statements);
+        protected abstract bool CanRefactorToContainBlockStatements(SyntaxNode parent);
+        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode parent);
+        protected abstract SyntaxNode WithStatements(SyntaxNode parent, SyntaxList<TStatementSyntax> statements);
 
         protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<TStatementSyntax> statementsToSurround);
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-        private static async Task<(TLocalDeclarationSyntax, ILocalSymbol)> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<(TLocalDeclarationSyntax, ILocalSymbol)> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 root.FindNode(selection)?.GetAncestorOrThis<TLocalDeclarationSyntax>()
                 ?? root.FindTokenOnLeftOfPosition(selection.End).GetAncestor<TLocalDeclarationSyntax>();
 
-            if (declarationSyntax is null)
+            if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
             {
                 return default;
             }
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            if (IsBlockLike(declarationStatement.Parent))
+            if (CanRefactorToContainBlockStatements(declarationStatement.Parent))
             {
                 // Find the minimal number of statements to move into the using block
                 // in order to not break existing references to the local.

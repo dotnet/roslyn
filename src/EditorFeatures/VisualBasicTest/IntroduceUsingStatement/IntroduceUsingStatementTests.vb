@@ -329,5 +329,23 @@ End Class", "Class C
     End Sub
 End Class")
         End Function
+
+        <Fact>
+        Public Async Function RefactoringIsNotAvailableOnSingleLineIfStatements() As Task
+            Await TestMissingInRegularAndScriptAsync("Class C
+    Sub M(disposable As System.IDisposable)
+        If disposable IsNot Nothing Then Dim x = disposable[||]
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function RefactoringIsNotAvailableOnSingleLineIfElseClauses() As Task
+            Await TestMissingInRegularAndScriptAsync("Class C
+    Sub M(disposable As System.IDisposable)
+        If disposable IsNot Nothing Then Else Dim x = disposable[||]
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

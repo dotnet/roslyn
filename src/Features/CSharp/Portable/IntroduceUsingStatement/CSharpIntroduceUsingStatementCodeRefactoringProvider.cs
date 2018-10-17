@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.IntroduceUsingStatement;
 using Roslyn.Utilities;
@@ -15,25 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
     {
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
-        protected override bool IsBlockLike(SyntaxNode node)
+        protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
         {
-            return node is BlockSyntax || node is SwitchSectionSyntax;
+            return parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
         }
 
-        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
+        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parent)
         {
             return
-                blockLike is BlockSyntax block ? block.Statements :
-                blockLike is SwitchSectionSyntax switchSection ? switchSection.Statements :
-                throw ExceptionUtilities.UnexpectedValue(blockLike);
+                parent is BlockSyntax block ? block.Statements :
+                parent is SwitchSectionSyntax switchSection ? switchSection.Statements :
+                throw ExceptionUtilities.UnexpectedValue(parent);
         }
 
-        protected override SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements)
+        protected override SyntaxNode WithStatements(SyntaxNode parent, SyntaxList<StatementSyntax> statements)
         {
             return
-                blockLike is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
-                blockLike is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
-                throw ExceptionUtilities.UnexpectedValue(blockLike);
+                parent is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
+                parent is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
+                throw ExceptionUtilities.UnexpectedValue(parent);
         }
 
         protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<StatementSyntax> statementsToSurround)

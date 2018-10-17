@@ -18,16 +18,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             End Get
         End Property
 
-        Protected Overrides Function IsBlockLike(node As SyntaxNode) As Boolean
-            Return node.IsExecutableBlock()
+        Protected Overrides Function CanRefactorToContainBlockStatements(parent As SyntaxNode) As Boolean
+            Return parent.IsMultiLineExecutableBlock()
         End Function
 
-        Protected Overrides Function GetStatements(blockLike As SyntaxNode) As SyntaxList(Of StatementSyntax)
-            Return blockLike.GetExecutableBlockStatements()
+        Protected Overrides Function GetStatements(parent As SyntaxNode) As SyntaxList(Of StatementSyntax)
+            Return parent.GetExecutableBlockStatements()
         End Function
 
-        Protected Overrides Function WithStatements(blockLike As SyntaxNode, statements As SyntaxList(Of StatementSyntax)) As SyntaxNode
-            Return blockLike.ReplaceStatements(statements)
+        Protected Overrides Function WithStatements(parent As SyntaxNode, statements As SyntaxList(Of StatementSyntax)) As SyntaxNode
+            Return parent.ReplaceStatements(statements)
         End Function
 
         Protected Overrides Function CreateUsingStatement(declarationStatement As LocalDeclarationStatementSyntax, sameLineTrivia As SyntaxTriviaList, statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
