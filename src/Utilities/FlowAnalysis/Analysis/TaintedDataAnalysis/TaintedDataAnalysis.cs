@@ -65,7 +65,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TaintedDataAnalysisContext analysisContext,
             DataFlowAnalysisResult<TaintedDataBlockAnalysisResult, TaintedDataAbstractValue> dataFlowAnalysisResult)
         {
-            // Hey Manish, is it fine to look at this.OperationVisitor here to look at its accumulated results?
             TaintedDataOperationVisitor visitor = (TaintedDataOperationVisitor) this.OperationVisitor;
             return new TaintedDataAnalysisResult(dataFlowAnalysisResult, visitor.GetTaintedDataSourceSinkEntries());
         }
