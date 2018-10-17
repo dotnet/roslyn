@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(
                 string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
             {
-                if (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results))
+                if (_projectMap.TryGetProjectInfosByProjectPath(projectPath, out var results) ||
+                    _pathToDiscoveredProjectInfosMap.TryGetValue(projectPath, out results))
                 {
                     return results;
                 }

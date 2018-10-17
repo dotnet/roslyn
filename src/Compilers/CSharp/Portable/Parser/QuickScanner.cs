@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.Done,                // Letter
                 (byte)QuickScanState.Number,              // Digit
                 (byte)QuickScanState.Done,                // Punct
-                (byte)QuickScanState.Done,                // Dot
+                (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound
                 (byte)QuickScanState.Bad,                 // Slash
                 (byte)QuickScanState.Bad,                 // Complex

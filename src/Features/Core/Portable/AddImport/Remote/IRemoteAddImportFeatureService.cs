@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal interface IRemoteAddImportFeatureService
     {
         Task<IList<AddImportFixData>> GetFixesAsync(
-            DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }

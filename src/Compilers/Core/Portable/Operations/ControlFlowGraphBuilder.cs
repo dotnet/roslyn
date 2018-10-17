@@ -6502,6 +6502,43 @@ oneMoreTime:
             }
         }
 
+        public override IOperation VisitReDim(IReDimOperation operation, int? argument)
+        {
+            StartVisitingStatement(operation);
+
+            // We split the ReDim clauses into separate ReDim operations to ensure that we preserve the evaluation order,
+            // i.e. each ReDim clause operand is re-allocated prior to evaluating the next clause.
+
+            // Mark the split ReDim operations as implicit if we have more than one ReDim clause.
+            bool isImplicit = operation.Clauses.Length > 1 || IsImplicit(operation);
+
+            foreach (var clause in operation.Clauses)
+            {
+                EvalStackFrame frame = PushStackFrame();
+                var visitedReDimClause = visitReDimClause(clause);
+                var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit);
+                AddStatement(visitedReDimOperation);
+                PopStackFrameAndLeaveRegion(frame);
+            }
+
+            return FinishVisitingStatement(operation);
+
+            IReDimClauseOperation visitReDimClause(IReDimClauseOperation clause)
+            {
+                PushOperand(Visit(clause.Operand));
+                var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
+                var visitedOperand = PopOperand();
+                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null,
+                    clause.Syntax, clause.Type, clause.ConstantValue, IsImplicit(clause));
+            }
+        }
+
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
             return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
