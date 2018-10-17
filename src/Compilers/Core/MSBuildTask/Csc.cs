@@ -113,6 +113,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(PreferredUILang)]; }
         }
 
+        public string SdkPath
+        {
+            set { _store[nameof(SdkPath)] = value; }
+            get { return (string)_store[nameof(SdkPath)]; }
+        }
+
         public string VsSessionGuid
         {
             set { _store[nameof(VsSessionGuid)] = value; }
@@ -205,6 +211,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendPlusOrMinusSwitch("/nullable", _store, nameof(NullableReferenceTypes));
+            commandLine.AppendSwitchIfNotNull("/sdkpath:", SdkPath);
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
