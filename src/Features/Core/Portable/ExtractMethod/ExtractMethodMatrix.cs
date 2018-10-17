@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 // In best effort mode, even though we didn't know precisely what to do, we still
                 // allow the user to keep going, assuming that this variable is a very basic one.
-                variableStyle = VariableStyle.None;
+                variableStyle = VariableStyle.InputOnly;
                 return true;
             }
 

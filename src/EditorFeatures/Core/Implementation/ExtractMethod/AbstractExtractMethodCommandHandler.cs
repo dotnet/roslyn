@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 {
                     notificationService.SendNotification(
                         EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
-                        result.Reasons.Select(r => Environment.NewLine + "  " + r),
+                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)),
                         title: EditorFeaturesResources.Extract_Method,
                         severity: NotificationSeverity.Error);
                 }
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             {
                 if (!notificationService.ConfirmMessageBox(
                         EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
-                        result.Reasons.Select(r => Environment.NewLine + "  " + r) + Environment.NewLine + Environment.NewLine +
+                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)) + Environment.NewLine + Environment.NewLine +
                         EditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
                         title: EditorFeaturesResources.Extract_Method,
                         severity: NotificationSeverity.Warning))
