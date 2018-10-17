@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -12,9 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             public RemoveDocumentUndoUnit(
                 VisualStudioWorkspaceImpl workspace,
-                DocumentId documentId,
-                ImmutableArray<string> createdFolder)
-                : base(workspace, documentId, createdFolder)
+                DocumentId documentId)
+                : base(workspace, documentId)
             {
             }
 
