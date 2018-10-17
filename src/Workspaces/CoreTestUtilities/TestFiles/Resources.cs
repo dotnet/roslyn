@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ExternAlias2 => GetText("ProjectFiles.CSharp.ExternAlias2.csproj");
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
                 public static string MsbuildError => GetText("ProjectFiles.CSharp.MsbuildError.csproj");
+                public static string MallformedAdditionalFilePath => GetText("ProjectFiles.CSharp.MallformedAdditionalFilePath.csproj");
                 public static string NetCoreApp2_Project => GetText("NetCoreApp2.Project.csproj");
                 public static string NetCoreApp2AndLibrary_Project => GetText("NetCoreApp2AndLibrary.Project.csproj");
                 public static string NetCoreApp2AndLibrary_Library => GetText("NetCoreApp2AndLibrary.Library.csproj");
@@ -204,6 +205,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static class FSharp
             {
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_FSharpLib_Library = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.fsharplib.Library.fs");
+            }
+
+            public static class Text
+            {
+                public static string ValidAdditionalFile => GetText("SourceFiles.Text.ValidAdditionalFile.txt");
             }
 
             public static class VisualBasic
