@@ -384,7 +384,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact(Skip = "Flaky"), Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "A";
@@ -1180,7 +1180,7 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal);
         }
 
-        [WpfFact(Skip = "Flaky"), Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeFromGlobalNamespace_ChangeUsingsInMultipleContainers()
         {
             var defaultNamespace = "A";
@@ -1250,7 +1250,7 @@ namespace NS1
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WpfFact(Skip = "Flaky"), Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeFromGlobalNamespace_WithAliasReferencesInOtherDocument()
         {
             var defaultNamespace = "A";

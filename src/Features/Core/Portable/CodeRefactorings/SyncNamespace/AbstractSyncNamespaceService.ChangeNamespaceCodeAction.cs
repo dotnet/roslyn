@@ -231,7 +231,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 Debug.Assert(!NewNamespaceParts.IsDefault);
 
-                // 1. Add usings for containing namespaces, in case we have references 
+                // 1. Fix references to the affected types in this document if necessary.
+                // 2. Add usings for containing namespaces, in case we have references 
                 //    relying on old namespace declaration for resolution. 
                 //
                 //      For example, in the code below, after we change namespace to 
@@ -245,13 +246,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 //          }
                 //      }
                 //
-                // 2. Simplify the document, so any qualified reference to types 
-                //    defined in containing namespaces will be simplied. 
-                // 3. Change the name of namespace declaration.
-                // 4. Remove unnecessary usings.              
+                // 3. Change namespace declaration to target namespace.
+                // 4. Simplify away unnecessary qualifications.
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
-                ImmutableHashSet<SyntaxNode> containers;
+                ImmutableArray<SyntaxNode> containers;
                 SyntaxNode root;
 
                 if (refLocations.Count > 0)
@@ -263,11 +262,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     // If there's no reference to types declared in this document,
                     // we will use root node as import container.
-                    // TODO: find the inner most container
                     root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    containers = ImmutableHashSet.Create(root);
+                    containers = ImmutableArray.Create(root);
                 }
-                Debug.Assert(containers.Count > 0);
+                Debug.Assert(containers.Length > 0);
 
                 // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
                 var namesToImport = CreateAllContainingNamespaces(OldNamespaceParts);
@@ -298,12 +296,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // 1. Fully qualify all simple references (i.e. not via an alias) with new namespace.
                 // 2. Add using of new namespace (for each reference's container).
                 // 3. Try to simplify qualified names introduced from step(1).
-                // 4. Remove unnecessary usings related to old and new namespace.
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var syncNamespaceService = document.GetLanguageService<ISyncNamespaceService>();
 
-                ImmutableHashSet<SyntaxNode> containers;
+                ImmutableArray<SyntaxNode> containers;
                 (document, containers) = 
                     await FixReferencesAsync(document, addImportService, syncNamespaceService, refLocations, NewNamespaceParts, cancellationToken)
                     .ConfigureAwait(false);
@@ -330,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             ///     1. qualify the reference with new namespace and mark it for simplification, or
             ///     2. find and mark the qualified reference for simplification.
             /// </summary>
-            private async Task<(Document, ImmutableHashSet<SyntaxNode>)> FixReferencesAsync(
+            private async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
                 Document document, 
                 IAddImportsService addImportService, 
                 ISyncNamespaceService syncNamespaceService,
@@ -384,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 document = editor.GetChangedDocument();
                 root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                return (document, containers.Select(c => root.GetCurrentNode(c)).ToImmutableHashSet());
+                return (document, containers.Select(c => root.GetCurrentNode(c)).ToImmutableArray());
             }
 
             private async Task<Solution> RemoveUnnecessaryImportsAsync(
@@ -428,14 +425,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private async Task<Document> AddImportsInContainersAsync(
                 Document document,
                 IAddImportsService addImportService,
-                ImmutableHashSet<SyntaxNode> containers, 
+                ImmutableArray<SyntaxNode> containers, 
                 ImmutableArray<string> names,
                 bool placeSystemNamespaceFirst, 
                 CancellationToken cancellationToken)
             {
+                // Sort containers based on their span start, to make the result of 
+                // adding imports deterministic. This is mostly to make unit tests pass 
+                // and might not necessary for the correctness of the refactoring. 
+                // However, consider the number of containers will always be very small
+                // (if there's more than one at all), I decide to leave this in the product
+                // as it is very unlikely to affect perf.
+                if (containers.Length > 1)
+                {
+                    containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
+                }
                 var imports = CreateImports(document, names);
+
                 foreach (var container in containers)
                 {
+                    // If the container is a namespace declaration, the context we pass to 
+                    // AddImportService must be a child of the declaration, otherwise the 
+                    // import will be added to root node instead.
                     var contextLocation = container is TNamespaceDeclarationSyntax 
                         ? container.DescendantNodes().First() 
                         : container;
@@ -453,6 +464,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var diffMergingSession = new LinkedFileDiffMergingSession(oldSolution, newSolution, newSolution.GetChanges(oldSolution), logSessionInfo: false);
                 var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return mergeResult.MergedSolution;
+            }
+
+            private class SyntaxNodeSpanStartComparer : IComparer<SyntaxNode>
+            {
+                private SyntaxNodeSpanStartComparer()
+                {
+                }
+
+                public static SyntaxNodeSpanStartComparer Instance { get; } = new SyntaxNodeSpanStartComparer();
+
+                public int Compare(SyntaxNode x, SyntaxNode y)
+                    => x.Span.Start - y.Span.Start;
             }
         }
     }

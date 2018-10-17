@@ -177,8 +177,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
                     if (expectedSourceReference != null)
                     {
-                        var modifiedRefDocument = newSolution.GetDocument(refDocumentId);
-                        Assert.Equal(expectedSourceReference, (await modifiedRefDocument.GetTextAsync()).ToString());
+                        var actualRefText = (await newSolution.GetDocument(refDocumentId).GetTextAsync()).ToString();
+                        Assert.Equal(expectedSourceReference, actualRefText);
                     }
                 }
                 else
