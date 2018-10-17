@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -41,6 +42,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue }
         }.ToImmutableDictionary();
 
+        private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
+
         private MSB.Evaluation.ProjectCollection _projectCollection;
         private MSBuildDiagnosticLogger _logger;
         private bool _started;
@@ -53,92 +56,43 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        private static MSB.Evaluation.Project FindProject(
-            string path,
-            IDictionary<string, string> globalProperties,
-            MSB.Evaluation.ProjectCollection projectCollection,
-            CancellationToken cancellationToken)
+        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties)
         {
-            var loadedProjects = projectCollection.GetLoadedProjects(path);
-            if (loadedProjects == null || loadedProjects.Count == 0)
-            {
-                return null;
-            }
-
-            // We need to walk through all of the projects that have been previously loaded from this path and
-            // find the one that has the given set of global properties, plus the default global properties that
-            // we load every project with.
-
-            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
-            var totalGlobalProperties = projectCollection.GlobalProperties.Count + globalProperties.Count;
-
-            foreach (var loadedProject in loadedProjects)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // If this project has a different number of global properties than we expect, it's not the
-                // one we're looking for.
-                if (loadedProject.GlobalProperties.Count != totalGlobalProperties)
-                {
-                    continue;
-                }
-
-                // Since we loaded all of them, the projects in this collection should all have the default
-                // global properties (i.e. the ones in _projectCollection.GlobalProperties). So, we just need to
-                // check the extra global properties.
-
-                var found = true;
-                foreach (var (key, value) in globalProperties)
-                {
-                    // MSBuild escapes the values of a project's global properties, so we must too.
-                    var escapedValue = MSB.Evaluation.ProjectCollection.Escape(value);
-
-                    if (!loadedProject.GlobalProperties.TryGetValue(key, out var actualValue) ||
-                        !string.Equals(actualValue, escapedValue, StringComparison.Ordinal))
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-
-                if (found)
-                {
-                    return loadedProject;
-                }
-            }
-
-            // We couldn't find a project with this path and the set of global properties we expect.
-            return null;
+            _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
         }
 
-        public async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
-            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        private ImmutableDictionary<string, string> AllGlobalProperties()
+            => s_defaultGlobalProperties.AddRange(_additionalGlobalProperties);
+
+        private static async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
+            string path, MSB.Evaluation.ProjectCollection projectCollection, CancellationToken cancellationToken)
         {
             var log = new DiagnosticLog();
 
             try
             {
-                var projectCollection = _projectCollection ?? new MSB.Evaluation.ProjectCollection(s_defaultGlobalProperties);
-
-                var project = FindProject(path, globalProperties, projectCollection, cancellationToken);
-
-                if (project == null)
+                var loadedProjects = projectCollection.GetLoadedProjects(path);
+                if (loadedProjects != null && loadedProjects.Count > 0)
                 {
-                    using (var stream = FileUtilities.OpenAsyncRead(path))
-                    using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
-                    using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
-                    {
-                        var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
+                    Debug.Assert(loadedProjects.Count == 1);
 
-                        // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                        // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                        xml.FullPath = path;
-
-                        project = new MSB.Evaluation.Project(xml, globalProperties, toolsVersion: null, projectCollection);
-                    }
+                    return (loadedProjects.First(), log);
                 }
 
-                return (project, log);
+                using (var stream = FileUtilities.OpenAsyncRead(path))
+                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
+                using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
+                {
+                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
+
+                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                    xml.FullPath = path;
+
+                    var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection);
+
+                    return (project, log);
+                }
             }
             catch (Exception e)
             {
@@ -147,23 +101,49 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public async Task<string> TryGetOutputFilePathAsync(
-            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        public Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
+            string path, CancellationToken cancellationToken)
         {
-            // This tries to get the project output path and retrieving the $(TargetPath) property.
+            if (_started)
+            {
+                return LoadProjectAsync(path, _projectCollection, cancellationToken);
+            }
+            else
+            {
+                var projectCollection = new MSB.Evaluation.ProjectCollection(AllGlobalProperties());
+                try
+                {
+                    return LoadProjectAsync(path, projectCollection, cancellationToken);
+                }
+                finally
+                {
+                    // unload project so collection will release global strings
+                    projectCollection.UnloadAllProjects();
+                }
+            }
+        }
 
-            var (project, _) = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+        public async Task<string> TryGetOutputFilePathAsync(
+            string path, CancellationToken cancellationToken)
+        {
+            Debug.Assert(_started);
+
+            // This tries to get the project output path and retrieving the evaluated $(TargetPath) property.
+
+            var (project, _) = await LoadProjectAsync(path, cancellationToken).ConfigureAwait(false);
             return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
 
-        public void Start()
+        public void Start(IDictionary<string, string> globalProperties = null)
         {
             if (_started)
             {
                 throw new InvalidOperationException();
             }
 
-            _projectCollection = new MSB.Evaluation.ProjectCollection(s_defaultGlobalProperties);
+            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
+            var allProperties = s_defaultGlobalProperties.AddRange(globalProperties);
+            _projectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
 
             _logger = new MSBuildDiagnosticLogger()
             {

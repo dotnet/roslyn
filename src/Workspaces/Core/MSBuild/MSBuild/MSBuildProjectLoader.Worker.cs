@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                _buildManager.Start();
+                _buildManager.Start(_globalProperties);
                 try
                 {
                     foreach (var projectPath in _requestedProjectPaths)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     ProjectLoadOperation.Evaluate,
                     projectPath,
                     targetFramework: null,
-                    () => loader.LoadProjectFileAsync(projectPath, _globalProperties, _buildManager, cancellationToken)
+                    () => loader.LoadProjectFileAsync(projectPath, _buildManager, cancellationToken)
                 ).ConfigureAwait(false);
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
