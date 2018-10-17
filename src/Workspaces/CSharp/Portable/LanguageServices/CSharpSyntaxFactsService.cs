@@ -1897,6 +1897,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
             => ((EqualsValueClauseSyntax)node)?.Value;
 
+        public bool IsPureBlock(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block);
+
         public bool IsExecutableBlock(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
 

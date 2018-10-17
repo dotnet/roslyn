@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
         private static bool IsFirstStatementOfIfStatement(
             ISyntaxFactsService syntaxFacts, SyntaxNode statement, out TIfStatementSyntax ifStatement)
         {
-            if (syntaxFacts.IsStatementContainer(statement.Parent) &&
+            if ((statement.Parent is TIfStatementSyntax || syntaxFacts.IsPureBlock(statement.Parent)) &&
                 syntaxFacts.GetStatementContainerStatements(statement.Parent).FirstOrDefault() == statement)
             {
                 do
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
                     statement = statement.Parent;
                 }
-                while (syntaxFacts.IsStatementContainer(statement.Parent) &&
+                while ((statement.Parent is TIfStatementSyntax || syntaxFacts.IsPureBlock(statement.Parent)) &&
                        syntaxFacts.GetStatementContainerStatements(statement.Parent).TrySingleOrDefault() == statement);
             }
 

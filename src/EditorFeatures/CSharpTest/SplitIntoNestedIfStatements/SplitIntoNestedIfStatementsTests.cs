@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
-        public async Task SplitWithStatementNoBlock()
+        public async Task SplitWithStatementWithoutBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
-        public async Task SplitWithElseStatementNoBlock()
+        public async Task SplitWithElseStatementWithoutBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C

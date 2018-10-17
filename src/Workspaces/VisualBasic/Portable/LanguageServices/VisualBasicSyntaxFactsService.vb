@@ -1816,6 +1816,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, EqualsValueSyntax).Value
         End Function
 
+        Public Function IsPureBlock(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPureBlock
+            ' VB has no equivalent of curly braces.
+            Return False
+        End Function
+
         Public Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableBlock
             Return node.IsExecutableBlock()
         End Function
