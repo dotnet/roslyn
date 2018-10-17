@@ -64,6 +64,14 @@ Microsoft.CodeAnalysis.CSharp.Syntax.DirectiveTriviaSyntax.WithHashToken(Microso
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.LeftOperand.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.OperatorToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.RightOperand.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax leftOperand, Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax rightOperand) -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.WithLeftOperand(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax leftOperand) -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.WithOperatorToken(Microsoft.CodeAnalysis.SyntaxToken operatorToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.WithRightOperand(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax rightOperand) -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken keyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax
@@ -88,13 +96,24 @@ Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEndQuoteToken(Micros
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithEqualsToken(Microsoft.CodeAnalysis.SyntaxToken equalsToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.XmlNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.WithStartQuoteToken(Microsoft.CodeAnalysis.SyntaxToken startQuoteToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceAssignmentExpression = 8725 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DotDotToken = 8222 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.IndexExpression = 8741 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.QuestionQuestionEqualsToken = 8284 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.RangeExpression = 8658 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SuppressNullableWarningExpression = 9054 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.QuestionQuestionEqualsToken = 8284 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.CoalesceAssignmentExpression = 8725 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitRangeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseMemberDeclaration(string text, int offset = 0, Microsoft.CodeAnalysis.ParseOptions options = null, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ArrayRankSpecifier(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax> sizes, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ClassOrStructConstraint(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.SyntaxToken classOrStructKeyword, Microsoft.CodeAnalysis.SyntaxToken questionToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ClassOrStructConstraintSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RangeExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RangeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax leftOperand, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax rightOperand) -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RangeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax leftOperand, Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax rightOperand) -> Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRangeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitRangeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.RangeExpressionSyntax node) -> TResult

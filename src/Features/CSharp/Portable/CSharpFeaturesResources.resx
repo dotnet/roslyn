@@ -572,4 +572,8 @@
   <data name="Remove_unused_variables" xml:space="preserve">
     <value>Remove unused variables</value>
   </data>
+  <data name="Add_missing_usings" xml:space="preserve">
+    <value>Add missing usings</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

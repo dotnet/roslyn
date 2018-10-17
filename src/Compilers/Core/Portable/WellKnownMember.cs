@@ -446,6 +446,12 @@ namespace Microsoft.CodeAnalysis
 
         Microsoft_CodeAnalysis_EmbeddedAttribute__ctor,
 
+        System_Index__ctor,
+        System_Range__Create,
+        System_Range__ToEnd,
+        System_Range__FromStart,
+        System_Range__All,
+
         Count
     }
 }

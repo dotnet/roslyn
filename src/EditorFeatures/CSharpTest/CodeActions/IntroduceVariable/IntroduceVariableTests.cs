@@ -5777,5 +5777,130 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIndexExpression()
+        {
+            var code = TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|^1|]);
+    }
+}";
+
+            var expected = TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Index {|Rename:value|} = ^1;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_None()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = ..;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Right()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..1|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = ..1;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Left()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = 1..;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Both()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..2|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = 1..2;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
     }
 }

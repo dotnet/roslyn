@@ -827,4 +827,7 @@ Do you want to proceed?</value>
   <data name="Change_configuration" xml:space="preserve">
     <value>Change configuration</value>
   </data>
+  <data name="Paste_Tracking" xml:space="preserve">
+    <value>Paste Tracking</value>
+  </data>
 </root>

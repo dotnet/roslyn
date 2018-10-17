@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.Completion
         private const string NonBreakingSpaceString = "\x00A0";
 
         public static TextSpan GetWordSpan(SourceText text, int position,
+            Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
+        {
+            return GetWordSpan(text, position, isWordStartCharacter, isWordCharacter, alwaysExtendEndSpan: false);
+        }
+
+        public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter, bool alwaysExtendEndSpan = false)
         {
             int start = position;

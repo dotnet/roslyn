@@ -449,6 +449,9 @@
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
+  <data name="SupportedDiagnosticsHasNullDescriptor" xml:space="preserve">
+    <value>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</value>
+  </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>

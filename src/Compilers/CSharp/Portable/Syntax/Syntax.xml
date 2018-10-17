@@ -382,6 +382,7 @@
     <Kind Name="PreDecrementExpression"/>
     <Kind Name="AddressOfExpression"/>
     <Kind Name="PointerIndirectionExpression"/>
+    <Kind Name="IndexExpression"/>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="PlusToken"/>
       <Kind Name="MinusToken"/>
@@ -391,6 +392,7 @@
       <Kind Name="MinusMinusToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="AsteriskToken"/>
+      <Kind Name="CaretToken"/>"
       <PropertyComment>
         <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
       </PropertyComment>
@@ -535,6 +537,31 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates an ElementBindingExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="RangeExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="RangeExpression"/>
+    <Field Name="LeftOperand" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the range expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="RightOperand" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a range expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an RangeExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ImplicitElementAccessSyntax" Base="ExpressionSyntax">
