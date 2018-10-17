@@ -202,10 +202,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private sealed class StubProject : AbstractProject
         {
+            private readonly string _outputPath;
+
             public StubProject(VisualStudioProjectTracker projectTracker, CodeAnalysis.Project project, IVsHierarchy hierarchy, string outputPath)
                 : base(projectTracker, null, project.Name + "_Stub", null, hierarchy, project.Language, Guid.Empty, null, null, null, null)
             {
-                ExplicitBinPath = outputPath;
+                _outputPath = outputPath;
+            }
+
+            protected override string GetOutputFilePath()
+            {
+                return _outputPath;
             }
         }
 

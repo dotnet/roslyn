@@ -94,12 +94,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected string ExplicitBinPath;
-
         /// <summary>
         /// A full path to the project bin output binary, or null if the project doesn't have an bin output binary.
         /// </summary>
-        internal string BinOutputPath => ExplicitBinPath ?? VisualStudioProject.OutputFilePath;
+        // FYI: this can't be made virtual because there are calls to this where a 'call' instead of 'callvirt' is being used to call
+        // the method.
+        internal string BinOutputPath => GetOutputFilePath();
+
+        protected virtual string GetOutputFilePath()
+        {
+            return VisualStudioProject.OutputFilePath;
+        }
 
         public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
 
@@ -128,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public VersionStamp Version { get; }
 
         public IProjectCodeModel ProjectCodeModel { get; protected set; }
-        
+
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
         /// </summary>
@@ -235,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var id = _visualStudioWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(d => d.ProjectId == Id);
 
             if (id != null)
-            { 
+            {
                 return new DocumentProvider.ShimDocument(this, id, filePath);
             }
             else
