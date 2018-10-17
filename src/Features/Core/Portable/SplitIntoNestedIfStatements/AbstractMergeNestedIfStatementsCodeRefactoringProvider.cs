@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
             if (IsTokenOfIfStatement(token, out var ifStatement) &&
                 IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement) &&
-                await CanBeMergedAsync(context.Document, parentIfStatement, ifStatement, context.CancellationToken))
+                await CanBeMergedAsync(context.Document, syntaxFacts, parentIfStatement, ifStatement, context.CancellationToken))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
@@ -97,12 +97,11 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
         private async Task<bool> CanBeMergedAsync(
             Document document,
+            ISyntaxFactsService syntaxFacts,
             TIfStatementSyntax outerIfStatement,
             TIfStatementSyntax innerIfStatement,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
             if (!GetElseClauses(outerIfStatement).SequenceEqual(GetElseClauses(innerIfStatement), syntaxFacts.AreEquivalent))
             {
                 return false;
