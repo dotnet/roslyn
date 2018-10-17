@@ -732,7 +732,7 @@
         <target state="translated">Zobrazovat návr_hy názvů</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generovat odběr událostí</target>
         <note />
