@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
                 var shouldTrigger = namespaceDeclaration.Name.Span.IntersectsWith(position) 
                     && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error)
-                    && !ContainsPartialDeclaration(document, namespaceDeclaration, cancellationToken);
+                    && !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, namespaceDeclaration, cancellationToken).ConfigureAwait(false));
 
                 return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
             }
@@ -146,9 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             {
                 var firstMemberDeclaration = compilationUnit.Members.FirstOrDefault();
 
-                return (firstMemberDeclaration != null 
-                    && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position) 
-                    && !ContainsPartialDeclaration(document, compilationUnit, cancellationToken), null);
+                var shouldTrigger = firstMemberDeclaration != null
+                    && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position)
+                    && !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false));
+
+                return (shouldTrigger, null);
             }
 
             return (false, null);
@@ -272,20 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             {
                 return SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, aliasQualifier, index - 1), namePiece);
             }
-        }
-
-        private bool ContainsPartialDeclaration(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
-        {
-            // This is just a quick check for `partial` keyword.
-            var memberDeclarations = GetMemberDeclarationsInContainer(node);
-            foreach (TypeDeclarationSyntax declaration in memberDeclarations.Where(decl => decl is TypeDeclarationSyntax))
-            {
-                if (declaration.Modifiers.Any(token => token.IsKind(SyntaxKind.PartialKeyword)))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         /// <summary>

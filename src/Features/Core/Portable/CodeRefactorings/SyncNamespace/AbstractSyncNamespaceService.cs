@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
@@ -52,6 +53,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
         /// </summary>
         abstract protected Task<(bool, TNamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
+
+        protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(Document document, SyntaxNode compilationUnitOrNamespaceDecl, CancellationToken cancellationToken)
+        {
+            var memberDecls = GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+
+            foreach (var memberDecl in memberDecls)
+            {
+                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
+
+                // Simplify the check by assuming no multiple partial declarations in one document
+                if (memberSymbol is ITypeSymbol typeSymbol
+                    && typeSymbol.DeclaringSyntaxReferences.Length > 1
+                    && semanticFacts.IsPartial(typeSymbol, cancellationToken))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         /// <summary>
         /// Try get the relative namespace for <paramref name="namespace"/> based on <paramref name="relativeTo"/>,

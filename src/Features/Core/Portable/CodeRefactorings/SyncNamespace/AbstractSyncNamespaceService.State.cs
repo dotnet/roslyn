@@ -149,14 +149,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     var defaultNamespace = defaultNamespaceFromProjects.Single();
 
                     // If the cursor location doesn't meet the requirement to trigger the refactoring in any of the documents 
-                    // (See `ShouldPositionTriggerRefactoringAsync`), or we are getting different namespace declaration among 
+                    // (See `ShouldPositionTriggerRefactoringAsync`), or we are getting different namespace declarations among 
                     // those documents, then we know we can't make a proper code change. We will return false and the refactoring 
                     // will then bail. We use span of namespace declaration found in each document to decide if they are identical.
                     var spansForNamespaceDeclaration = new Dictionary<TextSpan, TNamespaceDeclarationSyntax>();
                     foreach (var document in documents)
                     {
                         (var shouldTrigger, var namespaceDeclaration) =
-                        await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken).ConfigureAwait(false);
+                        await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
+                        .ConfigureAwait(false);
 
                         // In case there's no namespace declaration in the document, we used an empty span as key, 
                         // since a valid namespace declaration node can't have zero length.
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                             // namespaceDecl == null means the target namespace is global namespace.
                             ? string.Empty
                             // Since the node in each document has identical type and span, 
-                            // it doesn't mattter from which we get the name.
+                            // they should have same name.
                             : SyntaxGenerator.GetGenerator(documents.First()).GetName(namespaceDecl);
 
                         return (true, defaultNamespace, declaredNamespace);
