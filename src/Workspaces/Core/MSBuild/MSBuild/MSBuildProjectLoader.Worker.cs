@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                _buildManager.Start(_globalProperties);
+                _buildManager.StartBatchBuild(_globalProperties);
                 try
                 {
                     foreach (var projectPath in _requestedProjectPaths)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 finally
                 {
-                    _buildManager.Stop();
+                    _buildManager.EndBatchBuild();
                 }
             }
 

@@ -3518,11 +3518,11 @@ class C { }";
                 var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
                 var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty);
-                buildManager.Start();
+                buildManager.StartBatchBuild();
 
                 var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
                 var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-                buildManager.Stop();
+                buildManager.EndBatchBuild();
 
                 var commandLineParser = workspace.Services
                     .GetLanguageServices(loader.Language)

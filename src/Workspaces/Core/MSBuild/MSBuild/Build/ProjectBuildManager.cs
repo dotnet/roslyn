@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
 
-        private MSB.Evaluation.ProjectCollection _projectCollection;
-        private MSBuildDiagnosticLogger _logger;
-        private bool _started;
+        private MSB.Evaluation.ProjectCollection _batchBuildProjectCollection;
+        private MSBuildDiagnosticLogger _batchBuildLogger;
+        private bool _batchBuildStarted;
 
         ~ProjectBuildManager()
         {
-            if (_started)
+            if (_batchBuildStarted)
             {
                 new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
             }
@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
             string path, CancellationToken cancellationToken)
         {
-            if (_started)
+            if (_batchBuildStarted)
             {
-                return LoadProjectAsync(path, _projectCollection, cancellationToken);
+                return LoadProjectAsync(path, _batchBuildProjectCollection, cancellationToken);
             }
             else
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public async Task<string> TryGetOutputFilePathAsync(
             string path, CancellationToken cancellationToken)
         {
-            Debug.Assert(_started);
+            Debug.Assert(_batchBuildStarted);
 
             // This tries to get the project output path and retrieving the evaluated $(TargetPath) property.
 
@@ -134,35 +134,37 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
 
-        public void Start(IDictionary<string, string> globalProperties = null)
+        public bool BatchBuildStarted => _batchBuildStarted;
+
+        public void StartBatchBuild(IDictionary<string, string> globalProperties = null)
         {
-            if (_started)
+            if (_batchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
 
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.AddRange(globalProperties);
-            _projectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
+            _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
 
-            _logger = new MSBuildDiagnosticLogger()
+            _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
-            var buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
+            var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                Loggers = new MSB.Framework.ILogger[] { _logger }
+                Loggers = new MSB.Framework.ILogger[] { _batchBuildLogger }
             };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
 
-            _started = true;
+            _batchBuildStarted = true;
         }
 
-        public void Stop()
+        public void EndBatchBuild()
         {
-            if (!_started)
+            if (!_batchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
@@ -170,16 +172,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
 
             // unload project so collection will release global strings
-            _projectCollection.UnloadAllProjects();
-            _projectCollection = null;
-            _logger = null;
-            _started = false;
+            _batchBuildProjectCollection.UnloadAllProjects();
+            _batchBuildProjectCollection = null;
+            _batchBuildLogger = null;
+            _batchBuildStarted = false;
         }
 
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
-            Debug.Assert(_started);
+            Debug.Assert(_batchBuildStarted);
 
             var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
 
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
-            _logger.SetProjectAndLog(projectInstance.FullPath, log);
+            _batchBuildLogger.SetProjectAndLog(projectInstance.FullPath, log);
 
             var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
 
