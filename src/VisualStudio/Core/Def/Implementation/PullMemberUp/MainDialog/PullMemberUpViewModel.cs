@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 {
                     IsChecked = member.Equals(userSelectNodeSymbol),
                     IsAbstract = false,
-                    IsAbstractSelectable = member.Kind != SymbolKind.Field || !member.IsAbstract,
+                    IsAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
                     IsSelectable = true
                 }).ToList();
                 

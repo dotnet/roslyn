@@ -1,6 +1,6 @@
 ﻿<vs:DialogWindow
              x:Uid="PullMemberUpWarningDialog" 
-             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PushMemberUp.PullMemberUpDialogWarningxaml"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.PullMemberUpDialogWarningxaml"
              x:ClassModifier="internal"
              x:Name="dialog"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
@@ -8,12 +8,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              SizeToContent="WidthAndHeight"
              WindowStartupLocation="CenterOwner"
              Height="290"
-             Width="480"
+             Width="490"
              Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
     <Window.Resources>
         <Thickness x:Key="okAndCancelButton">5, 3, 8, 4</Thickness>
@@ -32,10 +33,9 @@
                 x:Name="Description"
                 Content="  Review problems below. Click Finish to proceed."/>
             <Separator/>
-
             <Label x:Name="FoundProblemLabel"
                    Content="Found Problems"/>
-            <ListView Name="WarningMessageList"
+            <u:AutomationDelegatingListView x:Name="WarningMessageList"
                       ItemsSource="{Binding WarningMessageContainer}"
                       ScrollViewer.VerticalScrollBarVisibility="Visible"
                       MinHeight="115">
@@ -46,7 +46,7 @@
                         </WrapPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-            </ListView>
+            </u:AutomationDelegatingListView>
         </StackPanel>
         <Grid Grid.Row="1" Margin="5,5,5,0" Height="50">
             <Grid.ColumnDefinitions>
@@ -62,20 +62,20 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Uid="BackButton"
-                    Grid.Column="1"
-                    Margin = "{StaticResource ResourceKey=okAndCancelButton}"
-                    Content="{Binding Back, ElementName=dialog}"
-                    Click="BackButton_Click"
-                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
-                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
-                    <Button x:Uid="FinishButton"
-                    Click="FinishButton_Click"
-                    Grid.Column="2"
-                    Margin= "{StaticResource ResourceKey=okAndCancelButton}"
-                    Content="{Binding Finish, ElementName=dialog}"
-                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
-                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                    <vs:DialogButton x:Uid="BackButton"
+                        Grid.Column="1"
+                        Margin = "{StaticResource ResourceKey=okAndCancelButton}"
+                        Content="{Binding Back, ElementName=dialog}"
+                        Click="BackButton_Click"
+                        Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
+                        Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                    <vs:DialogButton x:Uid="FinishButton"
+                        Click="FinishButton_Click"
+                        Grid.Column="2"
+                        Margin= "{StaticResource ResourceKey=okAndCancelButton}"
+                        Content="{Binding Finish, ElementName=dialog}"
+                        Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
+                        Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
                 </Grid>
             </StackPanel>
         </Grid>
