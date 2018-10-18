@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     continue;
                 }
                 var nn = (NullableDirectiveTriviaSyntax)d;
-                if (nn.SettingKeyword.IsMissing || !nn.IsActive)
+                if (nn.SettingToken.IsMissing || !nn.IsActive)
                 {
                     continue;
                 }
-                builder.Add((nn.Location.SourceSpan.End, nn.SettingKeyword.ContextualKind() == SyntaxKind.EnableKeyword));
+                builder.Add((nn.Location.SourceSpan.End, nn.SettingToken.Kind() == SyntaxKind.EnableKeyword));
             }
             return builder.ToImmutableAndFree();
         }

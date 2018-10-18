@@ -4408,8 +4408,8 @@
     <Field Name="NullableKeyword" Type="SyntaxToken">
       <Kind Name="NullableKeyword"/>
     </Field>
-    <Field Name="SettingKeyword" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
+    <Field Name="SettingToken" Type="SyntaxToken">
+      <Kind Name="EnableKeyword"/>
       <Kind Name="DisableKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">

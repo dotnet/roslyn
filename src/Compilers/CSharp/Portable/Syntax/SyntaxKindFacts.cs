@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ChecksumKeyword:
                 case SyntaxKind.DisableKeyword:
                 case SyntaxKind.RestoreKeyword:
+                case SyntaxKind.EnableKeyword:
                     return false;
                 default:
                     return IsPreprocessorKeyword(kind);
@@ -198,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
+                case SyntaxKind.EnableKeyword:
                 case SyntaxKind.UnderscoreToken:
                     return true;
                 default:

@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         break;
                     case SyntaxKind.NullableDirectiveTrivia:
                         var nn = (NullableDirectiveTriviaSyntax)dt;
-                        var setting = nn.SettingKeyword;
+                        var setting = nn.SettingToken;
                         if (null == exp.Text)
                         {
                             Assert.True(setting.IsMissing);
@@ -258,8 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         else
                         {
                             Assert.Equal(exp.Text, setting.ValueText);
-                            Assert.True((setting.Kind() == SyntaxKind.IdentifierToken && setting.ContextualKind() == SyntaxKind.EnableKeyword) ||
-                                setting.Kind() == SyntaxKind.DisableKeyword);
+                            Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword);
                         }
                         break;
                     default:
@@ -4033,6 +4032,31 @@ class A
             TestRoundTripping(node, text);
             VerifyErrorCode(node); // no errors
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
+
+        /// <summary>
+        /// "enable" should be a keyword within the directive only.
+        /// </summary>
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableKeyword()
+        {
+            var text =
+@"#nullable enable
+class enable
+{
+}";
+            var tree = ParseTree(text);
+            var root = tree.GetCompilationUnitRoot();
+            TestRoundTripping(root, text, false);
+            VerifyErrorCode(root); // no errors
+            VerifyDirectivesSpecial(root, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+            var nodes = root.DescendantNodes(descendIntoTrivia: true);
+            SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
+            Assert.Equal(SyntaxKind.EnableKeyword, token.Kind());
+            token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
         }
 
         [Fact]

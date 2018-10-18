@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseNullableDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
         {
             token = CheckFeatureAvailability(token, MessageID.IDS_FeatureStaticNullChecking);
-            var setting = (this.CurrentToken.ContextualKind == SyntaxKind.EnableKeyword || this.CurrentToken.Kind == SyntaxKind.DisableKeyword) ?
+            var setting = (this.CurrentToken.Kind == SyntaxKind.EnableKeyword || this.CurrentToken.Kind == SyntaxKind.DisableKeyword) ?
                 EatToken() :
                 EatToken(SyntaxKind.DisableKeyword, ErrorCode.ERR_NullableDirectiveQualifierExpected, reportError: isActive);
             var end = this.ParseEndOfDirective(ignoreErrors: setting.IsMissing || !isActive);
