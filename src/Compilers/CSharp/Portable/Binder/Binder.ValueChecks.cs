@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.ImplicitReceiver:
-                    return true;
+                    return (valueKind & BindValueKind.RefAssignable) != BindValueKind.RefAssignable;
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
