@@ -1311,7 +1311,7 @@ namespace System.Runtime.CompilerServices.NonNullTypesAttribute
     class C { }
 }";
             var comp = CreateCompilation(new[] { comp_cs }, options: WithNonNullTypesTrue(), references: new[] { reference.ToMetadataReference() });
-            // PROTOTYPE(NullableReferenceTypes): Report an error if we are unable to synthesize NonNullTypesAttribute application
+            // https://github.com/dotnet/roslyn/issues/30583: Report an error if we are unable to synthesize NonNullTypesAttribute application
             comp.VerifyEmitDiagnostics(
                 //// (1,42): error CS0616: 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not an attribute class
                 //// [module: System.Runtime.CompilerServices.NonNullTypes(true)]
