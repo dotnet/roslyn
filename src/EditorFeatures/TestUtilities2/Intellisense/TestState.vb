@@ -26,6 +26,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
 Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
+Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -138,10 +139,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional excludedTypes As List(Of Type) = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing,
-                Optional includeFormatCommandHandler As Boolean = False) As TestState
+                Optional includeFormatCommandHandler As Boolean = False,
+                Optional languageVersion As LanguageVersion = LanguageVersion.Default) As TestState
             Return New TestState(
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Int32) %>>
                         <Document>
                             <%= documentElement.Value %>
                         </Document>

@@ -38,6 +38,31 @@ phases:
       continueOnError: true
       condition: failed()
 
+- phase: Windows_Desktop_Spanish_Unit_Tests
+  queue:
+    name: dnceng-windows-spanish-external-temp
+    timeoutInMinutes: 90
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration Debug -testDesktop
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop Spanish'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows Desktop Spanish' 
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
 - phase: Windows_CoreClr_Unit_Tests
   queue:
     name: dotnet-external-temp

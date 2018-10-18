@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
                 syntaxTree.IsDeclarationExpressionContext(position, leftToken, cancellationToken),
                 syntaxTree.IsFixedVariableDeclarationContext(position, leftToken, cancellationToken),
-                syntaxTree.IsParameterTypeContext(position, leftToken, cancellationToken),
+                syntaxTree.IsParameterTypeContext(position, leftToken),
                 syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken, cancellationToken),

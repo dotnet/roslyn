@@ -732,7 +732,7 @@
         <target state="translated">Mostrar s_ugestões de nomes</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Gerar Assinatura de Evento</target>
         <note />

@@ -6597,5 +6597,241 @@ class C
   IL_002d:  ret
 }");
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
+        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        public void IndexExpression()
+        {
+            var source = TestSources.Index + @"
+class C
+{
+    static void Main()
+    {
+        var x = ^1;
+    }
+}";
+            var langVersion = LanguageVersion.CSharp8;
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (System.Index V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (System.Index V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""int System.Index.Value.get""
+  IL_0007:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "^2", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (System.Index V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
+        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        public void RangeExpression_None()
+        {
+            var source = TestSources.Index + TestSources.Range + @"
+class C
+{
+    static void Main()
+    {
+        var x = ..;
+    }
+}";
+            var langVersion = LanguageVersion.CSharp8;
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (System.Range V_0, //x
+                System.Index V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""System.Index System.Range.Start.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       ""int System.Index.Value.get""
+  IL_000f:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  call       ""System.Range System.Range.All()""
+  IL_0005:  ret
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
+        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        public void RangeExpression_Left()
+        {
+            var source = TestSources.Index + TestSources.Range + @"
+class C
+{
+    static void Main()
+    {
+        var x = 1..;
+    }
+}";
+            var langVersion = LanguageVersion.CSharp8;
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (System.Range V_0, //x
+                System.Index V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""System.Index System.Range.Start.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       ""int System.Index.Value.get""
+  IL_000f:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0006:  call       ""System.Range System.Range.FromStart(System.Index)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
+        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        public void RangeExpression_Right()
+        {
+            var source = TestSources.Index + TestSources.Range + @"
+class C
+{
+    static void Main()
+    {
+        var x = ..1;
+    }
+}";
+            var langVersion = LanguageVersion.CSharp8;
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (System.Range V_0, //x
+                System.Index V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""System.Index System.Range.Start.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       ""int System.Index.Value.get""
+  IL_000f:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0006:  call       ""System.Range System.Range.ToEnd(System.Index)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30436")]
+        [WorkItem(30436, "https://github.com/dotnet/roslyn/issues/30436")]
+        public void RangeExpression_Both()
+        {
+            var source = TestSources.Index + TestSources.Range + @"
+class C
+{
+    static void Main()
+    {
+        var x = 1..2;
+    }
+}";
+            var langVersion = LanguageVersion.CSharp8;
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "x.Start.Value", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (System.Range V_0, //x
+                System.Index V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""System.Index System.Range.Start.get""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       ""int System.Index.Value.get""
+  IL_000f:  ret
+}");
+
+            Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "3..4", langVersion: langVersion).GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (System.Range V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0006:  ldc.i4.4
+  IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_000c:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0011:  ret
+}");
+        }
     }
 }

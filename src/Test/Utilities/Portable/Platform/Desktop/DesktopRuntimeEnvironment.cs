@@ -317,7 +317,7 @@ namespace Roslyn.Test.Utilities.Desktop
             {
                 if (shouldSucceed)
                 {
-                    throw new Exception($"Verification failed: {ex.Message}");
+                    throw new Exception("Verification failed", ex);
                 }
             }
         }
