@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         Task<CodeFixCollection> GetDocumentFixAllForIdInSpan(Document document, TextSpan textSpan, string diagnosticId, CancellationToken cancellationToken);
         Task<Document> ApplyCodeFixesForSpecificDiagnosticId(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken);
         CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
-        Task<FirstDiagnosticResult> GetMostSevereFixableDiagnostic(Document document, TextSpan range, CancellationToken cancellationToken);        
+        Task<FirstDiagnosticResult> GetMostSevereFixableDiagnostic(Document document, TextSpan range, CancellationToken cancellationToken);
     }
 }

@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);            
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // the appropriate task scheduler to report events on.
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
-            LoadAnalyzerNodeComponents();            
+            LoadAnalyzerNodeComponents();
 
             LoadComponentsBackgroundAsync(cancellationToken).Forget();
         }
