@@ -1,7 +1,7 @@
 async-streams (C# 8.0)
 ----------------------
 
-Async-streams are async variants of enumerables, where getting the next element may involve an async operation. They are types that implement `IAsyncEnumerable<T>`.
+Async-streams are asynchronous variants of enumerables, where getting the next element may involve an asynchronous operation. They are types that implement `IAsyncEnumerable<T>`.
 
 ```C#
 // Those interfaces will ship as part of .NET Core 3
@@ -27,9 +27,11 @@ namespace System
 }
 ```
 
-When you have an async-stream, you can enumerate its items using a special `foreach` statement: `foreach await (var item in asyncStream) { ... }`.
-Similarly, if you have an async-disposable, you can use and dispose it with a special `using` statement: `using await (var resource = asyncDisposable) { ... }`
-A `using await` statement is just like a `using` statement, but it uses `IAsyncDisposable` instead of `IDisposable`, and `await DisposeAsync()` instead of `Dispose()`.
+When you have an async-stream, you can enumerate its items using an asynchronous `foreach` statement: `await foreach (var item in asyncStream) { ... }`.
+An `await foreach` statement is just like a `foreach` statement, but it uses `IAsyncEnumerable` instead of `IEnumerable`, each iteration evaluates an `await MoveNextAsync()`, and the disposable of the enumerator is asynchronous.
+
+Similarly, if you have an async-disposable, you can use and dispose it with asynchronous `using` statement: `await using (var resource = asyncDisposable) { ... }`
+An `await using` statement is just like a `using` statement, but it uses `IAsyncDisposable` instead of `IDisposable`, and `await DisposeAsync()` instead of `Dispose()`.
 
 The user can implement those interfaces manually, or can take advantage of the compiler generating a state-machine from a user-defined method (called an "async-iterator" method).
 An async-iterator method is a method that:
@@ -56,14 +58,14 @@ async IAsyncEnumerable<int> GetValuesFromServer()
 
 **open issue**: Design async LINQ
 
-### Detailed design for async `foreach` statement
+### Detailed design for `await foreach` statement
 
-An async `foreach` is lowered just like a regular `foreach`, except that:
+An `await foreach` is lowered just like a regular `foreach`, except that:
 - `GetEnumerator()` is replaced with `await GetEnumeratorAsync()`
 - `MoveNext()` is replaced with `await MoveNextAsync()`
 - `Dispose()` is replaced with `await DisposeAsync()`
 
-Async foreach is disallowed on collections of type dynamic, as there is no async equivalent of the non-generic `IEnumerable` interface.
+Asynchronous foreach loops are disallowed on collections of type dynamic, as there is no asynchronous equivalent of the non-generic `IEnumerable` interface.
 
 ```C#
 E e = ((C)(x)).GetAsyncEnumerator();

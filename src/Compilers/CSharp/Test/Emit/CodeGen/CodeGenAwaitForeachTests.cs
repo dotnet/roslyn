@@ -10,12 +10,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     [CompilerTrait(CompilerFeature.AsyncStreams)]
-    public class CodeGenAsyncForeachTests : EmitMetadataTestBase
+    public class CodeGenAwaitForeachTests : EmitMetadataTestBase
     {
-        public CodeGenAsyncForeachTests()
-        {
-        }
-
         private static readonly string s_interfaces = @"
 namespace System.Collections.Generic
 {
@@ -48,7 +44,7 @@ class C : IAsyncEnumerable<int>
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (int i in new C())
+        await foreach (int i in new C())
         {
         }
     }
@@ -57,9 +53,9 @@ class C : IAsyncEnumerable<int>
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (7,17): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         foreach await (int i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 17)
+                // (7,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         await foreach (int i in new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
                 );
         }
 
@@ -82,7 +78,7 @@ class D
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (int i in new C()) { }
+        await foreach (int i in new C()) { }
     }
 }
 ";
@@ -90,8 +86,8 @@ class D
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
-                //         foreach await (int i in new C()) { }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "foreach await (int i in new C()) { }").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 9)
+                //         await foreach (int i in new C()) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await foreach (int i in new C()) { }").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 9)
                 );
         }
 
@@ -109,7 +105,7 @@ public class C : IAsyncEnumerable<uint>
         {
             REPLACE
             {
-                foreach await (int i in new C()) { System.Console.Write($""0x{i:X8}""); }
+                await foreach (int i in new C()) { System.Console.Write($""0x{i:X8}""); }
             }
         }
         catch (System.OverflowException)
@@ -156,7 +152,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (int i in new C())
+        await foreach (int i in new C())
         {
         }
     }
@@ -168,7 +164,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
                 // (7,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
-                //         foreach await (int i in new C())
+                //         await foreach (int i in new C())
                 Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(7, 33)
                 );
         }
@@ -181,7 +177,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -189,8 +185,8 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -202,7 +198,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -217,8 +213,8 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -230,7 +226,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -245,11 +241,11 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator()' is either static or not public.
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new C()").WithArguments("C", "async streams", "C.GetAsyncEnumerator()").WithLocation(6, 33),
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -261,7 +257,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -286,15 +282,15 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,9): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator()").WithLocation(6, 9),
-                // (6,9): warning CS0612: 'C.Enumerator.MoveNextAsync()' is obsolete
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.MoveNextAsync()").WithLocation(6, 9),
-                // (6,9): warning CS0612: 'C.Enumerator.Current' is obsolete
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.Current").WithLocation(6, 9)
+                // (6,15): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator()").WithLocation(6, 15),
+                // (6,15): warning CS0612: 'C.Enumerator.MoveNextAsync()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.MoveNextAsync()").WithLocation(6, 15),
+                // (6,15): warning CS0612: 'C.Enumerator.Current' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.Current").WithLocation(6, 15)
                 );
         }
 
@@ -306,7 +302,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C()) { }
+        await foreach (var i in new C()) { }
     }
     public Enumerator GetAsyncEnumerator()
         => throw null;
@@ -323,7 +319,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -336,7 +332,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -350,7 +346,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -363,7 +359,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -386,7 +382,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -399,7 +395,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C()) { }
+        await foreach (var i in new C()) { }
     }
     public Enumerator GetAsyncEnumerator()
         => throw null;
@@ -416,7 +412,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -429,7 +425,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C()) { }
+        await foreach (var i in new C()) { }
     }
     public Enumerator GetAsyncEnumerator()
         => throw null;
@@ -444,7 +440,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -457,7 +453,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C()) { }
+        await foreach (var i in new C()) { }
     }
     public Enumerator GetAsyncEnumerator()
         => throw null;
@@ -474,10 +470,10 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0122: 'C.Enumerator.Current' is inaccessible due to its protection level
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "new C()").WithArguments("C.Enumerator.Current").WithLocation(6, 33),
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -490,7 +486,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C()) { }
+        await foreach (var i in new C()) { }
     }
     public Enumerator GetAsyncEnumerator()
         => throw null;
@@ -508,7 +504,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -521,7 +517,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C()) { }
+        await foreach (var i in new C()) { }
     }
     public Enumerator GetAsyncEnumerator()
         => throw null;
@@ -538,7 +534,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C()) { }
+                //         await foreach (var i in new C()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -551,7 +547,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -574,7 +570,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -587,7 +583,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -610,7 +606,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -623,7 +619,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -646,7 +642,7 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -659,7 +655,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (string i in new C())
+        await foreach (string i in new C())
         {
         }
     }
@@ -677,9 +673,9 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0030: Cannot convert type 'int' to 'string'
-                //         foreach await (string i in new C())
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "string").WithLocation(6, 9)
+                // (6,15): error CS0030: Cannot convert type 'int' to 'string'
+                //         await foreach (string i in new C())
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "string").WithLocation(6, 15)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -705,7 +701,7 @@ class C
 {
     async Task M()
     {
-        foreach await (Element i in new C())
+        await foreach (Element i in new C())
         {
         }
     }
@@ -728,9 +724,9 @@ class Element
 }";
             var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyDiagnostics(
-                // (7,9): error CS0030: Cannot convert type 'int' to 'Element'
-                //         foreach await (Element i in new C())
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "Element").WithLocation(7, 9)
+                // (7,15): error CS0030: Cannot convert type 'int' to 'Element'
+                //         await foreach (Element i in new C())
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "Element").WithLocation(7, 15)
                 );
         }
 
@@ -744,7 +740,7 @@ class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (Element i in new C())
+        await foreach (Element i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -804,7 +800,7 @@ public class C
     public static async System.Threading.Tasks.Task Main()
     {
         System.Action f = null;
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
             if (f == null) f = () => Write($""Captured({i})"");
@@ -849,7 +845,7 @@ public class Program
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new C<IntContainer>())
+        await foreach (var i in new C<IntContainer>())
         {
             Write($""Got({i.Value}) "");
         }
@@ -905,7 +901,7 @@ public class C
     {
         try
         {
-            foreach await (var i in new C())
+            await foreach (var i in new C())
             {
                 throw null;
             }
@@ -945,7 +941,7 @@ public class C
     {
         try
         {
-            foreach await (var i in new C())
+            await foreach (var i in new C())
             {
                 throw null;
             }
@@ -988,7 +984,7 @@ public class C
     {
         try
         {
-            foreach await (var i in new C())
+            await foreach (var i in new C())
             {
                 throw null;
             }
@@ -1035,7 +1031,7 @@ public class C
     {
         try
         {
-            foreach await (var i in new C())
+            await foreach (var i in new C())
             {
                 throw null;
             }
@@ -1074,7 +1070,7 @@ class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in (dynamic)new C())
+        await foreach (var i in (dynamic)new C())
         {
         }
     }
@@ -1082,8 +1078,8 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
                 // (6,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
-                //         foreach await (var i in (dynamic)new C())
-                Diagnostic(ErrorCode.ERR_BadDynamicAsyncForEach, "(dynamic)new C()").WithLocation(6, 33));
+                //         await foreach (var i in (dynamic)new C())
+                Diagnostic(ErrorCode.ERR_BadDynamicAwaitForEach, "(dynamic)new C()").WithLocation(6, 33));
         }
 
         [Fact]
@@ -1100,7 +1096,7 @@ class C
 {
     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
-        foreach await (var i in collection)
+        await foreach (var i in collection)
         {
         }
     }
@@ -1108,8 +1104,8 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (12,33): error CS8411: Async foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in collection)
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAsyncEnumerator").WithLocation(12, 33)
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAsyncEnumerator").WithLocation(12, 33)
                 );
         }
 
@@ -1133,7 +1129,7 @@ class C
 {
     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
-        foreach await (var i in collection)
+        await foreach (var i in collection)
         {
         }
     }
@@ -1141,10 +1137,10 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (18,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'Current'
-                //         foreach await (var i in collection)
+                //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "Current").WithLocation(18, 33),
                 // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in collection)
+                //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()").WithLocation(18, 33)
                 );
         }
@@ -1169,7 +1165,7 @@ class C
 {
     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
-        foreach await (var i in collection)
+        await foreach (var i in collection)
         {
         }
     }
@@ -1177,10 +1173,10 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (18,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'MoveNextAsync'
-                //         foreach await (var i in collection)
+                //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "MoveNextAsync").WithLocation(18, 33),
                 // (18,33): error CS8412: Async foreach requires that the return type 'IAsyncEnumerator<int>' of 'IAsyncEnumerable<int>.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in collection)
+                //         await foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()").WithLocation(18, 33)
                 );
         }
@@ -1193,7 +1189,7 @@ public class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -1211,8 +1207,8 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -1254,7 +1250,7 @@ public class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -1280,10 +1276,10 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(6, 33),
                 // (6,33): error CS8412: Async foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
         }
@@ -1335,7 +1331,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -1352,8 +1348,8 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -1378,7 +1374,7 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
                 );
@@ -1400,7 +1396,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,27): error CS8414: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (7,27): error CS8414: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in collection)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetEnumerator").WithLocation(7, 27)
                 );
@@ -1415,19 +1411,19 @@ class C
 {
     void M(IEnumerable<int> collection)
     {
-        foreach await (var i in collection)
+        await foreach (var i in collection)
         {
         }
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,33): error CS8415: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
-                //         foreach await (var i in collection)
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
-                // (7,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
-                //         foreach await (var i in collection)
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 17)
+                // (7,33): error CS8415: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "collection").WithArguments("System.Collections.Generic.IEnumerable<int>", "GetAsyncEnumerator").WithLocation(7, 33),
+                // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9)
                 );
         }
 
@@ -1454,21 +1450,21 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (6,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(6, 27)
                 );
         }
 
         [Fact]
-        public void TestPatternBasedEnumerableWithAsyncForeach()
+        public void TestPatternBasedEnumerableWithAwaitForeach()
         {
             string source = @"
 class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -1483,9 +1479,9 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (6,33): error CS8415: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'foreach await'?
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
+                // (6,33): error CS8415: Async foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
         }
 
@@ -1497,7 +1493,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -1547,7 +1543,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (ref var i in new C())
+        await foreach (ref var i in new C())
         {
         }
     }
@@ -1563,7 +1559,7 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,32): error CS8177: Async methods cannot have by-reference locals
-                //         foreach await (ref var i in new C())
+                //         await foreach (ref var i in new C())
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(6, 32));
 
             var tree = comp.SyntaxTrees.Single();
@@ -1580,7 +1576,7 @@ unsafe class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -1593,9 +1589,9 @@ unsafe class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (6,17): error CS4004: Cannot await in an unsafe context
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(6, 17));
+                // (6,9): error CS4004: Cannot await in an unsafe context
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(6, 9));
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1611,7 +1607,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new D())
+        await foreach (var i in new D())
         {
         }
     }
@@ -1630,8 +1626,8 @@ class D
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8411: Async foreach statement cannot operate on variables of type 'D' because 'D' does not contain a public definition for 'GetAsyncEnumerator'
-                //         foreach await (var i in new D())
-                Diagnostic(ErrorCode.ERR_AsyncForEachMissingMember, "new D()").WithArguments("D", "GetAsyncEnumerator").WithLocation(6, 33)
+                //         await foreach (var i in new D())
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "new D()").WithArguments("D", "GetAsyncEnumerator").WithLocation(6, 33)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -1648,7 +1644,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new D())
+        await foreach (var i in new D())
         {
         }
     }
@@ -1667,10 +1663,10 @@ class D
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0122: 'D.Enumerator.MoveNextAsync()' is inaccessible due to its protection level
-                //         foreach await (var i in new D())
+                //         await foreach (var i in new D())
                 Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.MoveNextAsync()").WithLocation(6, 33),
                 // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new D())
+                //         await foreach (var i in new D())
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
 
@@ -1688,7 +1684,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new D()) { }
+        await foreach (var i in new D()) { }
     }
 }
 class D
@@ -1704,10 +1700,10 @@ class D
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0122: 'D.Enumerator.Current' is inaccessible due to its protection level
-                //         foreach await (var i in new D()) { }
+                //         await foreach (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "new D()").WithArguments("D.Enumerator.Current").WithLocation(6, 33),
                 // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new D()) { }
+                //         await foreach (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
 
@@ -1725,7 +1721,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new D()) { }
+        await foreach (var i in new D()) { }
     }
 }
 class D
@@ -1741,7 +1737,7 @@ class D
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8412: Async foreach requires that the return type 'D.Enumerator' of 'D.GetAsyncEnumerator()' must have a suitable public MoveNextAsync method and public Current property
-                //         foreach await (var i in new D()) { }
+                //         await foreach (var i in new D()) { }
                 Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new D()").WithArguments("D.Enumerator", "D.GetAsyncEnumerator()").WithLocation(6, 33)
                 );
 
@@ -1761,7 +1757,7 @@ public class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var s in new C())
+        await foreach (var s in new C())
         {
             Write($""{s.ToString()} "");
         }
@@ -1808,7 +1804,7 @@ public class C
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var s in new C())
+        await foreach (var s in new C())
         {
             Write($""{s.ToString()} "");
         }
@@ -1858,7 +1854,7 @@ class C
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             i = 1;
         }
@@ -1890,7 +1886,7 @@ class C
 {
     static async Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -1944,7 +1940,7 @@ class C
 {
     static async Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2007,7 +2003,7 @@ public class C
 {
     public static async Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2068,7 +2064,7 @@ public class C
 {
     public static async Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2369,7 +2365,7 @@ class C
 {
     public static async Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2442,7 +2438,7 @@ class Client
 {
     async Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -2473,7 +2469,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
 {
     async System.Threading.Tasks.Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -2489,7 +2485,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (7,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(7, 33)
                 );
         }
@@ -2509,7 +2505,7 @@ class C : Base, IAsyncEnumerable<int>
 {
     async Task M()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -2519,7 +2515,7 @@ class C : Base, IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (13,33): error CS8413: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
-                //         foreach await (var i in new C())
+                //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_MultipleIAsyncEnumOfT, "new C()").WithArguments("C", "System.Collections.Generic.IAsyncEnumerable<T>").WithLocation(13, 33)
                 );
         }
@@ -2535,7 +2531,7 @@ class C : IAsyncEnumerable<int>
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2607,7 +2603,7 @@ class C : IAsyncEnumerable<int>
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2659,7 +2655,7 @@ class C : IAsyncEnumerable<int>
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             if (i == 2 || i == 3) { Write($""Continue({i}) ""); continue; }
             if (i == 4) { Write(""Break ""); break; }
@@ -2715,7 +2711,7 @@ class C : IAsyncEnumerable<int>
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             if (i == 2 || i == 3) { Write($""Continue({i}) ""); continue; }
             if (i == 4) { Write(""Goto ""); goto done; }
@@ -2772,7 +2768,7 @@ class C : IAsyncEnumerable<int>
 {
     static async Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -2825,7 +2821,7 @@ class C
 {
     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> collection)
     {
-        foreach await (var item in collection) { }
+        await foreach (var item in collection) { }
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
@@ -2849,7 +2845,7 @@ class C : IAsyncEnumerable<int>
 {
     async Task M()
     {
-        foreach await (var i in null)
+        await foreach (var i in null)
         {
         }
     }
@@ -2861,7 +2857,7 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0186: Use of null is not valid in this context
-                //         foreach await (var i in null)
+                //         await foreach (var i in null)
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(8, 33)
                 );
         }
@@ -2879,7 +2875,7 @@ class C : IAsyncEnumerable<int>
         C c = null;
         try
         {
-            foreach await (var i in c)
+            await foreach (var i in c)
             {
             }
         }
@@ -2924,7 +2920,7 @@ class C : IAsyncEnumerable<int>
         }
         catch (System.NullReferenceException)
         {
-            foreach await (var i in new C())
+            await foreach (var i in new C())
             {
                 Write($""Got({i}) "");
             }
@@ -2981,7 +2977,7 @@ class C : IAsyncEnumerable<int>
         }
         finally
         {
-            foreach await (var i in new C())
+            await foreach (var i in new C())
             {
             }
         }
@@ -2994,8 +2990,8 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (13,13): error CS0157: Control cannot leave the body of a finally clause
-                //             foreach await (var i in new C())
-                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "foreach").WithLocation(13, 13)
+                //             await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "await").WithLocation(13, 13)
                 );
         }
 
@@ -3010,7 +3006,7 @@ class C : IAsyncEnumerable<int>
 {
     public static async Task Main()
     {
-        foreach await (Element i in new C())
+        await foreach (Element i in new C())
         {
             Write($""Got({i}) "");
         }
@@ -3092,7 +3088,7 @@ struct C : IAsyncEnumerable<int>
     static async System.Threading.Tasks.Task Main()
     {
         C? c = new C(); // non-null value
-        foreach await (var i in c)
+        await foreach (var i in c)
         {
             Write($""Got({i}) "");
         }
@@ -3167,7 +3163,7 @@ struct C : IAsyncEnumerable<int>
         C? c = null; // null value
         try
         {
-            foreach await (var i in c)
+            await foreach (var i in c)
             {
                 Write($""UNREACHABLE"");
             }
@@ -3198,7 +3194,7 @@ class C : IAsyncEnumerable<int>
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var (i, j) in new C())
+        await foreach (var (i, j) in new C())
         {
             Write($""Got({i},{j}) "");
         }
@@ -3272,7 +3268,7 @@ class C : IAsyncEnumerable<int>
 {
     static void Main()
     {
-        foreach await (var (i, j) in new C())
+        await foreach (var (i, j) in new C())
         {
         }
     }
@@ -3285,9 +3281,9 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
-                //         foreach await (var (i, j) in new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 17)
+                // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         await foreach (var (i, j) in new C())
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9)
                 );
         }
 
@@ -3302,7 +3298,7 @@ class C : IAsyncEnumerable<(string, int)>
 {
     public static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var (i, j) in new C())
+        await foreach (var (i, j) in new C())
         {
             Write($""Got({i},{j}) "");
         }
@@ -3430,7 +3426,7 @@ class C
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new C())
+        await foreach (var i in new C())
         {
         }
     }
@@ -3452,15 +3448,15 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,9): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator()").WithLocation(7, 9),
-                // (7,9): warning CS0612: 'C.AsyncEnumerator.MoveNextAsync()' is obsolete
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(7, 9),
-                // (7,9): warning CS0612: 'C.AsyncEnumerator.Current' is obsolete
-                //         foreach await (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.Current").WithLocation(7, 9)
+                // (7,15): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator()").WithLocation(7, 15),
+                // (7,15): warning CS0612: 'C.AsyncEnumerator.MoveNextAsync()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(7, 15),
+                // (7,15): warning CS0612: 'C.AsyncEnumerator.Current' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.Current").WithLocation(7, 15)
                 );
             // Note: Obsolete on DisposeAsync is not reported since always called through IAsyncDisposable interface
         }
@@ -3475,7 +3471,7 @@ class C
     async System.Threading.Tasks.Task M()
     {
         C c;
-        foreach await (var i in c)
+        await foreach (var i in c)
         {
         }
     }
@@ -3484,7 +3480,7 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0165: Use of unassigned local variable 'c'
-                //         foreach await (var i in c)
+                //         await foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(8, 33)
                 );
         }
@@ -3509,7 +3505,7 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
-                // (7,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'foreach await'?
+                // (7,27): error CS8414: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance definition for 'GetEnumerator'. Did you mean 'await foreach'?
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_ForEachMissingMemberWrongAsync, "new C()").WithArguments("C", "GetEnumerator").WithLocation(7, 27)
                 );
@@ -3556,7 +3552,7 @@ class C
 {
     static async System.Threading.Tasks.Task Main()
     {
-        foreach await (var i in new Collection<int>())
+        await foreach (var i in new Collection<int>())
         {
             Write($""Got "");
         }
@@ -3637,7 +3633,7 @@ class C
     static async System.Threading.Tasks.Task Main()
     {
         ICollection<int> c = new Collection<int>();
-        foreach await (var i in c)
+        await foreach (var i in c)
         {
             Write($""Got "");
         }

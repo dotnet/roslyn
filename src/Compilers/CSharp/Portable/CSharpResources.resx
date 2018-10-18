@@ -2632,14 +2632,14 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_ForEachMissingMember" xml:space="preserve">
     <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
-  <data name="ERR_AsyncForEachMissingMember" xml:space="preserve">
+  <data name="ERR_AwaitForEachMissingMember" xml:space="preserve">
     <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach await'?</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach'?</value>
   </data>
-  <data name="ERR_AsyncForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'foreach await'?</value>
+  <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
+    <value>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
@@ -5618,7 +5618,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRangeOperator" xml:space="preserve">
     <value>range operator</value>
   </data>
-  <data name="ERR_BadDynamicAsyncForEach" xml:space="preserve">
+  <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
 </root>

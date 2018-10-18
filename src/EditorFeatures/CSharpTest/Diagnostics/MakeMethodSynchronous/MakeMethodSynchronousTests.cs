@@ -655,7 +655,7 @@ class C
 {
     async System.Threading.Tasks.Task [|MAsync|]()
     {
-        using await (var x = new object())
+        await using (var x = new object())
         {
         }
     }
@@ -687,14 +687,14 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
-        public async Task MethodWithForEachAwait()
+        public async Task MethodWithAwaitForEach()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     async System.Threading.Tasks.Task [|MAsync|]()
     {
-        foreach await (var n in new int[] { })
+        await foreach (var n in new int[] { })
         {
         }
     }
@@ -733,7 +733,7 @@ class C
 {
     async System.Threading.Tasks.Task [|MAsync|]()
     {
-        foreach await (var (a, b) in new(int, int)[] { })
+        await foreach (var (a, b) in new(int, int)[] { })
         {
         }
     }
