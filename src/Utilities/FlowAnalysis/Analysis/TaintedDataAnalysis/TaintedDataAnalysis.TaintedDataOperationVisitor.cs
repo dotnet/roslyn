@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                              || a.Parameter.RefKind == RefKind.In));
                 if (taintedArguments.Any())
                 {
-                    ProcessRegularInvocationOrCreation(operation.Constructor, taintedArguments, operation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, taintedArguments, operation);
 
                     IEnumerable<TaintedDataAbstractValue> allTaintedValues = taintedArguments.Select(a => this.GetCachedAbstractValue(a));
                     if (value.Kind == TaintedDataAbstractValueKind.Tainted)
@@ -204,7 +204,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 if (taintedArguments.Any())
                 {
-                    ProcessRegularInvocationOrCreation(method, visitedArguments, originalOperation);
+                    ProcessTaintedDataEnteringInvocationOrCreation(method, visitedArguments, originalOperation);
                 }
 
                 if (this.IsSanitizingMethod(method))
@@ -243,6 +243,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return returnValue;
                 }
+            }
+
+            public override TaintedDataAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)
+            {
+                // Always invoke base visit.
+                TaintedDataAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+
+                IEnumerable<IArgumentOperation> taintedArguments = visitedArguments.Where(
+                    a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
+                         && (a.Parameter.RefKind == RefKind.None
+                             || a.Parameter.RefKind == RefKind.Ref
+                             || a.Parameter.RefKind == RefKind.In));
+
+                if (taintedArguments.Any())
+                {
+                    ProcessTaintedDataEnteringInvocationOrCreation(localFunction, visitedArguments, originalOperation);
+                }
+
+                return baseValue;
             }
 
             /// <summary>
@@ -327,7 +346,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="targetMethod">Method being invoked.</param>
             /// <param name="taintedArguments">Arguments with tainted data to the method.</param>
             /// <param name="originalOperation">Original IOperation for the method/constructor invocation.</param>
-            private void ProcessRegularInvocationOrCreation(IMethodSymbol targetMethod, IEnumerable<IArgumentOperation> taintedArguments, IOperation originalOperation)
+            private void ProcessTaintedDataEnteringInvocationOrCreation(
+                IMethodSymbol targetMethod, 
+                IEnumerable<IArgumentOperation> taintedArguments,
+                IOperation originalOperation)
             {
                 if (this.IsMethodArgumentASink(targetMethod, taintedArguments))
                 {
@@ -335,6 +357,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
                         this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax, abstractValue.SourceOrigins);
+                    }
+                }
+
+                if (this.TryGetInterproceduralAnalysisResult(originalOperation, out TaintedDataAnalysisResult subResult)
+                    && !subResult.TaintedDataSourceSinks.IsEmpty)
+                {
+                    foreach (TaintedDataSourceSink sourceSink in subResult.TaintedDataSourceSinks)
+                    {
+                        this.TrackTaintedDataEnteringSink(
+                            sourceSink.Sink.Symbol, 
+                            sourceSink.Sink.SyntaxNode, 
+                            sourceSink.SourceOrigins);
                     }
                 }
             }
