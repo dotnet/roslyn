@@ -32,9 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _endOfRegionState As LocalState
         Private ReadOnly _labelsInside As New HashSet(Of LabelSymbol)()
 
-        Private ReadOnly Property AlwaysAssigned As IEnumerable(Of Symbol)
+        Private ReadOnly Iterator Property AlwaysAssigned As IEnumerable(Of Symbol)
             Get
-                Dim result As New List(Of Symbol)
                 If (_endOfRegionState.Reachable) Then
                     For Each i In _endOfRegionState.Assigned.TrueBits
                         If (i >= variableBySlot.Length) Then
@@ -43,14 +42,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim v = variableBySlot(i)
                         If v.Exists AndAlso v.Symbol.Kind <> SymbolKind.Field Then
-                            result.Add(v.Symbol)
+                            Yield v.Symbol
                         End If
                     Next
                 End If
-
-                Return result
             End Get
         End Property
+
 
         Protected Overrides Sub EnterRegion()
             MyBase.SetState(ReachableState())
