@@ -198,10 +198,11 @@ public static class Program
         System.Console.Write(s.i);
     }
 }";
-            CreateCompilation(code).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1")
-                    .WithArguments("MyStructExtension.Add(ref MyStruct, ref int)")
-                    .WithLocation(20, 32));
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+                // (20,32): error CS1954: The best overloaded method match 'MyStructExtension.Add(ref MyStruct, ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         var s = new MyStruct { 1 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyStructExtension.Add(ref MyStruct, ref int)").WithLocation(20, 32));
         }
 
         [Fact]
@@ -230,10 +231,10 @@ public static class Program
         System.Console.Write(s.i);
     }
 }";
-            CreateCompilation(code).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1")
-                    .WithArguments("MyStructExtension.Add(in MyStruct, ref int)")
-                    .WithLocation(19, 32));
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+                // (19,32): error CS1954: The best overloaded method match 'MyStructExtension.Add(in MyStruct, ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         var s = new MyStruct { 1 };
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyStructExtension.Add(in MyStruct, ref int)").WithLocation(19, 32));
         }
 
         [Fact]
