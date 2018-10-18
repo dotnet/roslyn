@@ -347,5 +347,14 @@ End Class")
     End Sub
 End Class")
         End Function
+
+        <Fact>
+        Public Async Function RefactoringIsNotAvailableOnSingleLineLambda() As Task
+            Await TestMissingInRegularAndScriptAsync("Class C
+    Sub M(disposable As System.IDisposable)
+        New Action(Function() Dim x = disposable[||])
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

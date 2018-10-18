@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
         }
 
         [Fact]
-        public async Task WorksOnInvalidEmbeddedStatements()
+        public async Task WorksOnStatementWithInvalidEmbeddingInIf()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -499,6 +499,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
             using (var x = disposable)
             {
             }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task RefactoringIsNotAvailableOnStatementWithInvalidEmbeddingInLambda()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.IDisposable disposable)
+    {
+        new Action(() => var x = disposable[||]);
     }
 }");
         }
