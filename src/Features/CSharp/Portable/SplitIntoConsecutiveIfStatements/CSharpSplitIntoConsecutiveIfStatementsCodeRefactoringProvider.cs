@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements;
 
@@ -36,6 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
         protected override IfStatementSyntax SplitIfStatementIntoElseClause(
             IfStatementSyntax currentIfStatement, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
+            if (ContainsEmbeddedIfStatement(currentIfStatement))
+            {
+                currentIfStatement = currentIfStatement.WithStatement(SyntaxFactory.Block(currentIfStatement.Statement));
+            }
+
             var secondIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement, currentIfStatement.Else);
             var firstIfStatement = currentIfStatement
                 .WithCondition(condition1)
@@ -51,6 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
             var firstIfStatement = currentIfStatement.WithCondition(condition1);
 
             return (firstIfStatement, secondIfStatement);
+        }
+
+        private static bool ContainsEmbeddedIfStatement(IfStatementSyntax ifStatement)
+        {
+            for (var statement = ifStatement.Statement; statement.IsEmbeddedStatementOwner(); statement = statement.GetEmbeddedStatement())
+            {
+                if (statement.IsKind(SyntaxKind.IfStatement))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
