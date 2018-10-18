@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             IAsyncCompletionSession session,
             AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
-        {
-            return Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
-        }
+            => Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
 
         private AsyncCompletionData.FilteredCompletionModel UpdateCompletionList(
             IAsyncCompletionSession session,
@@ -127,6 +125,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 }
                 else
                 {
+                    // The item didn't match the filter text.  We'll still keep it in the list
+                    // if one of two things is true:
+                    //
+                    //  1. The user has only typed a single character.  In this case they might
+                    //     have just typed the character to get completion.  Filtering out items
+                    //     here is not desirable.
+                    //
+                    //  2. They brough up completion with ctrl-j or through deletion.  In these
+                    //     cases we just always keep all the items in the list.
                     if (roslynTrigger.Kind == CompletionTriggerKind.Deletion ||
                         roslynTrigger.Kind == CompletionTriggerKind.Invoke ||
                         filterText.Length <= 1)
@@ -160,7 +167,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var caretPoint = session.TextView.GetCaretPoint(data.Snapshot.TextBuffer);
             var caretPosition = caretPoint?.Position;
 
-            //var disconnectedBufferGraph = new DisconnectedBufferGraph(data.Snapshot.TextBuffer, session.ApplicableToSpan.TextBuffer, session.TextView.TextBuffer);
             var disconnectedBufferGraph = new DisconnectedBufferGraph(session.ApplicableToSpan.TextBuffer, session.TextView.TextBuffer);
             if (data.Trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted && 
@@ -199,17 +205,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 initialListOfItemsToBeIncluded,
                 hasSuggestedItemOptions);
         }
-
-        private static AsyncCompletionData.FilteredCompletionModel CreateDefaultFilteredCompletionModel(
-            ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> items,
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters)
-            => new AsyncCompletionData.FilteredCompletionModel(
-                    items: items, 
-                    selectedItemIndex: 0,
-                    filters: filters, 
-                    selectionHint: AsyncCompletionData.UpdateSelectionHint.NoChange, 
-                    centerSelection: true, 
-                    uniqueItem: default);
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
         {
@@ -483,8 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         {
             var start = disconnectedBufferGraph.ViewSnapshot.CreateTrackingPoint(originalSpan.TextSpan.Start, PointTrackingMode.Negative).GetPosition(textSnapshot);
             var end = Math.Max(start, trackingPoint.GetPosition(textSnapshot));
-            return new SnapshotSpan(
-                textSnapshot, Span.FromBounds(start, end));
+            return new SnapshotSpan(textSnapshot, Span.FromBounds(start, end));
         }
 
         private readonly struct ExtendedFilterResult

@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
-            // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
             if (trigger.Reason != AsyncCompletionData.CompletionTriggerReason.Invoke &&
                 trigger.Reason != AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique && 
                 !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))

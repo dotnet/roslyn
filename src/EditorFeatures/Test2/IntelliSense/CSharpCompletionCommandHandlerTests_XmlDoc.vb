@@ -731,7 +731,7 @@ class c
                 Await state.AssertNoCompletionSession()
 
                 ' /// <see langword="keyword"/>$$
-                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "") ' TODO: What happened here with the \0? https://github.com/dotnet/roslyn/issues/27437
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "")
             End Using
         End Function
 

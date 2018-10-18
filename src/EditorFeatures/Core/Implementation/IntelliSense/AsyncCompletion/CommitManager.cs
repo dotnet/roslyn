@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return CommitResultUnhandled;
             }
 
-            var filterText = session.ApplicableToSpan.GetText(subjectBuffer.CurrentSnapshot);
-            if (Controller.IsFilterCharacter(roslynItem, typeChar, filterText + typeChar))
+            var filterText = session.ApplicableToSpan.GetText(subjectBuffer.CurrentSnapshot) + typeChar;
+            if (Controller.IsFilterCharacter(roslynItem, typeChar, filterText))
             { 
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
@@ -83,21 +83,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             var provider = completionService.GetProvider(roslynItem);
-            if (provider != null && item.Properties.TryGetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot, out var triggerSnapshot))
+            if (provider == null || !item.Properties.TryGetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot, out var triggerSnapshot))
             {
-                // Custom commit provider assumes that null is provided is case of invoke. VS provides '\0' in the case.
-                char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
-                var commitBehavior = Commit(document, provider, session.TextView, subjectBuffer, roslynItem, commitChar, triggerSnapshot, cancellationToken);
-
-                return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
+                return CommitResultUnhandled;
             }
 
-            if (item.InsertText.EndsWith(":") && typeChar == ':')
-            {
-                return new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
-            }
+            // Commit providers assume that null is provided is case of invoke. VS provides '\0' in the case.
+            char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitBehavior = Commit(document, provider, session.TextView, subjectBuffer, roslynItem, commitChar, triggerSnapshot, completionService.GetRules(), filterText, cancellationToken);
 
-            return CommitResultUnhandled;
+            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);            
         }
 
         /// <summary>
@@ -147,6 +142,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             RoslynCompletionItem roslynItem,
             char? commitCharacter,
             ITextSnapshot triggerSnapshot,
+            CompletionRules rules,
+            string filterText,
             CancellationToken cancellationToken)
         {
             bool includesCommitCharacter;
@@ -186,8 +183,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             if (includesCommitCharacter) return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
 
-            // TODO Remove language specific code: https://github.com/dotnet/roslyn/issues/30276
-            if (commitCharacter == '\n' && document.Project.Language == LanguageNames.VisualBasic) return AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers;
+            if (commitCharacter == '\n' && Controller.SendEnterThroughToEditor(rules, roslynItem, filterText))
+            {
+                return AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers;
+            }
+
             return AsyncCompletionData.CommitBehavior.None;
         }
     }
