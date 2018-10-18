@@ -737,6 +737,63 @@ namespace Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInOtherDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    class MyClass 
+    {{
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo
+{{
+    using {declaredNamespace};
+
+    class RefClass
+    {{
+        Foo.Bar.Baz.MyClass c;
+    }}
+
+    class MyClass
+    {{
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"class MyClass
+{
+}
+";
+            var expectedSourceReference =
+@"
+namespace Foo
+{
+    class RefClass
+    {
+        global::MyClass c;
+    }
+
+    class MyClass
+    {
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeToGlobalNamespace_ReferencingTypesDeclaredInOtherDocument()
         {
             var defaultNamespace = "";
@@ -1406,6 +1463,137 @@ End Class</Document>
 @"Public Class VBClass
     Public ReadOnly Property C1 As A.B.C.Class1
 End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeFromGlobalNamespace_WithReferencesInVBDocument()
+        {
+            var defaultNamespace = "A";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+public class [||]Class1
+{{ 
+}}
+</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document> 
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    public class Class1
+    {
+    }
+}";
+            var expectedSourceReference =
+@"
+Imports A.B.C
+
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithReferencesInVBDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public class Class1
+    {{ 
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document> 
+Imports {declaredNamespace}
+
+Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"public class Class1
+{
+}
+";
+            var expectedSourceReference =
+@"Public Class VBClass
+    Public ReadOnly Property C1 As Class1
+End Class";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInVBDocument()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar.Baz";
+
+            var documentPath1 = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" DefaultNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    public class MyClass
+    {{ 
+    }}
+}}</Document>
+    </Project>    
+<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+Namespace Foo
+    Public Class VBClass
+        Public ReadOnly Property C1 As Foo.Bar.Baz.MyClass
+    End Class
+
+    Public Class MyClass
+    End Class
+End Namespace</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"public class MyClass
+{
+}
+";
+            var expectedSourceReference =
+@"Namespace Foo
+    Public Class VBClass
+        Public ReadOnly Property C1 As Global.MyClass
+    End Class
+
+    Public Class MyClass
+    End Class
+End Namespace";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
         }
     }
