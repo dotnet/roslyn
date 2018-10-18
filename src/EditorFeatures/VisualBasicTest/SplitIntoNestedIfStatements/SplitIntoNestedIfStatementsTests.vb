@@ -463,7 +463,7 @@ end class")
     sub M(a as boolean, b as boolean)
         if a [||]andalso b then
             System.Console.WriteLine()
-        else if a then
+        elseif a then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine(b)
@@ -475,12 +475,12 @@ end class",
         if a then
             If b Then
                 System.Console.WriteLine()
-            else if a then
+            elseif a then
                 System.Console.WriteLine(a)
             else
                 System.Console.WriteLine(b)
             End If
-        else if a then
+        elseif a then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine(b)
@@ -496,7 +496,7 @@ end class")
     sub M(a as boolean, b as boolean)
         if true then
             System.Console.WriteLine()
-        else if a [||]andalso b then
+        elseif a [||]andalso b then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine(b)
