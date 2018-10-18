@@ -6172,5 +6172,33 @@ class X
 }",
                 MainDescription("void M<T>() where T : unmanaged"));
         }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestGetAccessorDocumentation()
+        {
+            await TestAsync(
+@"
+class X
+{
+    /// <summary>Summary for property Goo</summary>
+    int Goo { g$$et; set; }
+}",
+                Documentation("Summary for property Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestSetAccessorDocumentation()
+        {
+            await TestAsync(
+@"
+class X
+{
+    /// <summary>Summary for property Goo</summary>
+    int Goo { get; s$$et; }
+}",
+                Documentation("Summary for property Goo"));
+        }
     }
 }
