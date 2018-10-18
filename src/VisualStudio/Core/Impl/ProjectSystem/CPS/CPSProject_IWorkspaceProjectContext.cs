@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
                 // Compute the ref path based on the non-ref path. Ideally this should come from the
                 // project system but we don't have a way to fetch that.
-                _visualStudioProject.OutputRefFilePath = 
+                _visualStudioProject.OutputRefFilePath =
                     Path.Combine(Path.GetDirectoryName(_visualStudioProject.OutputFilePath),
                     "ref",
                     Path.GetFileName(_visualStudioProject.OutputFilePath));
@@ -184,6 +184,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _visualStudioProject.RemoveAdditionalFile(filePath);
         }
 
+        public void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null)
+        {
+        }
+
+        public void RemoveDynamicFile(string fullPath)
+        {
+        }
+
         public void SetRuleSetFile(string filePath)
         {
             // This is now a no-op: we also recieve the rule set file through SetOptions, and we'll just use that one
@@ -201,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
             scope.Dispose();
         }
-        
+
         internal VisualStudioProject GetProject_TestOnly()
         {
             return _visualStudioProject;
