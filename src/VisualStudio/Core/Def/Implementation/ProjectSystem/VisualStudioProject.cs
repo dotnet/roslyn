@@ -298,8 +298,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _workspace.ApplyBatchChangeToProject(Id, solution =>
                 {
-                    solution = _sourceFiles.UpdateSolutionForBatch(solution, documentFileNamesAdded, documentsToOpen, (s, d) => s.AddDocument(d), (s, id) => s.RemoveDocument(id));
-                    solution = _additionalFiles.UpdateSolutionForBatch(solution, documentFileNamesAdded, documentsToOpen, (s, d) => s.AddAdditionalDocument(d), (s, id) => s.RemoveAdditionalDocument(id));
+                    solution = _sourceFiles.UpdateSolutionForBatch(
+                        solution,
+                        documentFileNamesAdded,
+                        documentsToOpen,
+                        (s, documents) => solution.AddDocuments(documents),
+                        (s, id) =>
+                        {
+                            // Clear any document-specific data now (like open file trackers, etc.)
+                            _workspace.ClearDocumentData(id);
+                            return s.RemoveDocument(id);
+                        });
+
+                    solution = _additionalFiles.UpdateSolutionForBatch(
+                        solution,
+                        documentFileNamesAdded,
+                        documentsToOpen,
+                        (s, documents) =>
+                        {
+                            foreach (var document in documents)
+                            {
+                                s = s.AddAdditionalDocument(document);
+                            }
+
+                            return s;
+                        },
+                        (s, id) =>
+                        {
+                            // Clear any document-specific data now (like open file trackers, etc.)
+                            _workspace.ClearDocumentData(id);
+                            return s.RemoveAdditionalDocument(id);
+                        });
 
                     // Metadata reference adding...
                     if (_metadataReferencesAddedInBatch.Count > 0)
@@ -1083,11 +1112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Solution solution,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
                 List<(DocumentId, SourceTextContainer)> documentsToOpen,
-                Func<Solution, DocumentInfo, Solution> addDocument,
+                Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, DocumentId, Solution> removeDocument)
             {
                 // Document adding...
-                solution = solution.AddDocuments(_documentsAddedInBatch.ToImmutable());
+                solution = addDocuments(solution, _documentsAddedInBatch.ToImmutable());
 
                 foreach (var documentInfo in _documentsAddedInBatch)
                 {
@@ -1104,7 +1133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Document removing...
                 foreach (var documentId in _documentsRemovedInBatch)
                 {
-                    solution = solution.RemoveDocument(documentId);
+                    solution = removeDocument(solution, documentId);
                 }
 
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
