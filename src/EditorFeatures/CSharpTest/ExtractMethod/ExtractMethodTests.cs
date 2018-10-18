@@ -10941,6 +10941,73 @@ namespace ConsoleApp1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDataFlowInButNoReadInside()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            [|if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }|]
+        }
+    }
+}";
+
+            var expected = @"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp39
+{
+    class Program
+    {
+        void Method(out object test)
+        {
+            test = null;
+
+            var a = test != null;
+            NewMethod(ref test, a);
+        }
+
+        private static void NewMethod(ref object test, bool a)
+        {
+            if (a)
+            {
+                return;
+            }
+
+            if (A == a)
+            {
+                test = new object();
+            }
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task AllowBestEffortForUnknownVariableDataFlow()
         {
             var code = @"
@@ -10949,13 +11016,11 @@ class Program
     void Method(out object test)
     {
         test = null;
-
         var a = test != null;
         [|if (a)
         {
             return;
         }
-
         if (A == a)
         {
             test = new object();
@@ -10968,25 +11033,22 @@ class Program
     void Method(out object test)
     {
         test = null;
-
         var a = test != null;
-        NewMethod(test, a);
+        NewMethod(ref test, a);
     }
 
-    private static void NewMethod(object test, bool a)
+    private static void NewMethod(ref object test, bool a)
     {
         if (a)
         {
             return;
         }
-
         if (A == a)
         {
             test = new object();
         }
     }
 }";
-
             await TestExtractMethodAsync(code, expected, allowBestEffort: true);
         }
     }

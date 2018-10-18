@@ -1923,5 +1923,93 @@ namespace RoslynSandbox
     int j;
 }");
         }
+
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLineWithDirective()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    #region Test
+    [|int i|];
+    #endregion
+    
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    #region Test
+    #endregion
+
+    int P { get; }
+}");
+        }
+
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsWithDirective()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    #region Test
+    [|int i|];
+    int j;
+    #endregion
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+}",
+@"class Class
+{
+    #region Test
+    int j;
+    #endregion
+
+    int P { get; }
+
+}");
+        }
+        [WorkItem(27675, "https://github.com/dotnet/roslyn/issues/27675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleLineWithDoubleDirectives()
+        {
+            await TestInRegularAndScriptAsync(
+@"class TestClass
+{
+    #region Field
+    [|int i|];
+    #endregion
+
+    #region Property
+    int P
+    {
+        get { return i; }
+    }
+    #endregion
+}",
+@"class TestClass
+{
+    #region Field
+    #endregion
+
+    #region Property
+    int P { get; }
+    #endregion
+}");
+        }
     }
 }
