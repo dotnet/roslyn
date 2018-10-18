@@ -272,6 +272,15 @@ d.cs
             parser.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString, arguments: new[] { "<text>", "-sdkPath" }).WithLocation(1, 1));
         }
 
+        [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void SdkPathNull()
+        {
+            var parentDir = Temp.CreateDirectory();
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/sdkPath-" }, parentDir.Path, null);
+            AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {

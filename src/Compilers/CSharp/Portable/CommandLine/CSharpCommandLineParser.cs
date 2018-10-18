@@ -419,6 +419,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             continue;
 
+                        case "sdkpath-":
+                            sdkDirectory = null;
+
+                            continue;
+
                         case "out":
                             if (string.IsNullOrWhiteSpace(value))
                             {
