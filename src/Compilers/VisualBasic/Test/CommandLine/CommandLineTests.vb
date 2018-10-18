@@ -3215,7 +3215,6 @@ print Goodbye, World"
                 Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
         End Sub
 
-
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapPdbDeterminism()
