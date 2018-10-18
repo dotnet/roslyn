@@ -9,7 +9,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// Represents an access a symbol.
     /// </summary>
     /// <remarks>This is useful to track where tainted data originated from as a source, or where tainted data entered as a sink.</remarks>
-    internal sealed class SymbolAccess : IEquatable<SymbolAccess>, IComparable<SymbolAccess>
+    internal sealed class SymbolAccess : IEquatable<SymbolAccess>
     {
         public SymbolAccess(ISymbol symbol, SyntaxNode syntaxNode, ISymbol accessingMethod)
         {
@@ -53,14 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override bool Equals(object obj)
         {
-            if (obj is SymbolAccess other)
-            {
-                return this.Equals(other);
-            }
-            else
-            {
-                return false;
-            }
+            return this.Equals(obj as SymbolAccess);
         }
 
         public override int GetHashCode()
@@ -68,11 +61,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             return HashUtilities.Combine(this.SyntaxNode.GetHashCode(),
                 HashUtilities.Combine(this.Symbol.GetHashCode(),
                 this.AccessingMethod.GetHashCode()));
-        }
-
-        public int CompareTo(SymbolAccess other)
-        {
-            return LocationComparer.Instance.Compare(this.SyntaxNode.GetLocation(), other.SyntaxNode.GetLocation());
         }
     }
 }

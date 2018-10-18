@@ -33,18 +33,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 ImmutableArray<TaintedDataSourceSink>.Builder builder = ImmutableArray.CreateBuilder<TaintedDataSourceSink>();
                 foreach (KeyValuePair<SymbolAccess, HashSet<SymbolAccess>> kvp in this.TaintedSourcesBySink)
                 {
-                    SymbolAccess[] sourceOrigins = kvp.Value.ToArray();
-
-                    Array.Sort(sourceOrigins);
-
                     builder.Add(
                         new TaintedDataSourceSink(
                             kvp.Key,
                             SinkKind.Sql,
-                            ImmutableArray.Create<SymbolAccess>(sourceOrigins)));
+                            ImmutableArray.Create<SymbolAccess>(kvp.Value.ToArray())));
                 }
-
-                builder.Sort((x, y) => LocationComparer.Instance.Compare(x.Sink.SyntaxNode.GetLocation(), y.Sink.SyntaxNode.GetLocation()));
                  
                 return builder.ToImmutableArray();
             }
