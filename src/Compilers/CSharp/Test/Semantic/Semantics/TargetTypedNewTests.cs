@@ -544,22 +544,45 @@ class C {
         public void TestObjectAndCollectionInitializer()
         {
             var source = @"
+using System;
 using System.Collections.Generic;
 
 class C
 {
     public C field; 
+    public int i;
+
+    public C(int i) => this.i = i;
+    public C() {}
 
     public static void Main()
     {
-        Dictionary<C, List<int>> dict1 = new() { { new() { field = new() }, new() { 1, 2, 3 } } };
-        Dictionary<C, List<int>> dict2 = new() { [new() { field = new() }] = new() { 1, 2, 3 } };
+        Dictionary<C, List<int>> dict1 = new() { { new() { field = new(1) }, new() { 1, 2, 3 } } };
+        Dictionary<C, List<int>> dict2 = new() { [new() { field = new(2) }] = new() { 4, 5, 6 } };
+        Dump(dict1);
+        Dump(dict2);
+    }
+
+    static void Dump(Dictionary<C, List<int>> dict)
+    {
+        foreach (C key in dict.Keys)
+        {
+            Console.Write($""C({key.field.i}): "");
+        }
+
+        foreach (List<int> value in dict.Values)
+        {
+            Console.WriteLine(string.Join("", "", value));
+        }
     }
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"C(1): 1, 2, 3
+C(2): 4, 5, 6");
         }
 
         [Fact]
@@ -1565,7 +1588,7 @@ class C
         }
 
         [Fact]
-        public void InUsing()
+        public void InUsing1()
         {
             string source = @"
 class C
@@ -1599,6 +1622,33 @@ class C
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );
+        }
+
+        [Fact]
+        public void InUsing2()
+        {
+            string source = @"
+using System;
+
+class C : IDisposable
+{
+    public void Dispose()
+    {
+        Console.Write(""C.Dispose"");
+    }
+
+    static void Main()
+    {
+        using (C c = new())
+        {
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C.Dispose");
         }
 
         [Fact]

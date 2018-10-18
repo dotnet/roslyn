@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -145,12 +146,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pool;
         }
 
+        #endregion
+
         internal void Initialize(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
         {
+            Debug.Assert(this.Arguments.IsEmpty());
+            Debug.Assert(this.RefKinds.IsEmpty());
+            Debug.Assert(this.Names.IsEmpty());
+
             this.Arguments.AddRange(arguments);
+
             if (!argumentRefKindsOpt.IsDefault)
             {
                 this.RefKinds.AddRange(argumentRefKindsOpt);
@@ -161,7 +169,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Names.AddRange(argumentNamesOpt);
             }
         }
-
-        #endregion
     }
 }
