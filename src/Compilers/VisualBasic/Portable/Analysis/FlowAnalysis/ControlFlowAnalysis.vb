@@ -19,12 +19,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicControlFlowAnalysis
         Inherits ControlFlowAnalysis
 
+        Friend Enum ReachableStates As Integer
+            Unreachable = -1
+            Unknown = 0
+            Reachable = 1
+        End Enum
+
+        Friend Shared Function AsReachableState(state As Boolean) As ReachableStates
+            Return If(state, ReachableStates.Reachable, ReachableStates.Unreachable)
+        End Function
+
         Private ReadOnly _context As RegionAnalysisContext
 
         Private _entryPoints As ImmutableArray(Of SyntaxNode)
         Private _exitPoints As ImmutableArray(Of SyntaxNode)
-        Private _regionStartPointIsReachable As Object
-        Private _regionEndPointIsReachable As Object
+        Private _regionIsReachable As (StartPoint As ReachableStates, EndPoint As ReachableStates)
         Private _returnStatements As ImmutableArray(Of SyntaxNode)
         Private _succeeded As Boolean?
 
@@ -38,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property EntryPoints As ImmutableArray(Of SyntaxNode)
             Get
                 If _entryPoints.IsDefault Then
-                    Me._succeeded = Not Me._context.Failed
-                    Dim result = If(Me._context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                    _succeeded = Not _context.Failed
+                    Dim result = If(_context.Failed, ImmutableArray(Of SyntaxNode).Empty,
                                     DirectCast(EntryPointsWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, _succeeded), IEnumerable(Of SyntaxNode)).ToImmutableArray())
                     ImmutableInterlocked.InterlockedCompareExchange(_entryPoints, result, Nothing)
                 End If
@@ -53,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ExitPoints As ImmutableArray(Of SyntaxNode)
             Get
                 If _exitPoints.IsDefault Then
-                    Dim result = If(Me._context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                    Dim result = If(_context.Failed, ImmutableArray(Of SyntaxNode).Empty,
                                     DirectCast(ExitPointsWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of SyntaxNode)).ToImmutableArray())
                     ImmutableInterlocked.InterlockedCompareExchange(_exitPoints, result, Nothing)
                 End If
@@ -67,35 +76,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property EndPointIsReachable As Boolean
             Get
-                If _regionStartPointIsReachable Is Nothing Then
+                If _regionIsReachable.EndPoint = ReachableStates.Unknown Then
                     ComputeReachability()
                 End If
-                Return DirectCast(_regionEndPointIsReachable, Boolean)
+                Return (_regionIsReachable.EndPoint = ReachableStates.Reachable)
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property StartPointIsReachable As Boolean
             Get
-                If _regionStartPointIsReachable Is Nothing Then
+                If _regionIsReachable.StartPoint = ReachableStates.Unknown Then
                     ComputeReachability()
                 End If
-                Return DirectCast(_regionStartPointIsReachable, Boolean)
+                Return (_regionIsReachable.StartPoint = ReachableStates.Reachable)
             End Get
         End Property
 
         Private Sub ComputeReachability()
-            Dim startPointIsReachable As Boolean = False
-            Dim endPointIsReachable As Boolean = False
-
-            If Me._context.Failed Then
-                startPointIsReachable = True
-                endPointIsReachable = True
-            Else
-                RegionReachableWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, startPointIsReachable, endPointIsReachable)
+            Dim regionIsReachable = (StartPoint:=ReachableStates.Reachable, EndPoint:=ReachableStates.Reachable)
+            If Not _context.Failed Then
+                regionIsReachable = RegionReachableWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)
             End If
-
-            Interlocked.CompareExchange(_regionStartPointIsReachable, startPointIsReachable, Nothing)
-            Interlocked.CompareExchange(_regionEndPointIsReachable, endPointIsReachable, Nothing)
+            _regionIsReachable = regionIsReachable
         End Sub
 
         ''' <summary>
@@ -115,11 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property Succeeded As Boolean
             Get
-                If Me._succeeded Is Nothing Then
+                If _succeeded Is Nothing Then
                     Dim discarded = EntryPoints
                 End If
 
-                Return Me._succeeded.Value
+                Return _succeeded.Value
             End Get
         End Property
 

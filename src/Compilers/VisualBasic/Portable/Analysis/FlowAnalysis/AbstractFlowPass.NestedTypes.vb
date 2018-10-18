@@ -33,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     count -= 1
                 End If
 
-                If count <= Me._path.Length Then
+                If count <= _path.Length Then
                     For i = 0 To count - 1
-                        If Me._path(i) <> other(i) Then
+                        If _path(i) <> other(i) Then
                             Return False
                         End If
                     Next
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Sub New(builder As ArrayBuilder(Of Integer))
-                Me._path = builder.ToImmutable()
+                _path = builder.ToImmutable()
             End Sub
 
             Public Shared Widening Operator CType(builder As ArrayBuilder(Of Integer)) As BlockNesting

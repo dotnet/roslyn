@@ -64,8 +64,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) AnalyzeDataFlow(binding, startNodes, endNodes), ilSource, errors)
         End Function
 
-        Protected Function CompileAndAnalyzeControlAndDataFlow(program As XElement, Optional ilSource As XCData = Nothing, Optional errors As XElement = Nothing) As Tuple(Of ControlFlowAnalysis, DataFlowAnalysis)
-            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) Tuple.Create(AnalyzeControlFlow(binding, startNodes, endNodes), AnalyzeDataFlow(binding, startNodes, endNodes)), ilSource, errors)
+        Protected Function CompileAndAnalyzeControlAndDataFlow(
+                                                                program As XElement,
+                                                       Optional ilSource As XCData = Nothing,
+                                                       Optional errors As XElement = Nothing
+                                                              ) As (ControlFlowAnalysis As ControlFlowAnalysis, DataFlowAnalysis As DataFlowAnalysis)
+            Return CompileAndGetModelAndSpan(program,
+                                             Function(binding, startNodes, endNodes) (AnalyzeControlFlow(binding, startNodes, endNodes),
+                                                                                      AnalyzeDataFlow(binding, startNodes, endNodes)), ilSource, errors)
         End Function
 
         Private Function CompileAndGetModelAndSpan(Of T)(program As XElement, analysisDelegate As Func(Of SemanticModel, List(Of VisualBasicSyntaxNode), List(Of VisualBasicSyntaxNode), T), ilSource As XCData, errors As XElement) As T

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Structure VariableIdentifier
             Implements IEquatable(Of VariableIdentifier)
 
-            Public Shared None As VariableIdentifier = New VariableIdentifier()
+            Public Shared ReadOnly None As New VariableIdentifier()
 
             Public Sub New(symbol As Symbol, containingSlot As Integer)
                 Debug.Assert(symbol IsNot Nothing)
@@ -35,11 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Me.Symbol.GetHashCode, Me.ContainingSlot.GetHashCode)
+                Return Hash.Combine(Symbol.GetHashCode, ContainingSlot.GetHashCode)
             End Function
 
             Public Overloads Function Equals(obj As VariableIdentifier) As Boolean Implements IEquatable(Of VariableIdentifier).Equals
-                Return Me.Symbol.Equals(obj.Symbol) AndAlso Me.ContainingSlot = obj.ContainingSlot
+                Return Symbol.Equals(obj.Symbol) AndAlso ContainingSlot = obj.ContainingSlot
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean

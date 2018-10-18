@@ -20,13 +20,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim walker = New EntryPointsWalker(info, region)
             Try
                 succeeded = walker.Analyze()
-                Return If(succeeded, walker._entryPoints, SpecializedCollections.EmptyEnumerable(Of LabelStatementSyntax)())
+                Return If(succeeded, walker._entryPoints.ToImmutableArrayOrEmpty, SpecializedCollections.EmptyEnumerable(Of LabelStatementSyntax)())
             Finally
                 walker.Free()
             End Try
         End Function
 
-        Private ReadOnly _entryPoints As HashSet(Of LabelStatementSyntax) = New HashSet(Of LabelStatementSyntax)()
+        Private ReadOnly _entryPoints As PooledObjects.PooledHashSet(Of LabelStatementSyntax) = PooledObjects.PooledHashSet(Of LabelStatementSyntax).GetInstance
 
         Private Overloads Function Analyze() As Boolean
             '  We only need to scan in a single pass.
@@ -38,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub Free()
+            _entryPoints?.Free()
             MyBase.Free()
         End Sub
 

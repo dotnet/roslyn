@@ -16,11 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class AbstractRegionDataFlowPass
         Inherits DataFlowPass
 
-        Friend Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                       Optional initiallyAssignedVariables As HashSet(Of Symbol) = Nothing,
-                       Optional trackUnassignments As Boolean = False,
-                       Optional trackStructsWithIntrinsicTypedFields As Boolean = False)
-
+        Friend Sub New(
+                        info As FlowAnalysisInfo,
+                        region As FlowAnalysisRegionInfo,
+               Optional initiallyAssignedVariables As ImmutableArray(Of Symbol) = Nothing,
+               Optional trackUnassignments As Boolean = False,
+               Optional trackStructsWithIntrinsicTypedFields As Boolean = False
+                      )
             MyBase.New(info, region, False, initiallyAssignedVariables, trackUnassignments, trackStructsWithIntrinsicTypedFields)
         End Sub
 

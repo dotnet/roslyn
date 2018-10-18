@@ -15,13 +15,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo) As IEnumerable(Of Symbol)
             Dim walker = New VariablesDeclaredWalker(info, region)
             Try
-                Return If(walker.Analyze(), walker._variablesDeclared, SpecializedCollections.EmptyEnumerable(Of Symbol)())
+                Return If(walker.Analyze(), walker._variablesDeclared.ToImmutableArrayOrEmpty, SpecializedCollections.EmptyEnumerable(Of Symbol)())
             Finally
                 walker.Free()
             End Try
         End Function
 
-        Private ReadOnly _variablesDeclared As New HashSet(Of Symbol)
+        Private ReadOnly _variablesDeclared As PooledObjects.PooledHashSet(Of Symbol) = PooledObjects.PooledHashSet(Of Symbol).GetInstance
+
+        Protected Overrides Sub Free()
+            _variablesDeclared?.Free()
+            MyBase.Free()
+        End Sub
 
         Private Overloads Function Analyze() As Boolean
             ' only one pass needed.

@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CreateByRefLocalCapture(typeMap As TypeSubstitution,
                                                              local As LocalSymbol,
-                                                             initializers As Dictionary(Of LocalSymbol, BoundExpression)) As CapturedSymbolOrExpression
+                                                             initializers As Immutable.ImmutableDictionary(Of LocalSymbol, BoundExpression)) As CapturedSymbolOrExpression
 
             Debug.Assert(local.IsByRef)
             Return CaptureExpression(typeMap, initializers(local), initializers)
@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function CaptureExpression(typeMap As TypeSubstitution,
                                            expression As BoundExpression,
-                                           initializers As Dictionary(Of LocalSymbol, BoundExpression)) As CapturedSymbolOrExpression
+                                           initializers As Immutable.ImmutableDictionary(Of LocalSymbol, BoundExpression)) As CapturedSymbolOrExpression
 
             If expression Is Nothing Then
                 Return Nothing

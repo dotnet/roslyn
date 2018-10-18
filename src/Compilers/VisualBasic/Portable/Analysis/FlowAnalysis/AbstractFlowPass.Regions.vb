@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A cache of the state at the backward branch point of each loop.  This is not needed
         ''' during normal flow analysis, but is needed for region analysis.
         ''' </summary>
-        Private ReadOnly _loopHeadState As Dictionary(Of BoundLoopStatement, LocalState)
+        Private ReadOnly _loopHeadState As PooledObjects.PooledDictionary(Of BoundLoopStatement, LocalState)
 
         Protected ReadOnly Property IsInside As Boolean
             Get
@@ -49,11 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Checks if the text span passed is inside the region </summary>
         Protected Function IsInsideRegion(span As TextSpan) As Boolean
             ' Ensuring this method only being used in region analysis
-            Debug.Assert(Me._firstInRegion IsNot Nothing)
+            Debug.Assert(_firstInRegion IsNot Nothing)
             If span.Length = 0 Then
-                Return Me._region.Contains(span.Start)
+                Return _region.Contains(span.Start)
             End If
-            Return Me._region.Contains(span)
+            Return _region.Contains(span)
         End Function
 
         ''' <summary>
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Overridable Sub EnterRegion()
             Debug.Assert(Me._regionPlace = RegionPlace.Before)
-            Me._regionPlace = RegionPlace.Inside
+            _regionPlace = RegionPlace.Inside
         End Sub
 
         ''' <summary>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Overridable Sub LeaveRegion()
             Debug.Assert(IsInside)
-            Me._regionPlace = RegionPlace.After
+            _regionPlace = RegionPlace.After
         End Sub
 
         ''' <summary>

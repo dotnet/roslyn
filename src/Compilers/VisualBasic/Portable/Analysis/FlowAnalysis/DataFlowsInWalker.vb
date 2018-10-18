@@ -17,35 +17,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class DataFlowsInWalker
         Inherits AbstractRegionDataFlowPass
 
+        Private ReadOnly _dataFlowsIn As PooledObjects.PooledHashSet(Of Symbol) = PooledObjects.PooledHashSet(Of Symbol).GetInstance
+
         ' TODO: normalize the result by removing variables that are unassigned in an unmodified flow analysis.
-        Private Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo, unassignedVariables As HashSet(Of Symbol))
+        Private Sub New(
+                         info As FlowAnalysisInfo,
+                         region As FlowAnalysisRegionInfo,
+                         unassignedVariables As Immutable.ImmutableArray(Of Symbol)
+                       )
             MyBase.New(info, region, unassignedVariables, trackStructsWithIntrinsicTypedFields:=True)
         End Sub
 
-        Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                                 unassignedVariables As HashSet(Of Symbol),
-                                                 ByRef succeeded As Boolean?,
-                                                 ByRef invalidRegionDetected As Boolean) As HashSet(Of Symbol)
+        Protected Overrides Sub Free()
+            _dataFlowsIn?.Free()
+            MyBase.Free()
+        End Sub
+
+        Friend Overloads Shared Function Analyze(
+                                                  info As FlowAnalysisInfo,
+                                                  region As FlowAnalysisRegionInfo,
+                                                  unassignedVariables As HashSet(Of Symbol),
+                                            ByRef succeeded As Boolean?,
+                                            ByRef invalidRegionDetected As Boolean
+                                                ) As Immutable.ImmutableArray(Of Symbol)
 
             ' remove static locals from unassigned, otherwise they will never reach ReportUnassigned(...)
-            Dim unassignedWithoutStatic As New HashSet(Of Symbol)
+            Dim unassignedWithoutStatic = PooledObjects.PooledHashSet(Of Symbol).GetInstance
             For Each var In unassignedVariables
                 If var.Kind <> SymbolKind.Local OrElse Not DirectCast(var, LocalSymbol).IsStatic Then
                     unassignedWithoutStatic.Add(var)
                 End If
             Next
 
-            Dim walker = New DataFlowsInWalker(info, region, unassignedWithoutStatic)
+            Dim walker As New DataFlowsInWalker(info, region, unassignedWithoutStatic.ToImmutableArrayOrEmpty)
             Try
                 succeeded = walker.Analyze() AndAlso Not walker.InvalidRegionDetected
                 invalidRegionDetected = walker.InvalidRegionDetected
-                Return If(succeeded, walker._dataFlowsIn, New HashSet(Of Symbol)())
+                Return If(succeeded, walker._dataFlowsIn.ToImmutableArrayOrEmpty, Immutable.ImmutableArray(Of Symbol).Empty)
             Finally
+                unassignedWithoutStatic?.Free()
                 walker.Free()
             End Try
         End Function
-
-        Private ReadOnly _dataFlowsIn As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 
         Private Function ResetState(state As LocalState) As LocalState
             Dim unreachable As Boolean = Not state.Reachable
@@ -57,13 +70,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Sub EnterRegion()
-            Me.SetState(ResetState(Me.State))
-            Me._dataFlowsIn.Clear()
+            SetState(ResetState(State))
+            _dataFlowsIn.Clear()
             MyBase.EnterRegion()
         End Sub
 
-        Protected Overrides Sub NoteBranch(pending As PendingBranch, stmt As BoundStatement, labelStmt As BoundLabelStatement)
-            If stmt.Syntax IsNot Nothing AndAlso labelStmt.Syntax IsNot Nothing AndAlso Not IsInsideRegion(stmt.Syntax.Span) AndAlso IsInsideRegion(labelStmt.Syntax.Span) Then
+        Protected Overrides Sub NoteBranch(
+                                            pending As PendingBranch,
+                                            stmt As BoundStatement,
+                                            labelStmt As BoundLabelStatement
+                                            )
+            If (stmt.Syntax IsNot Nothing) AndAlso (labelStmt.Syntax IsNot Nothing) AndAlso
+                Not IsInsideRegion(stmt.Syntax.Span) AndAlso IsInsideRegion(labelStmt.Syntax.Span) Then
                 pending.State = ResetState(pending.State)
             End If
             MyBase.NoteBranch(pending, stmt, labelStmt)
@@ -75,8 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' to the range variable in code and, from user point of view, there is
             ' no access to it.
             ' If and only if range variable is declared outside of the region and read inside, it flows in.
-            If Not node.WasCompilerGenerated AndAlso
-               IsInside AndAlso
+            If Not node.WasCompilerGenerated AndAlso IsInside AndAlso
                Not IsInsideRegion(node.RangeVariable.Syntax.Span) Then
 
                 _dataFlowsIn.Add(node.RangeVariable)
@@ -96,17 +113,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' in which case set a flag that the region is not valid
             If IsInside Then
                 Dim firstLocal As LocalSymbol = ambiguous.Locals(0)
-                If Not Me.State.IsAssigned(VariableSlot(firstLocal)) Then
-                    Me.SetInvalidRegion()
+                If Not State.IsAssigned(VariableSlot(firstLocal)) Then
+                    SetInvalidRegion()
                 End If
             End If
         End Sub
 
-        Protected Overrides Sub ReportUnassigned(local As Symbol,
-                                                 node As SyntaxNode,
-                                                 rwContext As ReadWriteContext,
-                                                 Optional slot As Integer = SlotKind.NotTracked,
-                                                 Optional boundFieldAccess As BoundFieldAccess = Nothing)
+        Protected Overrides Sub ReportUnassigned(
+                                                  local As Symbol,
+                                                  node As SyntaxNode,
+                                                  rwContext As ReadWriteContext,
+                                         Optional slot As Integer = SlotKind.NotTracked,
+                                         Optional boundFieldAccess As BoundFieldAccess = Nothing
+                                                )
 
             Debug.Assert(local.Kind <> SymbolKind.Field OrElse boundFieldAccess IsNot Nothing)
 
@@ -118,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Unreachable for AmbiguousLocalsPseudoSymbol: ambiguous implicit 
                     ' receiver should not ever be considered unassigned
-                    Debug.Assert(Not TypeOf sym Is AmbiguousLocalsPseudoSymbol)
+                    Debug.Assert(TypeOf sym IsNot AmbiguousLocalsPseudoSymbol)
 
                     If sym IsNot Nothing Then
                         _dataFlowsIn.Add(sym)
@@ -132,7 +151,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.ReportUnassigned(local, node, rwContext, slot, boundFieldAccess)
         End Sub
 
-        Friend Overrides Sub AssignLocalOnDeclaration(local As LocalSymbol, node As BoundLocalDeclaration)
+        Friend Overrides Sub AssignLocalOnDeclaration(
+                                                       local As LocalSymbol,
+                                                       node As BoundLocalDeclaration
+                                                     )
             ' NOTE: static locals should not be considered assigned even in presence of initializer
             If Not local.IsStatic Then
                 MyBase.AssignLocalOnDeclaration(local, node)

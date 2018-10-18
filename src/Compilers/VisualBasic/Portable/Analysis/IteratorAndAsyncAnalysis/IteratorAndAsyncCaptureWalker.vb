@@ -20,27 +20,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' In Release builds we hoist only variables (locals And parameters) that are captured. 
         ' This set will contain such variables after the bound tree is visited.
         Private ReadOnly _variablesToHoist As OrderedSet(Of Symbol)
-        Private ReadOnly _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
+        Private ReadOnly _byRefLocalsInitializers As PooledObjects.PooledDictionary(Of LocalSymbol, BoundExpression)
 
         ' Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         ' The value is a list of all usage of each such variable.
         Private _lazyDisallowedCaptures As MultiDictionary(Of Symbol, SyntaxNode)
 
         Public Structure Result
-            Public ReadOnly CapturedLocals As OrderedSet(Of Symbol)
-            Public ReadOnly ByRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
 
-            Friend Sub New(cl As OrderedSet(Of Symbol), initializers As Dictionary(Of LocalSymbol, BoundExpression))
+            Public ReadOnly CapturedLocals As OrderedSet(Of Symbol)
+            Public ReadOnly ByRefLocalsInitializers As Immutable.ImmutableDictionary(Of LocalSymbol, BoundExpression)
+
+            Friend Sub New(cl As OrderedSet(Of Symbol), initializers As Immutable.ImmutableDictionary(Of LocalSymbol, BoundExpression))
                 Me.CapturedLocals = cl
                 Me.ByRefLocalsInitializers = initializers
             End Sub
+
         End Structure
 
         Public Sub New(info As FlowAnalysisInfo)
             MyBase.New(info, Nothing, suppressConstExpressionsSupport:=False, trackStructsWithIntrinsicTypedFields:=True, trackUnassignments:=True)
 
             Me._variablesToHoist = New OrderedSet(Of Symbol)()
-            Me._byRefLocalsInitializers = New Dictionary(Of LocalSymbol, BoundExpression)()
+            Me._byRefLocalsInitializers = PooledObjects.PooledDictionary(Of LocalSymbol, BoundExpression).GetInstance
         End Sub
 
         ' Returns deterministically ordered list of variables that ought to be hoisted.
@@ -86,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             End If
 
-            Return New Result(variablesToHoist, byRefLocalsInitializers)
+            Return New Result(variablesToHoist, byRefLocalsInitializers.ToImmutableDictionaryAndFree)
         End Function
 
         Private Shared Function HoistInDebugBuild(symbol As Symbol, skipByRefLocals As Boolean) As Boolean

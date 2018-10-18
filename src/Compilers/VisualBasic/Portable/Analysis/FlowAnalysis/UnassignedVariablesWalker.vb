@@ -20,22 +20,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(info, suppressConstExpressionsSupport:=False, trackStructsWithIntrinsicTypedFields:=True)
         End Sub
 
-        Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo) As HashSet(Of Symbol)
-            Dim walker = New UnassignedVariablesWalker(info)
+        Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo) As PooledObjects.PooledHashSet(Of Symbol)
+            Dim walker As New UnassignedVariablesWalker(info)
             Try
-                Return If(walker.Analyze(), walker._result, New HashSet(Of Symbol)())
+                Return If(walker.Analyze(), walker._result, PooledObjects.PooledHashSet(Of Symbol).GetInstance)
             Finally
                 walker.Free()
             End Try
         End Function
 
-        Private ReadOnly _result As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _result As PooledObjects.PooledHashSet(Of Symbol) = PooledObjects.PooledHashSet(Of Symbol).GetInstance
 
-        Protected Overrides Sub ReportUnassigned(local As Symbol,
+        Protected Overrides Sub ReportUnassigned(
+                                                 local As Symbol,
                                                  node As SyntaxNode,
                                                  rwContext As ReadWriteContext,
-                                                 Optional slot As Integer = SlotKind.NotTracked,
-                                                 Optional boundFieldAccess As BoundFieldAccess = Nothing)
+                                        Optional slot As Integer = SlotKind.NotTracked,
+                                        Optional boundFieldAccess As BoundFieldAccess = Nothing
+                                               )
 
             Debug.Assert(local.Kind <> SymbolKind.Field OrElse boundFieldAccess IsNot Nothing)
 
@@ -43,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim sym As Symbol = GetNodeSymbol(boundFieldAccess)
 
                 ' Ambiguous implicit receiver with should not even considered to be unassigned
-                Debug.Assert(Not TypeOf sym Is AmbiguousLocalsPseudoSymbol)
+                Debug.Assert(TypeOf sym IsNot AmbiguousLocalsPseudoSymbol)
 
                 If sym IsNot Nothing Then
                     _result.Add(sym)

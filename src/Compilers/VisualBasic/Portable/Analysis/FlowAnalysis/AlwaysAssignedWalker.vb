@@ -30,7 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private _endOfRegionState As LocalState
-        Private ReadOnly _labelsInside As New HashSet(Of LabelSymbol)()
+        Private ReadOnly _labelsInside As PooledObjects.PooledHashSet(Of LabelSymbol) = PooledObjects.PooledHashSet(Of LabelSymbol).GetInstance
+
+        Protected Overrides Sub Free()
+            MyBase.Free()
+            _labelsInside?.Free()
+        End Sub
 
         Private ReadOnly Property AlwaysAssigned As IEnumerable(Of Symbol)
             Get
@@ -58,11 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub LeaveRegion()
-            If Me.IsConditionalState Then
+            If IsConditionalState Then
                 ' If the region is in a condition, then the state will be split and 
                 ' State.Assigned(will) be null. Merge to get sensible results.
-                _endOfRegionState = Me.StateWhenTrue.Clone()
-                IntersectWith(_endOfRegionState, Me.StateWhenFalse)
+                _endOfRegionState = StateWhenTrue.Clone()
+                IntersectWith(_endOfRegionState, StateWhenFalse)
             Else
                 _endOfRegionState = MyBase.State.Clone()
             End If

@@ -10,13 +10,13 @@ Namespace Microsoft.CodeAnalysis
 
         ' Details on these types and the feature name which is displayed in the diagnostic
         ' for those items missing in VB Core compilation.
-        Private ReadOnly s_metadataNames As New Dictionary(Of String, String) From {
-                                                                                    {"Microsoft.VisualBasic.CompilerServices.Operators", "Late binding"},
-                                                                                    {"Microsoft.VisualBasic.CompilerServices.NewLateBinding", "Late binding"},
-                                                                                    {"Microsoft.VisualBasic.CompilerServices.LikeOperator", "Like operator"},
-                                                                                    {"Microsoft.VisualBasic.CompilerServices.ProjectData", "Unstructured exception handling"},
-                                                                                    {"Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError", "Unstructured exception handling"}
-                                                                                 }
+        Private ReadOnly s_metadataNames As New Dictionary(Of String, String) _
+            From {{"Microsoft.VisualBasic.CompilerServices.Operators", "Late binding"},
+                    {"Microsoft.VisualBasic.CompilerServices.NewLateBinding", "Late binding"},
+                    {"Microsoft.VisualBasic.CompilerServices.LikeOperator", "Like operator"},
+                    {"Microsoft.VisualBasic.CompilerServices.ProjectData", "Unstructured exception handling"},
+                    {"Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError", "Unstructured exception handling"}
+                 }
 
         Friend Function GetDiagnosticForMissingRuntimeHelper(typename As String, membername As String, embedVBCoreRuntime As Boolean) As DiagnosticInfo
             Dim diag As DiagnosticInfo

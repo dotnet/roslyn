@@ -5,6 +5,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicControlFlowAnalysis
+
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -15,37 +17,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class RegionReachableWalker
         Inherits AbstractRegionControlFlowPass
 
-        Friend Overloads Shared Sub Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                            <Out()> ByRef startPointIsReachable As Boolean, <Out()> ByRef endPointIsReachable As Boolean)
+        Friend Overloads Shared Function Analyze(
+                                             info As FlowAnalysisInfo,
+                                             region As FlowAnalysisRegionInfo
+                                           ) As (StartPoint As ReachableStates, EndPoint As ReachableStates)
 
             Dim walker = New RegionReachableWalker(info, region)
-            Try
-                If walker.Analyze() Then
-                    startPointIsReachable = If(walker._regionStartPointIsReachable.HasValue, walker._regionStartPointIsReachable.Value, True)
-                    endPointIsReachable = If(walker._regionEndPointIsReachable.HasValue, walker._regionEndPointIsReachable.Value, walker.State.Alive)
-                Else
-                    startPointIsReachable = True
-                    startPointIsReachable = False
-                End If
-            Finally
-                walker.Free()
-            End Try
-        End Sub
+            With walker
+                Try
+                    If walker.Analyze() Then
+                        Return (StartPoint:=If(._RegionIsReachable.StartPoint <> ReachableStates.Unknown, ._RegionIsReachable.StartPoint, ReachableStates.Reachable),
+                                EndPoint:=If(._RegionIsReachable.EndPoint <> ReachableStates.Unknown, ._RegionIsReachable.EndPoint, AsReachableState(.State.Alive)))
+                    Else
+                        Return (ReachableStates.Reachable, ReachableStates.Reachable)
+                    End If
+                Finally
+                    .Free()
+                End Try
+            End With
+        End Function
 
-        Private _regionStartPointIsReachable As Boolean?
-        Private _regionEndPointIsReachable As Boolean?
+        Private _RegionIsReachable As (StartPoint As ReachableStates, EndPoint As ReachableStates) = (ReachableStates.Unknown, ReachableStates.Unknown)
 
         Private Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo)
             MyBase.New(info, region)
         End Sub
 
         Protected Overrides Sub EnterRegion()
-            _regionStartPointIsReachable = State.Alive
+            _RegionIsReachable.StartPoint = AsReachableState(State.Alive)
             MyBase.EnterRegion()
         End Sub
 
         Protected Overrides Sub LeaveRegion()
-            _regionEndPointIsReachable = State.Alive
+            _RegionIsReachable.EndPoint = AsReachableState(State.Alive)
             MyBase.LeaveRegion()
         End Sub
 

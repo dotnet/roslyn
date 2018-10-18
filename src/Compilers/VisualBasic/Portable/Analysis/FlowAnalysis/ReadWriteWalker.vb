@@ -3,6 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,46 +15,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ReadWriteWalker
         Inherits AbstractRegionDataFlowPass
 
-        Friend Overloads Shared Sub Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
-                                            ByRef readInside As IEnumerable(Of Symbol),
-                                            ByRef writtenInside As IEnumerable(Of Symbol),
-                                            ByRef readOutside As IEnumerable(Of Symbol),
-                                            ByRef writtenOutside As IEnumerable(Of Symbol),
-                                            ByRef captured As IEnumerable(Of Symbol),
-                                            ByRef capturedInside As IEnumerable(Of Symbol),
-                                            ByRef capturedOutside As IEnumerable(Of Symbol))
+        Friend Overloads Shared Sub Analyze(
+                                             info As FlowAnalysisInfo,
+                                             region As FlowAnalysisRegionInfo,
+                                       ByRef readInside As IEnumerable(Of Symbol),
+                                       ByRef writtenInside As IEnumerable(Of Symbol),
+                                       ByRef readOutside As IEnumerable(Of Symbol),
+                                       ByRef writtenOutside As IEnumerable(Of Symbol),
+                                       ByRef captured As IEnumerable(Of Symbol),
+                                       ByRef capturedInside As IEnumerable(Of Symbol),
+                                       ByRef capturedOutside As IEnumerable(Of Symbol)
+                                           )
 
             Dim walker = New ReadWriteWalker(info, region)
-            Try
-                If walker.Analyze() Then
-                    readInside = walker._readInside
-                    writtenInside = walker._writtenInside
-                    readOutside = walker._readOutside
-                    writtenOutside = walker._writtenOutside
-                    captured = walker._captured
-                    capturedInside = walker._capturedInside
-                    capturedOutside = walker._capturedOutside
-                Else
-                    readInside = Enumerable.Empty(Of Symbol)()
-                    writtenInside = readInside
-                    readOutside = readInside
-                    writtenOutside = readInside
-                    captured = readInside
-                    capturedInside = readInside
-                    capturedOutside = readInside
-                End If
-            Finally
-                walker.Free()
-            End Try
+            With walker
+                Try
+                    If .Analyze() Then
+                        readInside = ._readInside.AsImmutableOrEmpty
+                        writtenInside = ._writtenInside.AsImmutableOrEmpty
+                        readOutside = ._readOutside.AsImmutableOrEmpty
+                        writtenOutside = ._writtenOutside.AsImmutableOrEmpty
+                        captured = ._captured.AsImmutableOrEmpty
+                        capturedInside = ._capturedInside.AsImmutableOrEmpty
+                        capturedOutside = ._capturedOutside.AsImmutableOrEmpty
+                    Else
+                        Dim empty = ImmutableArray(Of Symbol).Empty
+                        readInside = empty
+                        writtenInside = empty
+                        readOutside = empty
+                        writtenOutside = empty
+                        captured = empty
+                        capturedInside = empty
+                        capturedOutside = empty
+                    End If
+                Finally
+                    .Free()
+                End Try
+            End With
+        End Sub
+        Protected Overrides Sub Free()
+            _readInside?.Free()
+            _writtenInside?.Free()
+            _readOutside?.Free()
+            _writtenOutside?.Free()
+            _captured?.Free()
+            _capturedInside?.Free()
+            _capturedOutside?.Free()
+            MyBase.Free()
         End Sub
 
-        Private ReadOnly _readInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
-        Private ReadOnly _writtenInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
-        Private ReadOnly _readOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
-        Private ReadOnly _writtenOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
-        Private ReadOnly _captured As HashSet(Of Symbol) = New HashSet(Of Symbol)()
-        Private ReadOnly _capturedInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
-        Private ReadOnly _capturedOutside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _readInside As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
+        Private ReadOnly _writtenInside As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
+        Private ReadOnly _readOutside As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
+        Private ReadOnly _writtenOutside As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
+        Private ReadOnly _captured As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
+        Private ReadOnly _capturedInside As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
+        Private ReadOnly _capturedOutside As PooledHashSet(Of Symbol) = PooledHashSet(Of Symbol).GetInstance
 
         Private _currentMethodOrLambda As Symbol
         Private _currentQueryLambda As BoundQueryLambda
@@ -62,13 +79,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsCompilerGeneratedTempLocal(variable) Then
                 MyBase.NoteRead(variable)
             Else
-                Select Case Me._regionPlace
+                Select Case _regionPlace
                     Case RegionPlace.Before, RegionPlace.After
                         _readOutside.Add(variable)
                     Case RegionPlace.Inside
                         _readInside.Add(variable)
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
+                        Throw ExceptionUtilities.UnexpectedValue(_regionPlace)
                 End Select
                 MyBase.NoteRead(variable)
                 CheckCaptured(variable)
@@ -79,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsCompilerGeneratedTempLocal(variable) Then
                 MyBase.NoteWrite(variable, value)
             Else
-                Select Case Me._regionPlace
+                Select Case _regionPlace
                     Case RegionPlace.Before, RegionPlace.After
                         _writtenOutside.Add(variable)
                     Case RegionPlace.Inside
                         _writtenInside.Add(variable)
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
+                        Throw ExceptionUtilities.UnexpectedValue(_regionPlace)
                 End Select
                 MyBase.NoteWrite(variable, value)
                 CheckCaptured(variable)
@@ -105,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub NoteRead(fieldAccess As BoundFieldAccess)
             MyBase.NoteRead(fieldAccess)
-            If (Me._regionPlace <> RegionPlace.Inside AndAlso fieldAccess.Syntax.Span.Contains(_region)) Then NoteReceiverRead(fieldAccess)
+            If (_regionPlace <> RegionPlace.Inside AndAlso fieldAccess.Syntax.Span.Contains(_region)) Then NoteReceiverRead(fieldAccess)
         End Sub
 
         Protected Overrides Sub NoteWrite(node As BoundExpression, value As BoundExpression)
@@ -114,11 +131,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub NoteReceiverRead(fieldAccess As BoundFieldAccess)
-            NoteReceiverReadOrWritten(fieldAccess, Me._readInside)
+            NoteReceiverReadOrWritten(fieldAccess, _readInside)
         End Sub
 
         Private Sub NoteReceiverWritten(fieldAccess As BoundFieldAccess)
-            NoteReceiverReadOrWritten(fieldAccess, Me._writtenInside)
+            NoteReceiverReadOrWritten(fieldAccess, _writtenInside)
         End Sub
 
         Private Sub NoteReceiverReadOrWritten(fieldAccess As BoundFieldAccess, readOrWritten As HashSet(Of Symbol))
@@ -132,9 +149,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Local
                     If _region.Contains(receiverSyntax.Span) Then readOrWritten.Add(CType(receiver, BoundLocal).LocalSymbol)
                 Case BoundKind.MeReference
-                    If _region.Contains(receiverSyntax.Span) Then readOrWritten.Add(Me.MeParameter)
+                    If _region.Contains(receiverSyntax.Span) Then readOrWritten.Add(MeParameter)
                 Case BoundKind.MyBaseReference
-                    If _region.Contains(receiverSyntax.Span) Then readOrWritten.Add(Me.MeParameter)
+                    If _region.Contains(receiverSyntax.Span) Then readOrWritten.Add(MeParameter)
                 Case BoundKind.Parameter
                     If _region.Contains(receiverSyntax.Span) Then readOrWritten.Add(CType(receiver, BoundParameter).ParameterSymbol)
                 Case BoundKind.RangeVariable
@@ -157,40 +174,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Local
                     Dim local = DirectCast(variable, LocalSymbol)
                     If Not local.IsConst AndAlso Me._currentMethodOrLambda <> local.ContainingSymbol Then
-                        Me.NoteCaptured(local)
+                        NoteCaptured(local)
                     End If
                 Case SymbolKind.Parameter
                     Dim param = DirectCast(variable, ParameterSymbol)
-                    If Me._currentMethodOrLambda <> param.ContainingSymbol Then
-                        Me.NoteCaptured(param)
+                    If _currentMethodOrLambda <> param.ContainingSymbol Then
+                        NoteCaptured(param)
                     End If
                 Case SymbolKind.RangeVariable
                     Dim range = DirectCast(variable, RangeVariableSymbol)
-                    If Me._currentMethodOrLambda <> range.ContainingSymbol AndAlso
-                        Me._currentQueryLambda IsNot Nothing AndAlso ' might be Nothing in error scenarios
-                        (Me._currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
-                            Not Me._currentQueryLambda.RangeVariables.Contains(range)) Then
-                        Me.NoteCaptured(range) ' Range variables only captured if in region
+                    If _currentMethodOrLambda <> range.ContainingSymbol AndAlso
+                       _currentQueryLambda IsNot Nothing AndAlso ' might be Nothing in error scenarios
+                      (_currentMethodOrLambda <> Me._currentQueryLambda.LambdaSymbol OrElse
+                       Not _currentQueryLambda.RangeVariables.Contains(range)) Then
+                        NoteCaptured(range) ' Range variables only captured if in region
                     End If
             End Select
         End Sub
 
         Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
-            Dim previousMethod = Me._currentMethodOrLambda
-            Me._currentMethodOrLambda = node.LambdaSymbol
+            Dim previousMethod = _currentMethodOrLambda
+            _currentMethodOrLambda = node.LambdaSymbol
             Dim result = MyBase.VisitLambda(node)
-            Me._currentMethodOrLambda = previousMethod
+            _currentMethodOrLambda = previousMethod
             Return result
         End Function
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
-            Dim previousMethod = Me._currentMethodOrLambda
-            Me._currentMethodOrLambda = node.LambdaSymbol
-            Dim previousQueryLambda = Me._currentQueryLambda
-            Me._currentQueryLambda = node
+            Dim previousMethod = _currentMethodOrLambda
+            _currentMethodOrLambda = node.LambdaSymbol
+            Dim previousQueryLambda = _currentQueryLambda
+            _currentQueryLambda = node
             Dim result = MyBase.VisitQueryLambda(node)
-            Me._currentMethodOrLambda = previousMethod
-            Me._currentQueryLambda = previousQueryLambda
+            _currentMethodOrLambda = previousMethod
+            _currentQueryLambda = previousQueryLambda
             Return result
         End Function
 
