@@ -7750,9 +7750,9 @@ tryAgain:
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForEachKeyword || this.CurrentToken.Kind == SyntaxKind.ForKeyword);
 
             // Syntax for foreach is either:
-            //  foreach ( <type> <identifier> in <expr> ) <embedded-statement>
+            //  foreach [await] ( <type> <identifier> in <expr> ) <embedded-statement>
             // or
-            //  foreach ( <deconstruction-declaration> in <expr> ) <embedded-statement>
+            //  foreach [await] ( <deconstruction-declaration> in <expr> ) <embedded-statement>
 
             SyntaxToken @foreach;
 
@@ -7768,6 +7768,8 @@ tryAgain:
             {
                 @foreach = this.EatToken(SyntaxKind.ForEachKeyword);
             }
+
+            var awaitToken = ParseOptionalAwaitKeywordForAsyncStreams();
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -7811,11 +7813,11 @@ tryAgain:
                             throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
                     }
 
-                    return _syntaxFactory.ForEachStatement(@foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+                    return _syntaxFactory.ForEachStatement(@foreach, awaitToken, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
                 }
             }
 
-            return _syntaxFactory.ForEachVariableStatement(@foreach, openParen, variable, @in, expression, closeParen, statement);
+            return _syntaxFactory.ForEachVariableStatement(@foreach, awaitToken, openParen, variable, @in, expression, closeParen, statement);
         }
 
         private static bool IsValidForeachVariable(ExpressionSyntax variable)
@@ -8089,6 +8091,8 @@ tryAgain:
         private UsingStatementSyntax ParseUsingStatement()
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
+            var awaitToken = ParseOptionalAwaitKeywordForAsyncStreams();
+
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
             VariableDeclarationSyntax declaration = null;
@@ -8101,7 +8105,23 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
 
-            return _syntaxFactory.UsingStatement(@using, openParen, declaration, expression, closeParen, statement);
+            return _syntaxFactory.UsingStatement(@using, awaitToken, openParen, declaration, expression, closeParen, statement);
+        }
+
+        private SyntaxToken ParseOptionalAwaitKeywordForAsyncStreams()
+        {
+            SyntaxToken awaitToken;
+            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
+            {
+                awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+                awaitToken = CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+            }
+            else
+            {
+                awaitToken = null;
+            }
+
+            return awaitToken;
         }
 
         private void ParseUsingExpression(ref VariableDeclarationSyntax declaration, ref ExpressionSyntax expression, ref ResetPoint resetPoint)

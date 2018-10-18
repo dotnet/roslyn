@@ -167,8 +167,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (emitDebugInfo)
             {
                 var debugType = Project.ReadPropertyString(PropertyNames.DebugType);
-
-                if (s_debugTypeValues.TryGetValue(debugType, out var value))
+                if (debugType != null && s_debugTypeValues.TryGetValue(debugType, out var value))
                 {
                     Add("debug", value);
                 }
@@ -234,7 +233,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 foreach (var reference in references)
                 {
-                    if (!reference.HasReferenceOutputAssemblyMetadataEqualToTrue())
+                    if (reference.ReferenceOutputAssemblyIsTrue())
                     {
                         var filePath = GetDocumentFilePath(reference);
 

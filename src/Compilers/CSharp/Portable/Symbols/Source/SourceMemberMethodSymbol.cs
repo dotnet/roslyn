@@ -1624,32 +1624,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (this.IsAsync || this.IsIterator)
+            bool isAsync = this.IsAsync;
+            bool isIterator = this.IsIterator;
+            if (!isAsync && !isIterator)
             {
-                var compilation = this.DeclaringCompilation;
+                return;
+            }
 
-                // The async state machine type is not synthesized until the async method body is rewritten. If we are
-                // only emitting metadata the method body will not have been rewritten, and the async state machine
-                // type will not have been created. In this case, omit the attribute.
-                NamedTypeSymbol stateMachineType;
-                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
+            var compilation = this.DeclaringCompilation;
+
+            // The async state machine type is not synthesized until the async method body is rewritten. If we are
+            // only emitting metadata the method body will not have been rewritten, and the async state machine
+            // type will not have been created. In this case, omit the attribute.
+            if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out NamedTypeSymbol stateMachineType))
+            {
+                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
+                    TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
+
+                if (isAsync)
                 {
-                    WellKnownMember ctor = this.IsAsync ?
-                        WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :
-                        WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor;
-
-                    var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
-
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
                 }
-
-                if (this.IsAsync)
+                if (isIterator)
                 {
-                    // Async kick-off method calls MoveNext, which contains user code. 
-                    // This means we need to emit DebuggerStepThroughAttribute in order
-                    // to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
                 }
+            }
+
+            if (isAsync && !isIterator)
+            {
+                // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
+                // This means we need to emit DebuggerStepThroughAttribute in order
+                // to have correct stepping behavior during debugging.
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
             }
         }
 

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -310,8 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A pending branch.  There are created for a return, break, continue, goto statement,
-        /// yield return, yield break, await expression, and if PreciseAbstractFlowPass.trackExceptions
+        /// A pending branch.  These are created for a return, break, continue, goto statement,
+        /// yield return, yield break, await expression, foreach/using await, and if PreciseAbstractFlowPass.trackExceptions
         /// is true for other
         /// constructs that can cause an exception to be raised such as a throw statement or method
         /// invocation.
@@ -2224,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
-            // foreach ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
+            // foreach [await] ( var v in node.Expression ) { node.Body; node.ContinueLabel: } node.BreakLabel:
             VisitForEachExpression(node);
             var breakState = this.State.Clone();
             LoopHead(node);
@@ -2233,6 +2234,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResolveContinues(node.ContinueLabel);
             LoopTail(node);
             ResolveBreaks(breakState, node.BreakLabel);
+
+            if (((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.State));
+            }
+
             return null;
         }
 
@@ -2569,8 +2576,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_trackExceptions) NotePossibleException(node);
             VisitStatement(node.Body);
+
+            if (AsyncUsingAddsPendingBranch && node.AwaitOpt != null)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.State));
+            }
             return null;
         }
+
+        public abstract bool AsyncUsingAddsPendingBranch { get; }
 
         public override BoundNode VisitFixedStatement(BoundFixedStatement node)
         {

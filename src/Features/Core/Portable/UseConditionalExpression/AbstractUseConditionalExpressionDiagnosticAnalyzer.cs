@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<
         TIfStatementSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
         private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
