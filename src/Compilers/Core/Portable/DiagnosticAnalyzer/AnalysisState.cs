@@ -480,6 +480,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Remove the event from event map.
+            // Note: We do not pass in the cancellationToken to DisposableWait to ensure the state is updated.
             using (_gate.DisposableWait())
             {
                 UpdateEventsMap_NoLock(compilationEvent, add: false);
