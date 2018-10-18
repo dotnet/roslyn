@@ -6200,5 +6200,81 @@ class X
 }",
                 Documentation("Summary for property Goo"));
         }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventAddDocumentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo
+    {
+        a$$dd => throw null;
+        remove => throw null;
+    }
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventAddDocumentation2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo;
+
+    void M() => Goo +$$= null;
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventRemoveDocumentation1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo
+    {
+        add => throw null;
+        r$$emove => throw null;
+    }
+}",
+                Documentation("Summary for event Goo"));
+        }
+
+        [WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestEventRemoveDocumentation2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class X
+{
+    /// <summary>Summary for event Goo</summary>
+    event EventHandler<EventArgs> Goo;
+
+    void M() => Goo -$$= null;
+}",
+                Documentation("Summary for event Goo"));
+        }
     }
 }
