@@ -7845,6 +7845,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
                        - OUTPUT FILES -
 -out:&lt;file&gt;                   Specify output file name (default: base name of
                               file with main class or first file)
+-sdkpath[-]                   Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;file&gt;         Path to the folder to search for standard library assemblies.
 -target:exe                   Build a console executable (default) (Short
                               form: -t:exe)
 -target:winexe                Build a Windows executable (Short form:

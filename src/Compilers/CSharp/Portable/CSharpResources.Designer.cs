@@ -10598,11 +10598,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                       - OUTPUT FILES -
         ///-out:&lt;file&gt;                   Specify output file name (default: base name of
         ///                              file with main class or first file)
-        ///-target:exe                   Build a console executable (default) (Short
-        ///                              form: -t:exe)
-        ///-target:winexe                Build a Windows executable (Short form:
-        ///                              -t:winexe)
-        ///-target:library               B [rest of string was truncated]&quot;;.
+        ///-sdkpath[-]                   Disable searching the default SDK path for standard library assemblies.
+        ///-sdkpath:&lt;file&gt;         Path to the folder to search for standard library assemblies.
+        ///-target:exe                   Build a console executable (default) (Short        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
