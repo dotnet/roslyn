@@ -37,13 +37,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// </summary>
         public readonly string PrettyPrintedSignature;
 
+        /// <summary>
+        /// Whether this item is expected to be selected.
+        /// Note: If no item is expected to be selected, the verification of the actual selected item is skipped.
+        /// </summary>
+        public readonly bool IsSelected;
+
         public SignatureHelpTestItem(
             string signature,
             string methodDocumentation = null,
             string parameterDocumentation = null,
             int? currentParameterIndex = null,
             string description = null,
-            string prettyPrintedSignature = null)
+            string prettyPrintedSignature = null,
+            bool isSelected = false)
         {
             this.Signature = signature;
             this.MethodDocumentation = methodDocumentation;
@@ -51,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             this.CurrentParameterIndex = currentParameterIndex;
             this.Description = description;
             this.PrettyPrintedSignature = prettyPrintedSignature;
+            this.IsSelected = isSelected;
         }
     }
 }

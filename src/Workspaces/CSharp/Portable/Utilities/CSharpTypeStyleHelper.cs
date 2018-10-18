@@ -18,16 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Whether or not converting would transition the code to the style the user prefers. i.e.
-        /// if the user likes 'var' for everything, and you have 'int i = 0' then IsStylePreffered
-        /// will be true.  however, if the user likes 'var' for everything and you have 'var i = 0',
-        /// then it's still possible to convert that, it would just be 'false' for IsStylePreferred
-        /// because it goes against the user's preferences.
-        ///
-        /// In general, most features should only convert the type if IsStylePreferred is true.  The
-        /// one exception is the refactoring, which is explicitly there to still let people convert
-        /// things quickly, even if it's going against their stated style.
+        /// Whether or not converting would transition the code to the style the user prefers. i.e. if the user likes
+        /// <c>var</c> for everything, and you have <c>int i = 0</c> then <see cref="IsStylePreferred"/> will be
+        /// <see langword="true"/>. However, if the user likes <c>var</c> for everything and you have <c>var i = 0</c>,
+        /// then it's still possible to convert that, it would just be <see langword="false"/> for
+        /// <see cref="IsStylePreferred"/> because it goes against the user's preferences.
         /// </summary>
+        /// <remarks>
+        /// <para>In general, most features should only convert the type if <see cref="IsStylePreferred"/> is
+        /// <see langword="true"/>. The one exception is the refactoring, which is explicitly there to still let people
+        /// convert things quickly, even if it's going against their stated style.</para>
+        /// </remarks>
         public readonly bool IsStylePreferred;
         public readonly ReportDiagnostic Severity;
 

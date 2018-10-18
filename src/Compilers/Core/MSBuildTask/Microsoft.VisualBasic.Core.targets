@@ -91,6 +91,7 @@
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
+         RefOnly="$(ProduceOnlyReferenceAssembly)"
          RemoveIntegerChecks="$(RemoveIntegerChecks)"
          ReportAnalyzer="$(ReportAnalyzer)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"

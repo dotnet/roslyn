@@ -279,7 +279,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> argTemps;
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, setMethod, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out argTemps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(
+                syntax,
+                rewrittenArguments,
+                property,
+                setMethod,
+                expanded,
+                argsToParamsOpt,
+                ref argumentRefKindsOpt,
+                out argTemps,
+                invokedAsExtensionMethod: false,
+                enableCallerInfo: ThreeState.True);
 
             if (used)
             {
@@ -330,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argTemps,
                         ImmutableArray<BoundExpression>.Empty,
                         setterCall,
-                        setMethod.ReturnType);
+                        setMethod.ReturnType.TypeSymbol);
                 }
             }
         }

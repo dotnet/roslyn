@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -42,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
             VisualStudio14StructureTaggerProvider outliningTaggerProvider)
+            : base(outliningTaggerProvider.ThreadingContext)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;

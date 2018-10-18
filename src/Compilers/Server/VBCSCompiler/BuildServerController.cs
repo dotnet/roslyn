@@ -32,9 +32,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
+            var tempPath = Path.GetTempPath();
+
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, cancellationToken: cancellationTokenSource.Token);
+                : RunServer(pipeName, tempPath, cancellationToken: cancellationTokenSource.Token);
         }
 
         protected internal abstract TimeSpan? GetKeepAliveTimeout();
@@ -63,8 +65,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return CommonCompiler.Succeeded;
         }
 
-        internal int RunServer(string pipeName, IClientConnectionHost clientConnectionHost = null, IDiagnosticListener listener = null, TimeSpan? keepAlive = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal int RunServer(
+            string pipeName,
+            string tempPath,
+            IClientConnectionHost clientConnectionHost = null,
+            IDiagnosticListener listener = null,
+            TimeSpan? keepAlive = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (BuildServerConnection.IsPipePathTooLong(pipeName, tempPath))
+            {
+                return CommonCompiler.Failed;
+            }
+
             keepAlive = keepAlive ?? GetKeepAliveTimeout();
             listener = listener ?? new EmptyDiagnosticListener();
             clientConnectionHost = clientConnectionHost ?? CreateClientConnectionHost(pipeName);

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
@@ -16,11 +17,9 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class ErrorLoggerTests : CSharpTestBase
+    public class ErrorLoggerTests : CommandLineTestBase
     {
-        private readonly string _baseDirectory = TempRoot.Root;
-
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void NoDiagnostics()
         {
             var helloWorldCS = @"using System;
@@ -36,8 +35,7 @@ class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
-               $"/errorlog:{errorLogFile}" });
+            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello, $"/errorlog:{errorLogFile}" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -61,7 +59,7 @@ class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics()
         {
             var source = @"
@@ -73,7 +71,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
                 "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -155,7 +153,7 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void SimpleCompilerDiagnostics_Suppressed()
         {
             var source = @"
@@ -169,7 +167,7 @@ public class C
             var errorLogDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
                 "/nologo", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -255,7 +253,7 @@ public class C
             CleanupAllGeneratedFiles(errorLogFile);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             var source = @"
@@ -267,10 +265,9 @@ public class C
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
             var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, new[] {
                 "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()),
-               loader: new DesktopAnalyzerAssemblyLoader());
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 

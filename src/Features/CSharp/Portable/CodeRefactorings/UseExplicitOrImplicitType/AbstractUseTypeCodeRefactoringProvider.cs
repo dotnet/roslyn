@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             }
 
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, optionSet, cancellationToken);
-            if (typeStyle.IsStylePreferred && typeStyle.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
+            if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
             {
                 // the analyzer would handle this.  So we do not.
                 return;

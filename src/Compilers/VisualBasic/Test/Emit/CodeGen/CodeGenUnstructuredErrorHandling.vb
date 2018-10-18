@@ -1,12 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenUnstructuredErrorHandling
         Inherits BasicTestBase
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_SimpleBehaviourMultipleLabels()
             Dim source =
     <compilation name="ErrorHandling">
@@ -39,7 +39,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NestedTryCatch()
             'The ERL is correct even though the error occurred within a nested try catch construct
             Dim source =
@@ -79,7 +79,7 @@ End Module
 No Error]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NestedTryCatchNoPropagateToOuter()
             Dim source =
     <compilation name="ErrorHandling">
@@ -152,7 +152,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_MultiplyDefined1, "10").WithArguments("10"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NonSequentialLineNumbers()
             'The line numbers do not need to be sequential
             Dim source =
@@ -187,7 +187,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_LabelIntegerMaxValueValue()
             Dim source =
     <compilation name="ErrorHandling">
@@ -221,7 +221,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_LabelGreaterThanIntegerMaxValueValue()
             Dim source =
     <compilation name="ErrorHandling">
@@ -255,7 +255,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NonNumericLabels()
             Dim source =
     <compilation name="ErrorHandling">
@@ -289,7 +289,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NoLabels()
             Dim source =
     <compilation name="ErrorHandling">
@@ -320,7 +320,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_ThrowExceptionInsteadOfErrorRaiseLambdaInvocation()
             Dim source =
     <compilation name="ErrorHandling">
@@ -356,7 +356,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NestedLambdasAndLabelInLambdaSameLabelInCallerAndLambda()
             Dim source =
     <compilation name="ErrorHandling">
@@ -401,7 +401,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_OnErrorRetainsValueUntilCleared()
             Dim source =
     <compilation name="ErrorHandling">
@@ -435,7 +435,7 @@ Finish
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_OnErrorRetainsValueUntilClearedWithClear()
             Dim source =
     <compilation name="ErrorHandling">
@@ -470,7 +470,7 @@ Finish
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_UnhandledErrorDontBubbleUp()
             'There is no label in main and the label from SubMethod is not bubbled up.
             Dim source =
@@ -512,7 +512,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_InClassAndStructureTypes()
             Dim source =
     <compilation name="ErrorHandling">
@@ -633,7 +633,7 @@ End Structure
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_InGenericType()
             Dim source =
     <compilation name="ErrorHandling">
@@ -675,7 +675,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_InGenericTypeSharedMethod()
             Dim source =
     <compilation name="ErrorHandling">
@@ -715,7 +715,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_InheritenceScenario()
             Dim source =
     <compilation name="ErrorHandling">
@@ -770,7 +770,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_CallingMethodThroughInterface()
             'Verify No problems with erl because of calling using interface
             Dim source =
@@ -818,7 +818,7 @@ End Interface
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_CallingMethodWithDelegate()
             Dim source =
     <compilation name="ErrorHandling">
@@ -862,7 +862,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_CollectionInitializer()
             Dim source =
     <compilation name="ErrorHandling">
@@ -912,7 +912,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_MultipleHandlers()
             ' Known behavior with multiple handlers causing bogus out of memory exception
             ' Won't Fix the VB Runtime in Roslyn but captured the current behavior
@@ -961,7 +961,7 @@ Expected Exception Occurred
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_MultipleHandlersWithResume()
             Dim source =
     <compilation name="ErrorHandling">
@@ -1044,7 +1044,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_Syntax, "-"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_NoHandlerOnInner_WithDuplicateLabelInDifferentMethod()
             Dim source =
     <compilation name="ErrorHandling">
@@ -1122,7 +1122,7 @@ End Module
                                                                                                                                                                                           Diagnostic(ERRID.ERR_Syntax, "1%"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_WithinAsyncMethods()
             Dim source =
     <compilation name="ErrorHandling">
@@ -1239,7 +1239,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Erl_Property_WithinIteratorMethods()
             'This is having try catches at each level and ensuring the 
             Dim source =
@@ -1409,7 +1409,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_Property_CodeGenVerify()
             'Simple Verification of IL to determine that Labels and types are as expected
             CompileAndVerify(

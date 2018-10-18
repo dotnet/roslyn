@@ -621,8 +621,6 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
             VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-
-
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_Multidimensional()
@@ -1113,6 +1111,96 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_CastArrayToIEnumerable()
+            Dim source = <![CDATA[
+Option Infer On
+Imports System.Collections
+
+Class Program
+    Public Shared Sub Main(args As String(), i As String)
+        For Each arg As String In DirectCast(args, IEnumerable)'BIND:"For Each arg As String In DirectCast(args, IEnumerable)"
+            i = arg
+        Next
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each ar ... Next')
+  Locals: Local_1: arg As System.String
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: arg As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'arg As String')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable) (Syntax: 'DirectCast( ... Enumerable)')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'args')
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each ar ... Next')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = arg')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'i = arg')
+            Left: 
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.String) (Syntax: 'i')
+            Right: 
+              ILocalReferenceOperation: arg (OperationKind.LocalReference, Type: System.String) (Syntax: 'arg')
+  NextVariables(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
+        Public Sub IForEachLoopStatement_CastCollectionToIEnumerable()
+            Dim source = <![CDATA[
+Option Infer On
+Imports System.Collections.Generic
+
+Class Program
+    Public Shared Sub Main(args As List(Of String), i As String)
+        For Each arg As String In DirectCast(args, IEnumerable(Of String))'BIND:"For Each arg As String In DirectCast(args, IEnumerable(Of String))"
+            i = arg
+        Next
+    End Sub
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'For Each ar ... Next')
+  Locals: Local_1: arg As System.String
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: arg As System.String) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'arg As String')
+      Initializer: 
+        null
+  Collection: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'DirectCast( ... Of String))')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'args')
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'For Each ar ... Next')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = arg')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'i = arg')
+            Left: 
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.String) (Syntax: 'i')
+            Right: 
+              ILocalReferenceOperation: arg (OperationKind.LocalReference, Type: System.String) (Syntax: 'arg')
+  NextVariables(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ForEachBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
         Public Sub IForEachLoopStatement_InvalidLoopControlVariableDeclaration()
             Dim source = <![CDATA[
 Imports System
@@ -1170,86 +1258,106 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C()) (Syntax: 'x')
-
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C(), IsImplicit) (Syntax: 'x')
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C(), IsImplicit) (Syntax: 'x')
-
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
-          Value: 
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C()) (Syntax: 'y')
-
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(x, y)')
-          Value: 
-            IInvocationOperation ( Function System.Array.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'If(x, y)')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C(), IsImplicit) (Syntax: 'If(x, y)')
-              Arguments(0)
-
-    Next (Regular) Block[B5]
-Block[B5] - Block
-    Predecessors: [B4] [B6]
-    Statements (0)
-    Jump if False (Regular) to Block[B7]
-        IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(x, y)')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'If(x, y)')
-          Arguments(0)
-
-    Next (Regular) Block[B6]
-        Entering: {R1}
+        Entering: {R1} {R2} {R3}
 
 .locals {R1}
 {
-    Locals: [z As C]
-    Block[B6] - Block
-        Predecessors: [B5]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
-              Left: 
-                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'z')
-              Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'z')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (NarrowingReference)
-                  Operand: 
-                    IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z')
+    CaptureIds: [2]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        .locals {R3}
+        {
+            CaptureIds: [0]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C()) (Syntax: 'x')
+
+                Jump if True (Regular) to Block[B3]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C(), IsImplicit) (Syntax: 'x')
+                    Leaving: {R3}
+
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C(), IsImplicit) (Syntax: 'x')
+
+                Next (Regular) Block[B4]
+                    Leaving: {R3}
+        }
+
+        Block[B3] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                  Value: 
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C()) (Syntax: 'y')
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B2] [B3]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(x, y)')
+                  Value: 
+                    IInvocationOperation ( Function System.Array.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'If(x, y)')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'If(x, y)')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C(), IsImplicit) (Syntax: 'If(x, y)')
+                      Arguments(0)
 
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = z')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: z (OperationKind.LocalReference, Type: C) (Syntax: 'z')
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
 
-        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4] [B6]
+        Statements (0)
+        Jump if False (Regular) to Block[B7]
+            IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(x, y)')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'If(x, y)')
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B6]
+            Entering: {R4}
+
+    .locals {R4}
+    {
+        Locals: [z As C]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
+                  Left: 
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'z')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'z')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingReference)
+                      Operand: 
+                        IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'If(x, y)')
+
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = z')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: C) (Syntax: 'z')
+
+            Next (Regular) Block[B5]
+                Leaving: {R4}
+    }
 }
 
 Block[B7] - Exit
@@ -1279,109 +1387,125 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation ( Function System.String.GetEnumerator() As System.CharEnumerator) (OperationKind.Invocation, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
-              Arguments(0)
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
+.locals {R1}
 {
-    Block[B2] - Block
-        Predecessors: [B1] [B3] [B4]
-        Statements (0)
-        Jump if False (Regular) to Block[B8]
-            IInvocationOperation ( Function System.CharEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
-              Arguments(0)
-            Finalizing: {R4}
-            Leaving: {R2} {R1}
-
-        Next (Regular) Block[B3]
-            Entering: {R3}
-
-    .locals {R3}
-    {
-        Locals: [z As System.String]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (2)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As String')
-                  Left: 
-                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'z As String')
-                  Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'z As String')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (WideningString)
-                      Operand: 
-                        IPropertyReferenceOperation: ReadOnly Property System.CharEnumerator.Current As System.Char (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'z As String')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
-
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
-                  Value: 
-                    ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.String) (Syntax: 'z')
-
-            Jump if True (Regular) to Block[B2]
-                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'z')
-                  Operand: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'z')
-                Leaving: {R3}
-
-            Next (Regular) Block[B4]
-        Block[B4] - Block
-            Predecessors: [B3]
-            Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'z?.ToString()')
-                  Expression: 
-                    IInvocationOperation (virtual Function System.String.ToString() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'z')
-                      Arguments(0)
-
-            Next (Regular) Block[B2]
-                Leaving: {R3}
-    }
-}
-.finally {R4}
-{
-    Block[B5] - Block
-        Predecessors (0)
-        Statements (0)
-        Jump if True (Regular) to Block[B7]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Operand: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
-
-        Next (Regular) Block[B6]
-    Block[B6] - Block
-        Predecessors: [B5]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningReference)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation ( Function System.String.GetEnumerator() As System.CharEnumerator) (OperationKind.Invocation, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                  Arguments(0)
+
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B4] [B5]
+            Statements (0)
+            Jump if False (Regular) to Block[B9]
+                IInvocationOperation ( Function System.CharEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+                Finalizing: {R6}
+                Leaving: {R3} {R2} {R1}
+
+            Next (Regular) Block[B3]
+                Entering: {R4}
+
+        .locals {R4}
+        {
+            Locals: [z As System.String]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As String')
+                      Left: 
+                        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsImplicit) (Syntax: 'z As String')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsImplicit) (Syntax: 'z As String')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningString)
+                          Operand: 
+                            IPropertyReferenceOperation: ReadOnly Property System.CharEnumerator.Current As System.Char (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'z As String')
+                              Instance Receiver: 
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
+
+                Next (Regular) Block[B4]
+                    Entering: {R5}
+
+            .locals {R5}
+            {
+                CaptureIds: [1]
+                Block[B4] - Block
+                    Predecessors: [B3]
+                    Statements (1)
+                        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
+                          Value: 
+                            ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.String) (Syntax: 'z')
+
+                    Jump if True (Regular) to Block[B2]
+                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'z')
+                          Operand: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'z')
+                        Leaving: {R5} {R4}
+
+                    Next (Regular) Block[B5]
+                Block[B5] - Block
+                    Predecessors: [B4]
+                    Statements (1)
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'z?.ToString()')
+                          Expression: 
+                            IInvocationOperation (virtual Function System.String.ToString() As System.String) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
+                              Instance Receiver: 
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'z')
+                              Arguments(0)
+
+                    Next (Regular) Block[B2]
+                        Leaving: {R5} {R4}
+            }
+        }
+    }
+    .finally {R6}
+    {
+        Block[B6] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B8]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Operand: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
-              Arguments(0)
 
-        Next (Regular) Block[B7]
-    Block[B7] - Block
-        Predecessors: [B5] [B6]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B6]
+            Statements (1)
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.CharEnumerator, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+
+            Next (Regular) Block[B8]
+        Block[B8] - Block
+            Predecessors: [B6] [B7]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
 }
 
-Block[B8] - Exit
+Block[B9] - Exit
     Predecessors: [B2]
     Statements (0)
 ]]>.Value
@@ -1408,61 +1532,68 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation ( Function System.Array.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'x')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [z As System.Int64]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
-              Left: 
-                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-              Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNumeric)
-                  Operand: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NarrowingValue)
-                      Operand: 
-                        IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z As Long')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = z')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'z')
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation ( Function System.Array.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'x')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [z As System.Int64]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
+                  Left: 
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNumeric)
+                      Operand: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (NarrowingValue)
+                          Operand: 
+                            IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z As Long')
+                              Instance Receiver: 
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = z')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'z')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B4] - Exit
@@ -1510,57 +1641,64 @@ End Structure
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation ( Function Enumerable.GetEnumerator() As Enumerator) (OperationKind.Invocation, Type: Enumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: Enumerable) (Syntax: 'x')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation ( Function Enumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [z As System.Int64]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
-              Left: 
-                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-              Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNumeric)
-                  Operand: 
-                    IPropertyReferenceOperation: ReadOnly Property Enumerator.Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = z')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'z')
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation ( Function Enumerable.GetEnumerator() As Enumerator) (OperationKind.Invocation, Type: Enumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: Enumerable) (Syntax: 'x')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( Function Enumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [z As System.Int64]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
+                  Left: 
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNumeric)
+                      Operand: 
+                        IPropertyReferenceOperation: ReadOnly Property Enumerator.Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
+
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = z')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'z')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B4] - Exit
@@ -1613,76 +1751,82 @@ End Structure
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation ( Function Enumerable.GetEnumerator() As Enumerator) (OperationKind.Invocation, Type: Enumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: Enumerable) (Syntax: 'x')
-              Arguments(0)
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
+.locals {R1}
 {
-    Block[B2] - Block
-        Predecessors: [B1] [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B5]
-            IInvocationOperation ( Function Enumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
-              Arguments(0)
-            Finalizing: {R4}
-            Leaving: {R2} {R1}
-
-        Next (Regular) Block[B3]
-            Entering: {R3}
-
-    .locals {R3}
-    {
-        Locals: [z As System.Int32]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (2)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Integer')
-                  Left: 
-                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Integer')
-                  Right: 
-                    IPropertyReferenceOperation: ReadOnly Property Enumerator.Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Integer')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
-
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = z')
-                      Left: 
-                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
-                      Right: 
-                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'z')
-
-            Next (Regular) Block[B2]
-                Leaving: {R3}
-    }
-}
-.finally {R4}
-{
-    Block[B4] - Block
-        Predecessors (0)
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningValue)
-                  Operand: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
-              Arguments(0)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation ( Function Enumerable.GetEnumerator() As Enumerator) (OperationKind.Invocation, Type: Enumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: Enumerable) (Syntax: 'x')
+                  Arguments(0)
 
-        Next (StructuredExceptionHandling) Block[null]
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B5]
+                IInvocationOperation ( Function Enumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+
+            Next (Regular) Block[B3]
+                Entering: {R4}
+
+        .locals {R4}
+        {
+            Locals: [z As System.Int32]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Integer')
+                      Left: 
+                        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Integer')
+                      Right: 
+                        IPropertyReferenceOperation: ReadOnly Property Enumerator.Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Integer')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = z')
+                          Left: 
+                            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
+                          Right: 
+                            ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'z')
+
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningValue)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+
+            Next (StructuredExceptionHandling) Block[null]
+    }
 }
 
 Block[B5] - Exit
@@ -1713,89 +1857,95 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation (virtual Function System.Collections.Generic.IEnumerable(Of System.Int32).GetEnumerator() As System.Collections.Generic.IEnumerator(Of System.Int32)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'x')
-              Arguments(0)
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
+.locals {R1}
 {
-    Block[B2] - Block
-        Predecessors: [B1] [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B7]
-            IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
-              Arguments(0)
-            Finalizing: {R4}
-            Leaving: {R2} {R1}
-
-        Next (Regular) Block[B3]
-            Entering: {R3}
-
-    .locals {R3}
-    {
-        Locals: [z As System.Int32]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (2)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
-                  Left: 
-                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
-                  Right: 
-                    IPropertyReferenceOperation: ReadOnly Property System.Collections.Generic.IEnumerator(Of System.Int32).Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
-
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = z')
-                      Left: 
-                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
-                      Right: 
-                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'z')
-
-            Next (Regular) Block[B2]
-                Leaving: {R3}
-    }
-}
-.finally {R4}
-{
-    Block[B4] - Block
-        Predecessors (0)
-        Statements (0)
-        Jump if True (Regular) to Block[B6]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Operand: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
-
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningReference)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation (virtual Function System.Collections.Generic.IEnumerable(Of System.Int32).GetEnumerator() As System.Collections.Generic.IEnumerator(Of System.Int32)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'x')
+                  Arguments(0)
+
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+
+            Next (Regular) Block[B3]
+                Entering: {R4}
+
+        .locals {R4}
+        {
+            Locals: [z As System.Int32]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
+                      Left: 
+                        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                      Right: 
+                        IPropertyReferenceOperation: ReadOnly Property System.Collections.Generic.IEnumerator(Of System.Int32).Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = z')
+                          Left: 
+                            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
+                          Right: 
+                            ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'z')
+
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Operand: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
-              Arguments(0)
 
-        Next (Regular) Block[B6]
-    Block[B6] - Block
-        Predecessors: [B4] [B5]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IEnumerator(Of System.Int32), IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
 }
 
 Block[B7] - Exit
@@ -1826,97 +1976,104 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation (virtual Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (NarrowingReference)
-                  Operand: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
-              Arguments(0)
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
+.locals {R1}
 {
-    Block[B2] - Block
-        Predecessors: [B1] [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B7]
-            IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-              Arguments(0)
-            Finalizing: {R4}
-            Leaving: {R2} {R1}
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation (virtual Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingReference)
+                      Operand: 
+                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
+                  Arguments(0)
 
-        Next (Regular) Block[B3]
-            Entering: {R3}
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
 
-    .locals {R3}
+    .try {R2, R3}
     {
-        Locals: [z As System.Object]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (2)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
-                  Left: 
-                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'z')
-                  Right: 
-                    IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z')
-                      Instance Receiver: 
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+
+            Next (Regular) Block[B3]
+                Entering: {R4}
+
+        .locals {R4}
+        {
+            Locals: [z As System.Object]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
+                      Left: 
+                        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'z')
+                      Right: 
+                        IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = z')
+                          Left: 
+                            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
+                          Right: 
+                            ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Object) (Syntax: 'z')
+
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                  Value: 
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingReference)
+                      Operand: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
 
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = z')
-                      Left: 
-                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
-                      Right: 
-                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Object) (Syntax: 'z')
-
-            Next (Regular) Block[B2]
-                Leaving: {R3}
-    }
-}
-.finally {R4}
-{
-    Block[B4] - Block
-        Predecessors (0)
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-              Value: 
-                IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (NarrowingReference)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
 
-        Jump if True (Regular) to Block[B6]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Operand: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
 
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
-        Statements (1)
-            IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-              Arguments(0)
-
-        Next (Regular) Block[B6]
-    Block[B6] - Block
-        Predecessors: [B4] [B5]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
 }
 
 Block[B7] - Exit
@@ -2062,73 +2219,95 @@ End Module
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
-          Value: 
-            IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
-              Arguments(0)
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B6]
-    Statements (0)
-    Jump if False (Regular) to Block[B7]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-          Arguments(0)
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
+              Value: 
+                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                  Arguments(0)
 
-    Next (Regular) Block[B3]
-Block[B3] - Block
-    Predecessors: [B2]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC()')
-          Value: 
-            IInvocationOperation (Function C.GetC() As C) (OperationKind.Invocation, Type: C) (Syntax: 'GetC()')
-              Instance Receiver: 
-                null
-              Arguments(0)
-
-    Jump if True (Regular) to Block[B5]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'GetC()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC()')
-
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B3]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC()')
-          Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC()')
-
-    Next (Regular) Block[B6]
-Block[B5] - Block
-    Predecessors: [B3]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
-          Value: 
-            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
-
-    Next (Regular) Block[B6]
-Block[B6] - Block
-    Predecessors: [B4] [B5]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'If(GetC(), Me).F')
-          Left: 
-            IFieldReferenceOperation: C.F As C (OperationKind.FieldReference, Type: C) (Syntax: 'If(GetC(), Me).F')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(GetC(), Me)')
-          Right: 
-            IPropertyReferenceOperation: ReadOnly Property C.Current As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'If(GetC(), Me).F')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B6]
+        Statements (0)
+        Jump if False (Regular) to Block[B7]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
               Instance Receiver: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+              Arguments(0)
+            Leaving: {R1}
 
-    Next (Regular) Block[B2]
+        Next (Regular) Block[B3]
+            Entering: {R2} {R3}
+
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC()')
+                      Value: 
+                        IInvocationOperation (Function C.GetC() As C) (OperationKind.Invocation, Type: C) (Syntax: 'GetC()')
+                          Instance Receiver: 
+                            null
+                          Arguments(0)
+
+                Jump if True (Regular) to Block[B5]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'GetC()')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC()')
+                    Leaving: {R3}
+
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC()')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC()')
+
+                Next (Regular) Block[B6]
+                    Leaving: {R3}
+        }
+
+        Block[B5] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
+                  Value: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'If(GetC(), Me).F')
+                  Left: 
+                    IFieldReferenceOperation: C.F As C (OperationKind.FieldReference, Type: C) (Syntax: 'If(GetC(), Me).F')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(GetC(), Me)')
+                  Right: 
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'If(GetC(), Me).F')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+
 Block[B7] - Exit
     Predecessors: [B2]
     Statements (0)
@@ -2157,93 +2336,100 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation (virtual Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Collections.IEnumerable) (Syntax: 'x')
-              Arguments(0)
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-        Entering: {R1} {R2}
-
-.try {R1, R2}
+.locals {R1}
 {
-    Block[B2] - Block
-        Predecessors: [B1] [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B7]
-            IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-              Arguments(0)
-            Finalizing: {R4}
-            Leaving: {R2} {R1}
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation (virtual Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Collections.IEnumerable) (Syntax: 'x')
+                  Arguments(0)
 
-        Next (Regular) Block[B3]
-            Entering: {R3}
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
 
-    .locals {R3}
+    .try {R2, R3}
     {
-        Locals: [z As System.Object]
-        Block[B3] - Block
-            Predecessors: [B2]
-            Statements (2)
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
-                  Left: 
-                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'z')
-                  Right: 
-                    IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z')
-                      Instance Receiver: 
+        Block[B2] - Block
+            Predecessors: [B1] [B3]
+            Statements (0)
+            Jump if False (Regular) to Block[B7]
+                IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
+                Finalizing: {R5}
+                Leaving: {R3} {R2} {R1}
+
+            Next (Regular) Block[B3]
+                Entering: {R4}
+
+        .locals {R4}
+        {
+            Locals: [z As System.Object]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
+                      Left: 
+                        ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'z')
+                      Right: 
+                        IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z')
+                          Instance Receiver: 
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = z')
+                          Left: 
+                            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
+                          Right: 
+                            ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Object) (Syntax: 'z')
+
+                Next (Regular) Block[B2]
+                    Leaving: {R4}
+        }
+    }
+    .finally {R5}
+    {
+        CaptureIds: [1]
+        Block[B4] - Block
+            Predecessors (0)
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                  Value: 
+                    IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingReference)
+                      Operand: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
 
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = z')
-                      Left: 
-                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
-                      Right: 
-                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Object) (Syntax: 'z')
-
-            Next (Regular) Block[B2]
-                Leaving: {R3}
-    }
-}
-.finally {R4}
-{
-    Block[B4] - Block
-        Predecessors (0)
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-              Value: 
-                IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (NarrowingReference)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
 
-        Jump if True (Regular) to Block[B6]
-            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Operand: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
+                  Arguments(0)
 
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
-        Statements (1)
-            IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'x')
-              Arguments(0)
-
-        Next (Regular) Block[B6]
-    Block[B6] - Block
-        Predecessors: [B4] [B5]
-        Statements (0)
-        Next (StructuredExceptionHandling) Block[null]
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
 }
 
 Block[B7] - Exit
@@ -2273,61 +2459,68 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation ( Function System.Array.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [z As System.Int64]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
-              Left: 
-                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-              Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNumeric)
-                  Operand: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NarrowingValue)
-                      Operand: 
-                        IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z As Long')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = z')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'z')
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation ( Function System.Array.GetEnumerator() As System.Collections.IEnumerator) (OperationKind.Invocation, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'x')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation (virtual Function System.Collections.IEnumerator.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [z As System.Int64]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
+                  Left: 
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNumeric)
+                      Operand: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (NarrowingValue)
+                          Operand: 
+                            IPropertyReferenceOperation: ReadOnly Property System.Collections.IEnumerator.Current As System.Object (OperationKind.PropertyReference, Type: System.Object, IsImplicit) (Syntax: 'z As Long')
+                              Instance Receiver: 
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.IEnumerator, IsImplicit) (Syntax: 'x')
+
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = z')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int64, IsImplicit) (Syntax: 'result = z')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: z (OperationKind.LocalReference, Type: System.Int64) (Syntax: 'z')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B4] - Exit
@@ -2380,61 +2573,68 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
-          Value: 
-            IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B3] [B4]
-    Statements (0)
-    Jump if False (Regular) to Block[B5]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [x As System.Boolean]
-    Block[B3] - Block
-        Predecessors: [B2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
+              Value: 
+                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-
-        Jump if False (Regular) to Block[B4]
-            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3] [B4]
+        Statements (0)
+        Jump if False (Regular) to Block[B5]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+              Arguments(0)
             Leaving: {R1}
-    Block[B4] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [x As System.Boolean]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
                   Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Right: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
 
-        Next (Regular) Block[B2]
-            Leaving: {R1}
+            Jump if False (Regular) to Block[B4]
+                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B5] - Exit
@@ -2487,61 +2687,68 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
-          Value: 
-            IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B4]
-    Statements (0)
-    Jump if False (Regular) to Block[B5]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [x As System.Boolean]
-    Block[B3] - Block
-        Predecessors: [B2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
+              Value: 
+                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-
-        Jump if False (Regular) to Block[B4]
-            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
-
-        Next (Regular) Block[B5]
-            Leaving: {R1}
-    Block[B4] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B4]
+        Statements (0)
+        Jump if False (Regular) to Block[B5]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [x As System.Boolean]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
+                  Left: 
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+
+            Jump if False (Regular) to Block[B4]
+                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+            Next (Regular) Block[B5]
+                Leaving: {R2} {R1}
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B5] - Exit
@@ -2595,73 +2802,80 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
-          Value: 
-            IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B4] [B5]
-    Statements (0)
-    Jump if False (Regular) to Block[B6]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [x As System.Boolean]
-    Block[B3] - Block
-        Predecessors: [B2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
+              Value: 
+                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-
-        Jump if False (Regular) to Block[B5]
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
-
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = y')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = y')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B4] [B5]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+              Arguments(0)
             Leaving: {R1}
-    Block[B5] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
 
-        Next (Regular) Block[B2]
-            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [x As System.Boolean]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
+                  Left: 
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+
+            Jump if False (Regular) to Block[B5]
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = y')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = y')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+        Block[B5] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B6] - Exit
@@ -2715,73 +2929,80 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
-          Value: 
-            IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B5]
-    Statements (0)
-    Jump if False (Regular) to Block[B6]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [x As System.Boolean]
-    Block[B3] - Block
-        Predecessors: [B2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
+              Value: 
+                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
-
-        Jump if False (Regular) to Block[B5]
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
-
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = y')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = y')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
-
-        Next (Regular) Block[B6]
-            Leaving: {R1}
-    Block[B5] - Block
-        Predecessors: [B3]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B5]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [x As System.Boolean]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x')
+                  Left: 
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
+
+            Jump if False (Regular) to Block[B5]
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = y')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = y')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+
+            Next (Regular) Block[B6]
+                Leaving: {R2} {R1}
+        Block[B5] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B6] - Exit
@@ -2837,49 +3058,56 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(GetC(), GetC())')
-          Value: 
-            IInvocationOperation (Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'If(GetC(), GetC())')
-              Instance Receiver: 
-                null
-              Arguments(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation (Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(GetC(), GetC())')
-          Instance Receiver: 
-            null
-          Arguments(0)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [z As System.Int64]
-    Block[B3] - Block
-        Predecessors: [B2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
-              Left: 
-                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-              Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNumeric)
-                  Operand: 
-                    IPropertyReferenceOperation: ReadOnly Property C.Current As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
-                      Instance Receiver: 
-                        null
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(GetC(), GetC())')
+              Value: 
+                IInvocationOperation (Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'If(GetC(), GetC())')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation (Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(GetC(), GetC())')
+              Instance Receiver: 
+                null
+              Arguments(0)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [z As System.Int64]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z As Long')
+                  Left: 
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'z As Long')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNumeric)
+                      Operand: 
+                        IPropertyReferenceOperation: ReadOnly Property C.Current As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z As Long')
+                          Instance Receiver: 
+                            null
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B4] - Exit
@@ -2922,58 +3150,65 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IInvocationOperation ( Function C.GetEnumerator([member As System.String = ""]) As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'x')
-              Instance Receiver: 
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: member) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "M", IsImplicit) (Syntax: 'x')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation ( Function C.MoveNext([s As System.String = "ABC"]) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
-          Arguments(1):
-              IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "ABC", IsImplicit) (Syntax: 'x')
-                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-    Next (Regular) Block[B3]
         Entering: {R1}
 
 .locals {R1}
 {
-    Locals: [z As System.Int32]
-    Block[B3] - Block
-        Predecessors: [B2]
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
-              Left: 
-                ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current([d As System.Double = 123.45]) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IInvocationOperation ( Function C.GetEnumerator([member As System.String = ""]) As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'x')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: d) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-                        ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 123.45, IsImplicit) (Syntax: 'x')
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: member) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "M", IsImplicit) (Syntax: 'x')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
         Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( Function C.MoveNext([s As System.String = "ABC"]) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "ABC", IsImplicit) (Syntax: 'x')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Leaving: {R1}
+
+        Next (Regular) Block[B3]
+            Entering: {R2}
+
+    .locals {R2}
+    {
+        Locals: [z As System.Int32]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'z')
+                  Left: 
+                    ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                  Right: 
+                    IPropertyReferenceOperation: ReadOnly Property C.Current([d As System.Double = 123.45]) As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'z')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: d) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 123.45, IsImplicit) (Syntax: 'x')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
 }
 
 Block[B4] - Exit
@@ -3026,68 +3261,73 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+        Entering: {R1} {R2}
 
 .locals {R1}
 {
-    Locals: [x As System.Int32]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC(x)')
-              Value: 
-                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'GetC(x)')
-                  Instance Receiver: 
-                    IInvocationOperation ( Function C.GetC(ByRef x As System.Int32) As C) (OperationKind.Invocation, Type: C) (Syntax: 'GetC(x)')
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        Locals: [x As System.Int32]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC(x)')
+                  Value: 
+                    IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'GetC(x)')
                       Instance Receiver: 
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetC')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
-                            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Arguments(0)
+                        IInvocationOperation ( Function C.GetC(ByRef x As System.Int32) As C) (OperationKind.Invocation, Type: C) (Syntax: 'GetC(x)')
+                          Instance Receiver: 
+                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetC')
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Arguments(0)
 
-        Next (Regular) Block[B2]
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'GetC(x)')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC(x)')
+              Arguments(0)
             Leaving: {R1}
-}
 
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'GetC(x)')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC(x)')
-          Arguments(0)
+        Next (Regular) Block[B3]
+            Entering: {R3}
 
-    Next (Regular) Block[B3]
-        Entering: {R2}
-
-.locals {R2}
-{
-    Locals: [x As System.Int32]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x As Integer')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x As Integer')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x As Integer')
-                  Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC(x)')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = x')
+    .locals {R3}
+    {
+        Locals: [x As System.Int32]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x As Integer')
                   Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x As Integer')
                   Right: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'x As Integer')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'GetC(x)')
 
-        Next (Regular) Block[B2]
-            Leaving: {R2}
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'result = x')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R3}
+    }
 }
 
 Block[B4] - Exit
@@ -3140,61 +3380,66 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+        Entering: {R1} {R2}
 
 .locals {R1}
 {
-    Locals: [x As C]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-              Value: 
-                IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'x')
-                  Instance Receiver: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C) (Syntax: 'x')
-                  Arguments(0)
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        Locals: [x As C]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                  Value: 
+                    IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'x')
+                      Instance Receiver: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C) (Syntax: 'x')
+                      Arguments(0)
 
-        Next (Regular) Block[B2]
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+              Arguments(0)
             Leaving: {R1}
-}
 
-Block[B2] - Block
-    Predecessors: [B1] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B4]
-        IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
-          Arguments(0)
+        Next (Regular) Block[B3]
+            Entering: {R3}
 
-    Next (Regular) Block[B3]
-        Entering: {R2}
-
-.locals {R2}
-{
-    Locals: [x As C]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x As C')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'x As C')
-              Right: 
-                IPropertyReferenceOperation: ReadOnly Property C.Current As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'x As C')
-                  Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = x')
+    .locals {R3}
+    {
+        Locals: [x As C]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'x As C')
                   Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'x As C')
                   Right: 
-                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C) (Syntax: 'x')
+                    IPropertyReferenceOperation: ReadOnly Property C.Current As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'x As C')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
 
-        Next (Regular) Block[B2]
-            Leaving: {R2}
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = x')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+                      Right: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C) (Syntax: 'x')
+
+            Next (Regular) Block[B2]
+                Leaving: {R3}
+    }
 }
 
 Block[B4] - Exit

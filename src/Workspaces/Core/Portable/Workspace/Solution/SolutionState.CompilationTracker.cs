@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         inProgressCompilation = inProgressCompilation.AddSyntaxTrees(tree);
                         Debug.Assert(!inProgressProject.DocumentIds.Contains(docState.Id));
-                        inProgressProject = inProgressProject.AddDocument(docState);
+                        inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
                     }
                 }
 
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    Contract.Requires(inProgressCompilation != null);
+                    Debug.Assert(inProgressCompilation != null);
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)

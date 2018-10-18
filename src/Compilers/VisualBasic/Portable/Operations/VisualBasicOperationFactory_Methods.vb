@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.AnonymousTypeManager
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Operations
@@ -266,25 +267,52 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function GetAnonymousTypeCreationInitializers(expression As BoundAnonymousTypeCreationExpression) As ImmutableArray(Of IOperation)
+            ' For error cases and non-assignment initializers, the binder generates only the argument.
             Debug.Assert(expression.Arguments.Length >= expression.Declarations.Length)
 
+            Dim properties = DirectCast(expression.Type, AnonymousTypePublicSymbol).Properties
+            Debug.Assert(properties.Length = expression.Arguments.Length)
+
             Dim builder = ArrayBuilder(Of IOperation).GetInstance(expression.Arguments.Length)
+            Dim currentDeclarationIndex = 0
             For i As Integer = 0 To expression.Arguments.Length - 1
                 Dim value As IOperation = Create(expression.Arguments(i))
-                If i >= expression.Declarations.Length Then
-                    builder.Add(value)
-                    Continue For
+
+                Dim target As IOperation
+                Dim isImplicitAssignment As Boolean
+
+                ' Find matching declaration for the current argument
+                If currentDeclarationIndex >= expression.Declarations.Length OrElse
+                   i <> expression.Declarations(currentDeclarationIndex).PropertyIndex Then
+                    ' No matching declaration, synthesize a property reference with an implicit receiver to be assigned.
+                    Dim [property] As IPropertySymbol = properties(i)
+                    Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
+                    target = New PropertyReferenceExpression(
+                        [property],
+                        instance,
+                        ImmutableArray(Of IArgumentOperation).Empty,
+                        _semanticModel,
+                        value.Syntax,
+                        [property].Type,
+                        constantValue:=Nothing,
+                        isImplicit:=True)
+                    isImplicitAssignment = True
+                Else
+                    Debug.Assert(i = expression.Declarations(currentDeclarationIndex).PropertyIndex)
+                    target = CreateBoundAnonymousTypePropertyAccessOperation(expression.Declarations(currentDeclarationIndex))
+                    currentDeclarationIndex = currentDeclarationIndex + 1
+                    isImplicitAssignment = expression.WasCompilerGenerated
                 End If
 
                 Dim isRef As Boolean = False
-                Dim target As IOperation = Create(expression.Declarations(i))
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicit:=expression.WasCompilerGenerated)
+                Dim assignment = New SimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
 
+            Debug.Assert(currentDeclarationIndex = expression.Declarations.Length)
             Return builder.ToImmutableAndFree()
         End Function
 
@@ -518,9 +546,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
                     method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
                 End If
-                Return New Conversion(KeyValuePair.Create(conversionKind, method))
+                Return New Conversion(KeyValuePairUtil.Create(conversionKind, method))
             ElseIf expression.Kind = BoundKind.TryCast OrElse expression.Kind = BoundKind.DirectCast Then
-                Return New Conversion(KeyValuePair.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
+                Return New Conversion(KeyValuePairUtil.Create(Of ConversionKind, MethodSymbol)(DirectCast(expression, BoundConversionOrCast).ConversionKind, Nothing))
             End If
             Return New Conversion(Conversions.Identity)
         End Function

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Roslyn.Utilities
@@ -9,7 +10,7 @@ namespace Roslyn.Utilities
     {
         internal static T InterlockedStore<T>(ref T target, T value) where T : class
         {
-            Contract.Assert(value != null);
+            Debug.Assert(value != null);
             return Interlocked.CompareExchange(ref target, value, null) ?? value;
         }
 

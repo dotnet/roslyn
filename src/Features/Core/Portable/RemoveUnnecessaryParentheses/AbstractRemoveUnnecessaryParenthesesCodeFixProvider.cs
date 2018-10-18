@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 new MyCodeAction(
                     c => FixAsync(context.Document, context.Diagnostics[0], c)),
                     context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(

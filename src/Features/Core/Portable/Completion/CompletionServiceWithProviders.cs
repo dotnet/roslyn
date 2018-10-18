@@ -336,11 +336,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
             foreach (var context in completionContexts)
             {
-                Contract.Assert(context != null);
+                Debug.Assert(context != null);
 
                 foreach (var item in context.Items)
                 {
-                    Contract.Assert(item != null);
+                    Debug.Assert(item != null);
                     AddToDisplayMap(item, displayNameToItemsMap);
                 }
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 var existingItem = sameNamedItems[i];
 
-                Contract.Assert(item.DisplayText == existingItem.DisplayText);
+                Debug.Assert(item.DisplayText == existingItem.DisplayText);
 
                 if (ItemsMatch(item, existingItem))
                 {

@@ -46,7 +46,7 @@ int y;
 }
 ";
 
-            AssertFormatWithView(expected, code, (CodeCleanupOptions.AreCodeCleanupRulesConfigured, true));
+            AssertFormatWithView(expected, code, (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, true));
         }
 
         [WpfFact]

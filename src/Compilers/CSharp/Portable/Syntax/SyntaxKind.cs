@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MinusEqualsToken = 8281,
         CaretEqualsToken = 8282,
         PercentEqualsToken = 8283,
+        QuestionQuestionEqualsToken = 8284,
 
         // Keywords
         BoolKeyword = 8304,
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
-        InterpolatedVerbatimStringStartToken = 8484,    // $@"
+        InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
 
         // Other
         UnderscoreToken = 8491,
@@ -374,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OrAssignmentExpression = 8722,
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
+        CoalesceAssignmentExpression = 8725,
 
         // unary expressions
         UnaryPlusExpression = 8730,
@@ -563,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefExpression = 9050,
         RefType = 9051,
         ThrowExpression = 9052,
-
         ImplicitStackAllocArrayCreationExpression = 9053,
+        SuppressNullableWarningExpression = 9054,
     }
 }

@@ -64,8 +64,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 ' SetCompilerOptions only handles versions 15.3 and up
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -85,8 +85,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using

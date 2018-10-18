@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             projectTracker.AddProject(Me)
 
-            ProjectCodeModel = New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
+            ProjectCodeModel = New ProjectCodeModel(projectTracker.ThreadingContext, Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
         End Sub
 
         Public Sub AddApplicationObjectVariable(wszClassName As String, wszMemberName As String) Implements IVbCompilerProject.AddApplicationObjectVariable
@@ -169,7 +169,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Function AdviseBuildStatusCallback(pIVbBuildStatusCallback As IVbBuildStatusCallback) As UInteger Implements IVbCompilerProject.AdviseBuildStatusCallback
             Try
-                Contract.Requires(_buildStatusCallback Is Nothing, "IVbBuildStatusCallback already set")
+                Debug.Assert(_buildStatusCallback Is Nothing, "IVbBuildStatusCallback already set")
 
                 _buildStatusCallback = pIVbBuildStatusCallback
 
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Public Sub UnadviseBuildStatusCallback(dwCookie As UInteger) Implements IVbCompilerProject.UnadviseBuildStatusCallback
-            Contract.Requires(dwCookie = 0, "Bad cookie")
+            Debug.Assert(dwCookie = 0, "Bad cookie")
 
             _buildStatusCallback = Nothing
         End Sub

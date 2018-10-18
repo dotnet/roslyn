@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         CancellationToken shutdownToken) :
                         base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _running = SpecializedTasks.EmptyTask;
+                        _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
 #if DEBUG
-                            Contract.Requires(!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.Reanalyze) || workItem.Analyzers.Count > 0);
+                            Debug.Assert(!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.Reanalyze) || workItem.Analyzers.Count > 0);
 #endif
 
                             // no-reanalyze request or we already have a request to re-analyze every thing

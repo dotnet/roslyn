@@ -1872,7 +1872,7 @@ ProduceBoundNode:
                                                          callerInfoOpt:=callerInfoOpt,
                                                          representCandidateInDiagnosticsOpt:=Nothing)
 
-                diagnosticPerSymbol.Add(KeyValuePair.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
+                diagnosticPerSymbol.Add(KeyValuePairUtil.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
 
             Next
 

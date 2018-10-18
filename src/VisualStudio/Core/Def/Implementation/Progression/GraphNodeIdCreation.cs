@@ -520,7 +520,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
             {
-                var currentNode = reference.GetSyntax(cancellationToken);
+                var currentNode = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
                 // For VB, we have to ask its parent to get local variables within this method body
                 // since DeclaringSyntaxReferences return statement rather than enclosing block.

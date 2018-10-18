@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _labelIdMap = new Dictionary<ILabelSymbol, uint>();
         }
 
-        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
-        {
-            var actual = GetOperationTree(compilation, operation, initialIndent);
-            Assert.Equal(expectedOperationTree, actual);
-        }
-
         public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
             var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
@@ -60,8 +54,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
+            actual = actual.Replace("\"", "\"\"");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+            expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
@@ -102,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
 
             // Syntax
+            Assert.NotNull(operation.Syntax);
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
 
             LogNewLine();
@@ -1096,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null)
+            if (((Operation)operation).OwningSemanticModel == null)
             {
                 LogNewLine();
                 Indent();
@@ -1142,6 +1139,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
 
             Visit(operation.WhenNull, "WhenNull");
+        }
+
+        public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            LogString(nameof(ICoalesceAssignmentOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
+            Visit(operation.Value, nameof(operation.Value));
         }
 
         public override void VisitIsType(IIsTypeOperation operation)
@@ -1274,6 +1280,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IAnonymousObjectCreationOperation));
             LogCommonPropertiesAndNewLine(operation);
+
+            foreach (var initializer in operation.Initializers)
+            {
+                var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Assert.Empty(propertyReference.Arguments);
+                Assert.Equal(OperationKind.InstanceReference, propertyReference.Instance.Kind);
+                Assert.Equal(InstanceReferenceKind.ImplicitReceiver, ((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind);
+            }
 
             VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
@@ -1434,6 +1449,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" ({operation.ElementValues.Length} elements)");
             LogCommonPropertiesAndNewLine(operation);
 
+            Assert.Null(operation.Type);
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 

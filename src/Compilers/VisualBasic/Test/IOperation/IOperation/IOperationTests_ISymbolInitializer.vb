@@ -762,41 +762,49 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (0)
-    Jump if False (Regular) to Block[B3]
-        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
-          Value: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block [UnReachable]
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
-          Value: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(True, 1, 2)')
-          Left: 
-            IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(True, 1, 2)')
-              Instance Receiver: 
-                null
-          Right: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(True, 1, 2)')
+        Next (Regular) Block[B4]
+    Block[B3] - Block [UnReachable]
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-    Next (Regular) Block[B5]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(True, 1, 2)')
+              Left: 
+                IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(True, 1, 2)')
+                  Instance Receiver: 
+                    null
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(True, 1, 2)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -826,56 +834,71 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2')
-          Value: 
-            IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2')
-              Instance Receiver: 
-                null
-              Arguments(0)
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
-          Left: 
-            IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
-              Instance Receiver: 
-                null
-          Right: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2)')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2')
+              Value: 
+                IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
+              Left: 
+                IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
+                  Instance Receiver: 
+                    null
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -905,56 +928,71 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2')
-          Value: 
-            IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2')
-              Instance Receiver: 
-                null
-              Arguments(0)
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
-          Left: 
-            IFieldReferenceOperation: C.s1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= If(M(), M2)')
-          Right: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2)')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2')
+              Value: 
+                IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
+              Left: 
+                IFieldReferenceOperation: C.s1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2)')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= If(M(), M2)')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -984,56 +1022,71 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32), IsInvalid) (Syntax: 'M()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'M()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M()')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32), IsInvalid) (Syntax: 'M()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M()')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'M()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M()')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
-          Value: 
-            IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2')
-              Instance Receiver: 
-                null
-              Arguments(0)
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M()')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M(), M2)')
-          Left: 
-            IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M(), M2)')
-              Instance Receiver: 
-                null
-          Right: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M(), M2)')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
+              Value: 
+                IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M(), M2)')
+              Left: 
+                IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M(), M2)')
+                  Instance Receiver: 
+                    null
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M(), M2)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1065,114 +1118,146 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
-              Instance Receiver: 
-                null
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                      Instance Receiver: 
+                        null
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
-              Instance Receiver: 
-                null
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (2)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Left: 
-            IFieldReferenceOperation: C.s1 As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Right: 
-            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
-              Instance Receiver: 
-                null
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+                  Instance Receiver: 
+                    null
 
-    Jump if True (Regular) to Block[B6]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Operand: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Left: 
+                IFieldReferenceOperation: C.s1 As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Right: 
+                IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
 
-    Next (Regular) Block[B5]
-Block[B5] - Block
-    Predecessors: [B4]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
-              Arguments(0)
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+            Entering: {R3} {R4}
+}
+.locals {R3}
+{
+    CaptureIds: [3]
+    .locals {R4}
+    {
+        CaptureIds: [2]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                      Instance Receiver: 
+                        null
 
-    Next (Regular) Block[B7]
-Block[B6] - Block
-    Predecessors: [B4]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
-              Instance Receiver: 
-                null
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                Leaving: {R4}
 
-    Next (Regular) Block[B7]
-Block[B7] - Block
-    Predecessors: [B5] [B6]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Left: 
-            IFieldReferenceOperation: C.s2 As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Right: 
-            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
-                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                      Arguments(0)
 
-    Next (Regular) Block[B8]
-Block[B8] - Exit
-    Predecessors: [B7]
+            Next (Regular) Block[B8]
+                Leaving: {R4}
+    }
+
+    Block[B7] - Block
+        Predecessors: [B5]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+                  Instance Receiver: 
+                    null
+
+        Next (Regular) Block[B8]
+    Block[B8] - Block
+        Predecessors: [B6] [B7]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Left: 
+                IFieldReferenceOperation: C.s2 As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Right: 
+                IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+
+        Next (Regular) Block[B9]
+            Leaving: {R3}
+}
+
+Block[B9] - Exit
+    Predecessors: [B8]
     Statements (0)
 ]]>.Value
 
@@ -1518,56 +1603,71 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2()')
-          Value: 
-            IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
-          Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
-              Instance Receiver: 
-                null
-          Right: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2())')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2()')
+              Value: 
+                IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
+              Left: 
+                IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
+                  Instance Receiver: 
+                    null
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2())')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1596,56 +1696,71 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation (Function C.M() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32)) (Syntax: 'M()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'M()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2()')
-          Value: 
-            IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M()')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'M()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'M()')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
-          Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= If(M(), M2())')
-          Right: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2())')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2()')
+              Value: 
+                IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
+              Left: 
+                IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= If(M(), M2())')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(M(), M2())')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1673,61 +1788,76 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
-              Instance Receiver: 
-                null
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                      Instance Receiver: 
+                        null
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
-              Instance Receiver: 
-                null
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Left: 
-            IPropertyReferenceOperation: ReadOnly Property C.P1 As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Right: 
-            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+                  Instance Receiver: 
+                    null
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Left: 
+                IPropertyReferenceOperation: ReadOnly Property C.P1 As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Right: 
+                IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1755,114 +1885,146 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
-              Instance Receiver: 
-                null
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                      Instance Receiver: 
+                        null
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
-              Instance Receiver: 
-                null
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (2)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Left: 
-            IPropertyReferenceOperation: WithEvents C.e As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Right: 
-            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
-              Instance Receiver: 
-                null
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+                  Instance Receiver: 
+                    null
 
-    Jump if True (Regular) to Block[B6]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Operand: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Left: 
+                IPropertyReferenceOperation: WithEvents C.e As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Right: 
+                IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
 
-    Next (Regular) Block[B5]
-Block[B5] - Block
-    Predecessors: [B4]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
-              Arguments(0)
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+            Entering: {R3} {R4}
+}
+.locals {R3}
+{
+    CaptureIds: [3]
+    .locals {R4}
+    {
+        CaptureIds: [2]
+        Block[B5] - Block
+            Predecessors: [B4]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                      Instance Receiver: 
+                        null
 
-    Next (Regular) Block[B7]
-Block[B6] - Block
-    Predecessors: [B4]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
-              Instance Receiver: 
-                null
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                Leaving: {R4}
 
-    Next (Regular) Block[B7]
-Block[B7] - Block
-    Predecessors: [B5] [B6]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Left: 
-            IPropertyReferenceOperation: WithEvents C.f As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-              Instance Receiver: 
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
-          Right: 
-            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
-                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                      Arguments(0)
 
-    Next (Regular) Block[B8]
-Block[B8] - Exit
-    Predecessors: [B7]
+            Next (Regular) Block[B8]
+                Leaving: {R4}
+    }
+
+    Block[B7] - Block
+        Predecessors: [B5]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+              Value: 
+                IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+                  Instance Receiver: 
+                    null
+
+        Next (Regular) Block[B8]
+    Block[B8] - Block
+        Predecessors: [B6] [B7]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Left: 
+                IPropertyReferenceOperation: WithEvents C.f As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Right: 
+                IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer: 
+                    null
+
+        Next (Regular) Block[B9]
+            Leaving: {R3}
+}
+
+Block[B9] - Exit
+    Predecessors: [B8]
     Statements (0)
 ]]>.Value
 
@@ -2007,56 +2169,71 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M1()')
-          Value: 
-            IInvocationOperation (Function C.M1() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32), IsInvalid) (Syntax: 'M1()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+        Entering: {R1} {R2}
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'M1()')
-          Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M1()')
+.locals {R1}
+{
+    CaptureIds: [1]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M1()')
+                  Value: 
+                    IInvocationOperation (Function C.M1() As System.Nullable(Of System.Int32)) (OperationKind.Invocation, Type: System.Nullable(Of System.Int32), IsInvalid) (Syntax: 'M1()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M1()')
-          Value: 
-            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M1()')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M1()')
-              Arguments(0)
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'M1()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M1()')
+                Leaving: {R2}
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2()')
-          Value: 
-            IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2()')
-              Instance Receiver: 
-                null
-              Arguments(0)
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M1()')
+                  Value: 
+                    IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M1()')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'M1()')
+                      Arguments(0)
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M1(), M2())')
-          Left: 
-            IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M1(), M2())')
-          Right: 
-            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
-              Children(1):
-                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
 
-    Next (Regular) Block[B5]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2()')
+              Value: 
+                IInvocationOperation (Function C.M2() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M1(), M2())')
+              Left: 
+                IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M1(), M2())')
+              Right: 
+                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
+                  Children(1):
+                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

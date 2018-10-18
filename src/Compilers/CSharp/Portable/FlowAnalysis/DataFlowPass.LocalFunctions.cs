@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// Specifying the slot manually may be necessary if the symbol is a field,
-        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
-        /// which containing slot to look for.
+        /// in which case <see cref="DataFlowPassBase{TLocalState}.VariableSlot(Symbol, int)"/>
+        /// will not know which containing slot to look for.
         /// </remarks>
         private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)
         {
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
-            var oldMethodOrLambda = this.currentMethodOrLambda;
+            var oldSymbol = this.currentSymbol;
             var localFuncSymbol = localFunc.Symbol;
-            this.currentMethodOrLambda = localFuncSymbol;
+            this.currentSymbol = localFuncSymbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -205,14 +205,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             this.State = savedState;
-            this.currentMethodOrLambda = oldMethodOrLambda;
+            this.currentSymbol = oldSymbol;
 
             return null;
         }
 
         private void RecordReadInLocalFunction(int slot)
         {
-            var localFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            var localFunc = GetNearestLocalFunctionOpt(currentSymbol);
 
             Debug.Assert(localFunc != null);
 
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields we need to record each field assignment separately,
             // since some fields may be assigned when this read is replayed
             VariableIdentifier id = variableBySlot[slot];
-            var type = VariableType(id.Symbol);
+            var type = VariableType(id.Symbol).TypeSymbol;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A variable is captured in a local function iff its
             // container is higher in the tree than the nearest
             // local function
-            var nearestLocalFunc = GetNearestLocalFunctionOpt(currentMethodOrLambda);
+            var nearestLocalFunc = GetNearestLocalFunctionOpt(currentSymbol);
 
             return !(nearestLocalFunc is null) && IsCaptured(rootSymbol, nearestLocalFunc);
         }

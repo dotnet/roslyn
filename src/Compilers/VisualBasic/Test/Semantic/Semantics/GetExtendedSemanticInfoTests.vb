@@ -1634,7 +1634,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub ImplementsClause3()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -2614,7 +2614,7 @@ End Class
             Assert.False(iSymbol.IsShared)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub IncompleteWriteLine()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -2723,7 +2723,7 @@ End Module
             Assert.Null(semanticInfo.ConstantValue.Value)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub FailedConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -2757,7 +2757,7 @@ End Class
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub FailedConstructorCall2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -3784,7 +3784,7 @@ End Namespace
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AttributeSemanticInfo_OverloadResolutionFailure_01()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -3824,7 +3824,7 @@ Imports System
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AttributeSemanticInfo_OverloadResolutionFailure_02()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -4600,7 +4600,7 @@ End Class
 
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <WorkItem(541567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541567")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub NoMatchingOverloads2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -4671,7 +4671,7 @@ End Class
         End Sub
 
         <WorkItem(541567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541567")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub NoMatchingOverloads4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -7777,7 +7777,8 @@ Module Module1
 
 End Module
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
             compilation.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
@@ -7803,7 +7804,8 @@ Module Module1
 
 End Module
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
             compilation.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
@@ -8219,7 +8221,7 @@ End Class
             Assert.Equal("Function System.Diagnostics.Stopwatch.StartNew() As System.Diagnostics.Stopwatch", sortedMethodGroup(0).ToTestDisplayString())
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub FailedOverloadResolutionOnCallShouldHaveMemberGroup()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9622,7 +9624,7 @@ BC30375: 'New' cannot be used on an interface.
         End Sub
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9661,7 +9663,7 @@ End Class
 
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_02_AttributeSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9698,7 +9700,7 @@ End Class
 
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_02_IdentifierNameSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9734,7 +9736,7 @@ End Class
 
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_03_AttributeSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
             <compilation>
@@ -9769,7 +9771,7 @@ End Class
         End Sub
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_03_IdentifierNameSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
           <compilation>

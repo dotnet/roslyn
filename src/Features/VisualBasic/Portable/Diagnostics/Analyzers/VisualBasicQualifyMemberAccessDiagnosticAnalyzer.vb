@@ -18,9 +18,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
         End Function
 
         Protected Overrides Function CanMemberAccessBeQualified(containingSymbol As ISymbol, node As SyntaxNode) As Boolean
+            ' if we're in an attribute, we can't be qualified.
+            If node.GetAncestorOrThis(Of AttributeSyntax) IsNot Nothing Then
+                Return False
+            End If
+
             ' If the member is already qualified with `MyBase.`, or `MyClass.`,
             ' or member is in object initialization context, it cannot be qualified.
-            Return Not (node.IsKind(SyntaxKind.MyBaseExpression) OrElse node.IsKind(SyntaxKind.MyClassExpression) OrElse node.IsKind(SyntaxKind.ObjectCreationExpression))
+            Return Not (
+                node.IsKind(SyntaxKind.MyBaseExpression) OrElse
+                node.IsKind(SyntaxKind.MyClassExpression) OrElse
+                node.IsKind(SyntaxKind.ObjectCreationExpression))
         End Function
 
         Protected Overrides Function GetLocation(operation As IOperation) As Location

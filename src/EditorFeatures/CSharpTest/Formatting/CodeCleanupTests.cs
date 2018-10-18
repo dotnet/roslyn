@@ -8,16 +8,14 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
-using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -52,7 +50,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedImports, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -85,8 +83,9 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.SortImports, enabled: true),
+                (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
 
@@ -117,7 +116,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -142,7 +141,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedVariables, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
         }
@@ -168,7 +167,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
                 (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
         }
 
@@ -197,7 +196,8 @@ class Program
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
                 var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-                var newDoc = await codeCleanupService.CleanupAsync(document, CancellationToken.None);
+                var newDoc = await codeCleanupService.CleanupAsync(
+                    document, new ProgressTracker(), CancellationToken.None);
 
                 var actual = await newDoc.GetTextAsync();
 

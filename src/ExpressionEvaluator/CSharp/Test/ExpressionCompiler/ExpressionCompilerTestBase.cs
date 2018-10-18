@@ -373,10 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         /// </summary>
         internal static void VerifyTypeParameters(MethodSymbol method)
         {
-            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType));
+            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType.TypeSymbol));
             AssertEx.All(method.TypeParameters, typeParameter => method.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(method.TypeArguments, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument));
-            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type));
+            AssertEx.All(method.TypeArguments, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.TypeSymbol));
+            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type.TypeSymbol));
             VerifyTypeParameters(method.ContainingType);
         }
 
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
-        
+
         internal static void CheckAttribute(IEnumerable<byte> assembly, IMethodSymbol method, AttributeDescription description, bool expected)
         {
             var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;

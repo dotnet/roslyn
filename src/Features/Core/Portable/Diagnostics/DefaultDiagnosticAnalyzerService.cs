@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostics = tree.GetDiagnostics(cancellationToken);
 
-                Contract.Requires(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
 
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostics = model.GetMethodBodyDiagnostics(span: null, cancellationToken: cancellationToken).Concat(
                                     model.GetDeclarationDiagnostics(span: null, cancellationToken: cancellationToken));
 
-                Contract.Requires(document.Project.Solution.Workspace == _workspace);
+                Debug.Assert(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
 
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
                 RemoveDocument(document.Id);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
@@ -146,17 +147,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
 
             public void RemoveProject(ProjectId projectId)

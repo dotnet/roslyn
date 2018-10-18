@@ -21,19 +21,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _root As SyntaxNode
         Private ReadOnly _rootBinder As Binder
 
+        ''' <summary>
+        ''' Field specific to non-speculative MemberSemanticModel
+        ''' </summary>
+        Private ReadOnly _containingSemanticModelOpt As SyntaxTreeSemanticModel
+
         ' Fields specific to speculative MemberSemanticModel
         Private ReadOnly _parentSemanticModelOpt As SyntaxTreeSemanticModel
         Private ReadOnly _speculatedPosition As Integer
+
         Private ReadOnly _ignoresAccessibility As Boolean
 
         Private ReadOnly _operationFactory As Lazy(Of VisualBasicOperationFactory)
 
-        Friend Sub New(root As SyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional ignoreAccessibility As Boolean = False)
+        Friend Sub New(root As SyntaxNode,
+                       rootBinder As Binder,
+                       containingSemanticModelOpt As SyntaxTreeSemanticModel,
+                       parentSemanticModelOpt As SyntaxTreeSemanticModel,
+                       speculatedPosition As Integer,
+                       Optional ignoreAccessibility As Boolean = False)
+            Debug.Assert(containingSemanticModelOpt IsNot Nothing Xor parentSemanticModelOpt IsNot Nothing)
+            Debug.Assert(containingSemanticModelOpt Is Nothing OrElse Not containingSemanticModelOpt.IsSpeculativeSemanticModel)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
             _root = root
             _ignoresAccessibility = ignoreAccessibility
             _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
+            _containingSemanticModelOpt = containingSemanticModelOpt
             _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
 
@@ -67,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
             Get
                 Return Me._parentSemanticModelOpt
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property ContainingModelOrSelf As SemanticModel
+            Get
+                Return If(Me._containingSemanticModelOpt, DirectCast(Me, SemanticModel))
             End Get
         End Property
 

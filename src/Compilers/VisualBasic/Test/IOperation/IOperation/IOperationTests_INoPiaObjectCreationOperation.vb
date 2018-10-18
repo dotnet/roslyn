@@ -213,37 +213,45 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (4)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ITest33) (Syntax: 'x')
+        Entering: {R1}
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new ITest33 From { y }')
-          Value: 
-            INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33 From { y }')
-              Initializer: 
-                null
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ITest33) (Syntax: 'x')
 
-        IInvocationOperation (virtual Sub ITest33.Add(x As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'y')
-          Instance Receiver: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 From { y }')
-          Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y')
-                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
-                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new ITest33 From { y }')
+              Value: 
+                INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33 From { y }')
+                  Initializer: 
+                    null
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = new ITe ...  From { y }')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ITest33, IsImplicit) (Syntax: 'x = new ITe ...  From { y }')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'x')
-              Right: 
+            IInvocationOperation (virtual Sub ITest33.Add(x As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'y')
+              Instance Receiver: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 From { y }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'y')
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
-    Next (Regular) Block[B2]
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = new ITe ...  From { y }')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ITest33, IsImplicit) (Syntax: 'x = new ITe ...  From { y }')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 From { y }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
@@ -289,45 +297,50 @@ Class C
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-]]>.Value
-
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (4)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ITest33) (Syntax: 'x')
+        Entering: {R1}
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new ITest33 ...  { .P = y }')
-          Value: 
-            INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33 ...  { .P = y }')
-              Initializer: 
-                null
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ITest33) (Syntax: 'x')
 
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.P = y')
-          Left: 
-            IPropertyReferenceOperation: Property ITest33.P As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ...  { .P = y }')
-          Right: 
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new ITest33 ...  { .P = y }')
+              Value: 
+                INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33 ...  { .P = y }')
+                  Initializer: 
+                    null
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = new ITe ...  { .P = y }')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ITest33, IsImplicit) (Syntax: 'x = new ITe ...  { .P = y }')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.P = y')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'x')
+                IPropertyReferenceOperation: Property ITest33.P As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ...  { .P = y }')
               Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ...  { .P = y }')
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 
-    Next (Regular) Block[B2]
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = new ITe ...  { .P = y }')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ITest33, IsImplicit) (Syntax: 'x = new ITe ...  { .P = y }')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ...  { .P = y }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
@@ -439,76 +452,104 @@ Class C
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
-]]>.Value
-
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (3)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-          Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ITest33) (Syntax: 'x')
+        Entering: {R1}
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new ITest33 ... f(y1, y2) }')
-          Value: 
-            INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33 ... f(y1, y2) }')
-              Initializer: 
-                null
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ITest33) (Syntax: 'x')
 
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y1')
-          Value: 
-            IParameterReferenceOperation: y1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'y1')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new ITest33 ... f(y1, y2) }')
+              Value: 
+                INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33 ... f(y1, y2) }')
+                  Initializer: 
+                    null
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y1')
-          Operand: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'y1')
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y1')
-          Value: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'y1')
+    .locals {R2}
+    {
+        CaptureIds: [3]
+        .locals {R3}
+        {
+            CaptureIds: [2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y1')
+                      Value: 
+                        IParameterReferenceOperation: y1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'y1')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y2')
-          Value: 
-            IParameterReferenceOperation: y2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'y2')
+                Jump if True (Regular) to Block[B4]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y1')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'y1')
+                    Leaving: {R3}
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (2)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.P = If(y1, y2)')
-          Left: 
-            IPropertyReferenceOperation: Property ITest33.P As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'P')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ... f(y1, y2) }')
-          Right: 
-            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(y1, y2)')
+                Next (Regular) Block[B3]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y1')
+                      Value: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'y1')
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = new ITe ... f(y1, y2) }')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ITest33, IsImplicit) (Syntax: 'x = new ITe ... f(y1, y2) }')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'x')
-              Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ... f(y1, y2) }')
+                Next (Regular) Block[B5]
+                    Leaving: {R3}
+        }
 
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B4]
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y2')
+                  Value: 
+                    IParameterReferenceOperation: y2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'y2')
+
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.P = If(y1, y2)')
+                  Left: 
+                    IPropertyReferenceOperation: Property ITest33.P As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'P')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ... f(y1, y2) }')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(y1, y2)')
+
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+    }
+
+    Block[B6] - Block
+        Predecessors: [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = new ITe ... f(y1, y2) }')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ITest33, IsImplicit) (Syntax: 'x = new ITe ... f(y1, y2) }')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ITest33, IsImplicit) (Syntax: 'new ITest33 ... f(y1, y2) }')
+
+        Next (Regular) Block[B7]
+            Leaving: {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B6]
     Statements (0)
 ]]>.Value
 

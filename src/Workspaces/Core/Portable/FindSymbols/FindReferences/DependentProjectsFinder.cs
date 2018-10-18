@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
+                if (project.SupportsCompilation && HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
                 {
                     var hasInternalsAccess = await HasInternalsAccessAsync(
                         sourceAssembly, internalsVisibleToMap, 

@@ -19,14 +19,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
     internal static class ForegroundThreadDataInfo
     {
-        private static readonly ForegroundThreadDataKind s_fallbackForegroundThreadDataKind;
-        private static ForegroundThreadDataKind? s_currentForegroundThreadDataKind;
-
-        static ForegroundThreadDataInfo()
-        {
-            s_fallbackForegroundThreadDataKind = CreateDefault(Unknown);
-        }
-
         internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind)
         {
             var syncContextTypeName = SynchronizationContext.Current?.GetType().FullName;
@@ -57,16 +49,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
                     return defaultKind;
             }
-        }
-
-        internal static ForegroundThreadDataKind CurrentForegroundThreadDataKind
-        {
-            get { return s_currentForegroundThreadDataKind ?? s_fallbackForegroundThreadDataKind; }
-        }
-
-        internal static void SetCurrentForegroundThreadDataKind(ForegroundThreadDataKind? kind)
-        {
-            s_currentForegroundThreadDataKind = kind;
         }
     }
 }

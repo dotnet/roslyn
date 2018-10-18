@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             // This analyzer bases all of its decisions on the accessibility
             var accessibility = generator.GetAccessibility(member);
 
-            // Omit will flag any accesibility values that exist and are default
+            // Omit will flag any accessibility values that exist and are default
             // The other options will remove or ignore accessibility
             var isOmit = option.Value == AccessibilityModifiersRequired.OmitIfDefault;
 

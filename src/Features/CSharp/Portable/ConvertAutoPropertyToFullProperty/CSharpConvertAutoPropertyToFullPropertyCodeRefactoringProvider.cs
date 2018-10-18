@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
             }
 
-            if (!accessorDeclarationSyntax.Body.TryConvertToExpressionBody(
-                accessorDeclarationSyntax.Kind(), accessor.SyntaxTree.Options, preference,
-                out var arrowExpression, out var semicolonToken))
+            if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
+                    accessorDeclarationSyntax.Kind(), accessor.SyntaxTree.Options, preference,
+                    out var arrowExpression, out var semicolonToken))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
             };

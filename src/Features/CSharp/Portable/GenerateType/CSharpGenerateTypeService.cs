@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return false;
                 }
 
-                if (!simpleName.IsLeftSideOfDot() && !simpleName.IsInsideNameOf())
+                if (!simpleName.IsLeftSideOfDot() &&
+                    !simpleName.IsInsideNameOfExpression(semanticModel, cancellationToken))
                 {
                     if (nameOrMemberAccessExpression == null || !nameOrMemberAccessExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) || !simpleName.IsRightSideOfDot())
                     {

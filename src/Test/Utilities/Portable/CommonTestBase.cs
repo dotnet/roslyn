@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                parseOptions = CSharp.CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
+                parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default).WithDocumentationMode(DocumentationMode.None);
             }
 
             if (compilationOptions == null)
@@ -552,6 +552,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var clonedOperation = OperationCloner.CloneOperation(operation);
 
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(model, clonedOperation.SemanticModel);
+                Assert.NotSame(model, ((Operation)operation).OwningSemanticModel);
+                Assert.Same(((Operation)operation).OwningSemanticModel, ((Operation)clonedOperation).OwningSemanticModel);
+
                 // check whether cloned IOperation is same as original one
                 var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
                 var cloned = OperationTreeVerifier.GetOperationTree(model.Compilation, clonedOperation);
@@ -569,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void VerifyOperationTreeContracts(IOperation root)
         {
-            var semanticModel = ((Operation)root).SemanticModel;
+            var semanticModel = ((Operation)root).OwningSemanticModel;
             var set = new HashSet<IOperation>(root.DescendantsAndSelf());
 
             foreach (var child in root.DescendantsAndSelf())
@@ -597,6 +602,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 node = node.Parent;
             }
         }
+
+        #endregion
+
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> ExternalPdbFormats
+        {
+            get
+            {
+                if (ExecutionConditionUtil.IsWindows)
+                {
+                    return new List<object[]>()
+                    {
+                        new object[] { DebugInformationFormat.Pdb },
+                        new object[] { DebugInformationFormat.PortablePdb }
+                    };
+                }
+                else
+                {
+                    return new List<object[]>()
+                    {
+                        new object[] { DebugInformationFormat.PortablePdb }
+                    };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> PdbFormats => 
+            new List<object[]>(ExternalPdbFormats)
+            {
+                new object[] { DebugInformationFormat.Embedded }
+            };
 
         #endregion
     }

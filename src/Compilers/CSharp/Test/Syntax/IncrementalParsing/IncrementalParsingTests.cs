@@ -2754,6 +2754,26 @@ class G: Program
             WalkTreeAndVerify(newTree.GetCompilationUnitRoot(), SyntaxFactory.ParseSyntaxTree(newText).GetCompilationUnitRoot());
         }
 
+        [WorkItem(23272, "https://github.com/dotnet/roslyn/issues/23272")]
+        [Fact]
+        public void AddAccessibilityToNullableArray()
+        {
+            var source =
+@"class A { }
+class B
+{
+    A[]? F;
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(" A[]?"), 0);
+            var change = new TextChange(span, "p");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
         #endregion
 
         #region Helper functions

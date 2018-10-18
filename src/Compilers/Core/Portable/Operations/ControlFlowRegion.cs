@@ -54,10 +54,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         public ImmutableArray<IMethodSymbol> LocalFunctions { get; }
 
+        /// <summary>
+        /// Capture Ids used for intermediate results within the region.
+        /// </summary>
+        public ImmutableArray<CaptureId> CaptureIds { get; }
+
         internal ControlFlowRegion(ControlFlowRegionKind kind, int firstBlockOrdinal, int lastBlockOrdinal,
                         ImmutableArray<ControlFlowRegion> nestedRegions,
                         ImmutableArray<ILocalSymbol> locals,
                         ImmutableArray<IMethodSymbol> methods,
+                        ImmutableArray<CaptureId> captureIds,
                         ITypeSymbol exceptionType,
                         ControlFlowRegion enclosingRegion)
         {
@@ -70,6 +76,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ExceptionType = exceptionType;
             Locals = locals.NullToEmpty();
             LocalFunctions = methods.NullToEmpty();
+            CaptureIds = captureIds.NullToEmpty();
             NestedRegions = nestedRegions.NullToEmpty();
             EnclosingRegion = enclosingRegion;
 

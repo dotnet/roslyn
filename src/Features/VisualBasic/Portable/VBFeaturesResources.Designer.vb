@@ -94,6 +94,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add Await.
+        '''</summary>
+        Friend ReadOnly Property Add_Await() As String
+            Get
+                Return ResourceManager.GetString("Add_Await", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add Await and &apos;ConfigureAwait(false)&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Await_and_ConfigureAwaitFalse() As String
+            Get
+                Return ResourceManager.GetString("Add_Await_and_ConfigureAwaitFalse", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add &apos;Me.&apos;.
         '''</summary>
         Friend ReadOnly Property Add_Me() As String
@@ -1598,6 +1616,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Move_the_0_statement_to_line_1() As String
             Get
                 Return ResourceManager.GetString("Move_the_0_statement_to_line_1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;Multiple Types&gt;.
+        '''</summary>
+        Friend ReadOnly Property Multiple_Types() As String
+            Get
+                Return ResourceManager.GetString("Multiple_Types", resourceCulture)
             End Get
         End Property
         

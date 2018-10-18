@@ -12,10 +12,10 @@ namespace Roslyn.Test.Utilities
         /// True when the operating system is at least Windows version 8
         /// </summary>
         public static bool IsWin8 =>
-#if NET46 || NETCOREAPP2_0
+#if NET46 || NETCOREAPP2_1
             System.Environment.OSVersion.Version.Build >= 9200;
 #else
-            throw new InvalidOperationException();
+            throw new PlatformNotSupportedException();
 #endif
     }
 }

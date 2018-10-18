@@ -49,6 +49,8 @@ namespace Roslyn.Test.Utilities
         Mscorlib45AndVBRuntime,
         Mscorlib46,
         Mscorlib46Extended,
+        Mscorlib461,
+        Mscorlib461Extended,
     }
 
     public static class TargetFrameworkUtil
@@ -72,6 +74,8 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
+        public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef);
+        public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef, Net461.SystemRef, Net461.SystemCoreRef, Net461.SystemValueTupleRef, Net461.SystemRuntimeRef);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemCoreRef, NetStandard20.SystemDynamicRuntimeRef);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib46ExtendedReferences;
@@ -95,6 +99,8 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.Mscorlib45AndVBRuntime: return Mscorlib45AndVBRuntimeReferences;
                 case TargetFramework.Mscorlib46: return Mscorlib46References;
                 case TargetFramework.Mscorlib46Extended: return Mscorlib46ExtendedReferences;
+                case TargetFramework.Mscorlib461: return Mscorlib46References;
+                case TargetFramework.Mscorlib461Extended: return Mscorlib461ExtendedReferences;
                 case TargetFramework.NetStandard20: return NetStandard20References;
                 case TargetFramework.WinRT: return WinRTReferences;
                 case TargetFramework.Standard: return StandardReferences;

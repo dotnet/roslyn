@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class TextDocumentState
     {
-        protected SolutionServices solutionServices;
-        protected DocumentInfo info;
+        protected readonly SolutionServices solutionServices;
+        private readonly DocumentInfo.DocumentAttributes attributes;
 
         /// <summary>
         /// A direct reference to our source text.  This is only kept around in specialized scenarios.
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis
 
         protected TextDocumentState(
             SolutionServices solutionServices,
-            DocumentInfo info,
+            DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textAndVersionSource,
             ValueSource<DocumentStateChecksums> lazyChecksums)
         {
             this.solutionServices = solutionServices;
-            this.info = info;
+            this.attributes = attributes;
             this.sourceTextOpt = sourceTextOpt;
             this.textAndVersionSource = textAndVersionSource;
 
@@ -57,27 +57,27 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentId Id
         {
-            get { return this.info.Id; }
+            get { return this.attributes.Id; }
         }
 
         public string FilePath
         {
-            get { return this.info.FilePath; }
+            get { return this.attributes.FilePath; }
         }
 
-        public DocumentInfo Info
+        public DocumentInfo.DocumentAttributes Attributes
         {
-            get { return this.info; }
+            get { return this.attributes; }
         }
 
         public IReadOnlyList<string> Folders
         {
-            get { return this.info.Folders; }
+            get { return this.attributes.Folders; }
         }
 
         public string Name
         {
-            get { return this.info.Name; }
+            get { return this.attributes.Name; }
         }
 
         public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
@@ -86,15 +86,9 @@ namespace Microsoft.CodeAnalysis
                 ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
 
-            // ownership of TextLoader information has moved to document state. clear out textloader the info is
-            // holding on. otherwise, these information will be held onto unnecesarily by documentInfo even after
-            // the info has changed by DocumentState.
-            // we hold onto the info so that we don't need to duplicate all information info already has in the state
-            info = info.WithTextLoader(null);
-
             return new TextDocumentState(
                 solutionServices: services,
-                info: info,
+                attributes: info.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: textSource,
                 lazyChecksums: null);
@@ -329,7 +323,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
-                this.info,
+                this.attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);
@@ -363,7 +357,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
-                this.info,
+                this.attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);

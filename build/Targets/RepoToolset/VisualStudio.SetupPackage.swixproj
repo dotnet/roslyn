@@ -1,0 +1,36 @@
+<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!--
+    Required variables:
+      SwrProperties               Properties and their values ("Prop1=Value1;Prop2=Value2;...") to be substituted in the swr files.
+      SwrFiles                    Files to be included.
+      SwrPackageName              Name of the component (VSIX)
+      IntermediateOutputPath      Intermediate output path.
+      SwixBuildPath               SwixBuild package path.
+  -->
+  
+  <PropertyGroup>
+    <OutputArchitecture>neutral</OutputArchitecture>
+    <OutputLocalized>false</OutputLocalized>
+    <OutputType>vsix</OutputType>
+    <IsPackage>true</IsPackage>
+    <OutputName>$(SwrPackageName)</OutputName>
+  </PropertyGroup>
+
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
+
+  <ItemGroup>
+    <_SwrProperties Include="$([MSBuild]::Unescape($(SwrProperties)))" />
+  </ItemGroup>
+  
+  <PropertyGroup>
+    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);@(_SwrProperties)</PackagePreprocessorDefinitions>
+    <OutputPath>$(IntermediateOutputPath)</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Package Include="$(SwrFiles)" />
+  </ItemGroup>
+
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
+</Project>

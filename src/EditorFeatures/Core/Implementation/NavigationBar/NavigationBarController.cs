@@ -44,10 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private Workspace _workspace;
 
         public NavigationBarController(
+            IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
             IWaitIndicator waitIndicator,
             IAsynchronousOperationListener asyncListener)
+            : base(threadingContext)
         {
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;

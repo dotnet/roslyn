@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,6 +31,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
+
+        protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
+
+        protected abstract Accessibility DetermineDefaultPropertyAccessibility();
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
@@ -84,8 +89,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var parameterNameParts = this.GetParameterWordParts(parameter);
                 var rules = await document.GetNamingRulesAsync(FallbackNamingRules.RefactoringMatchLookupRules, cancellationToken).ConfigureAwait(false);
 
-                var field = CreateField(parameter, rules, parameterNameParts);
-                var property = CreateProperty(parameter, rules, parameterNameParts);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+
+                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
+                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -99,7 +107,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IFieldSymbol CreateField(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
@@ -107,9 +118,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
+                    var accessibilityLevel = Accessibility.Private;
+                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    {
+                        var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
+                        if (defaultAccessibility == Accessibility.Private)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                    }
+
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
                         default,
-                        Accessibility.Private,
+                        accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
                         parameter.Type, uniqueName);
                 }
@@ -134,13 +155,26 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IPropertySymbol CreateProperty(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
+
+                    var accessibilityLevel = Accessibility.Public;
+                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    {
+                        var defaultAccessibility = DetermineDefaultPropertyAccessibility();
+                        if (defaultAccessibility == Accessibility.Public)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                    }
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default,
@@ -149,7 +183,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         default,
-                        Accessibility.Public,
+                        accessibilityLevel,
                         new DeclarationModifiers(),
                         parameter.Type,
                         RefKind.None,
@@ -448,7 +482,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private ImmutableArray<string> GetParameterWordParts(IParameterSymbol parameter)
         {
             var parts = StringBreaker.GetWordParts(parameter.Name);
-            var result  = CreateWords(parts, parameter.Name);
+            var result = CreateWords(parts, parameter.Name);
             parts.Free();
             return result;
         }

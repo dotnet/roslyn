@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // alpha-rename to get the implementation's type parameters
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, nonNullTypesContext: this, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypesContext: this));
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
@@ -69,11 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.CallingConvention; }
         }
 
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return _interfaceMethod.ReturnTypeCustomModifiers; }
-        }
-
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _interfaceMethod.RefCustomModifiers; }
@@ -91,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
+        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return GetTypeParametersAsTypeArguments(nonNullTypesContext: this); }
         }
 
         public override RefKind RefKind
@@ -101,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.RefKind; }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get { return _interfaceMethod.ReturnType; }
         }
@@ -264,5 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ImmutableArray<string>.Empty;
         }
+
+        public override bool? NonNullTypes => false;
     }
 }

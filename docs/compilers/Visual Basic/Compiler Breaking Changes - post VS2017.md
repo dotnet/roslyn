@@ -8,4 +8,4 @@ Consider the case where the type of `a` is `System.Func(Of Boolean)` and you wri
 
 - https://github.com/dotnet/roslyn/issues/20873 In Roslyn 2.3, the `includePrivateMembers` parameter of the `EmitOptions` constructor was changed to use `true` as its default value. This is a binary compatibility break. So clients using this API may have to re-compile, to pick up the new default value. An update will include a mitigation (ignoring the old default value when trying to emit a full assembly).
 
-- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguaguageVersionFacts.TryParse` is no longer an extension method.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/pull/27461 The method `LanguageVersionFacts.TryParse` is no longer an extension method.

@@ -93,6 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SetDataBuffer(dataBuffer);
 
             this.ContainedDocument = new ContainedDocument(
+                project.ThreadingContext,
                 this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel, vbHelperFormattingRule);
 
             // TODO: Can contained documents be linked or shared?

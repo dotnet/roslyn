@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     }
     static void Report(object o)
     {
-        System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
+        var value = o is System.DateTime ? ((System.DateTime)o).ToString(""MM'/'dd'/'yyyy HH':'mm':'ss"") : o;
+        System.Console.WriteLine(""{0}: {1}"", o.GetType(), value);
     }
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);

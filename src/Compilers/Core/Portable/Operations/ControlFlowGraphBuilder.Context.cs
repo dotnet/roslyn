@@ -17,23 +17,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             public readonly IOperation ImplicitInstance;
             public readonly INamedTypeSymbol AnonymousType;
-            public readonly ImmutableArray<KeyValuePair<IPropertySymbol, int>> AnonymousTypePropertyCaptureIds;
+            public readonly ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> AnonymousTypePropertyValues;
 
-            internal Context(IOperation implicitInstance, INamedTypeSymbol anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, int>> anonymousTypePropertyCaptureIds)
+            internal Context(IOperation implicitInstance, INamedTypeSymbol anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> anonymousTypePropertyValues)
             {
-                Debug.Assert(!anonymousTypePropertyCaptureIds.IsDefault);
+                Debug.Assert(!anonymousTypePropertyValues.IsDefault);
                 Debug.Assert(implicitInstance == null || anonymousType == null);
                 ImplicitInstance = implicitInstance;
                 AnonymousType = anonymousType;
-                AnonymousTypePropertyCaptureIds = anonymousTypePropertyCaptureIds;
+                AnonymousTypePropertyValues = anonymousTypePropertyValues;
             }
         }
 
         private Context GetCurrentContext()
         {
             return new Context(_currentImplicitInstance.ImplicitInstance, _currentImplicitInstance.AnonymousType,
-                               _currentImplicitInstance.AnonymousTypePropertyCaptureIds?.ToImmutableArray() ?? 
-                                   ImmutableArray<KeyValuePair<IPropertySymbol, int>>.Empty);
+                               _currentImplicitInstance.AnonymousTypePropertyValues?.ToImmutableArray() ?? 
+                                   ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>>.Empty);
         }
 
         private void SetCurrentContext(in Context context)

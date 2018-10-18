@@ -424,17 +424,21 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
                     var syntaxFactsLanguageService = solution.Workspace.Services.GetLanguageServices(documentsGroupedByLanguage.Key).GetService<ISyntaxFactsService>();
-                    foreach (var document in documentsGroupedByLanguage)
-                    {
-                        if (renameInStrings)
-                        {
-                            await AddLocationsToRenameInStringsAsync(document, renameText, syntaxFactsLanguageService,
-                                stringLocations, cancellationToken).ConfigureAwait(false);
-                        }
 
-                        if (renameInComments)
+                    if (syntaxFactsLanguageService != null)
+                    {
+                        foreach (var document in documentsGroupedByLanguage)
                         {
-                            await AddLocationsToRenameInCommentsAsync(document, renameText, commentLocations, cancellationToken).ConfigureAwait(false);
+                            if (renameInStrings)
+                            {
+                                await AddLocationsToRenameInStringsAsync(document, renameText, syntaxFactsLanguageService,
+                                    stringLocations, cancellationToken).ConfigureAwait(false);
+                            }
+
+                            if (renameInComments)
+                            {
+                                await AddLocationsToRenameInCommentsAsync(document, renameText, commentLocations, cancellationToken).ConfigureAwait(false);
+                            }
                         }
                     }
                 }

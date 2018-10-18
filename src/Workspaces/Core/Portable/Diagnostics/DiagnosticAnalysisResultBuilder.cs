@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             AddDiagnostics(ref dummy, tree: null, diagnostics: diagnostics);
 
             // dummy should be always null
-            Contract.Requires(dummy == null);
+            Debug.Assert(dummy == null);
         }
 
         private void AddDiagnostics(

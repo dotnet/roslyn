@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
             {
                 WriteText(text, cancellationToken);
-                return SpecializedTasks.EmptyTask;
+                return Task.CompletedTask;
             }
         }
     }

@@ -1016,5 +1016,123 @@ public unsafe struct Test
                     });
             }
         }
+
+        [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
+        public void FixedFieldDoesNotRequirePinningWithThis()
+        {
+            CompileAndVerify(@"
+using System;
+unsafe struct Foo
+{
+    public fixed int Bar[2];
+
+    public Foo(int value1, int value2)
+    {
+        this.Bar[0] = value1;
+        this.Bar[1] = value2;
+    }
+
+    public int M1 => this.Bar[0];
+    public int M2 => Bar[1];
+}
+class Program
+{
+    static void Main()
+    {
+        Foo foo = new Foo(1, 2);
+
+        Console.WriteLine(foo.M1);
+        Console.WriteLine(foo.M2);
+    }
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: @"
+1
+2");
+        }
+
+        [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
+        public void FixedFieldDoesNotAllowAddressOfOperator()
+        {
+            CreateCompilation(@"
+unsafe struct Foo
+{
+    private fixed int Bar[2];
+
+    public int* M1 => &this.Bar[0];
+    public int* M2 => &Bar[1];
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M1 => &this.Bar[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.Bar[0]").WithLocation(6, 23),
+                // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M2 => &Bar[1];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void StaticField()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+unsafe class C
+{
+    static S s_f;
+    public void M()
+    {
+        s_f.Buf[0] = 1;
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldsflda    ""S C.s_f""
+  IL_0005:  ldflda     ""int* S.Buf""
+  IL_000a:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_000f:  ldc.i4.1
+  IL_0010:  stind.i4
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void FixedSizeBufferOffPointerAcess()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+unsafe class C
+{
+    public void M(IntPtr ptr)
+    {
+        S* s = (S*)ptr;
+        int* x = s->Buf;
+        int* y = &s->Buf[0];
+    }
+}", options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (S* V_0) //s
+  IL_0000:  ldarg.1
+  IL_0001:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int* S.Buf""
+  IL_000d:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_0012:  pop
+  IL_0013:  ldloc.0
+  IL_0014:  ldflda     ""int* S.Buf""
+  IL_0019:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_001e:  pop
+  IL_001f:  ret
+}");
+        }
     }
 }

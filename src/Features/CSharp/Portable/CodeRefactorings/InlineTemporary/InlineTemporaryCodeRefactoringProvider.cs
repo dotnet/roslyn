@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private VariableDeclaratorSyntax FindDeclarator(SyntaxNode node)
         {
             var annotatedNodesOrTokens = node.GetAnnotatedNodesAndTokens(DefinitionAnnotation).ToList();
-            Contract.Requires(annotatedNodesOrTokens.Count == 1, "Only a single variable declarator should have been annotated.");
+            Debug.Assert(annotatedNodesOrTokens.Count == 1, "Only a single variable declarator should have been annotated.");
 
             return (VariableDeclaratorSyntax)annotatedNodesOrTokens.First().AsNode();
         }

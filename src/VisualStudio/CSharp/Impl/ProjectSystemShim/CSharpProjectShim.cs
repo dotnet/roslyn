@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             projectTracker.AddProject(this);
 
-            ProjectCodeModel = new ProjectCodeModel(this.Id, this, visualStudioWorkspaceOpt, ServiceProvider);
+            ProjectCodeModel = new ProjectCodeModel(projectTracker.ThreadingContext, this.Id, this, visualStudioWorkspaceOpt, ServiceProvider);
         }
 
         public override void Disconnect()

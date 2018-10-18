@@ -805,6 +805,35 @@ class Test
 }");
         }
 
+        [WorkItem(26887, "https://github.com/dotnet/roslyn/issues/26887")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestFullyQualifyUnboundIdentifier3()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public [|Inner|] Name
+}",
+@"public class Program
+{
+    public class Inner
+    {
+    }
+}
+
+class Test
+{
+    public Program.Inner Name
+}");
+        }
+
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TestFullyQualifyTypeName_NotForGenericType()

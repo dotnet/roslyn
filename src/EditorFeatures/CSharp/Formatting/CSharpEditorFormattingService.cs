@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             {
                 return false;
             }
-            
+
             if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            return Formatter.GetFormattedTextChanges(root, 
+            return await Formatter.GetFormattedTextChangesAsync(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
-                document.Project.Solution.Workspace, options, cancellationToken);
+                document.Project.Solution.Workspace, options, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -117,14 +117,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<IFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
+            return await Formatter.GetFormattedTextChangesAsync(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken).ConfigureAwait(false);
         }
 
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)
+        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
+            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -135,15 +135,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            var formattingRules = this.GetFormattingRules(document, caretPosition);
-
             // first, find the token user just typed.
             SyntaxToken token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-
             if (token.IsMissing)
             {
                 return null;
             }
+
+            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
 
             string text = null;
             if (IsInvalidToken(token, ref text))
@@ -208,17 +207,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
         {
-            var formattingRules = this.GetFormattingRules(document, caretPosition);
-
             // first, find the token user just typed.
             var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
                 token.IsKind(SyntaxKind.EndOfFileToken, SyntaxKind.None))
             {
                 return null;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
 
             var service = document.GetLanguageService<ISyntaxFactsService>();
             if (service != null && service.IsInNonUserCode(token.SyntaxTree, caretPosition, cancellationToken))
@@ -310,8 +309,91 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var formatter = new SmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
-            var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
+            var changes = await formatter.FormatRangeAsync(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken).ConfigureAwait(false);
             return changes;
+        }
+
+        private IEnumerable<IFormattingRule> GetTypingRules(Document document, SyntaxToken tokenBeforeCaret)
+        {
+            // Typing introduces several challenges around formatting.  
+            // Historically we've shipped several triggers that cause formatting to happen directly while typing.
+            // These include formatting of blocks when '}' is typed, formatting of statements when a ';' is typed, formatting of ```case```s when ':' typed, and many other cases.  
+            // However, formatting during typing can potentially cause problems.  This is because the surrounding code may not be complete, 
+            // or may otherwise have syntax errors, and thus edits could have unintended consequences.
+            // 
+            // Because of this, we introduce an extra rule into the set of formatting rules whose purpose is to actually make formatting *more* 
+            // conservative and *less* willing willing to make edits to the tree. 
+            // The primary effect this rule has is to assume that more code is on a single line (and thus should stay that way) 
+            // despite what the tree actually looks like.
+            // 
+            // It's ok that this is only during formatting that is caused by an edit because that formatting happens 
+            // implicitly and thus has to be more careful, whereas an explicit format-document call only happens on-demand 
+            // and can be more aggressive about what it's doing.
+            // 
+            // 
+            // For example, say you have the following code.
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get {    return
+            // }
+            // ```
+            // 
+            // Hitting ';' after 'return' should ideally only affect the 'return statement' and change it to:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get { return;
+            // }
+            // ```
+            // 
+            // During a normal format-document call, this is not what would happen. 
+            // Specifically, because the parser will consume the '}' into the accessor, 
+            // it will think the accessor spans multiple lines, and thus should not stay on a single line.  This will produce:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P
+            //   {
+            //     get
+            //     {
+            //       return;
+            //     }
+            // ```
+            // 
+            // Because it's ok for this to format in that fashion if format-document is invoked, 
+            // but should not happen during typing, we insert a specialized rule *only* during typing to try to control this.  
+            // During normal formatting we add 'keep on single line' suppression rules for blocks we find that are on a single line.  
+            // But that won't work since this span is not on a single line:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get [|{    return;
+            // }|]
+            // ```
+            // 
+            // So, during typing, if we see any parent block is incomplete, we'll assume that 
+            // all our parent blocks are incomplete and we will place the suppression span like so:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get [|{     return;|]
+            // }
+            // ```
+            // 
+            // This will have the desired effect of keeping these tokens on the same line, but only during typing scenarios.  
+            if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
+                tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
+            }
+
+            return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);
         }
 
         private bool IsEndToken(SyntaxToken endToken)

@@ -4909,7 +4909,7 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 
 #Region "WindowsRuntimeImportAttribute"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
         <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
         <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
@@ -4967,7 +4967,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails)
+            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib45)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

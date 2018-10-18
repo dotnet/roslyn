@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -16,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal sealed class ProjectCodeModel : IProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
+        private readonly IThreadingContext _threadingContext;
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
@@ -23,8 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private CodeModelProjectCache _codeModelCache;
 
-        public ProjectCodeModel(ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
+        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -58,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                     if (workspaceProject != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(_projectId, _codeModelInstanceFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(_threadingContext, _projectId, _codeModelInstanceFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
                     }
                 }
 

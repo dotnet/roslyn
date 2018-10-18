@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return false;
             }
 
-            provider = new NavigateToItemProvider(workspace, _asyncListener);
+            provider = new NavigateToItemProvider(
+                workspace, _asyncListener, documentTrackingService: null);
             return true;
         }
     }

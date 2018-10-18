@@ -65,63 +65,71 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (4)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'str')
-          Value: 
-            IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+        Entering: {R1}
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, 1)')
-          Value: 
-            IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, 1, 1)')
-              Operand: 
-                IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
+.locals {R1}
+{
+    CaptureIds: [0] [1] [2] [3] [4]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'str')
+              Value: 
+                IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
 
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
-          Value: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, 1)')
+              Value: 
+                IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, 1, 1)')
+                  Operand: 
+                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
 
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
-          Value: 
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Jump if False (Regular) to Block[B3]
-        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'str1')
-          Value: 
-            IParameterReferenceOperation: str1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str1')
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'str2')
-          Value: 
-            IParameterReferenceOperation: str2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str2')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'str1')
+              Value: 
+                IParameterReferenceOperation: str1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str1')
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Mid(str, 1, ... str1, str2)')
-          Expression: 
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
-              Children(2):
-                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'str')
-                  IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
-                    Children(4):
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'Mid(str, 1, 1)')
-                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(b, str1, str2)')
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'str2')
+              Value: 
+                IParameterReferenceOperation: str2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str2')
 
-    Next (Regular) Block[B5]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Mid(str, 1, ... str1, str2)')
+              Expression: 
+                IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
+                  Children(2):
+                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'str')
+                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
+                        Children(4):
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'Mid(str, 1, 1)')
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(b, str1, str2)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -150,50 +158,58 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (0)
-    Jump if False (Regular) to Block[B3]
-        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'b')
+        Entering: {R1}
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'str1')
-          Value: 
-            IParameterReferenceOperation: str1 (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'str1')
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'b')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'str2')
-          Value: 
-            IParameterReferenceOperation: str2 (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'str2')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'str1')
+              Value: 
+                IParameterReferenceOperation: str1 (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'str1')
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
-          Expression: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
-              Children(2):
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
-                    Children(1):
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
-                  IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
-                    Children(4):
-                        IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: 'Mid(If(b, s ... tr2), 1, 1)')
-                          Operand: 
-                            IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
-                              Children(0)
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                        IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'str2')
+              Value: 
+                IParameterReferenceOperation: str2 (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'str2')
 
-    Next (Regular) Block[B5]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
+              Expression: 
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
+                  Children(2):
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
+                        Children(1):
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
+                        Children(4):
+                            IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: 'Mid(If(b, s ... tr2), 1, 1)')
+                              Operand: 
+                                IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
+                                  Children(0)
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

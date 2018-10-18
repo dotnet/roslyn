@@ -1141,6 +1141,32 @@ class C{}";
             VerifyPressingEnter(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(25746, "https://github.com/dotnet/roslyn/issues/25746")]
+        public void PressingEnter_ExtraSlashesAfterExteriorTrivia()
+        {
+            var code =
+@"class C
+{
+C()
+{
+//////$$
+}
+}";
+
+            var expected =
+@"class C
+{
+C()
+{
+//////
+///$$
+}
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
         [WorkItem(542426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542426")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_PreserveParams()
@@ -1385,6 +1411,36 @@ class C
 /// </summary>
 class C
 {
+}";
+
+            VerifyPressingEnter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WorkItem(27223, "https://github.com/dotnet/roslyn/issues/27223")]
+        public void PressingEnter_XmldocInStringLiteral()
+        {
+            var code =
+@"class C
+{
+C()
+{
+string s = @""
+/// <summary>$$</summary>
+void M() {}""
+}
+}";
+
+            var expected =
+@"class C
+{
+C()
+{
+string s = @""
+/// <summary>
+/// $$</summary>
+void M() {}""
+}
 }";
 
             VerifyPressingEnter(code, expected);

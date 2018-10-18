@@ -33,12 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Compilation = compilation;
         }
 
-        internal Binder(Binder next)
+        internal Binder(Binder next, Conversions conversions = null)
         {
             Debug.Assert(next != null);
             _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
+            _lazyConversions = conversions;
         }
 
         protected Binder(Binder next, BinderFlags flags)
@@ -213,6 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Are we in a context where un-annotated types should be interpreted as non-null?
+        /// </summary>
+        internal Symbol NonNullTypesContext => ContainingMember().OriginalDefinition;
+
+        /// <summary>
         /// Is the contained code within a member method body?
         /// </summary>
         /// <remarks>
@@ -322,6 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _next.GetImports(basesBeingResolved);
         }
+
+        protected virtual bool InExecutableBinder
+            => _next.InExecutableBinder;
 
         /// <summary>
         /// The type containing the binding context

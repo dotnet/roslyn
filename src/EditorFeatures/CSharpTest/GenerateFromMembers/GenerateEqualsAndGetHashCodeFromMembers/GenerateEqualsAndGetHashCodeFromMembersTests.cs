@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
@@ -16,12 +15,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHashCodeFromMembers
 {
-    using static AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
+    using static GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider;
 
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+            => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -1308,7 +1307,7 @@ public class Class1
 {
     int i;
 
-    public override global::System.Boolean Equals(global::System.Object obj)
+    public override System.Boolean Equals(System.Object obj)
     {
         var @class = obj as Class1;
         return @class != null;
@@ -1318,7 +1317,7 @@ public class Class1
     {
     }
 
-    public override global::System.Int32 GetHashCode()
+    public override System.Int32 GetHashCode()
     {
         return 0;
     }

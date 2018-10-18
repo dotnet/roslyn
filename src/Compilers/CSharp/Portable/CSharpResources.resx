@@ -4257,6 +4257,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_Text" xml:space="preserve">
     <value>&lt;text&gt;</value>
   </data>
+  <data name="IDS_InjectedDeclaration" xml:space="preserve">
+    <value>injected declaration</value>
+  </data>
   <data name="IDS_FeatureNullPropagatingOperator" xml:space="preserve">
     <value>null propagating operator</value>
   </data>
@@ -4448,6 +4451,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion7" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureIsExperimental" xml:space="preserve">
+    <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
   </data>
   <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
     <value>Feature '{0}' is not implemented in this compiler.</value>
@@ -4746,6 +4752,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
+  </data>
+  <data name="IDS_FeatureAltInterpolatedVerbatimStrings" xml:space="preserve">
+    <value>alternative interpolated verbatim strings</value>
   </data>
   <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
     <value>await in catch blocks and finally blocks</value>
@@ -5171,6 +5180,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion7_3" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion8" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>
   </data>
@@ -5192,6 +5204,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
+  <data name="ERR_AltInterpolatedVerbatimStringsNotAvailable" xml:space="preserve">
+    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</value>
+  </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
   </data>
@@ -5203,6 +5218,195 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
+  </data>
+  <data name="IDS_FeatureStaticNullChecking" xml:space="preserve">
+    <value>static null checking</value>
+  </data>
+  <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
+    <value>Converting null literal or possible null value to non-nullable type.</value>
+  </data>
+  <data name="WRN_ConvertingNullableToNonNullable_Title" xml:space="preserve">
+    <value>Converting null literal or possible null value to non-nullable type.</value>
+  </data>
+  <data name="WRN_NullReferenceAssignment" xml:space="preserve">
+    <value>Possible null reference assignment.</value>
+  </data>
+  <data name="WRN_NullReferenceAssignment_Title" xml:space="preserve">
+    <value>Possible null reference assignment.</value>
+  </data>
+  <data name="WRN_NullReferenceReceiver" xml:space="preserve">
+    <value>Possible dereference of a null reference.</value>
+  </data>
+  <data name="WRN_NullReferenceReceiver_Title" xml:space="preserve">
+    <value>Possible dereference of a null reference.</value>
+  </data>
+  <data name="WRN_NullReferenceReturn" xml:space="preserve">
+    <value>Possible null reference return.</value>
+  </data>
+  <data name="WRN_NullReferenceReturn_Title" xml:space="preserve">
+    <value>Possible null reference return.</value>
+  </data>
+  <data name="WRN_NullReferenceArgument" xml:space="preserve">
+    <value>Possible null reference argument for parameter '{0}' in '{1}'.</value>
+  </data>
+  <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
+    <value>Possible null reference argument.</value>
+  </data>
+  <data name="HDN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
+    <value>Result of the comparison is possibly always true.</value>
+  </data>
+  <data name="HDN_NullCheckIsProbablyAlwaysTrue_Title" xml:space="preserve">
+    <value>Result of the comparison is possibly always true.</value>
+  </data>
+  <data name="HDN_NullCheckIsProbablyAlwaysFalse" xml:space="preserve">
+    <value>Result of the comparison is possibly always false.</value>
+  </data>
+  <data name="HDN_NullCheckIsProbablyAlwaysFalse_Title" xml:space="preserve">
+    <value>Result of the comparison is possibly always false.</value>
+  </data>
+  <data name="HDN_ExpressionIsProbablyNeverNull" xml:space="preserve">
+    <value>Expression is probably never null.</value>
+  </data>
+  <data name="HDN_ExpressionIsProbablyNeverNull_Title" xml:space="preserve">
+    <value>Expression is probably never null.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverride" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverride" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnOverride_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match overridden member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnPartial" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnPartial_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match partial method declaration.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match implicitly implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implicitly implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnExplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match implemented member '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeOnExplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in type doesn't match implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match implemented member.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match implemented member.</value>
+  </data>
+  <data name="WRN_UninitializedNonNullableField" xml:space="preserve">
+    <value>Non-nullable {0} '{1}' is uninitialized.</value>
+  </data>
+  <data name="WRN_UninitializedNonNullableField_Title" xml:space="preserve">
+    <value>Non-nullable field is uninitialized.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInAssignment" xml:space="preserve">
+    <value>Nullability of reference types in value of type '{0}' doesn't match target type '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInAssignment_Title" xml:space="preserve">
+    <value>Nullability of reference types in value doesn't match target type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
+    <value>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgument_Title" xml:space="preserve">
+    <value>Nullability of reference types in argument doesn't match target type.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
+    <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match the target delegate.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match the target delegate '{2}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOfTargetDelegate_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
+  </data>
+  <data name="WRN_NullAsNonNullable" xml:space="preserve">
+    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+  </data>
+  <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
+    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+  </data>
+  <data name="WRN_NoBestNullabilityConditionalExpression" xml:space="preserve">
+    <value>No best nullability for operands of conditional expression '{0}' and '{1}'.</value>
+  </data>
+  <data name="WRN_NoBestNullabilityConditionalExpression_Title" xml:space="preserve">
+    <value>No best nullability for operands of conditional expression.</value>
+  </data>
+  <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
+    <value>Cannot use a nullable reference type in object creation.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterConstraint" xml:space="preserve">
+    <value>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterConstraint_Title" xml:space="preserve">
+    <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match constraint type.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotation" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotation_Title" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.</value>
+  </data>
+  <data name="ERR_ExplicitNullableAttribute" xml:space="preserve">
+    <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
+  </data>
+  <data name="ERR_NullableUnconstrainedTypeParameter" xml:space="preserve">
+    <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
+  </data>
+  <data name="WRN_SuppressionOperatorNotReferenceType" xml:space="preserve">
+    <value>The suppression operator (!) can only be applied to reference types.</value>
+  </data>
+  <data name="WRN_SuppressionOperatorNotReferenceType_Title" xml:space="preserve">
+    <value>The suppression operator (!) can only be applied to reference types.</value>
+  </data>
+  <data name="ERR_NonNullTypesNotAvailable" xml:space="preserve">
+    <value>Please use language version {0} or greater to use the NonNullTypes attribute.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContext" xml:space="preserve">
+    <value>The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContext_Title" xml:space="preserve">
+    <value>The suppression operator (!) should be used in code with a '[NonNullTypes(true/false)]' context.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
@@ -5338,5 +5542,38 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
     <value>An out variable cannot be declared as a ref local</value>
+  </data>
+  <data name="IDS_FeatureCoalesceAssignmentExpression" xml:space="preserve">
+    <value>coalescing assignment</value>
+  </data>
+  <data name="CannotCreateConstructedFromConstructed" xml:space="preserve">
+    <value>Cannot create constructed generic type from another constructed generic type.</value>
+  </data>
+  <data name="CannotCreateConstructedFromNongeneric" xml:space="preserve">
+    <value>Cannot create constructed generic type from non-generic type.</value>
+  </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended" xml:space="preserve">
+    <value>'default' is converted to 'null', not 'default({0})'</value>
+  </data>
+  <data name="WRN_DefaultLiteralConvertedToNullIsNotIntended_Title" xml:space="preserve">
+    <value>'default' is converted to 'null'</value>
+  </data>
+  <data name="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator" xml:space="preserve">
+    <value>unconstrained type parameters in null coalescing operator</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation" xml:space="preserve">
+    <value>Nullability in constraints for type parameter '{0}' of method '{1}' doesn't match the constraints for type parameter '{2}' of interface method '{3}'. Consider using an explicit interface implementation instead.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title" xml:space="preserve">
+    <value>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint" xml:space="preserve">
+    <value>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'class' constraint.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint_Title" xml:space="preserve">
+    <value>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'class' constraint.</value>
+  </data>
+  <data name="IDS_FeatureObjectGenericTypeConstraint" xml:space="preserve">
+    <value>object generic type constraint</value>
   </data>
 </root>

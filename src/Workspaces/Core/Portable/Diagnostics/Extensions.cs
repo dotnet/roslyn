@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSyntaxDiagnostics(tree, diagnostics);
                     }
                 }
@@ -194,14 +195,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
                     {
-                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
                     }
                 }
 
                 if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
                 {
-                    Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                     result.AddCompilationDiagnostics(diagnostics);
                 }
 

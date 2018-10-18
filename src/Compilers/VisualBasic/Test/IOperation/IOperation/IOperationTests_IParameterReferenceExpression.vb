@@ -57,14 +57,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Amount')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>, IsImplicit) (Syntax: 'New With {' ... }')
         Right: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'Key .Messag ... "Hello" + y')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Message')
             Instance Receiver: 
-              null
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>, IsImplicit) (Syntax: 'New With {' ... }')
         Right: 
           IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: '"Hello" + y')
             Left: 
@@ -253,8 +253,20 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(2):
-                              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'x')
-                              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String(), IsImplicit) (Syntax: 'w = x')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReference, Type: System.String(), IsImplicit) (Syntax: 'x')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                Right: 
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'x')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'z = y')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'y')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                Right: 
+                                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
@@ -266,16 +278,34 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(3):
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReference, Type: System.String(), IsImplicit) (Syntax: 'w')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'z')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-                              IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-                                Instance Receiver: 
-                                  IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-                                Arguments(0)
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String(), IsImplicit) (Syntax: 'w =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>.w As System.String() (OperationKind.PropertyReference, Type: System.String(), IsImplicit) (Syntax: 'w')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReference, Type: System.String(), IsImplicit) (Syntax: 'w')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'z =')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>.z As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'z')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                Right: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'z')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                Left: 
+                                  IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>.Count As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                Right: 
+                                  IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
+                                    Instance Receiver: 
+                                      IParameterReferenceOperation: $VB$ItAnonymous (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
+                                    Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value

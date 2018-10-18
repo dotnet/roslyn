@@ -281,6 +281,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply &apos;{0}&apos; keymapping scheme.
+        /// </summary>
+        internal static string Apply_0_keymapping_scheme {
+            get {
+                return ResourceManager.GetString("Apply_0_keymapping_scheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying remove suppressions fix....
         /// </summary>
         internal static string Applying_remove_suppressions_fix {
@@ -535,6 +544,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Colorize regular expressions.
+        /// </summary>
+        internal static string Colorize_regular_expressions {
+            get {
+                return ResourceManager.GetString("Colorize_regular_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {
@@ -704,15 +722,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Determining_current_block {
             get {
                 return ResourceManager.GetString("Determining_current_block", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Disabling the extension &apos;{0}&apos; unbound your keyboard bindings..
-        /// </summary>
-        internal static string Disabling_the_extension_0_unbound_your_keyboard_bindings {
-            get {
-                return ResourceManager.GetString("Disabling_the_extension_0_unbound_your_keyboard_bindings", resourceCulture);
             }
         }
         
@@ -1036,6 +1045,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate .editorconfig file from settings.
+        /// </summary>
+        internal static string Generate_dot_editorconfig_file_from_settings {
+            get {
+                return ResourceManager.GetString("Generate_dot_editorconfig_file_from_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate Type.
         /// </summary>
         internal static string Generate_Type {
@@ -1086,6 +1104,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string given_workspace_doesn_t_support_undo {
             get {
                 return ResourceManager.GetString("given_workspace_doesn_t_support_undo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Highlight related components under cursor.
+        /// </summary>
+        internal static string Highlight_related_components_under_cursor {
+            get {
+                return ResourceManager.GetString("Highlight_related_components_under_cursor", resourceCulture);
             }
         }
         
@@ -1250,6 +1277,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Keep_all_parentheses_in_colon {
             get {
                 return ResourceManager.GetString("Keep_all_parentheses_in_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Kind.
+        /// </summary>
+        internal static string Kind {
+            get {
+                return ResourceManager.GetString("Kind", resourceCulture);
             }
         }
         
@@ -1768,6 +1804,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer compound assignments.
+        /// </summary>
+        internal static string Prefer_compound_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_compound_assignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with assignments.
         /// </summary>
         internal static string Prefer_conditional_expression_over_if_with_assignments {
@@ -2053,6 +2098,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Regular Expressions.
+        /// </summary>
+        internal static string Regular_Expressions {
+            get {
+                return ResourceManager.GetString("Regular_Expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remarks:.
         /// </summary>
         internal static string Remarks_colon {
@@ -2125,6 +2179,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Report invalid regular expressions.
+        /// </summary>
+        internal static string Report_invalid_regular_expressions {
+            get {
+                return ResourceManager.GetString("Report_invalid_regular_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Required Prefix:.
         /// </summary>
         internal static string Required_Prefix_colon {
@@ -2148,6 +2211,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Required_Suffix_colon {
             get {
                 return ResourceManager.GetString("Required_Suffix_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset Visual Studio default keymapping.
+        /// </summary>
+        internal static string Reset_Visual_Studio_default_keymapping {
+            get {
+                return ResourceManager.GetString("Reset_Visual_Studio_default_keymapping", resourceCulture);
             }
         }
         
@@ -2179,15 +2251,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Restore Visual Studio keybindings.
-        /// </summary>
-        internal static string Restore_Visual_Studio_keybindings {
-            get {
-                return ResourceManager.GetString("Restore_Visual_Studio_keybindings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Returns:.
         /// </summary>
         internal static string Returns_colon {
@@ -2202,6 +2265,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Sample_Identifier_colon {
             get {
                 return ResourceManager.GetString("Sample_Identifier_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save .editorconfig file.
+        /// </summary>
+        internal static string Save_dot_editorconfig_file {
+            get {
+                return ResourceManager.GetString("Save_dot_editorconfig_file", resourceCulture);
             }
         }
         
@@ -2671,6 +2743,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use expression body for lambdas.
+        /// </summary>
+        internal static string Use_expression_body_for_lambdas {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_lambdas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for methods.
         /// </summary>
         internal static string Use_expression_body_for_methods {
@@ -2694,15 +2775,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Use_expression_body_for_properties {
             get {
                 return ResourceManager.GetString("Use_expression_body_for_properties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use keybindings for ReSharper/IntelliJ/Vim/etc..
-        /// </summary>
-        internal static string Use_Keybindings_for_extensions {
-            get {
-                return ResourceManager.GetString("Use_Keybindings_for_extensions", resourceCulture);
             }
         }
         
@@ -2739,6 +2811,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
             get {
                 return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We notice you suspended &apos;{0}&apos;. Reset keymappings to continue to navigate and refactor..
+        /// </summary>
+        internal static string We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor {
+            get {
+                return ResourceManager.GetString("We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor", resourceCulture);
             }
         }
         

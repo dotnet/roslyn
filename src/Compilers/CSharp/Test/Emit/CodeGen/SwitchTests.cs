@@ -9171,7 +9171,8 @@ class C
             );
         }
 
-        [Fact, WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        [WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ShareLikeKindedTemps_01()
         {
             var source = @"using System;
