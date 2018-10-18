@@ -11006,5 +11006,50 @@ namespace ConsoleApp39
 
             await TestExtractMethodAsync(code, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task AllowBestEffortForUnknownVariableDataFlow()
+        {
+            var code = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        [|if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }|]
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Method(out object test)
+    {
+        test = null;
+        var a = test != null;
+        NewMethod(ref test, a);
+    }
+
+    private static void NewMethod(ref object test, bool a)
+    {
+        if (a)
+        {
+            return;
+        }
+        if (A == a)
+        {
+            test = new object();
+        }
+    }
+}";
+            await TestExtractMethodAsync(code, expected, allowBestEffort: true);
+        }
     }
 }
