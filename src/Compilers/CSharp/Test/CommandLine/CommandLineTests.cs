@@ -281,6 +281,24 @@ d.cs
             AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
         }
 
+        [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void SdkPathArgFollowedByNull()
+        {
+            var parentDir = Temp.CreateDirectory();
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/sdkPath-" }, parentDir.Path, null);
+            AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
+        }
+
+        [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void SdkPathNullFollowedByArg()
+        {
+            var parentDir = Temp.CreateDirectory();
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/sdkPath-", "-sdkPath:path/to/sdk" }, parentDir.Path, null);
+            AssertEx.Equal(ImmutableArray.Create("path/to/sdk"), parser.ReferencePaths);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void SourceFiles_Patterns()
         {
