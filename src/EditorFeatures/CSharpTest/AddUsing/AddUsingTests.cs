@@ -4829,5 +4829,72 @@ class C
 }
 ", WellKnownTagArrays.Namespace);
         }
+
+        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    class C
+    {
+        async Task M() => await [|Goo|];
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Awaitable GetAwaiter(this C scheduler) => default;
+
+        public class Awaitable : INotifyCompletion
+        {
+            public object GetResult() => default;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using B;
+
+    class C
+    {
+        async Task M() => await Goo;
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using A;
+
+    static class Extensions
+    {
+        public static Awaitable GetAwaiter(this C scheduler) => default;
+
+        public class Awaitable : INotifyCompletion
+        {
+            public object GetResult() => default;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}");
+        }
     }
 }
