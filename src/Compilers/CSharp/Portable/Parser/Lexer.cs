@@ -457,7 +457,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (!this.ScanNumericLiteral(ref info))
                     {
                         TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.DotToken;
+                        if (TextWindow.PeekChar() == '.')
+                        {
+                            TextWindow.AdvanceChar();
+                            if (TextWindow.PeekChar() == '.')
+                            {
+                                // Triple-dot: explicitly reject this, to allow triple-dot
+                                // to be added to the language without a breaking change.
+                                // (without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2)
+                                this.AddError(ErrorCode.ERR_TripleDotNotAllowed);
+                            }
+
+                            info.Kind = SyntaxKind.DotDotToken;
+                        }
+                        else
+                        {
+                            info.Kind = SyntaxKind.DotToken;
+                        }
                     }
 
                     break;
@@ -1097,7 +1113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else if (_builder.Length == 0)
                     {
                         // we only have the dot so far.. (no preceding number or following number)
-                        info.Kind = SyntaxKind.DotToken;
                         TextWindow.Reset(start);
                         return false;
                     }
@@ -3960,7 +3975,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.Kind = SyntaxKind.CommaToken;
                     break;
                 case '.':
-                    info.Kind = SyntaxKind.DotToken;
+                    if (AdvanceIfMatches('.'))
+                    {
+                        if (TextWindow.PeekChar() == '.')
+                        {
+                            // See documentation in ScanSyntaxToken
+                            this.AddCrefError(ErrorCode.ERR_UnexpectedCharacter, ".");
+                        }
+
+                        info.Kind = SyntaxKind.DotDotToken;
+                    }
+                    else
+                    {
+                        info.Kind = SyntaxKind.DotToken;
+                    }
                     break;
                 case '?':
                     info.Kind = SyntaxKind.QuestionToken;

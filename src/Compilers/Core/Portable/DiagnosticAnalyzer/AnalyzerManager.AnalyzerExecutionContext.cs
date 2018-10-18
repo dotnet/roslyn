@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         foreach (var member in members)
                         {
-                            if (!member.IsImplicitlyDeclared)
+                            if (!member.IsImplicitlyDeclared && member.IsInSource())
                             {
                                 memberSet = memberSet ?? new HashSet<ISymbol>();
                                 memberSet.Add(member);
@@ -260,6 +259,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
                         {
+                            foreach (var descriptor in supportedDiagnosticsLocal)
+                            {
+                                if (descriptor == null)
+                                {
+                                    // Disallow null descriptors.
+                                    throw new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzer.ToString()), nameof(DiagnosticAnalyzer.SupportedDiagnostics));
+                                }
+                            }
+
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
                     },
@@ -364,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (_gate)
                 {
-                    Debug.Assert(_lazyPendingSymbolEndActionsOpt == null || _lazyPendingSymbolEndActionsOpt.Count == 0);
+                    Debug.Assert(_lazyPendingMemberSymbolsMapOpt == null || _lazyPendingMemberSymbolsMapOpt.Count == 0);
                     Debug.Assert(_lazyPendingSymbolEndActionsOpt == null || _lazyPendingSymbolEndActionsOpt.Count == 0);
                 }
             }
