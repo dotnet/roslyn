@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioWorkspaceImpl _workspace;
             private readonly IVsRunningDocumentTable4 _runningDocumentTable;
             private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+            private readonly IAsynchronousOperationListener _asyncOperationListener;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -70,6 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _runningDocumentTable = runningDocumentTable;
                 _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+                _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
             }
 
             public async static Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
@@ -374,12 +377,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (shouldStartTask)
                 {
+                    var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(CheckForFilesBeingOpen));
+
                     Task.Run(async () =>
                     {
                         await _foregroundAffinitization.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                         CheckForFilesBeingOpenOnUIThread();
-                    });
+                    }).CompletesAsyncOperation(asyncToken);
                 }
             }
 
