@@ -257,7 +257,7 @@ class C
                 // (3,10): error CS8635: Explicit application of 'System.Runtime.CompilerServices.NonNullTypesAttribute' is not allowed.
                 // [module: Reference::System.Runtime.CompilerServices.NonNullTypes]
                 Diagnostic(ErrorCode.ERR_ExplicitNonNullTypesAttribute, "Reference::System.Runtime.CompilerServices.NonNullTypes").WithLocation(3, 10),
-                // (6,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (6,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string? M() => throw null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 11)
                 );

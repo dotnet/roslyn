@@ -34089,65 +34089,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
-  internal sealed partial class NonNullDirectiveTriviaSyntax : DirectiveTriviaSyntax
+  internal sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
   {
     internal readonly SyntaxToken hashToken;
-    internal readonly SyntaxToken nonNullKeyword;
-    internal readonly SyntaxToken disableOrRestoreKeyword;
+    internal readonly SyntaxToken nullableKeyword;
+    internal readonly SyntaxToken settingToken;
     internal readonly SyntaxToken endOfDirectiveToken;
     internal readonly bool isActive;
 
-    internal NonNullDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal NullableDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 4;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
-        this.AdjustFlagsAndWidth(nonNullKeyword);
-        this.nonNullKeyword = nonNullKeyword;
-        this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
-        this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+        this.AdjustFlagsAndWidth(nullableKeyword);
+        this.nullableKeyword = nullableKeyword;
+        this.AdjustFlagsAndWidth(settingToken);
+        this.settingToken = settingToken;
         this.AdjustFlagsAndWidth(endOfDirectiveToken);
         this.endOfDirectiveToken = endOfDirectiveToken;
         this.isActive = isActive;
     }
 
 
-    internal NonNullDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
+    internal NullableDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 4;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
-        this.AdjustFlagsAndWidth(nonNullKeyword);
-        this.nonNullKeyword = nonNullKeyword;
-        this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
-        this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+        this.AdjustFlagsAndWidth(nullableKeyword);
+        this.nullableKeyword = nullableKeyword;
+        this.AdjustFlagsAndWidth(settingToken);
+        this.settingToken = settingToken;
         this.AdjustFlagsAndWidth(endOfDirectiveToken);
         this.endOfDirectiveToken = endOfDirectiveToken;
         this.isActive = isActive;
     }
 
 
-    internal NonNullDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+    internal NullableDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
         : base(kind)
     {
         this.SlotCount = 4;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
-        this.AdjustFlagsAndWidth(nonNullKeyword);
-        this.nonNullKeyword = nonNullKeyword;
-        this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
-        this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+        this.AdjustFlagsAndWidth(nullableKeyword);
+        this.nullableKeyword = nullableKeyword;
+        this.AdjustFlagsAndWidth(settingToken);
+        this.settingToken = settingToken;
         this.AdjustFlagsAndWidth(endOfDirectiveToken);
         this.endOfDirectiveToken = endOfDirectiveToken;
         this.isActive = isActive;
     }
 
     public override SyntaxToken HashToken { get { return this.hashToken; } }
-    public SyntaxToken NonNullKeyword { get { return this.nonNullKeyword; } }
-    public SyntaxToken DisableOrRestoreKeyword { get { return this.disableOrRestoreKeyword; } }
+    public SyntaxToken NullableKeyword { get { return this.nullableKeyword; } }
+    public SyntaxToken SettingToken { get { return this.settingToken; } }
     public override SyntaxToken EndOfDirectiveToken { get { return this.endOfDirectiveToken; } }
     public override bool IsActive { get { return this.isActive; } }
 
@@ -34156,8 +34156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         switch (index)
         {
             case 0: return this.hashToken;
-            case 1: return this.nonNullKeyword;
-            case 2: return this.disableOrRestoreKeyword;
+            case 1: return this.nullableKeyword;
+            case 2: return this.settingToken;
             case 3: return this.endOfDirectiveToken;
             default: return null;
         }
@@ -34165,24 +34165,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new CSharp.Syntax.NonNullDirectiveTriviaSyntax(this, parent, position);
+      return new CSharp.Syntax.NullableDirectiveTriviaSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
     {
-        return visitor.VisitNonNullDirectiveTrivia(this);
+        return visitor.VisitNullableDirectiveTrivia(this);
     }
 
     public override void Accept(CSharpSyntaxVisitor visitor)
     {
-        visitor.VisitNonNullDirectiveTrivia(this);
+        visitor.VisitNullableDirectiveTrivia(this);
     }
 
-    public NonNullDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+    public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
     {
-        if (hashToken != this.HashToken || nonNullKeyword != this.NonNullKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
+        if (hashToken != this.HashToken || nullableKeyword != this.NullableKeyword || settingToken != this.SettingToken || endOfDirectiveToken != this.EndOfDirectiveToken)
         {
-            var newNode = SyntaxFactory.NonNullDirectiveTrivia(hashToken, nonNullKeyword, disableOrRestoreKeyword, endOfDirectiveToken, isActive);
+            var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, endOfDirectiveToken, isActive);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -34197,15 +34197,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new NonNullDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nonNullKeyword, this.disableOrRestoreKeyword, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+         return new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new NonNullDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nonNullKeyword, this.disableOrRestoreKeyword, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+         return new NullableDirectiveTriviaSyntax(this.Kind, this.hashToken, this.nullableKeyword, this.settingToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
     }
 
-    internal NonNullDirectiveTriviaSyntax(ObjectReader reader)
+    internal NullableDirectiveTriviaSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 4;
@@ -34215,17 +34215,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(hashToken);
          this.hashToken = hashToken;
       }
-      var nonNullKeyword = (SyntaxToken)reader.ReadValue();
-      if (nonNullKeyword != null)
+      var nullableKeyword = (SyntaxToken)reader.ReadValue();
+      if (nullableKeyword != null)
       {
-         AdjustFlagsAndWidth(nonNullKeyword);
-         this.nonNullKeyword = nonNullKeyword;
+         AdjustFlagsAndWidth(nullableKeyword);
+         this.nullableKeyword = nullableKeyword;
       }
-      var disableOrRestoreKeyword = (SyntaxToken)reader.ReadValue();
-      if (disableOrRestoreKeyword != null)
+      var settingToken = (SyntaxToken)reader.ReadValue();
+      if (settingToken != null)
       {
-         AdjustFlagsAndWidth(disableOrRestoreKeyword);
-         this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+         AdjustFlagsAndWidth(settingToken);
+         this.settingToken = settingToken;
       }
       var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
       if (endOfDirectiveToken != null)
@@ -34240,15 +34240,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       base.WriteTo(writer);
       writer.WriteValue(this.hashToken);
-      writer.WriteValue(this.nonNullKeyword);
-      writer.WriteValue(this.disableOrRestoreKeyword);
+      writer.WriteValue(this.nullableKeyword);
+      writer.WriteValue(this.settingToken);
       writer.WriteValue(this.endOfDirectiveToken);
       writer.WriteBoolean(this.isActive);
     }
 
-    static NonNullDirectiveTriviaSyntax()
+    static NullableDirectiveTriviaSyntax()
     {
-       ObjectBinder.RegisterTypeReader(typeof(NonNullDirectiveTriviaSyntax), r => new NonNullDirectiveTriviaSyntax(r));
+       ObjectBinder.RegisterTypeReader(typeof(NullableDirectiveTriviaSyntax), r => new NullableDirectiveTriviaSyntax(r));
     }
   }
 
@@ -35284,7 +35284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return this.DefaultVisit(node);
     }
 
-    public virtual TResult VisitNonNullDirectiveTrivia(NonNullDirectiveTriviaSyntax node)
+    public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -36323,7 +36323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       this.DefaultVisit(node);
     }
 
-    public virtual void VisitNonNullDirectiveTrivia(NonNullDirectiveTriviaSyntax node)
+    public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -38102,13 +38102,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return node.Update(hashToken, exclamationToken, endOfDirectiveToken, node.IsActive);
     }
 
-    public override CSharpSyntaxNode VisitNonNullDirectiveTrivia(NonNullDirectiveTriviaSyntax node)
+    public override CSharpSyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
     {
       var hashToken = (SyntaxToken)this.Visit(node.HashToken);
-      var nonNullKeyword = (SyntaxToken)this.Visit(node.NonNullKeyword);
-      var disableOrRestoreKeyword = (SyntaxToken)this.Visit(node.DisableOrRestoreKeyword);
+      var nullableKeyword = (SyntaxToken)this.Visit(node.NullableKeyword);
+      var settingToken = (SyntaxToken)this.Visit(node.SettingToken);
       var endOfDirectiveToken = (SyntaxToken)this.Visit(node.EndOfDirectiveToken);
-      return node.Update(hashToken, nonNullKeyword, disableOrRestoreKeyword, endOfDirectiveToken, node.IsActive);
+      return node.Update(hashToken, nullableKeyword, settingToken, endOfDirectiveToken, node.IsActive);
     }
   }
 
@@ -45159,7 +45159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive, this.context);
     }
 
-    public NonNullDirectiveTriviaSyntax NonNullDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+    public NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
     {
 #if DEBUG
       if (hashToken == null)
@@ -45171,24 +45171,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("hashToken");
       }
-      if (nonNullKeyword == null)
-        throw new ArgumentNullException(nameof(nonNullKeyword));
-      switch (nonNullKeyword.Kind)
+      if (nullableKeyword == null)
+        throw new ArgumentNullException(nameof(nullableKeyword));
+      switch (nullableKeyword.Kind)
       {
-        case SyntaxKind.NonNullKeyword:
+        case SyntaxKind.NullableKeyword:
           break;
         default:
-          throw new ArgumentException("nonNullKeyword");
+          throw new ArgumentException("nullableKeyword");
       }
-      if (disableOrRestoreKeyword == null)
-        throw new ArgumentNullException(nameof(disableOrRestoreKeyword));
-      switch (disableOrRestoreKeyword.Kind)
+      if (settingToken == null)
+        throw new ArgumentNullException(nameof(settingToken));
+      switch (settingToken.Kind)
       {
+        case SyntaxKind.EnableKeyword:
         case SyntaxKind.DisableKeyword:
-        case SyntaxKind.RestoreKeyword:
           break;
         default:
-          throw new ArgumentException("disableOrRestoreKeyword");
+          throw new ArgumentException("settingToken");
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -45201,7 +45201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new NonNullDirectiveTriviaSyntax(SyntaxKind.NonNullDirectiveTrivia, hashToken, nonNullKeyword, disableOrRestoreKeyword, endOfDirectiveToken, isActive, this.context);
+      return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, endOfDirectiveToken, isActive, this.context);
     }
   }
 
@@ -52245,7 +52245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive);
     }
 
-    public static NonNullDirectiveTriviaSyntax NonNullDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nonNullKeyword, SyntaxToken disableOrRestoreKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+    public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
     {
 #if DEBUG
       if (hashToken == null)
@@ -52257,24 +52257,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("hashToken");
       }
-      if (nonNullKeyword == null)
-        throw new ArgumentNullException(nameof(nonNullKeyword));
-      switch (nonNullKeyword.Kind)
+      if (nullableKeyword == null)
+        throw new ArgumentNullException(nameof(nullableKeyword));
+      switch (nullableKeyword.Kind)
       {
-        case SyntaxKind.NonNullKeyword:
+        case SyntaxKind.NullableKeyword:
           break;
         default:
-          throw new ArgumentException("nonNullKeyword");
+          throw new ArgumentException("nullableKeyword");
       }
-      if (disableOrRestoreKeyword == null)
-        throw new ArgumentNullException(nameof(disableOrRestoreKeyword));
-      switch (disableOrRestoreKeyword.Kind)
+      if (settingToken == null)
+        throw new ArgumentNullException(nameof(settingToken));
+      switch (settingToken.Kind)
       {
+        case SyntaxKind.EnableKeyword:
         case SyntaxKind.DisableKeyword:
-        case SyntaxKind.RestoreKeyword:
           break;
         default:
-          throw new ArgumentException("disableOrRestoreKeyword");
+          throw new ArgumentException("settingToken");
       }
       if (endOfDirectiveToken == null)
         throw new ArgumentNullException(nameof(endOfDirectiveToken));
@@ -52287,7 +52287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new NonNullDirectiveTriviaSyntax(SyntaxKind.NonNullDirectiveTrivia, hashToken, nonNullKeyword, disableOrRestoreKeyword, endOfDirectiveToken, isActive);
+      return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, endOfDirectiveToken, isActive);
     }
 
     internal static IEnumerable<Type> GetNodeTypes()
@@ -52499,7 +52499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
            typeof(ReferenceDirectiveTriviaSyntax),
            typeof(LoadDirectiveTriviaSyntax),
            typeof(ShebangDirectiveTriviaSyntax),
-           typeof(NonNullDirectiveTriviaSyntax)
+           typeof(NullableDirectiveTriviaSyntax)
         };
     }
   }

@@ -218,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // additional preprocessor keywords (continued)
         LoadKeyword = 8485,
-        NonNullKeyword = 8486,
+        NullableKeyword = 8486,
+        EnableKeyword = 8487,
 
         // Other
         UnderscoreToken = 8491,
@@ -573,6 +574,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ThrowExpression = 9052,
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
-        NonNullDirectiveTrivia = 9055,
+        NullableDirectiveTrivia = 9055,
     }
 }

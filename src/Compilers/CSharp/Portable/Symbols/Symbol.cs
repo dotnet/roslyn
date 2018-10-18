@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                bool? state = ((CSharpSyntaxTree)tree).GetNonNullDirectiveState(location.SourceSpan.Start);
+                bool? state = ((CSharpSyntaxTree)tree).GetNullableDirectiveState(location.SourceSpan.Start);
                 if (state == null)
                 {
                     continue;

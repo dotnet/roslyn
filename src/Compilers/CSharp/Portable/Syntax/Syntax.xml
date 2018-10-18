@@ -4400,17 +4400,17 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
-  <Node Name="NonNullDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
-    <Kind Name="NonNullDirectiveTrivia"/>
+  <Node Name="NullableDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="NullableDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
       <Kind Name="HashToken"/>
     </Field>
-    <Field Name="NonNullKeyword" Type="SyntaxToken">
-      <Kind Name="NonNullKeyword"/>
+    <Field Name="NullableKeyword" Type="SyntaxToken">
+      <Kind Name="NullableKeyword"/>
     </Field>
-    <Field Name="DisableOrRestoreKeyword" Type="SyntaxToken">
+    <Field Name="SettingToken" Type="SyntaxToken">
+      <Kind Name="EnableKeyword"/>
       <Kind Name="DisableKeyword"/>
-      <Kind Name="RestoreKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

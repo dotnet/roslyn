@@ -7,19 +7,19 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    internal sealed class NonNullDirectiveMap
+    internal sealed class NullableDirectiveMap
     {
-        private static readonly NonNullDirectiveMap Empty = new NonNullDirectiveMap(ImmutableArray<(int Position, bool State)>.Empty);
+        private static readonly NullableDirectiveMap Empty = new NullableDirectiveMap(ImmutableArray<(int Position, bool State)>.Empty);
 
         private readonly ImmutableArray<(int Position, bool State)> _directives;
 
-        internal static NonNullDirectiveMap Create(SyntaxTree tree)
+        internal static NullableDirectiveMap Create(SyntaxTree tree)
         {
             var directives = GetDirectives(tree);
-            return directives.IsEmpty ? Empty : new NonNullDirectiveMap(directives);
+            return directives.IsEmpty ? Empty : new NullableDirectiveMap(directives);
         }
 
-        private NonNullDirectiveMap(ImmutableArray<(int Position, bool State)> directives)
+        private NullableDirectiveMap(ImmutableArray<(int Position, bool State)> directives)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>
-        /// Returns true if the `#nonnull` directive preceding the position is
-        /// `restore`, false if `disable`, and null if no preceding directive.
+        /// Returns true if the `#nullable` directive preceding the position is
+        /// `enable`, false if `disable`, and null if no preceding directive.
         /// </summary>
         internal bool? GetDirectiveState(int position)
         {
@@ -57,16 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var builder = ArrayBuilder<(int Position, bool State)>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())
             {
-                if (d.Kind() != SyntaxKind.NonNullDirectiveTrivia)
+                if (d.Kind() != SyntaxKind.NullableDirectiveTrivia)
                 {
                     continue;
                 }
-                var nn = (NonNullDirectiveTriviaSyntax)d;
-                if (nn.DisableOrRestoreKeyword.IsMissing || !nn.IsActive)
+                var nn = (NullableDirectiveTriviaSyntax)d;
+                if (nn.SettingToken.IsMissing || !nn.IsActive)
                 {
                     continue;
                 }
-                builder.Add((nn.Location.SourceSpan.End, nn.DisableOrRestoreKeyword.Kind() == SyntaxKind.RestoreKeyword));
+                builder.Add((nn.Location.SourceSpan.End, nn.SettingToken.Kind() == SyntaxKind.EnableKeyword));
             }
             return builder.ToImmutableAndFree();
         }
