@@ -1628,6 +1628,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
         #endregion
 
+        /// <summary>
+        /// Get the default namespace of the project ("" if not defined, which means global namespace),
+        /// or null if it is unknown or not applicable. Default namespace is a C# only concept, where
+        /// the value is defined in "rootnamespace" property in the project file.
+        /// </summary>
         private string GetDefaultNamespace(IVsHierarchy hierarchy)
         {
             /* While both csproj and vbproj use <rootnamespace> property to define , they are very different things.
@@ -1650,19 +1655,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (hierarchy != null || Language == LanguageNames.CSharp)
             {
-                var defaultNamespace = "";
                 if (hierarchy.TryGetProject(out var dteProject))
                 {
                     try
                     {
-                        defaultNamespace = (string)dteProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
+                        return (string)dteProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
                     }
                     catch (ArgumentException)
                     {
                         // DefaultNamespace does not exist for this project.
                     }
                 }
-                return defaultNamespace;
+
+                return string.Empty;
             }
 
             return null;

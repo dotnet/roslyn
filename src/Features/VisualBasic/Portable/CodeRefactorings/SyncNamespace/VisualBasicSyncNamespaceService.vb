@@ -22,10 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
                     [new] = outerMostNode
                 Else
                     If newNamespaceParts.Length = 1 And newNamespaceParts(0).Length = 0 Then
-                        [new] = nameRef
+                        [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
                     Else
                         Dim qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, newNamespaceParts.Length - 1)
-                        [new] = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef)
+                        [new] = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia())
                     End If
                     [new] = [new].WithTriviaFrom(outerMostNode)
                 End If

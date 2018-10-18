@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var cancellationToken = context.CancellationToken;
 
             var service = document.GetLanguageService<ISyncNamespaceService>();
-            var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await service.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactorings(actions);
         }

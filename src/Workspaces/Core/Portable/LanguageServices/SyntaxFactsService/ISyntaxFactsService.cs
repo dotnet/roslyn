@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
         bool IsKeyword(SyntaxToken token);
+        /// <summary>
+        /// Determine if <paramref name="text"/> is a reserved keyword. i.e. not contextual.
+        /// For example:
+        ///     IsReservedKeyword("bool") == true
+        ///     IsReservedKeyword("async") == false
+        /// </summary>
         bool IsReservedKeyword(string text);
         bool IsContextualKeyword(SyntaxToken token);
         bool IsPreprocessorKeyword(SyntaxToken token);

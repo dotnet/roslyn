@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
        where TNamespaceDeclarationSyntax : SyntaxNode
        where TCompilationUnitSyntax : SyntaxNode
     {
-        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+            Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-
             var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             return CreateCodeActions(this, state);
         }
 
-        abstract public bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
+        public abstract bool TryGetReplacementReferenceSyntax(
+            SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
 
-        abstract protected string EscapeIdentifier(string identifier);
+        protected abstract string EscapeIdentifier(string identifier);
 
         /// <summary>
         /// 
@@ -42,19 +43,31 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// <param name="declaredNamespaceParts"></param>
         /// <param name="targetNamespaceParts"></param>
         /// <returns></returns>
-        abstract protected SyntaxNode ChangeNamespaceDeclaration(SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
+        protected abstract SyntaxNode ChangeNamespaceDeclaration(
+            SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
 
-        abstract protected IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
+        protected abstract IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 
         /// <summary>
         /// Determine if this refactoring should be triggered based on current cursor position and if there's any partial 
         /// type declarations. It should only be triggered if the cursor is:
-        /// (1) in the name of only namespace declaration
-        /// (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
+        ///     (1) in the name of only namespace declaration
+        ///     (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
         /// </summary>
-        abstract protected Task<(bool, TNamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
+        /// <returns>
+        /// A tuple with two items:
+        ///     1. a boolean value indicates if the refactoring should be triggered.
+        ///     2. the only namespace declaration node in the document, null if none or more than one.
+        /// </returns>
+        protected abstract Task<(bool shouldTrigger, TNamespaceDeclarationSyntax singleNamespaceDecl)> ShouldPositionTriggerRefactoringAsync(
+            Document document, int position, CancellationToken cancellationToken);
 
-        protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(Document document, SyntaxNode compilationUnitOrNamespaceDecl, CancellationToken cancellationToken)
+        protected SyntaxAnnotation WarningAnnotation
+            => CodeActions.WarningAnnotation.Create(
+                FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
+
+        protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(
+            Document document, SyntaxNode compilationUnitOrNamespaceDecl, CancellationToken cancellationToken)
         {
             var memberDecls = GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

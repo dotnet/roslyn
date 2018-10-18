@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 {
@@ -31,10 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             {
                 return compilationUnit.Members;
             }
-            else
-            {
-                return Array.Empty<MemberDeclarationSyntax>();
-            }
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>
@@ -50,64 +47,61 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         /// <param name="new">The replacement node.</param>
         public override bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new)
         {
-            if (reference is SimpleNameSyntax nameRef)
+            if (!(reference is SimpleNameSyntax nameRef))
             {
-                // A few different cases are handled here:
-                //
-                // 1. When the reference is not qualified (i.e. just a simple name), then there's nothing need to be done.
-                //    And both old and new will point to the original reference.
-                //
-                // 2. When the new namespace is not specified, we don't need to change the qualified part of reference.
-                //    Both old and new will point to the qualified reference.
-                //
-                // 3. When the new namespace is "", i.e. we are moving type referecend by name here to global namespace.
-                //    As a result, we need replace qualified reference with the simple name.
-                //
-                // 4. When the namespace is specified and not "", i.e. we are moving referenced type to a different non-global 
-                //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
-                //    with new namespace.)
+                old = @new = null;
+                return false;
+            }
 
-                var outerMostNode = GetQualifiedNameSyntax(nameRef);
-                old = outerMostNode;
+            // A few different cases are handled here:
+            //
+            // 1. When the reference is not qualified (i.e. just a simple name), then there's nothing need to be done.
+            //    And both old and new will point to the original reference.
+            //
+            // 2. When the new namespace is not specified, we don't need to change the qualified part of reference.
+            //    Both old and new will point to the qualified reference.
+            //
+            // 3. When the new namespace is "", i.e. we are moving type referenced by name here to global namespace.
+            //    As a result, we need replace qualified reference with the simple name.
+            //
+            // 4. When the namespace is specified and not "", i.e. we are moving referenced type to a different non-global 
+            //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
+            //    with new namespace.)
 
-                // If no namespace is specified, we just find and return the full NameSyntax.
-                if (outerMostNode == nameRef || newNamespaceParts.IsDefaultOrEmpty)
+            var outerMostNode = GetQualifiedNameSyntax(nameRef);
+            old = outerMostNode;
+
+            // If no namespace is specified, we just find and return the full NameSyntax.
+            if (outerMostNode == nameRef || newNamespaceParts.IsDefaultOrEmpty)
+            {
+                @new = outerMostNode;
+            }
+            else
+            {
+                if (newNamespaceParts.Length == 1 && newNamespaceParts[0].Length == 0)
                 {
-                    @new = outerMostNode;
+                    // If new namespace is "", then name will be declared in global namespace.
+                    // We will replace qualified reference with simple name + global alias.
+                    @new = SyntaxFactory.AliasQualifiedName(
+                        SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword)), 
+                        nameRef.WithoutTrivia());
                 }
                 else
                 {
                     var aliasQualifier = GetAliasQualifierOpt(outerMostNode);
-
-                    if (newNamespaceParts.Length == 1 && newNamespaceParts[0].Length == 0)
-                    {
-                        // If new namespace is "", then name will be declared in global namespace.
-                        // We will replace qualified reference with simple name.
-                        @new = nameRef;
-                    }
-                    else
-                    {
-                        var qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
-                        @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef);
-                    }
-                    // We might lose some trivia associated with children of `outerMostNode`.  
-                    @new = @new.WithTriviaFrom(outerMostNode);
+                    var qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
+                    @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
                 }
-                return true;
+
+                // We might lose some trivia associated with children of `outerMostNode`.  
+                @new = @new.WithTriviaFrom(outerMostNode);
             }
-            else
-            {
-                old = @new = null;
-                return false;
-            } 
+            return true;
         }
 
         protected override string EscapeIdentifier(string identifier)
             => identifier?.EscapeIdentifier();
 
-        /// <summary>
-        /// Decide if the refactoring should be triggered based on the cursor location and content of the document.
-        /// </summary>
         protected override async Task<(bool, NamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(
             Document document, 
             int position, 
@@ -118,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 
             // Here's conditions that trigger the refactoring (all have to be true in each scenario):
             // 
-            // - There's only on namespace declaration in the document and all types are declared in it:
+            // - There's only one namespace declaration in the document and all types are declared in it:
             //    1. No nested namespace declaration (even it's empty).
             //    2. The cursor is on the name of the namespace declaration.
             //    3. The name of the namespace is valid (i.e. no errors).
@@ -136,8 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 Debug.Assert((object)namespaceDeclaration == (object)compilationUnit.Members.Single());
 
                 var shouldTrigger = namespaceDeclaration.Name.Span.IntersectsWith(position) 
-                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error)
-                    && !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, namespaceDeclaration, cancellationToken).ConfigureAwait(false));
+                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error);
+
+                shouldTrigger = shouldTrigger && 
+                    !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, namespaceDeclaration, cancellationToken)
+                    .ConfigureAwait(false));
 
                 return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
             }
@@ -147,13 +144,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 var firstMemberDeclaration = compilationUnit.Members.FirstOrDefault();
 
                 var shouldTrigger = firstMemberDeclaration != null
-                    && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position)
-                    && !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false));
+                    && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position);
+
+                shouldTrigger = shouldTrigger &&
+                    !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, compilationUnit, cancellationToken)
+                    .ConfigureAwait(false));
 
                 return (shouldTrigger, null);
             }
 
-            return (false, null);
+            return default;
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         /// 
         ///     - if neither declared and target namespace are "" (i.e. global namespace),
         ///     then we try to change the name of the namespace.
-        ///     - if decalred namespace is "", then we try to move all types declared 
+        ///     - if declared namespace is "", then we try to move all types declared 
         ///     in global namespace in the document into a new namespace declaration.
         ///     - if target namespace is "", then we try to move all members in declared 
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
@@ -227,20 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                     members,
                     eofToken).WithAdditionalAnnotations(Formatter.Annotation);
             }
-            // Change namespace name
-            else
-            {
-                return root.ReplaceNode(namespaceDeclaration, 
-                    namespaceDeclaration.WithName(
-                        CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                        .WithTriviaFrom(namespaceDeclaration.Name)
-                        .WithAdditionalAnnotations(WarningAnnotation)));
-            }
-        }
 
-        private static SyntaxAnnotation WarningAnnotation 
-            => CodeActions.WarningAnnotation.Create(
-                FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
+            // Change namespace name
+            return root.ReplaceNode(namespaceDeclaration, 
+                namespaceDeclaration.WithName(
+                    CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
+                    .WithTriviaFrom(namespaceDeclaration.Name)
+                    .WithAdditionalAnnotations(WarningAnnotation)));
+        }
 
         private static NameSyntax GetQualifiedNameSyntax(NameSyntax node)
             => node.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == node ? qualifiedName : node;
@@ -257,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                     case SyntaxKind.AliasQualifiedName:
                         return ((AliasQualifiedNameSyntax)name).Alias.Identifier.ValueText;
                 }
+
                 return null;
             }
         }

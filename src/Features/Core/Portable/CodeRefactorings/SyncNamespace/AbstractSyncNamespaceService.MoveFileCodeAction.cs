@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 return workspace.CanRenameFilesDuringCodeActions(workspace.CurrentSolution.GetDocument(_state.OriginalDocumentId).Project);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-                => await MoveFileToMatchNamespaceAsync(cancellationToken).ConfigureAwait(false);
+            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+                => MoveFileToMatchNamespaceAsync(cancellationToken);
 
-            private async Task<ImmutableArray<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
+            private async Task<IEnumerable<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
             {
                 var id = _state.OriginalDocumentId;
                 var solution = _state.Solution;

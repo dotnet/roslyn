@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -121,72 +120,67 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
             }
 
-            private async static Task<(bool shouldTriggerRefactoring, string defaultNamespace, string declaredNamespace)> 
-                TryGetDefaultNamespaceAndNamespaceDeclarationAsync(
-                ImmutableArray<Document> documents,
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
-                ISyntaxFactsService syntaxFacts, 
-                TextSpan textSpan, 
-                CancellationToken cancellationToken)
+            private static string GetDefaultNamespace(ImmutableArray<Document> documents, ISyntaxFactsService syntaxFacts)
             {
                 // For all projects containing all the linked documents, bail if 
                 // 1. Any of them doesn't have default namespace, or
                 // 2. Multiple default namespace are found. (this might be possible by tweaking project file).
                 // The refactoring depends on a single default namespace to operate.
-                var defaultNamespaceFromProjects = new HashSet<string>(syntaxFacts.StringComparer);
-                if (documents.Any(doc =>
+                var defaultNamespaceFromProjects = new HashSet<string>(
+                    documents.Select(d => d.Project.DefaultNamespace),
+                    syntaxFacts.StringComparer);
+
+                if (defaultNamespaceFromProjects.Count != 1
+                    || defaultNamespaceFromProjects.First() == null)
                 {
-                    var defaultNS = doc.Project.DefaultNamespace;
-                    defaultNamespaceFromProjects.Add(defaultNS);
-                    return defaultNS == null;
-                }))
-                {
-                    return (false, null, null);
+                    return default;
                 }
 
-                if (defaultNamespaceFromProjects.Count == 1)
-                {
-                    var defaultNamespace = defaultNamespaceFromProjects.Single();
+                return defaultNamespaceFromProjects.Single();
+            }
 
-                    // If the cursor location doesn't meet the requirement to trigger the refactoring in any of the documents 
-                    // (See `ShouldPositionTriggerRefactoringAsync`), or we are getting different namespace declarations among 
-                    // those documents, then we know we can't make a proper code change. We will return false and the refactoring 
-                    // will then bail. We use span of namespace declaration found in each document to decide if they are identical.
-                    var spansForNamespaceDeclaration = new Dictionary<TextSpan, TNamespaceDeclarationSyntax>();
-                    foreach (var document in documents)
-                    {
-                        (var shouldTrigger, var namespaceDeclaration) =
+            private static async Task<(bool shouldTrigger, string declaredNamespace)> TryGetNamespaceDeclarationAsync(
+                TextSpan textSpan,
+                ImmutableArray<Document> documents,
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
+                CancellationToken cancellationToken)
+            {
+                // If the cursor location doesn't meet the requirement to trigger the refactoring in any of the documents 
+                // (See `ShouldPositionTriggerRefactoringAsync`), or we are getting different namespace declarations among 
+                // those documents, then we know we can't make a proper code change. We will return false and the refactoring 
+                // will then bail. We use span of namespace declaration found in each document to decide if they are identical.
+                var spansForNamespaceDeclaration = new Dictionary<TextSpan, TNamespaceDeclarationSyntax>();
+                foreach (var document in documents)
+                {
+                    var (shouldTrigger, namespaceDeclaration) = 
                         await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
                         .ConfigureAwait(false);
 
-                        // In case there's no namespace declaration in the document, we used an empty span as key, 
-                        // since a valid namespace declaration node can't have zero length.
-                        var span = namespaceDeclaration?.Span ?? new TextSpan(0, 0);
-                        if (shouldTrigger)
-                        {
-                            spansForNamespaceDeclaration[span] = namespaceDeclaration;
-                        }
-                        else
-                        {
-                            return (false, null, null);
-                        }
-                    }
-
-                    if (spansForNamespaceDeclaration.Count == 1)
+                    if (!shouldTrigger)
                     {
-                        var namespaceDecl = spansForNamespaceDeclaration.Values.Single();
-                        var declaredNamespace = namespaceDecl == null
-                            // namespaceDecl == null means the target namespace is global namespace.
-                            ? string.Empty
-                            // Since the node in each document has identical type and span, 
-                            // they should have same name.
-                            : SyntaxGenerator.GetGenerator(documents.First()).GetName(namespaceDecl);
-
-                        return (true, defaultNamespace, declaredNamespace);
+                        return default;
                     }
+
+                    // In case there's no namespace declaration in the document, we used an empty span as key, 
+                    // since a valid namespace declaration node can't have zero length.
+                    var span = namespaceDeclaration?.Span ?? new TextSpan(0, 0);
+                    spansForNamespaceDeclaration[span] = namespaceDeclaration;
                 }
 
-                return (false, null, null);
+                if (spansForNamespaceDeclaration.Count != 1)
+                {
+                    return default;
+                }
+
+                var namespaceDecl = spansForNamespaceDeclaration.Values.Single();
+                var declaredNamespace = namespaceDecl == null
+                    // namespaceDecl == null means the target namespace is global namespace.
+                    ? string.Empty
+                    // Since the node in each document has identical type and span, 
+                    // they should have same name.
+                    : SyntaxGenerator.GetGenerator(documents.First()).GetName(namespaceDecl);
+
+                return (true, declaredNamespace);
             }
 
             public static async Task<State> CreateAsync(
@@ -210,23 +204,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var solution = document.Project.Solution;
-                var documents = documentIds.Select(id => solution.GetDocument(id)).ToImmutableArray();
+                var documents = documentIds.SelectAsArray(id => solution.GetDocument(id));
 
-                var result = await TryGetDefaultNamespaceAndNamespaceDeclarationAsync(
-                    documents, service, syntaxFacts, textSpan, cancellationToken).ConfigureAwait(false);
-
-                if (!result.shouldTriggerRefactoring)
+                var defaultNamespace = GetDefaultNamespace(documents, syntaxFacts);
+                if (defaultNamespace == null)
                 {
                     return null;
                 }
 
-                var defaultNamespace = result.defaultNamespace;
-                var declaredNamespace = result.declaredNamespace;
+                var (shouldTrigger, declaredNamespace) = 
+                    await TryGetNamespaceDeclarationAsync(textSpan, documents, service, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!shouldTrigger)
+                {
+                    return null;
+                }
 
                 // Namespace can't be renamed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
                 var namespaceFromFolders = TryBuildNamespaceFromFolders(service, document.Folders, syntaxFacts);
-                var targetNamespace = namespaceFromFolders == null ? null : ConcatNamespace(defaultNamespace, namespaceFromFolders);      
+                var targetNamespace = namespaceFromFolders == null 
+                    ? null 
+                    : ConcatNamespace(defaultNamespace, namespaceFromFolders);      
 
                 // No action required if namespace already matches folders.
                 if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
@@ -235,45 +235,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
 
                 // Only provide "move file" action if root namespace contains declared namespace.
-                // It makes no sense to match folder hierarchy with namespace if it's not rooted at the root namespace of the project. 
+                // It makes no sense to match folder hierarchy with namespace if it's not rooted 
+                // at the root namespace of the project. 
                 var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
                                                                                                                           
-                return new State(solution, document.Id, documentIds, defaultNamespace, targetNamespace, declaredNamespace, relativeNamespace);
+                return new State(
+                    solution, 
+                    document.Id, 
+                    documentIds, 
+                    defaultNamespace, 
+                    targetNamespace, 
+                    declaredNamespace, 
+                    relativeNamespace);
             }
 
             /// <summary>
             /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
             /// </summary>
             private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> serivice, 
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, 
                 IEnumerable<string> folders, 
                 ISyntaxFactsService syntaxFacts)
             {
-                var isFirst = true;
-                var builder = PooledStringBuilder.GetInstance();
-
-                // In case a folder name is a qualified identifier, e.g. `A.B`, we need to make
-                // sure every part is a valid identifier and escape it properly.
-                foreach (var part in folders.SelectMany(folder => folder.Split(new[] { '.' })))
-                {
-                    if (isFirst)
-                    {
-                        isFirst = false;
-                    }
-                    else
-                    {
-                        builder.Builder.Append(".");
-                    }
-                    
-                    var escapedPart = serivice.EscapeIdentifier(part);
-                    if (!syntaxFacts.IsValidIdentifier(escapedPart))
-                    {
-                        builder.Free();                        
-                        return null;
-                    }
-                    builder.Builder.Append(escapedPart);
-                }
-                return builder.ToStringAndFree();
+                var parts = folders.SelectMany(folder => folder.Split(new[] { '.' }).SelectAsArray(service.EscapeIdentifier));
+                return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
             } 
 
             private static string ConcatNamespace(string rootNamespace, string namespaceSuffix)

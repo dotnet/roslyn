@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// <summary>
         /// This code action tries to change the name of the namespace declaration to 
         /// match the folder hierarchy of the document. The new namespace is constructed 
-        /// by concatenate the default namespace of the project and all the folders in 
+        /// by concatenating the default namespace of the project and all the folders in 
         /// the file path up to the project root.
         /// 
         /// For example, if he default namespace is `A.B.C`, file path is 
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     {
                         _oldNamespaceParts = _state.DeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
                     }
+
                     return _oldNamespaceParts;
                 }
             }
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     {
                         _newNamespaceParts = _state.TargetNamespace.Split(new[] { '.' }).ToImmutableArray();
                     }
+
                     Debug.Assert(_newNamespaceParts.Length > 0);
                     return _newNamespaceParts;
                 }
@@ -95,11 +97,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
                     builder.AddIfNotNull(symbol);
                 }
+
                 return builder.ToImmutableAndFree();
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
+                // Here's the entire process for changing namespace:
+                // 1. Change the namespace declaration, fix references and add imports that might be necessary.
+                // 2. Explicitly merge the diff to get a new solution.
+                // 3. Remove added imports that are unnecessary.
+                // 4. Do another explicit diff merge based on last merged solution.
+                //
+                // The reason for doing explicit diff merge twice is so merging after remove unnecessaty imports can be correctly handled.
+
                 var solutionAfterNamespaceChange = _state.Solution;
                 var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
 
@@ -109,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     solutionAfterNamespaceChange = result.Item1;
                     referenceDocuments.AddRange(result.Item2);
                 }
+
+                var solutionAfterFirstMerge = await MergeDiffAsync(_state.Solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
 
                 // After changing documents, we still need to remove unnecessary imports related to our change.
                 // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
@@ -122,19 +135,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 //          ~~~~~~~~~
                 //      }
                 //
-
-                var solutionAfterFirstMerge = await MergeDiffAsync(_state.Solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
-
-                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(solutionAfterFirstMerge, _state.DocumentIds, CreateAllContainingNamespaces(OldNamespaceParts), cancellationToken)
-                    .ConfigureAwait(false);
+                // Also, because we may have added different imports to document that triggered the refactoring
+                // and the documents that reference affected types declared in changed namespace, we try to remove
+                // unnecessary imports separately.
+                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                    solutionAfterFirstMerge,
+                    _state.DocumentIds, 
+                    CreateAllContainingNamespaces(OldNamespaceParts), 
+                    cancellationToken).ConfigureAwait(false);
 
                 solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterImportsRemoved, referenceDocuments.ToImmutableArray(), ImmutableArray.Create(_state.DeclaredNamespace, _state.TargetNamespace), cancellationToken)
-                    .ConfigureAwait(false);
-                referenceDocuments.Free();
+                    solutionAfterImportsRemoved, 
+                    referenceDocuments.ToImmutableArray(), 
+                    ImmutableArray.Create(_state.DeclaredNamespace, _state.TargetNamespace), 
+                    cancellationToken).ConfigureAwait(false);
 
                 var solutionAfterSecondMerge = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
 
+                referenceDocuments.Free();
                 return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solutionAfterSecondMerge));
             }
 
@@ -145,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     builder.Add(string.Join(".", OldNamespaceParts.Take(i)));
                 }
+
                 return builder.ToImmutableAndFree();
             }
 
@@ -156,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     builder.Add(generator.NamespaceImportDeclaration(names[i]));
                 }
+
                 return builder.ToImmutableAndFree();
             }
 
@@ -265,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     containers = ImmutableArray.Create(root);
                 }
+
                 Debug.Assert(containers.Length > 0);
 
                 // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
@@ -405,6 +426,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         .ConfigureAwait(false);
                     solution = document.Project.Solution;
                 }
+
                 LinkedDocumentsToSkip.Free();
                 return solution;
             }
@@ -440,8 +462,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 {
                     containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
                 }
-                var imports = CreateImports(document, names);
 
+                var imports = CreateImports(document, names);
                 foreach (var container in containers)
                 {
                     // If the container is a namespace declaration, the context we pass to 
@@ -456,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
                     document = document.WithSyntaxRoot(root);
                 }
+
                 return document;
             }
 

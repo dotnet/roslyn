@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
     internal interface ISyncNamespaceService : ILanguageService
     {
-        Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
