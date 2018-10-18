@@ -1338,11 +1338,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
 
-            if (nullable.HasValue && parseOptions.LanguageVersion < MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())
+            if (nullable.HasValue && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
                                                  nameof(nullable), nullable, parseOptions.LanguageVersion.ToDisplayString(),
-                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureStaticNullChecking.RequiredVersion())), Location.None));
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
 
             return new CSharpCommandLineArguments

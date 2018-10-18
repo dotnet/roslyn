@@ -5241,8 +5241,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
   </data>
-  <data name="IDS_FeatureStaticNullChecking" xml:space="preserve">
-    <value>static null checking</value>
+  <data name="IDS_FeatureNullableReferenceTypes" xml:space="preserve">
+    <value>nullable reference types</value>
   </data>
   <data name="WRN_ConvertingNullableToNonNullable" xml:space="preserve">
     <value>Converting null literal or possible null value to non-nullable type.</value>

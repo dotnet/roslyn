@@ -710,24 +710,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
-        /// </summary>
-        internal static string ERR_AwaitForEachMissingMember {
-            get {
-                return ResourceManager.GetString("ERR_AwaitForEachMissingMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;await foreach&apos;?.
-        /// </summary>
-        internal static string ERR_AwaitForEachMissingMemberWrongAsync {
-            get {
-                return ResourceManager.GetString("ERR_AwaitForEachMissingMemberWrongAsync", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: an attribute argument cannot use type parameters.
         /// </summary>
         internal static string ERR_AttrArgWithTypeVars {
@@ -859,6 +841,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AutoPropsInRoStruct {
             get {
                 return ResourceManager.GetString("ERR_AutoPropsInRoStruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_AwaitForEachMissingMember {
+            get {
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;await foreach&apos;?.
+        /// </summary>
+        internal static string ERR_AwaitForEachMissingMemberWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMemberWrongAsync", resourceCulture);
             }
         }
         
@@ -11016,6 +11016,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to nullable reference types.
+        /// </summary>
+        internal static string IDS_FeatureNullableReferenceTypes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNullableReferenceTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to null propagating operator.
         /// </summary>
         internal static string IDS_FeatureNullPropagatingOperator {
@@ -11237,15 +11246,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureStaticClasses {
             get {
                 return ResourceManager.GetString("IDS_FeatureStaticClasses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to static null checking.
-        /// </summary>
-        internal static string IDS_FeatureStaticNullChecking {
-            get {
-                return ResourceManager.GetString("IDS_FeatureStaticNullChecking", resourceCulture);
             }
         }
         
