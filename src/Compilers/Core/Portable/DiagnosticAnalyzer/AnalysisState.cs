@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal partial class AnalysisState
     {
-        private readonly object _gate;
+        private readonly SemaphoreSlim _gate;
 
         /// <summary>
         /// Per-analyzer analysis state map.
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
         {
-            _gate = new object();
+            _gate = new SemaphoreSlim(initialCount: 1);
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
             _compilationData = compilationData;
             _compilationOptions = compilationOptions;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 if (_treesWithGeneratedSourceEvents.Contains(tree))
                 {
@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbols = GetDeclaredSymbolsInTree(tree, compilation, getCachedSemanticModel, cancellationToken);
             var compilationEvents = CreateCompilationEventsForTree(symbols.Concat(globalNs), tree, compilation);
 
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 if (_treesWithGeneratedSourceEvents.Contains(tree))
                 {
@@ -193,8 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void GenerateSimulatedCompilationNonSourceEvent(Compilation compilation, AnalyzerDriver driver, bool started, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 var eventAlreadyGenerated = started ? _compilationStartGenerated : _compilationEndGenerated;
                 if (eventAlreadyGenerated)
@@ -221,8 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 OnCompilationEventsGenerated_NoLock(compilationEvents, filterTreeOpt: null, driver: driver, cancellationToken: cancellationToken);
             }
@@ -483,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Remove the event from event map.
-            lock (_gate)
+            using (_gate.DisposableWait())
             {
                 UpdateEventsMap_NoLock(compilationEvent, add: false);
             }
@@ -494,8 +491,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 return GetPendingEvents_NoLock(analyzers, tree);
             }
@@ -556,8 +552,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool includeNonSourceEvents,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 return GetPendingEvents_NoLock(analyzers, includeSourceEvents, includeNonSourceEvents);
             }
@@ -666,8 +661,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(tree != null);
 
-            cancellationToken.ThrowIfCancellationRequested();
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 HashSet<CompilationEvent> compilationEvents;
                 if (!_pendingSourceEvents.TryGetValue(tree, out compilationEvents))
