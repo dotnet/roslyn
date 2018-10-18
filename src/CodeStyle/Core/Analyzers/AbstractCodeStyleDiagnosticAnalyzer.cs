@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -8,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         protected readonly string DescriptorId;
 
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             if (!_configurable)
             {
-                customTags = customTags.Concat(WellKnownDiagnosticTags.NotConfigurable).ToArray();
+                customTags = customTags.Concat(new[] { WellKnownDiagnosticTags.NotConfigurable }).ToArray();
             }
 
             return new DiagnosticDescriptor(
@@ -100,8 +99,5 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         protected abstract void InitializeWorker(AnalysisContext context);
-
-        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-        public abstract bool OpenFileOnly(Workspace workspace);
     }
 }

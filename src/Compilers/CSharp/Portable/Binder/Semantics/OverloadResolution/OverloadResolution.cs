@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        var x = lambda.InferReturnType(d1, ref useSiteDiagnostics);
+                        var x = lambda.InferReturnType(Conversions, d1, ref useSiteDiagnostics);
                         if (x.IsNull)
                         {
                             return true;
@@ -3250,6 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
+                out _,
                 ref useSiteDiagnostics);
 
             if (inferenceResult.Success)

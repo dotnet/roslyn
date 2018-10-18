@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
         protected override ForEachStatementSyntax GetForEachStatement(TextSpan selection, SyntaxToken token)
         {
             var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
-            if (foreachStatement == null)
+            // PROTOTYPE(async-streams): Add tests for this scenario
+            if (foreachStatement == null || foreachStatement.AwaitKeyword != default)
             {
                 return null;
             }

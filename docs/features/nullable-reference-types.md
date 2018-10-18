@@ -102,7 +102,13 @@ T t = default; // assigns ?, warning
 ```
 
 ### Conversions
-_Describe valid top-level and variance conversions._
+Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
+Given `IIn<in T>` and `IOut<out T>`, with ~ distinct:
+- `T!` is a `T~` is a `T?`
+- `IIn<T!>` is a `IIn<T~>` is a `IIn<T?>`
+- `IOut<T?>` is a `IOut<T~>` is a `IOut<T!>`
+Most conversions are considered with ~ implicitly convertible to ? and !.
+
 _Describe warnings from user-defined conversions._
 
 ### Assignment
@@ -157,9 +163,19 @@ var y = (IEnumerable<object>)x;  // warning
 var z = (IEnumerable<object?>)x; // no warning
 ```
 
+### Method type inference
+_Describe details_
+
+_Open issue: C# spec should include rule for lower, upper, and exact bounds:
+If V is a nullable reference type V1? and U is a nullable reference type U1?
+then an exact inference is made from U1 to V1._
+
 ### Array creation
-The _best type_ calculation uses the most relaxed nullability: `T!` is a `T~` is a `T?`.
-If there is no best nested nullability, a warning is reported.
+The calculation of the _best type_ element nullability uses the Conversions rules above.
+The top-level and nested nullability are calculated independently.
+The top-level nullability is the most relaxed of the elements, where `!` is a `~` is a `?`.
+The nested nullability is the merged nullability of the best common type. If there is a merge conflict,
+the nested nullability is `~` and a warning is reported.
 ```c#
 var w = new [] { notNull, oblivious }; // ~[]!
 var x = new [] { notNull, maybeNull, oblivious }; // ?[]!
