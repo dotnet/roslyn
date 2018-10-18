@@ -14774,7 +14774,7 @@ Class Program
 
     Shared Sub CheckNaN(nan As Double)
         Dim expected As Long = &amp;HFFF8000000000000
-        Dim actual As Long = System.BitConverter.DoubleToInt64Bits(Double.NaN)
+        Dim actual As Long = System.BitConverter.DoubleToInt64Bits(nan)
         If expected &lt;> actual Then
             Throw New System.Exception($"expected=0X{expected: X} actual=0X{actual:X}")
         End If
