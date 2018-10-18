@@ -4573,8 +4573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
-            BoundObjectInitializerExpressionBase boundInitializerOpt = null,
-            bool forTargetTypedNew = false)
+            BoundObjectInitializerExpressionBase boundInitializerOpt = null)
         {
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
@@ -4657,7 +4656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
-                ConstantValue constantValueOpt = (boundInitializerOpt == null && !forTargetTypedNew && method.IsDefaultValueTypeConstructor())
+                ConstantValue constantValueOpt = (boundInitializerOpt == null && method.IsDefaultValueTypeConstructor())
                     ? FoldParameterlessValueTypeConstructor(type)
                     : null;
 
@@ -4676,12 +4675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argToParams,
                         this.LocalScopeDepth,
                         diagnostics);
-
-                    if (forTargetTypedNew && method.IsDefaultValueTypeConstructor())
-                    {
-                        Error(diagnostics, ErrorCode.ERR_IllegalDefaultValueTypeCtor, node, type);
-                        hasError = true;
-                    }
                 }
 
                 result = new BoundObjectCreationExpression(

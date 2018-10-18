@@ -166,8 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type: (NamedTypeSymbol)type,
                             arguments,
                             diagnostics,
-                            boundInitializerOpt,
-                            forTargetTypedNew: true);
+                            boundInitializerOpt);
                         break;
 
                     case TypeKind.TypeParameter:
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
                         @checked: false,
                         explicitCastInCode: isCast,
-                        constantValueOpt: null, // A "target-typed new" would never produce a constant.
+                        result.ConstantValue,
                         type: destination);
                 }
 
@@ -224,10 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TypeKind.Dynamic:
                     Error(diagnostics, ErrorCode.ERR_NoConstructors, syntax, type);
-                    return true;
-
-                case TypeKind.Struct when type.IsTupleType:
-                    Error(diagnostics, ErrorCode.ERR_NewWithTupleTypeSyntax, syntax, type);
                     return true;
 
                 case TypeKind.Struct:

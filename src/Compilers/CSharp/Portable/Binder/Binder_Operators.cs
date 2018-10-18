@@ -1134,14 +1134,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsTypelessExpressionAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
+            // The default literal is only allowed with equality operators
+            // and both operands cannot be typeless at the same time.
+
+            if (left.IsTypelessNew())
+            {
+                return !right.IsTypelessNew() && !right.IsLiteralDefault();
+            }
+
+            if (right.IsTypelessNew())
+            {
+                return !left.IsLiteralDefault();
+            }
+
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
             if (isEquality)
             {
-                return !(left.IsLiteralDefault() && right.IsLiteralDefault() && left.IsTypelessNew() && right.IsTypelessNew());
+                return !left.IsLiteralDefault() || !right.IsLiteralDefault();
             }
             else
             {
-                return !(left.IsLiteralDefault() || right.IsLiteralDefault() || left.IsTypelessNew() || right.IsTypelessNew());
+                return !left.IsLiteralDefault() && !right.IsLiteralDefault();
             }
         }
 
