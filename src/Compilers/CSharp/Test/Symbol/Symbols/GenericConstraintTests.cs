@@ -5603,13 +5603,13 @@ class B : A
                 // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public virtual T? Goo<T>()
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
-                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public virtual T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
                 // (12,21): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 21),
-                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
                 // (6,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
@@ -6336,7 +6336,7 @@ public struct S
 public class E { }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (4,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     E?[] eNullableArr;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 6),
                 // (4,10): warning CS0649: Field 'S.eNullableArr' is never assigned to, and will always have its default value null

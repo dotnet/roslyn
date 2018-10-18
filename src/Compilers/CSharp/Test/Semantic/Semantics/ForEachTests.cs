@@ -2241,7 +2241,7 @@ class C
 ";
             var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
-                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '[NonNullTypes(true)]' context.
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
                 );

@@ -109,8 +109,26 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-        protected const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
-        protected const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
+        protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullable(false);
+        }
+
+        protected static string NonNullTypesOff()
+        {
+            return "#nullable disable";
+        }
+
+        internal static string NonNullTypesOn()
+        {
+            return "#nullable enable";
+        }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,

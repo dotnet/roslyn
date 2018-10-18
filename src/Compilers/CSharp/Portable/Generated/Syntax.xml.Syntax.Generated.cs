@@ -21999,4 +21999,100 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.ExclamationToken, this.EndOfDirectiveToken, isActive);
     }
   }
+
+  public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
+  {
+    internal NullableDirectiveTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    public override SyntaxToken HashToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).hashToken, this.Position, 0); }
+    }
+
+    public SyntaxToken NullableKeyword 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).nullableKeyword, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    public SyntaxToken SettingToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).settingToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    public override SyntaxToken EndOfDirectiveToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, this.GetChildPosition(3), this.GetChildIndex(3)); }
+    }
+
+    public override bool IsActive { get { return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NullableDirectiveTriviaSyntax)this.Green).IsActive; } }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitNullableDirectiveTrivia(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitNullableDirectiveTrivia(this);
+    }
+
+    public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+        if (hashToken != this.HashToken || nullableKeyword != this.NullableKeyword || settingToken != this.SettingToken || endOfDirectiveToken != this.EndOfDirectiveToken)
+        {
+            var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, endOfDirectiveToken, isActive);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+    public new NullableDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
+    {
+        return this.Update(hashToken, this.NullableKeyword, this.SettingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithNullableKeyword(SyntaxToken nullableKeyword)
+    {
+        return this.Update(this.HashToken, nullableKeyword, this.SettingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithSettingToken(SyntaxToken settingToken)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, settingToken, this.EndOfDirectiveToken, this.IsActive);
+    }
+
+    internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+    public new NullableDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, this.SettingToken, endOfDirectiveToken, this.IsActive);
+    }
+
+    public NullableDirectiveTriviaSyntax WithIsActive(bool isActive)
+    {
+        return this.Update(this.HashToken, this.NullableKeyword, this.SettingToken, this.EndOfDirectiveToken, isActive);
+    }
+  }
 }
