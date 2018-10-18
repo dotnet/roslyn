@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
             // and bail out.
-            Logger.Log(FunctionId.Refactoring_ExtractMethod_UnknownMatrixItem, key.ToString());
+            Logger.Log(
+                FunctionId.Refactoring_ExtractMethod_UnknownMatrixItem,
+                KeyValueLogMessage.Create(d => d["unknown_key"] = key.ToString()));
             return false;
         }
 
