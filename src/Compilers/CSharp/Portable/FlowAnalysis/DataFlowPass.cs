@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // For purpose of data flow analysis, awaits create pending branches, so async usings do too
-        public sealed override bool AsyncUsingAddsPendingBranch => true;
+        public sealed override bool AwaitUsingAddsPendingBranch => true;
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {

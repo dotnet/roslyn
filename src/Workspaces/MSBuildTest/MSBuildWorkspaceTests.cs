@@ -3579,6 +3579,30 @@ class C { }";
             }
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(29494, "https://github.com/dotnet/roslyn/issues/29494")]
+        public async Task TestOpenProjectAsync_MalformedAdditionalFilePath()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MallformedAdditionalFilePath)
+                .WithFile(@"CSharpProject\ValidAdditionalFile.txt", Resources.SourceFiles.Text.ValidAdditionalFile);
+
+            CreateFiles(files);
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+
+                // Project should open without an exception being thrown.
+                Assert.NotNull(project);
+
+                Assert.Contains(project.AdditionalDocuments, doc => doc.Name == "COM1");
+                Assert.Contains(project.AdditionalDocuments, doc => doc.Name == "TEST::");
+            }
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)

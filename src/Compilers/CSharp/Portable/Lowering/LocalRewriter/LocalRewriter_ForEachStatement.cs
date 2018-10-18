@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The scope of the iteration variable is the embedded statement syntax.
             // However consider the following foreach statement:
             //
-            //   foreach await (int x in ...) { int y = ...; F(() => x); F(() => y));
+            //   await foreach (int x in ...) { int y = ...; F(() => x); F(() => y));
             //
             // We currently generate 2 closures. One containing variable x, the other variable y.
             // The EnC source mapping infrastructure requires each closure within a method body

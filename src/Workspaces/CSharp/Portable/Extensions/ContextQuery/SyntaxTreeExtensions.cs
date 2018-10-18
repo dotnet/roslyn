@@ -1526,9 +1526,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //  out var
             //  for (var
             //  foreach (var
-            //  foreach await (var
+            //  await foreach (var
             //  using (var
-            //  using await (var
+            //  await using (var
             //  from var
             //  join var
 
@@ -1563,25 +1563,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // for ( |
                 // foreach ( |
+                // await foreach ( |
                 // using ( |
+                // await using ( |
                 var previous = token.GetPreviousToken(includeSkipped: true);
                 if (previous.IsKind(SyntaxKind.ForKeyword) ||
                     previous.IsKind(SyntaxKind.ForEachKeyword) ||
                     previous.IsKind(SyntaxKind.UsingKeyword))
                 {
                     return true;
-                }
-
-                // foreach await ( |
-                // using await ( |
-                if (previous.IsKind(SyntaxKind.AwaitKeyword))
-                {
-                    var secondPrevious = previous.GetPreviousToken(includeSkipped: true);
-                    if (secondPrevious.IsKind(SyntaxKind.ForEachKeyword, SyntaxKind.UsingKeyword))
-                    {
-                        return true;
-
-                    }
                 }
             }
 
@@ -2323,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // foreach (var v in |
-            // foreach await (var v in |
+            // await foreach (var v in |
             // from a in |
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
@@ -2411,7 +2401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // todo: handle 'for' cases.
 
             // using ( |
-            // using await ( |
+            // await using ( |
             if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.UsingStatement))
             {
                 return true;

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public ForEachStatementSyntax Update(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
-            return Update(forEachKeyword, awaitKeyword: default, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+            return Update(awaitKeyword: default, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
         }
     }
 }
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
-            return ForEachStatement(forEachKeyword, awaitKeyword: default, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+            return ForEachStatement(awaitKeyword: default, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
         }
     }
 }

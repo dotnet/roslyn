@@ -1473,7 +1473,7 @@ class C {
         }
 
         [Fact]
-        public void TestVariablesDeclaredInAsyncUsingStatement()
+        public void TestVariablesDeclaredInAwaitUsingStatement()
         {
             var (analysisControlFlow, analysis) = CompileAndAnalyzeControlAndDataFlowStatements(@"
 namespace System
@@ -1489,7 +1489,7 @@ class C : System.IAsyncDisposable
     {
         int a;
 /*<bind>*/
-        using await (var c = new C())
+        await using (var c = new C())
         {
             F(x);
         }
