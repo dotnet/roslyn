@@ -4859,9 +4859,9 @@ namespace B
 
     static class Extensions
     {
-        public static Awaitable GetAwaiter(this C scheduler) => null;
+        public static Awaiter GetAwaiter(this C scheduler) => null;
 
-        public class Awaitable : INotifyCompletion
+        public class Awaiter : INotifyCompletion
         {
             public object GetResult() => null;
 
@@ -4896,9 +4896,9 @@ namespace B
 
     static class Extensions
     {
-        public static Awaitable GetAwaiter(this C scheduler) => null;
+        public static Awaiter GetAwaiter(this C scheduler) => null;
 
-        public class Awaitable : INotifyCompletion
+        public class Awaiter : INotifyCompletion
         {
             public object GetResult() => null;
 
@@ -4939,9 +4939,9 @@ namespace B
 
     static class Extensions
     {
-        public static Awaitable GetAwaiter(this C scheduler) => null;
+        public static Awaiter GetAwaiter(this C scheduler) => null;
 
-        public class Awaitable : INotifyCompletion
+        public class Awaiter : INotifyCompletion
         {
             public object GetResult() => null;
 
@@ -4976,9 +4976,9 @@ namespace B
 
     static class Extensions
     {
-        public static Awaitable GetAwaiter(this C scheduler) => null;
+        public static Awaiter GetAwaiter(this C scheduler) => null;
 
-        public class Awaitable : INotifyCompletion
+        public class Awaiter : INotifyCompletion
         {
             public object GetResult() => null;
 
