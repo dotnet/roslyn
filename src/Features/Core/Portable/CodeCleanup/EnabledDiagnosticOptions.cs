@@ -6,9 +6,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal class EnabledDiagnosticOptions
     {
-        public ImmutableArray<DiagnosticSet> Diagnostics { get; private set; }
+        public ImmutableArray<DiagnosticSet> Diagnostics { get; }
 
-        public OrganizeUsingsSet OrganizeUsings { get; private set; }
+        public OrganizeUsingsSet OrganizeUsings { get; }
 
         public EnabledDiagnosticOptions(ImmutableArray<DiagnosticSet> diagnostics, OrganizeUsingsSet organizeUsings)
         {

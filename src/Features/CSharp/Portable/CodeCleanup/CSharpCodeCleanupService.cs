@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 cancellationToken.ThrowIfCancellationRequested();
 
                 progressTracker.Description = diagnosticSet.Description;
-                document = await ApplyCodeFixesForSpecificDiagnosticIds(
+                document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
                     document, diagnosticSet.DiagnosticIds, progressTracker, cancellationToken).ConfigureAwait(false);
 
                 // Mark this option as being completed.
@@ -185,14 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIds(
+        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
             Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
-                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticId(
+                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                         document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }

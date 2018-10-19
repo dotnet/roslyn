@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo>.Empty;
         }
 
-        public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnostic(
+        public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
             Document document, TextSpan range, CancellationToken cancellationToken)
         {
             if (document == null || !document.IsOpen())

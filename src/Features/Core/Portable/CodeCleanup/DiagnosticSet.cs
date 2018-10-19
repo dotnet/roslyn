@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal class DiagnosticSet
     {
-        public string Description { get; private set; }
-        public ImmutableArray<string> DiagnosticIds { get; private set; }
+        public string Description { get; }
+        public ImmutableArray<string> DiagnosticIds { get; }
 
         public DiagnosticSet (string description, string[] diagnosticIds)
         {

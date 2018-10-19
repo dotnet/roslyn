@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (provider._codeFixService != null &&
                     supportsFeatureService.SupportsCodeFixes(document))
                 {
-                    var result = await provider._codeFixService.GetMostSevereFixableDiagnostic(
+                    var result = await provider._codeFixService.GetMostSevereFixableDiagnosticAsync(
                             document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
 
                     if (result.HasFix)
