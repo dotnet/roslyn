@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
     Friend Class MockVisualStudioWorkspace
         Inherits VisualStudioWorkspace
 
@@ -50,12 +50,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Return Nothing
         End Function
 
-        Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor
-            Return New MockInvisibleEditor(documentId, _workspace)
+        Friend Overrides Function GetProjectGuid(projectId As ProjectId) As Guid
+            Return Guid.Empty
         End Function
 
-        Friend Overrides Function OpenInvisibleEditor(document As IVisualStudioHostDocument) As IInvisibleEditor
-            Return New MockInvisibleEditor(document.Id, _workspace)
+        Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor
+            Return New MockInvisibleEditor(documentId, _workspace)
         End Function
 
         Public Overrides Function GetFileCodeModel(documentId As DocumentId) As EnvDTE.FileCodeModel

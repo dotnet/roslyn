@@ -259,7 +259,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             foreach (var group in groups)
             {
+                // TODO: move this off GetHostProject (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/698029)
+#pragma warning disable CS0618 // Type or member is obsolete
                 var project = (AbstractProject)workspace.GetHostProject(group.Key);
+#pragma warning restore CS0618 // Type or member is obsolete
                 IRuleSetFile ruleSet = project.RuleSetFile?.Target;
 
                 if (ruleSet != null)
@@ -369,7 +372,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 var projectId = _tracker.SelectedFolder.ProjectId;
                 if (workspace != null)
                 {
-                    var project = (AbstractProject)workspace.GetHostProject(projectId);
+                    // TODO: move this off GetHostProject (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/698029)
+#pragma warning disable CS0618 // Type or member is obsolete
+                    var project = workspace.GetHostProject(projectId);
+#pragma warning restore CS0618 // Type or member is obsolete
                     if (project == null)
                     {
                         SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
@@ -415,7 +421,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             foreach (var selectedDiagnostic in _tracker.SelectedDiagnosticItems)
             {
                 var projectId = selectedDiagnostic.ProjectId;
-                var project = (AbstractProject)workspace.GetHostProject(projectId);
+                // TODO: move this off GetHostProject (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/698029)
+#pragma warning disable CS0618 // Type or member is obsolete
+                var project = workspace.GetHostProject(projectId);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (project == null)
                 {
