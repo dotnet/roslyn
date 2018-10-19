@@ -9647,6 +9647,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected character sequence &apos;...&apos;.
+        /// </summary>
+        internal static string ERR_TripleDotNotAllowed {
+            get {
+                return ResourceManager.GetString("ERR_TripleDotNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element names must be unique..
         /// </summary>
         internal static string ERR_TupleDuplicateElementName {
@@ -10598,9 +10607,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                       - OUTPUT FILES -
         ///-out:&lt;file&gt;                   Specify output file name (default: base name of
         ///                              file with main class or first file)
-        ///-sdkpath[-]                   Disable searching the default SDK path for standard library assemblies.
-        ///-sdkpath:&lt;file&gt;         Path to the folder to search for standard library assemblies.
-        ///-target:exe                   Build a console executable (default) (Short        /// [rest of string was truncated]&quot;;.
+        ///-target:exe                   Build a console executable (default) (Short
+        ///                              form: -t:exe)
+        ///-target:winexe                Build a Windows executable (Short form:
+        ///                              -t:winexe)
+        ///-target:library               B [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -10942,6 +10953,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to index operator.
+        /// </summary>
+        internal static string IDS_FeatureIndexOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureIndexOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to interpolated strings.
         /// </summary>
         internal static string IDS_FeatureInterpolatedStrings {
@@ -11136,6 +11156,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureQueryExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureQueryExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to range operator.
+        /// </summary>
+        internal static string IDS_FeatureRangeOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRangeOperator", resourceCulture);
             }
         }
         

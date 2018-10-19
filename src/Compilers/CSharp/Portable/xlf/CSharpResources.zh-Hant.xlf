@@ -7845,8 +7845,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                        - OUTPUT FILES -
 -out:&lt;file&gt;                   Specify output file name (default: base name of
                               file with main class or first file)
--sdkpath[-]                   Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;file&gt;         Path to the folder to search for standard library assemblies.
 -target:exe                   Build a console executable (default) (Short
                               form: -t:exe)
 -target:winexe                Build a Windows executable (Short form:
@@ -7971,6 +7969,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -errorendlocation             Output line and column of the end location of
                               each error
 -preferreduilang              Specify the preferred output language name.
+-sdkpath[-]                   Disable searching the default SDK path for standard library assemblies.
+-sdkpath:&lt;path&gt;               Location of the .NET Framework SDK directory
+                              (mscorlib.dll).
 -nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
 -subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
 -lib:&lt;file list&gt;              Specify additional directories to search in for
