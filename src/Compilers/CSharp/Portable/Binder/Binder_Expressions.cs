@@ -2806,7 +2806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var size = BindValue(arg, diagnostics, BindValueKind.RValue);
                     if (!size.HasAnyErrors)
                     {
-                        size = ConvertToArrayIndex(size, node, diagnostics);
+                        size = ConvertToArrayIndex(size, node, diagnostics, allowIndexAndRange: false);
                         if (IsNegativeConstantForArraySize(size))
                         {
                             Error(diagnostics, ErrorCode.ERR_NegativeArraySize, arg);
@@ -6787,7 +6787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = arguments.Arguments[i];
 
-                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics);
+                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics, allowIndexAndRange: rank == 1);
                 convertedArguments[i] = index;
 
                 // NOTE: Dev10 only warns if rank == 1
@@ -6803,10 +6803,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType.TypeSymbol, hasErrors);
+            var resultType = rank == 1 &&
+                convertedArguments[0].Type == Compilation.GetWellKnownType(WellKnownType.System_Range)
+                ? arrayType
+                : arrayType.ElementType.TypeSymbol;
+
+            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors);
         }
 
-        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics)
+        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics, bool allowIndexAndRange)
         {
             Debug.Assert(index != null);
 
@@ -6825,7 +6830,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int64, node, diagnostics) ??
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt64, node, diagnostics);
 
-            if (result == null)
+            if (result is null && allowIndexAndRange)
+            {
+                result = 
+                    TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics) ??
+                    TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
+            }
+
+            if (result is null)
             {
                 // Give the error that would be given upon conversion to int32.
                 NamedTypeSymbol int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
@@ -6841,21 +6853,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, WellKnownType wellKnownType, SyntaxNode node, DiagnosticBag diagnostics)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol type = GetWellKnownType(wellKnownType, ref useSiteDiagnostics);
+
+            if (type.IsErrorType())
+            {
+                return null;
+            }
+
+            var attemptDiagnostics = DiagnosticBag.GetInstance();
+            var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
+            if (!(result is null))
+            {
+                diagnostics.AddRange(attemptDiagnostics);
+            }
+            attemptDiagnostics.Free();
+            return result;
+        }
+
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, DiagnosticBag diagnostics)
         {
             DiagnosticBag attemptDiagnostics = DiagnosticBag.GetInstance();
 
             TypeSymbol type = GetSpecialType(specialType, attemptDiagnostics, node);
 
+            var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
+
+            if (!(result is null))
+            {
+                diagnostics.AddRange(attemptDiagnostics);
+            }
+
+            attemptDiagnostics.Free();
+            return result;
+        }
+
+        private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, TypeSymbol targetType, SyntaxNode node, DiagnosticBag diagnostics)
+        {
             Debug.Assert(expr != null);
-            Debug.Assert((object)type != null);
+            Debug.Assert((object)targetType != null);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, type, ref useSiteDiagnostics);
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                attemptDiagnostics.Free();
                 return null;
             }
 
@@ -6864,11 +6908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: type, diagnostics: attemptDiagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, destination: targetType, diagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
-
-            diagnostics.AddRange(attemptDiagnostics);
-            attemptDiagnostics.Free();
 
             return result;
         }
@@ -6914,7 +6955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression index = arguments[0];
 
-            index = ConvertToArrayIndex(index, index.Syntax, diagnostics);
+            index = ConvertToArrayIndex(index, index.Syntax, diagnostics, allowIndexAndRange: false);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
@@ -7114,6 +7155,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!analyzedArguments.HasErrors)
                 {
+                    // https://github.com/dotnet/roslyn/issues/30620
+                    // Pretend like there are indexers that support range and index
+                    if (receiverOpt?.Type.SpecialType == SpecialType.System_String &&
+                        analyzedArguments.Arguments.Count == 1)
+                    {
+                        var argType = analyzedArguments.Arguments[0].Type;
+                        TypeSymbol resultType = null;
+                        if (argType == Compilation.GetWellKnownType(WellKnownType.System_Index))
+                        {
+                            resultType = GetSpecialType(SpecialType.System_Char, diagnostics, syntax);
+                        }
+                        else if (argType == Compilation.GetWellKnownType(WellKnownType.System_Range))
+                        {
+                            resultType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+                        }
+
+                        if (!(resultType is null))
+                        {
+                            var args = analyzedArguments.Arguments.ToImmutable();
+
+                            overloadResolutionResult.Free();
+                            return new BoundIndexerAccess(
+                                syntax,
+                                receiverOpt,
+                                candidates[0],
+                                args,
+                                argumentNames,
+                                argumentRefKinds,
+                                expanded: false,
+                                argsToParamsOpt: default,
+                                binderOpt: this,
+                                useSetterForDefaultArgumentGeneration: false,
+                                resultType,
+                                hasErrors: false);
+                        }
+                    }
+
                     // Dev10 uses the "this" keyword as the method name for indexers.
                     var candidate = candidates[0];
                     var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
