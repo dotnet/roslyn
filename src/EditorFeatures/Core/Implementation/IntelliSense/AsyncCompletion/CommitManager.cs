@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return CommitResultUnhandled;
             }
 
-            if (!(document.GetLanguageService<CompletionService>() is CompletionServiceWithProviders completionService))
+            var completionService = document.GetLanguageService<CompletionService>();
+            if (completionService == null)
             {
                 return CommitResultUnhandled;
             }
@@ -75,68 +76,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
+            var serviceRules = completionService.GetRules();
+
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
-            if (!IsCommitCharacter(typeChar, roslynItem.Rules.CommitCharacterRules))
+
+            // Tab, Enter and Null (call invoke commit) are always a commit character. 
+            if (typeChar != '\t' && typeChar != '\n' && typeChar != '\0' && !Controller.IsCommitCharacter(serviceRules, roslynItem, typeChar, filterText))
             {
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            var provider = completionService.GetProvider(roslynItem);
-            if (provider == null || !item.Properties.TryGetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot, out var triggerSnapshot))
+            if (!item.Properties.TryGetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot, out var triggerSnapshot))
             {
                 return CommitResultUnhandled;
             }
 
-            // Commit providers assume that null is provided is case of invoke. VS provides '\0' in the case.
+            // Commit with completion serivce assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
-            var commitBehavior = Commit(document, provider, session.TextView, subjectBuffer, roslynItem, commitChar, triggerSnapshot, completionService.GetRules(), filterText, cancellationToken);
+            var commitBehavior = Commit(
+                document, completionService, session.TextView, subjectBuffer, 
+                roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);            
         }
 
-        /// <summary>
-        /// This method needs to support custom procesing of commit characters to be on par with the old completion implementation.
-        /// </summary>
-        private bool IsCommitCharacter(char typeChar, ImmutableArray<CharacterSetModificationRule> rules)
-        {
-            // Tab, Enter and Null (call invoke commit) are always a commit character
-            if (typeChar == '\t' || typeChar == '\n' || typeChar == '\0')
-            {
-                return true;
-            }
-
-            foreach (var rule in rules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.Contains(typeChar))
-                        {
-                            return true;
-                        }
-
-                        break;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.Contains(typeChar))
-                        {
-                            return false;
-                        }
-
-                        break;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.Contains(typeChar);
-                }
-            }
-
-            return s_commitChars.Contains(typeChar);
-        }
-
         private AsyncCompletionData.CommitBehavior Commit(
             Document document,
-            CompletionProvider provider,
+            CompletionService completionService,
             ITextView view,
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
@@ -162,13 +129,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             using (var edit = subjectBuffer.CreateEdit())
             {
-                var change = provider.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+                var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var textChange = change.TextChange;
 
                 var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
-                var mappedSpan = triggerSnapshotSpan.TranslateTo(
-                    subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
                 edit.Apply();
@@ -179,6 +145,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 }
 
                 includesCommitCharacter = change.IncludesCommitCharacter;
+
+                if (roslynItem.Rules.FormatOnCommit)
+                {
+                    // refresh the document
+                    document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                    var formattingService = document?.GetLanguageService<IEditorFormattingService>();
+
+                    if (formattingService != null)
+                    {
+                        var changes = formattingService.GetFormattingChangesAsync(
+                            document, spanToFormat.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                    }
+                }
             }
 
             if (includesCommitCharacter) return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;

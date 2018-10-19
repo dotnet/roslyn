@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -35,7 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
 
-        public AsyncCompletionData.CompletionStartData InitializeCompletion(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken cancellationToken)
+        public AsyncCompletionData.CompletionStartData InitializeCompletion(
+            AsyncCompletionData.CompletionTrigger trigger, 
+            SnapshotPoint triggerLocation, 
+            CancellationToken cancellationToken)
         {
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -61,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, roslynTrigger))
             {
                 if (!(trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion &&
-                trigger.Character == '\t' &&
-                TryInvokeSnippetCompletion(service, document, sourceText, triggerLocation.Position)))
+                    trigger.Character == '\t' &&
+                    TryInvokeSnippetCompletion(service, document, sourceText, triggerLocation.Position)))
                 {
                     return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
                 }
@@ -70,7 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             return new AsyncCompletionData.CompletionStartData(
                 participation: AsyncCompletionData.CompletionParticipation.ProvidesItems,
-                applicableToSpan: new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()));
+                applicableToSpan: new SnapshotSpan(
+                    triggerLocation.Snapshot, 
+                    service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()));
         }
 
         private static bool TryInvokeSnippetCompletion(
@@ -162,7 +166,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return new AsyncCompletionData.CompletionContext(
                 items,
                 suggestionItemOptions,
-                suggestionItemOptions == null ? AsyncCompletionData.InitialSelectionHint.RegularSelection : AsyncCompletionData.InitialSelectionHint.SoftSelection);
+                suggestionItemOptions == null 
+                ? AsyncCompletionData.InitialSelectionHint.RegularSelection 
+                : AsyncCompletionData.InitialSelectionHint.SoftSelection);
         }
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
@@ -181,14 +187,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var service = document.GetLanguageService<CompletionService>();
 
-            if (service== null)
+            if (service == null)
             {
                 return null;
             }
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
+            return IntelliSense.Helpers.BuildClassifiedTextElement(description.TaggedParts);
         }
 
         private VSCompletionItem Convert(

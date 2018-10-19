@@ -317,11 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return IsCommitCharacter(completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
-        /// <summary>
-        /// Internal for testing purposes only.
-        /// </summary>
-        internal static bool IsCommitCharacter(
-            CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
+        internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)
         {
             // First see if the item has any specifc commit rules it wants followed.
             foreach (var rule in item.Rules.CommitCharacterRules)

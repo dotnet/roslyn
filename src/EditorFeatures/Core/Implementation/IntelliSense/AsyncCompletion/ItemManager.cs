@@ -173,7 +173,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 Controller.AllFilterTextsEmpty(
                     initialListOfItemsToBeIncluded.Select(i => i.FilterResult.CompletionItem).ToImmutableArray(),
                     disconnectedBufferGraph.GetSubjectBufferTextSpanInViewBuffer,
-                    (textSpan, snapshot, endPoint) => GetCurrentTextInSnapshot(disconnectedBufferGraph.GetSubjectBufferTextSpanInViewBuffer(textSpan), snapshot, disconnectedBufferGraph, snapshotForDocument.Version.CreateTrackingPoint(caretPosition.Value, PointTrackingMode.Positive)),
+                    (textSpan, snapshot, endPoint) 
+                    => Model.GetCurrentTextInSnapshot(
+                        textSpan, 
+                        snapshot, 
+                        disconnectedBufferGraph, 
+                        snapshotForDocument.Version.CreateTrackingPoint(caretPosition.Value, PointTrackingMode.Positive)),
                     caretPoint.Value))
             {
                 return null;
@@ -184,11 +189,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, selectedFilters, completionRules);
             }
 
+            var options = document.Project.Solution.Options;
+            var highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language);
+            var showCompletionItemFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language);
+
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTrigger.Kind == CompletionTriggerKind.Deletion)
             {
                 return HandleDeletionTrigger(data.InitialSortedList, reason, 
-                    data.SelectedFilters, reason, filterText, initialListOfItemsToBeIncluded);
+                    data.SelectedFilters, reason, filterText, initialListOfItemsToBeIncluded, highlightMatchingPortions, showCompletionItemFilters);
             }
 
             return HandleNormalFiltering(
@@ -203,7 +212,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 filterReason,
                 data.Trigger,
                 initialListOfItemsToBeIncluded,
-                hasSuggestedItemOptions);
+                hasSuggestedItemOptions,
+                highlightMatchingPortions,
+                showCompletionItemFilters);
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -224,9 +235,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             CompletionFilterReason filterReason,
             AsyncCompletionData.CompletionTrigger completionTrigger,
             List<ExtendedFilterResult> itemsInList,
-            bool hasSuggestedItemOptions)
+            bool hasSuggestedItemOptions,
+            bool highlightMatchingPortions,
+            bool showCompletionItemFilters)
         {
-            var highlightedList = GetHighlightedList(itemsInList, filterText).ToImmutableArray();
+            var highlightedList = GetHighlightedList(itemsInList, filterText, highlightMatchingPortions).ToImmutableArray();
 
             // Not deletion.  Defer to the language to decide which item it thinks best
             // matches the text typed so far.
@@ -291,7 +304,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             return new AsyncCompletionData.FilteredCompletionModel(
-                highlightedList, selectedItemIndex, updatedFilters,
+                highlightedList, selectedItemIndex, 
+                showCompletionItemFilters ? updatedFilters : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty,
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
@@ -301,7 +315,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
             AsyncCompletionData.CompletionTriggerReason filterReason,
             string filterText,
-            List<ExtendedFilterResult> filterResults)
+            List<ExtendedFilterResult> filterResults, 
+            bool highlightMatchingPortions,
+            bool showCompletionItemFilters)
         {
             ExtendedFilterResult? bestFilterResult = null;
             int matchCount = 0;
@@ -321,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // (which can happen if the user deletes down to a single character and we
             // include everything), then we just soft select the first item.
 
-            var highlightedList = GetHighlightedList(filterResults, filterText).ToImmutableArray();
+            var highlightedList = GetHighlightedList(filterResults, filterText, highlightMatchingPortions).ToImmutableArray();
             var updatedFilters = GetUpdatedFilters(sortedList, filterResults, filters, filterText);
 
             if (bestFilterResult != null)
@@ -334,13 +350,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 // This also preserves the behavior the VB had through Dev12.
                 var hardSelect = bestFilterResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
-                return new AsyncCompletionData.FilteredCompletionModel(highlightedList, filterResults.IndexOf(bestFilterResult.Value), updatedFilters, 
+                return new AsyncCompletionData.FilteredCompletionModel(
+                    highlightedList, filterResults.IndexOf(bestFilterResult.Value),
+                    showCompletionItemFilters ? updatedFilters : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty,
                     hardSelect ? AsyncCompletionData.UpdateSelectionHint.Selected : AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
                     centerSelection: true, uniqueItem: null);
             }
             else
             {
-                return new AsyncCompletionData.FilteredCompletionModel(highlightedList, selectedItemIndex: 0, updatedFilters, 
+                return new AsyncCompletionData.FilteredCompletionModel(
+                    highlightedList, selectedItemIndex: 0,
+                    showCompletionItemFilters ? updatedFilters : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty,
                     AsyncCompletionData.UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
             }
         }
@@ -381,12 +401,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 filters, selection, centerSelection: true, uniqueItem: default);
         }
 
-        private IEnumerable<AsyncCompletionData.CompletionItemWithHighlight> GetHighlightedList(IEnumerable<ExtendedFilterResult> filterResults, string filterText)
+        private IEnumerable<AsyncCompletionData.CompletionItemWithHighlight> GetHighlightedList(
+            IEnumerable<ExtendedFilterResult> filterResults, 
+            string filterText,
+            bool highlightMatchingPortions)
         {
             var highlightedList = new List<AsyncCompletionData.CompletionItemWithHighlight>();
             foreach (var item in filterResults)
             {
-                var highlightedSpans = _completionHelper.GetHighlightedSpans(item.VSCompletionItem.FilterText, filterText, CultureInfo.CurrentCulture);
+                var highlightedSpans = highlightMatchingPortions
+                                        ? _completionHelper.GetHighlightedSpans(item.VSCompletionItem.FilterText, filterText, CultureInfo.CurrentCulture)
+                                        : ImmutableArray<TextSpan>.Empty;
                 highlightedList.Add(new AsyncCompletionData.CompletionItemWithHighlight(item.VSCompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
             }
 
@@ -451,34 +476,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 session.ItemCommitted -= ItemCommitted;
                 session.Dismissed -= SessionDismissed;
             }
-        }
-
-        internal static string GetCurrentTextInSnapshot(
-            ViewTextSpan originalSpan,
-            ITextSnapshot textSnapshot,
-            DisconnectedBufferGraph disconnectedBufferGraph,
-            ITrackingPoint trackingPoint,
-            int? endPoint = null)
-        {
-            var currentSpan = GetCurrentSpanInSnapshot(originalSpan, textSnapshot, disconnectedBufferGraph, trackingPoint);
-
-            var startPosition = currentSpan.Start;
-            var endPosition = endPoint.HasValue ? endPoint.Value : currentSpan.End;
-
-            // TODO(cyrusn): What to do if the span is empty, or the end comes before the start.
-            // Can that even happen?  Not sure, so we'll just be resilient just in case.
-            return startPosition <= endPosition
-                ? textSnapshot.GetText(Span.FromBounds(startPosition, endPosition))
-                : string.Empty;
-        }
-
-        internal static SnapshotSpan GetCurrentSpanInSnapshot(
-            ViewTextSpan originalSpan, ITextSnapshot textSnapshot, 
-            DisconnectedBufferGraph disconnectedBufferGraph, ITrackingPoint trackingPoint)
-        {
-            var start = disconnectedBufferGraph.ViewSnapshot.CreateTrackingPoint(originalSpan.TextSpan.Start, PointTrackingMode.Negative).GetPosition(textSnapshot);
-            var end = Math.Max(start, trackingPoint.GetPosition(textSnapshot));
-            return new SnapshotSpan(textSnapshot, Span.FromBounds(start, end));
         }
 
         private readonly struct ExtendedFilterResult

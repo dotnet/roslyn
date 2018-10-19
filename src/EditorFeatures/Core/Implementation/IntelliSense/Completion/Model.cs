@@ -250,11 +250,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         internal SnapshotSpan GetCurrentSpanInSnapshot(ViewTextSpan originalSpan, ITextSnapshot textSnapshot)
+            => GetCurrentSpanInSnapshot(originalSpan, textSnapshot, _disconnectedBufferGraph, this.CommitTrackingSpanEndPoint);
+
+        private static SnapshotSpan GetCurrentSpanInSnapshot(
+            ViewTextSpan originalSpan, ITextSnapshot textSnapshot,
+            DisconnectedBufferGraph disconnectedBufferGraph,
+            ITrackingPoint trackingPoint)
         {
-            var start = _disconnectedBufferGraph.ViewSnapshot.CreateTrackingPoint(originalSpan.TextSpan.Start, PointTrackingMode.Negative).GetPosition(textSnapshot);
-            var end = Math.Max(start, this.CommitTrackingSpanEndPoint.GetPosition(textSnapshot));
-            return new SnapshotSpan(
-                textSnapshot, Span.FromBounds(start, end));
+            var start = disconnectedBufferGraph.ViewSnapshot.CreateTrackingPoint(originalSpan.TextSpan.Start, PointTrackingMode.Negative).GetPosition(textSnapshot);
+            var end = Math.Max(start, trackingPoint.GetPosition(textSnapshot));
+            return new SnapshotSpan(textSnapshot, Span.FromBounds(start, end));
         }
 
         internal string GetCurrentTextInSnapshot(
@@ -263,7 +268,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             int? endPoint = null)
         {
             var currentSpan = GetCurrentSpanInSnapshot(originalSpan, textSnapshot);
+            return GetCurrentTextInSnapshot(originalSpan, textSnapshot, currentSpan, endPoint);
+        }
 
+        internal static string GetCurrentTextInSnapshot(
+            TextSpan originalTextSpan,
+            ITextSnapshot textSnapshot,
+            DisconnectedBufferGraph disconnectedBufferGraph,
+            ITrackingPoint trackingPoint,
+            int? endPoint = null)
+        {
+            var originalSpan = disconnectedBufferGraph.GetSubjectBufferTextSpanInViewBuffer(originalTextSpan);
+            var currentSpan = GetCurrentSpanInSnapshot(originalSpan, textSnapshot, disconnectedBufferGraph, trackingPoint);
+            return GetCurrentTextInSnapshot(originalSpan, textSnapshot, currentSpan, endPoint);
+        }
+
+        private static string GetCurrentTextInSnapshot(
+            ViewTextSpan originalSpan,
+            ITextSnapshot textSnapshot,
+            SnapshotSpan currentSpan,
+            int? endPoint = null)
+        {
             var startPosition = currentSpan.Start;
             var endPosition = endPoint.HasValue ? endPoint.Value : currentSpan.End;
 
@@ -289,7 +314,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Dictionary<TextSpan, string> textSpanToTextCache,
             int? endPoint = null)
             => GetCurrentTextInSnapshot(originalSpan, textSnapshot, textSpanToTextCache, GetCurrentTextInSnapshot, endPoint);
-        
 
         internal static string GetCurrentTextInSnapshot(
             TextSpan originalSpan,

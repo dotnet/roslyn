@@ -3963,12 +3963,7 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="region")
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
-                If completionImplementation = CompletionImplementation.Legacy Then
-                    Assert.Equal("    #region", state.GetLineFromCurrentCaretPosition().GetText())
-                Else
-                    Assert.Equal("#region", state.GetLineFromCurrentCaretPosition().GetText())
-                End If
-
+                Assert.Equal("    #region", state.GetLineFromCurrentCaretPosition().GetText())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
 
                 state.SendReturn()
@@ -3986,12 +3981,7 @@ class C
                 state.SendTypeChars("endr")
                 Await state.AssertSelectedCompletionItem(displayText:="endregion")
                 state.SendReturn()
-                If completionImplementation = CompletionImplementation.Legacy Then
-                    Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
-                Else
-                    Assert.Equal("#endregion", state.GetLineFromCurrentCaretPosition().GetText())
-                End If
-
+                Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
             End Using
         End Function

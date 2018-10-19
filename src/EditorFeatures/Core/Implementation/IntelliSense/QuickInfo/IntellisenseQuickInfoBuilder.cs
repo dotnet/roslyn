@@ -86,9 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         private static ClassifiedTextElement BuildClassifiedTextElement(QuickInfoSection section)
-        {
-            return new ClassifiedTextElement(section.TaggedParts.Select(
-                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
-        }
+            => Helpers.BuildClassifiedTextElement(section.TaggedParts);
     }
 }
