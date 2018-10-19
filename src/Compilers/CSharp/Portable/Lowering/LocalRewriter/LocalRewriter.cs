@@ -553,11 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundAssignmentOperator arrayAssign);
             var indexType = VisitType(node.Indices[0].Type);
 
-            if (!TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Index__Value, out PropertySymbol indexValueSymbol) ||
-                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Index__FromEnd, out PropertySymbol indexFromEndSymbol))
-            {
-                return node;
-            }
+            var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
+            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
 
             BoundExpression resultExpr;
             if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Index))
@@ -595,12 +592,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Array.Copy(array, start, newArr, 0, length);
                 // push newArray
 
-                if (!TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Range__Start, out PropertySymbol rangeStartSymbol) ||
-                    !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Range__End, out PropertySymbol rangeEndSymbol) ||
-                    !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Array__Copy, out MethodSymbol arrayCopySymbol))
-                {
-                    return node;
-                }
+                var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
+                var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
+                var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
 
                 var startLocal = F.StoreToTemp(
                     F.Conditional(

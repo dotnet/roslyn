@@ -3673,7 +3673,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29964 Update indexer based on inferred receiver type.
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            _resultType = node.Indexer.Type;
+            // PROTOTYPE: REMOVE BEFORE SHIPPING DEV16
+            if (node.Arguments.Length == 1 &&
+                node.Arguments[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                _resultType = TypeSymbolWithAnnotations.Create(node.Type);
+            }
+            else
+            {
+                _resultType = node.Indexer.Type;
+            }
             return null;
         }
 

@@ -9,6 +9,251 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class IndexAndRangeTests : CSharpTestBase
     {
         [Fact]
+        public void IndexIndexerStringTwoArgs()
+        {
+            var comp = CreateCompilationWithIndex(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        M(s);
+    }
+    public static void M(string s)
+    {
+        Console.WriteLine(s[new Index(1, false)]);
+        Console.WriteLine(s[new Index(1, false), ^1]);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (13,27): error CS1501: No overload for method 'this' takes 2 arguments
+                //         Console.WriteLine(s[new Index(1, false), ^1]);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "s[new Index(1, false), ^1]").WithArguments("this", "2").WithLocation(13, 27));
+        }
+
+        [Fact]
+        public void IndexIndexerArrayTwoArgs()
+        {
+            var comp = CreateCompilationWithIndex(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var x = new int[1,1];
+        M(x);
+    }
+    public static void M(int[,] s)
+    {
+        Console.WriteLine(s[new Index(1, false), ^1]);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,27): error CS0029: Cannot implicitly convert type 'System.Index' to 'int'
+                //         Console.WriteLine(s[new Index(1, false), ^1]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s[new Index(1, false), ^1]").WithArguments("System.Index", "int").WithLocation(12, 27),
+                // (12,27): error CS0029: Cannot implicitly convert type 'System.Index' to 'int'
+                //         Console.WriteLine(s[new Index(1, false), ^1]);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s[new Index(1, false), ^1]").WithArguments("System.Index", "int").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void FakeIndexIndexerString()
+        {
+            var comp = CreateCompilationWithIndex(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        M(s);
+    }
+    public static void M(string s)
+    {
+        Console.WriteLine(s[new Index(1, false)]);
+        Console.WriteLine(s[^1]);
+    }
+}", TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"b
+f");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size      121 (0x79)
+  .maxstack  3
+  .locals init (System.Index V_0,
+                string V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.0
+  IL_0004:  call       ""System.Index..ctor(int, bool)""
+  IL_0009:  ldarg.0
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""bool System.Index.FromEnd.get""
+  IL_0012:  brtrue.s   IL_0023
+  IL_0014:  ldloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""int System.Index.Value.get""
+  IL_001c:  callvirt   ""char string.this[int].get""
+  IL_0021:  br.s       IL_0037
+  IL_0023:  ldloc.1
+  IL_0024:  ldloc.1
+  IL_0025:  callvirt   ""int string.Length.get""
+  IL_002a:  ldloca.s   V_0
+  IL_002c:  call       ""int System.Index.Value.get""
+  IL_0031:  sub
+  IL_0032:  callvirt   ""char string.this[int].get""
+  IL_0037:  call       ""void System.Console.WriteLine(char)""
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  ldc.i4.1
+  IL_003f:  ldc.i4.1
+  IL_0040:  call       ""System.Index..ctor(int, bool)""
+  IL_0045:  ldarg.0
+  IL_0046:  stloc.1
+  IL_0047:  ldloca.s   V_0
+  IL_0049:  call       ""bool System.Index.FromEnd.get""
+  IL_004e:  brtrue.s   IL_005f
+  IL_0050:  ldloc.1
+  IL_0051:  ldloca.s   V_0
+  IL_0053:  call       ""int System.Index.Value.get""
+  IL_0058:  callvirt   ""char string.this[int].get""
+  IL_005d:  br.s       IL_0073
+  IL_005f:  ldloc.1
+  IL_0060:  ldloc.1
+  IL_0061:  callvirt   ""int string.Length.get""
+  IL_0066:  ldloca.s   V_0
+  IL_0068:  call       ""int System.Index.Value.get""
+  IL_006d:  sub
+  IL_006e:  callvirt   ""char string.this[int].get""
+  IL_0073:  call       ""void System.Console.WriteLine(char)""
+  IL_0078:  ret
+}");
+        }
+
+        [Fact]
+        public void FakeRangeIndexerString()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        var result = M(s);
+        Console.WriteLine(result);
+    }
+    public static string M(string s) => s[1..3];
+}", TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "bc");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size      151 (0x97)
+  .maxstack  4
+  .locals init (System.Range V_0,
+                string V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0006:  ldc.i4.3
+  IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_000c:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_0011:  stloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""System.Index System.Range.Start.get""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  ldloca.s   V_4
+  IL_001f:  call       ""bool System.Index.FromEnd.get""
+  IL_0024:  brtrue.s   IL_0038
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""System.Index System.Range.Start.get""
+  IL_002d:  stloc.s    V_4
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  call       ""int System.Index.Value.get""
+  IL_0036:  br.s       IL_004f
+  IL_0038:  ldloc.1
+  IL_0039:  callvirt   ""int string.Length.get""
+  IL_003e:  ldloca.s   V_0
+  IL_0040:  call       ""System.Index System.Range.End.get""
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldloca.s   V_4
+  IL_0049:  call       ""int System.Index.Value.get""
+  IL_004e:  sub
+  IL_004f:  stloc.2
+  IL_0050:  ldloca.s   V_0
+  IL_0052:  call       ""System.Index System.Range.End.get""
+  IL_0057:  stloc.s    V_4
+  IL_0059:  ldloca.s   V_4
+  IL_005b:  call       ""bool System.Index.FromEnd.get""
+  IL_0060:  brtrue.s   IL_0074
+  IL_0062:  ldloca.s   V_0
+  IL_0064:  call       ""System.Index System.Range.End.get""
+  IL_0069:  stloc.s    V_4
+  IL_006b:  ldloca.s   V_4
+  IL_006d:  call       ""int System.Index.Value.get""
+  IL_0072:  br.s       IL_008b
+  IL_0074:  ldloc.1
+  IL_0075:  callvirt   ""int string.Length.get""
+  IL_007a:  ldloca.s   V_0
+  IL_007c:  call       ""System.Index System.Range.End.get""
+  IL_0081:  stloc.s    V_4
+  IL_0083:  ldloca.s   V_4
+  IL_0085:  call       ""int System.Index.Value.get""
+  IL_008a:  sub
+  IL_008b:  stloc.3
+  IL_008c:  ldloc.1
+  IL_008d:  ldloc.2
+  IL_008e:  ldloc.3
+  IL_008f:  ldloc.2
+  IL_0090:  sub
+  IL_0091:  callvirt   ""string string.Substring(int, int)""
+  IL_0096:  ret
+}");
+        }
+
+        [Fact]
+        public void FakeRangeIndexerStringOpenEnd()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        var result = M(s);
+        Console.WriteLine(result);
+    }
+    public static string M(string s) => s[1..];
+}", TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "bcdef");
+        }
+
+        [Fact]
+        public void FakeRangeIndexerStringOpenStart()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        var result = M(s);
+        Console.WriteLine(result);
+    }
+    public static string M(string s) => s[..^2];
+}", TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "abcd");
+        }
+
+        [Fact]
         public void FakeIndexIndexerArray()
         {
             var comp = CreateCompilationWithIndex(@"
@@ -118,15 +363,20 @@ class C
     {
         var x = new[] { 11 };
         Console.WriteLine(x[^1]);
+        Console.WriteLine(""test""[^1]);
     }
 }", options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
             // We check for the well-known member in lowering, so you won't normally see this
             // error during binding. This is fine for a preview-only feature.
             comp.VerifyEmitDiagnostics(
-                // (30,27): error CS0656: Missing compiler required member 'System.Index.Value'
-                //         Console.WriteLine(x[^1]);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[^1]").WithArguments("System.Index", "Value").WithLocation(30, 27));
+                // (28,5): error CS0656: Missing compiler required member 'System.Index.Value'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        var x = new[] { 11 };
+        Console.WriteLine(x[^1]);
+        Console.WriteLine(""test""[^1]);
+    }").WithArguments("System.Index", "Value").WithLocation(28, 5));
         }
 
         [Fact]
