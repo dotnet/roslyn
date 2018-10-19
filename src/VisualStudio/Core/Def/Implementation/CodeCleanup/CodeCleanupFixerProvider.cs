@@ -12,10 +12,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
-    [Export(typeof(CodeCleanUpFixerProvider))]
+    /// <summary>
+    /// This is intentionally not exported as a concrete type and not an instance of
+    /// <see cref="ICodeCleanUpFixerProvider"/>. Roslyn is responsible for registering its own fixer provider, as
+    /// opposed to the implementation importing the instances of some interface.
+    /// </summary>
+    [Export]
     internal class CodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
     {
-        private IList<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers = new List<Lazy<CodeCleanUpFixer, ContentTypeMetadata>>();
+        private readonly IList<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var fixers = _codeCleanUpFixers
                .Where(handler => handler.Metadata.ContentTypes.Contains(contentType.TypeName)).ToList();
 
-            return fixers.Any() ? fixers.ConvertAll(l => l.Value) : SpecializedCollections.EmptyReadOnlyList<ICodeCleanUpFixer>();
+            return fixers.ConvertAll(l => l.Value);
         }
     }
 }

@@ -206,13 +206,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return new EnabledDiagnosticOptions(diagnosticSets, new OrganizeUsingsSet(true, true));
         }
 
-        public EnabledDiagnosticOptions GetEnabledDiagnostics(DocumentOptionSet docOptions)
+        public EnabledDiagnosticOptions GetEnabledDiagnostics(OptionSet optionSet)
         {
             var diagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
 
             foreach (var (diagnosticSet, option) in _optionDiagnosticsMappings)
             {
-                if (docOptions.GetOption(option))
+                if (optionSet.GetOption(option, LanguageNames.CSharp))
                 {
                     diagnosticSets.AddRange(diagnosticSet);
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
             var desc = CSharpFeaturesResources.Organize_Usings;
 
-            return new EnabledDiagnosticOptions(diagnosticSets.ToImmutableArray(), new OrganizeUsingsSet(docOptions));
+            return new EnabledDiagnosticOptions(diagnosticSets.ToImmutableArray(), new OrganizeUsingsSet(optionSet, LanguageNames.CSharp));
         }
     }
 }

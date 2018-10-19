@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree();
         }
 
-        public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpan(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
+        public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
         {
             var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             if (diagnostics.Count == 0)
@@ -231,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree().FirstOrDefault();
         }
 
-        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticId(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
 
-            var fixCollection = await GetDocumentFixAllForIdInSpan(
+            var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
                 document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
             if (fixCollection == null)
             {

@@ -6,13 +6,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal class OrganizeUsingsSet
     {
-        public bool IsRemoveUnusedImportEnabled { get; private set; }
-        public bool IsSortImportsEnabled { get; private set; }       
+        public bool IsRemoveUnusedImportEnabled { get; }
+        public bool IsSortImportsEnabled { get; }
 
-        public OrganizeUsingsSet(DocumentOptionSet docOptions)
+        public OrganizeUsingsSet(OptionSet optionSet, string language)
         {
-            IsRemoveUnusedImportEnabled = docOptions.GetOption(CodeCleanupOptions.RemoveUnusedImports);
-            IsSortImportsEnabled = docOptions.GetOption(CodeCleanupOptions.SortImports);
+            IsRemoveUnusedImportEnabled = optionSet.GetOption(CodeCleanupOptions.RemoveUnusedImports, language);
+            IsSortImportsEnabled = optionSet.GetOption(CodeCleanupOptions.SortImports, language);
         }
 
         public OrganizeUsingsSet(bool isRemoveUnusedImportEnabled, bool isSortImportsEnabled)

@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     {
         Task<Document> CleanupAsync(Document document, EnabledDiagnosticOptions enabledDiagnostics, IProgressTracker progressTracker, CancellationToken cancellationToken);
         EnabledDiagnosticOptions GetAllDiagnostics();
-        EnabledDiagnosticOptions GetEnabledDiagnostics(DocumentOptionSet docOptions);
+        EnabledDiagnosticOptions GetEnabledDiagnostics(OptionSet optionSet);
     }
 }
