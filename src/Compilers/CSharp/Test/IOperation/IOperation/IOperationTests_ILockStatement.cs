@@ -208,8 +208,7 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'lock (o)
-')
+ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'lock (o)')
   Expression: 
     ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
   Body: 

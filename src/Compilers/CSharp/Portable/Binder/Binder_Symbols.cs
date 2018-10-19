@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!ShouldCheckConstraintsNullability)
                             {
                                 diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), location);
-                                conversions = conversions.WithNullability(includeNullability: false);
+                                conversions = this.Conversions.WithNullability(includeNullability: false);
                             }
                             type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
                         }
@@ -1192,12 +1192,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
-                bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+                bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
                 var conversions = this.Conversions.WithNullability(includeNullability);
                 if (includeNullability && !ShouldCheckConstraintsNullability)
                 {
                     diagnostics.Add(new LazyNullableContraintChecksDiagnosticInfo(type, conversions, this.Compilation), typeSyntax.GetLocation());
-                    conversions = conversions.WithNullability(includeNullability: false);
+                    conversions = this.Conversions.WithNullability(includeNullability: false);
                 }
                 type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
@@ -1321,6 +1321,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
             return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, node.Location);
+        }
+
+        internal static bool ReportUseSiteDiagnostics(Symbol symbol, DiagnosticBag diagnostics, SyntaxToken token)
+        {
+            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
+            return info != null && Symbol.ReportUseSiteDiagnostic(info, diagnostics, token.GetLocation());
         }
 
         /// <summary>
