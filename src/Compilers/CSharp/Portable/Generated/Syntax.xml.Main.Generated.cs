@@ -1251,6 +1251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       return this.DefaultVisit(node);
     }
+
+    /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
+    public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
   }
 
   public partial class CSharpSyntaxVisitor
@@ -2487,6 +2493,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
     public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
+    public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -4263,6 +4275,15 @@ namespace Microsoft.CodeAnalysis.CSharp
       var exclamationToken = this.VisitToken(node.ExclamationToken);
       var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
       return node.Update(hashToken, exclamationToken, endOfDirectiveToken, node.IsActive);
+    }
+
+    public override SyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
+    {
+      var hashToken = this.VisitToken(node.HashToken);
+      var nullableKeyword = this.VisitToken(node.NullableKeyword);
+      var settingToken = this.VisitToken(node.SettingToken);
+      var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
+      return node.Update(hashToken, nullableKeyword, settingToken, endOfDirectiveToken, node.IsActive);
     }
   }
 
@@ -11036,6 +11057,48 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(bool isActive)
     {
       return SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+    }
+
+    /// <summary>Creates a new NullableDirectiveTriviaSyntax instance.</summary>
+    public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    {
+      switch (hashToken.Kind())
+      {
+        case SyntaxKind.HashToken:
+          break;
+        default:
+          throw new ArgumentException("hashToken");
+      }
+      switch (nullableKeyword.Kind())
+      {
+        case SyntaxKind.NullableKeyword:
+          break;
+        default:
+          throw new ArgumentException("nullableKeyword");
+      }
+      switch (settingToken.Kind())
+      {
+        case SyntaxKind.EnableKeyword:
+        case SyntaxKind.DisableKeyword:
+          break;
+        default:
+          throw new ArgumentException("settingToken");
+      }
+      switch (endOfDirectiveToken.Kind())
+      {
+        case SyntaxKind.EndOfDirectiveToken:
+          break;
+        default:
+          throw new ArgumentException("endOfDirectiveToken");
+      }
+      return (NullableDirectiveTriviaSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.NullableDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node, (Syntax.InternalSyntax.SyntaxToken)nullableKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)settingToken.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node, isActive).CreateRed();
+    }
+
+
+    /// <summary>Creates a new NullableDirectiveTriviaSyntax instance.</summary>
+    public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken settingToken, bool isActive)
+    {
+      return SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.NullableKeyword), settingToken, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
     }
   }
 }

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedAttribute
 {
     class C { }
 }";
-            var comp = CreateCompilation(new[] { comp_cs, NonNullTypesTrue }, references: new[] { reference.ToMetadataReference() });
+            var comp = CreateCompilation(new[] { comp_cs }, options: WithNonNullTypesTrue(), references: new[] { reference.ToMetadataReference() });
             comp.VerifyEmitDiagnostics(
                 // error CS0518: Predefined type 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(1, 1)
