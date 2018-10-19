@@ -4,7 +4,10 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
-    internal class EnabledDiagnosticOptions
+    /// <summary>
+    /// Indicates which features are enabled for a code cleanup operation.
+    /// </summary>
+    internal sealed class EnabledDiagnosticOptions
     {
         public ImmutableArray<DiagnosticSet> Diagnostics { get; }
 

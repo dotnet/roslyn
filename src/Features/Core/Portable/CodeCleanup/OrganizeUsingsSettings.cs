@@ -4,7 +4,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
-    internal class OrganizeUsingsSet
+    /// <summary>
+    /// Indicates which, if any, Organize Usings features are enabled for code cleanup.
+    /// </summary>
+    internal sealed class OrganizeUsingsSet
     {
         public bool IsRemoveUnusedImportEnabled { get; }
         public bool IsSortImportsEnabled { get; }
