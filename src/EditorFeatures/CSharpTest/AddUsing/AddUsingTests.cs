@@ -4830,7 +4830,7 @@ class C
 ", WellKnownTagArrays.Namespace);
         }
 
-        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGetAwaiterExtensionMethod()
         {
@@ -4838,6 +4838,10 @@ class C
 @"
 namespace A
 {
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
     class C
     {
         async Task M() => await [|Goo|];
@@ -4849,14 +4853,17 @@ namespace A
 namespace B
 {
     using A;
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
 
     static class Extensions
     {
-        public static Awaitable GetAwaiter(this C scheduler) => default;
+        public static Awaitable GetAwaiter(this C scheduler) => null;
 
         public class Awaitable : INotifyCompletion
         {
-            public object GetResult() => default;
+            public object GetResult() => null;
 
             public void OnCompleted(Action continuation) { }
 
