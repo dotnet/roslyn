@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Array__get_Length,
         System_Array__Empty,
+        System_Array__Copy,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,
@@ -413,6 +414,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
         System_String__Format_IFormatProvider,
+        System_String__Substring,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
@@ -448,6 +450,10 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_EmbeddedAttribute__ctor,
 
         System_Index__ctor,
+        System_Index__FromEnd,
+        System_Index__Value,
+        System_Range__Start,
+        System_Range__End,
         System_Range__Create,
         System_Range__ToEnd,
         System_Range__FromStart,
