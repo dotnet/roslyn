@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected CommonFieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected FieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonFieldWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (FieldWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -163,11 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NonSerializedAttribute))
             {
-                arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().HasNonSerializedAttribute = true;
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().HasNonSerializedAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.FieldOffsetAttribute))
             {
@@ -189,12 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Set field offset even if the attribute specifies an invalid value, so that
                     // post-validation knows that the attribute is applied and reports better errors.
-                    arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>().SetFieldOffset(offset);
+                    arguments.GetOrCreateData<FieldWellKnownAttributeData>().SetFieldOffset(offset);
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
             {
-                MarshalAsAttributeDecoder<CommonFieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
+                MarshalAsAttributeDecoder<FieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
@@ -228,6 +228,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
+            {
+                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<FieldWellKnownAttributeData>().NonNullTypes = value;
+            }
         }
 
         /// <summary>
@@ -239,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!attrValue.IsBad)
             {
-                var data = arguments.GetOrCreateData<CommonFieldWellKnownAttributeData>();
+                var data = arguments.GetOrCreateData<FieldWellKnownAttributeData>();
                 ConstantValue constValue;
 
                 if (this.IsConst)
@@ -291,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
-            var data = (CommonFieldWellKnownAttributeData)decodedData;
+            var data = (FieldWellKnownAttributeData)decodedData;
             int? fieldOffset = data != null ? data.Offset : null;
 
             if (fieldOffset.HasValue)
@@ -331,6 +341,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool? NonNullTypes
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.NonNullTypes ?? base.NonNullTypes;
+            }
+        }
+
         internal sealed override bool IsNotSerialized
         {
             get
@@ -362,16 +381,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            var type = this.Type;
+
+            if (type.TypeSymbol.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, CustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(type.TypeSymbol, Type.CustomModifiers.Length));
             }
 
-            if (Type.ContainsTupleNames())
+            if (type.TypeSymbol.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+            }
+
+            if (type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
     }

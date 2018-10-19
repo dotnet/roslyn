@@ -1030,9 +1030,11 @@ End Class
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestExclusiveNamedParameterCompletion(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExclusiveNamedParameterCompletion() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                      <Workspace>
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
 Class Class1
     Private Sub Test()
@@ -1045,7 +1047,9 @@ Class Class1
     Private Sub Goo(str As String, bool As Boolean)
     End Sub
 End Class
-                              </Document>)
+                              </Document>
+                          </Project>
+                      </Workspace>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
@@ -1055,9 +1059,11 @@ End Class
         End Function
 
         <WorkItem(544299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544299")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestExclusiveNamedParameterCompletion2(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExclusiveNamedParameterCompletion2() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                      <Workspace>
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
                               <Document>
 Class Goo
     Private Sub Test()
@@ -1074,7 +1080,9 @@ Class Goo
     Private Sub Method(obj As Object, b As Boolean, str As String)
     End Sub
 End Class
-                              </Document>)
+                              </Document>
+                          </Project>
+                      </Workspace>)
 
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
@@ -2941,6 +2949,26 @@ End Class
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Contains("x.Add", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WorkItem(28767, "https://github.com/dotnet/roslyn/issues/28767")>
+        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionDoesNotRemoveBracketsOnEnum(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                       <Document>
+                          Class C
+                             Sub S
+                                 [$$] 
+                             End Sub
+                         End Class
+                       </Document>)
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("Enu")
+                Await state.AssertSelectedCompletionItem(displayText:="Enum", isHardSelected:=True)
+                state.SendTab()
+                Assert.Contains("[Enum]", state.GetDocumentText(), StringComparison.Ordinal)
             End Using
         End Function
 

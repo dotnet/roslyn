@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
+            actual = actual.Replace("\"", "\"\"");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+            expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
@@ -1139,6 +1141,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.WhenNull, "WhenNull");
         }
 
+        public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            LogString(nameof(ICoalesceAssignmentOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, nameof(operation.Target));
+            Visit(operation.Value, nameof(operation.Value));
+        }
+
         public override void VisitIsType(IIsTypeOperation operation)
         {
             LogString(nameof(IIsTypeOperation));
@@ -1783,6 +1794,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogSymbol(operation.Local, " (Local Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        {
+            LogString(nameof(IFromEndIndexOperation));
+
+            if (operation.IsLifted)
+            {
+                LogString(" (IsLifted)");
+            }
+
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Operand, nameof(operation.Operand));
+        }
+
+        public override void VisitRangeOperation(IRangeOperation operation)
+        {
+            LogString(nameof(IRangeOperation));
+
+            if (operation.IsLifted)
+            {
+                LogString(" (IsLifted)");
+            }
+
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.LeftOperand, nameof(operation.LeftOperand));
+            Visit(operation.RightOperand, nameof(operation.RightOperand));
         }
 
         #endregion

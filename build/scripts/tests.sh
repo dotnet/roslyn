@@ -51,13 +51,8 @@ elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
         'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll'
         # PortablePdb and lots of other problems
         'Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests.dll'
-        # GetSystemInfo is missing, and other problems
-        # See https://github.com/mono/mono/issues/10678
-        'Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.dll'
         # Many test failures
         'Microsoft.CodeAnalysis.UnitTests.dll'
-        # Multiple test failures
-        'Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.dll'
         # Multiple test failures
         'Microsoft.Build.Tasks.CodeAnalysis.UnitTests.dll'
         # Disabling on assumption
@@ -111,6 +106,13 @@ do
 
     echo Running "${runtime} ${file_name}"
     if [[ "${runtime}" == "dotnet" ]]; then
+        # Disable the VB Semantic tests while we investigate the core dump issue
+        # https://github.com/dotnet/roslyn/issues/29660
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
         runner="dotnet exec --fx-version ${dotnet_runtime_version} --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono

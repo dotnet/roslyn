@@ -154,6 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
+    public virtual TResult VisitRangeExpression(RangeExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
     public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
     {
@@ -1387,6 +1393,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
+    public virtual void VisitRangeExpression(RangeExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
     public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
     {
@@ -2537,7 +2549,8 @@ namespace Microsoft.CodeAnalysis.CSharp
       var openBracketToken = this.VisitToken(node.OpenBracketToken);
       var sizes = this.VisitList(node.Sizes);
       var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-      return node.Update(openBracketToken, sizes, closeBracketToken);
+      var questionToken = this.VisitToken(node.QuestionToken);
+      return node.Update(openBracketToken, sizes, closeBracketToken, questionToken);
     }
 
     public override SyntaxNode VisitPointerType(PointerTypeSyntax node)
@@ -2647,6 +2660,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var argumentList = (BracketedArgumentListSyntax)this.Visit(node.ArgumentList);
       return node.Update(argumentList);
+    }
+
+    public override SyntaxNode VisitRangeExpression(RangeExpressionSyntax node)
+    {
+      var leftOperand = (ExpressionSyntax)this.Visit(node.LeftOperand);
+      var operatorToken = this.VisitToken(node.OperatorToken);
+      var rightOperand = (ExpressionSyntax)this.Visit(node.RightOperand);
+      return node.Update(leftOperand, operatorToken, rightOperand);
     }
 
     public override SyntaxNode VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
@@ -3686,7 +3707,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     public override SyntaxNode VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
     {
       var classOrStructKeyword = this.VisitToken(node.ClassOrStructKeyword);
-      return node.Update(classOrStructKeyword);
+      var questionToken = this.VisitToken(node.QuestionToken);
+      return node.Update(classOrStructKeyword, questionToken);
     }
 
     public override SyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
@@ -4412,7 +4434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
-    public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
+    public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken, SyntaxToken questionToken)
     {
       switch (openBracketToken.Kind())
       {
@@ -4428,14 +4450,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("closeBracketToken");
       }
-      return (ArrayRankSpecifierSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ArrayRankSpecifier((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node, sizes.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node).CreateRed();
+      switch (questionToken.Kind())
+      {
+        case SyntaxKind.QuestionToken:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("questionToken");
+      }
+      return (ArrayRankSpecifierSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ArrayRankSpecifier((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node, sizes.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
     public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SeparatedSyntaxList<ExpressionSyntax> sizes = default(SeparatedSyntaxList<ExpressionSyntax>))
     {
-      return SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), sizes, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+      return SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), sizes, SyntaxFactory.Token(SyntaxKind.CloseBracketToken), default(SyntaxToken));
     }
 
     /// <summary>Creates a new PointerTypeSyntax instance.</summary>
@@ -4651,6 +4681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.PreDecrementExpression:
         case SyntaxKind.AddressOfExpression:
         case SyntaxKind.PointerIndirectionExpression:
+        case SyntaxKind.IndexExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -4665,6 +4696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.MinusMinusToken:
         case SyntaxKind.AmpersandToken:
         case SyntaxKind.AsteriskToken:
+        case SyntaxKind.CaretToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
@@ -4701,6 +4733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
           return SyntaxKind.AmpersandToken;
         case SyntaxKind.PointerIndirectionExpression:
           return SyntaxKind.AsteriskToken;
+        case SyntaxKind.IndexExpression:
+          return SyntaxKind.CaretToken;
         default:
           throw new ArgumentOutOfRangeException();
       }
@@ -4735,6 +4769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.PostIncrementExpression:
         case SyntaxKind.PostDecrementExpression:
+        case SyntaxKind.SuppressNullableWarningExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -4745,6 +4780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       {
         case SyntaxKind.PlusPlusToken:
         case SyntaxKind.MinusMinusToken:
+        case SyntaxKind.ExclamationToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
@@ -4767,6 +4803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
           return SyntaxKind.PlusPlusToken;
         case SyntaxKind.PostDecrementExpression:
           return SyntaxKind.MinusMinusToken;
+        case SyntaxKind.SuppressNullableWarningExpression:
+          return SyntaxKind.ExclamationToken;
         default:
           throw new ArgumentOutOfRangeException();
       }
@@ -4877,6 +4915,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static ElementBindingExpressionSyntax ElementBindingExpression()
     {
       return SyntaxFactory.ElementBindingExpression(SyntaxFactory.BracketedArgumentList());
+    }
+
+    /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
+    {
+      switch (operatorToken.Kind())
+      {
+        case SyntaxKind.DotDotToken:
+          break;
+        default:
+          throw new ArgumentException("operatorToken");
+      }
+      return (RangeExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RangeExpression(leftOperand == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)leftOperand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node, rightOperand == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)rightOperand.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, ExpressionSyntax rightOperand)
+    {
+      return SyntaxFactory.RangeExpression(leftOperand, SyntaxFactory.Token(SyntaxKind.DotDotToken), rightOperand);
+    }
+
+    /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
+    public static RangeExpressionSyntax RangeExpression()
+    {
+      return SyntaxFactory.RangeExpression(default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.DotDotToken), default(ExpressionSyntax));
     }
 
     /// <summary>Creates a new ImplicitElementAccessSyntax instance.</summary>
@@ -5032,6 +5096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.OrAssignmentExpression:
         case SyntaxKind.LeftShiftAssignmentExpression:
         case SyntaxKind.RightShiftAssignmentExpression:
+        case SyntaxKind.CoalesceAssignmentExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -5051,6 +5116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.BarEqualsToken:
         case SyntaxKind.LessThanLessThanEqualsToken:
         case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+        case SyntaxKind.QuestionQuestionEqualsToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
@@ -5093,6 +5159,8 @@ namespace Microsoft.CodeAnalysis.CSharp
           return SyntaxKind.LessThanLessThanEqualsToken;
         case SyntaxKind.RightShiftAssignmentExpression:
           return SyntaxKind.GreaterThanGreaterThanEqualsToken;
+        case SyntaxKind.CoalesceAssignmentExpression:
+          return SyntaxKind.QuestionQuestionEqualsToken;
         default:
           throw new ArgumentOutOfRangeException();
       }
@@ -8801,7 +8869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
-    public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword)
+    public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
     {
       switch (kind)
       {
@@ -8819,14 +8887,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("classOrStructKeyword");
       }
-      return (ClassOrStructConstraintSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(kind, (Syntax.InternalSyntax.SyntaxToken)classOrStructKeyword.Node).CreateRed();
+      switch (questionToken.Kind())
+      {
+        case SyntaxKind.QuestionToken:
+        case SyntaxKind.None:
+          break;
+        default:
+          throw new ArgumentException("questionToken");
+      }
+      return (ClassOrStructConstraintSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(kind, (Syntax.InternalSyntax.SyntaxToken)classOrStructKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
     public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind)
     {
-      return SyntaxFactory.ClassOrStructConstraint(kind, SyntaxFactory.Token(GetClassOrStructConstraintClassOrStructKeywordKind(kind)));
+      return SyntaxFactory.ClassOrStructConstraint(kind, SyntaxFactory.Token(GetClassOrStructConstraintClassOrStructKeywordKind(kind)), default(SyntaxToken));
     }
 
     private static SyntaxKind GetClassOrStructConstraintClassOrStructKeywordKind(SyntaxKind kind)

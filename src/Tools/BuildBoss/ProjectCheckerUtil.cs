@@ -110,8 +110,9 @@ namespace BuildBoss
             }
             catch (Exception ex)
             {
-                data = default(RoslynProjectData);
+                textWriter.WriteLine("Unable to parse Roslyn project properties");
                 textWriter.WriteLine(ex.Message);
+                data = default;
                 return false;
             }
         }

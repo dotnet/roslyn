@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -63,9 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                     // It should not be necessary to repeat analysis after adding this node, because adding a trailing
                     // return in cases where one was missing should never produce different Diagnostics.
+                    IEnumerable<Diagnostic> GetErrorsOnly(IEnumerable<Diagnostic> diags) => diags.Where(d => d.Severity == DiagnosticSeverity.Error);
                     var flowAnalysisDiagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics));
-                    Debug.Assert(flowAnalysisDiagnostics.ToReadOnly().SequenceEqual(diagnostics.ToReadOnly().Skip(initialDiagnosticCount)));
+                    // Ignore warnings since flow analysis reports nullability mismatches.
+                    Debug.Assert(GetErrorsOnly(flowAnalysisDiagnostics.ToReadOnly()).SequenceEqual(GetErrorsOnly(diagnostics.ToReadOnly().Skip(initialDiagnosticCount))));
                     flowAnalysisDiagnostics.Free();
 #endif
                 }

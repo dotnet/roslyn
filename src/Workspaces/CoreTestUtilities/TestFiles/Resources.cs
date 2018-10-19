@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string MissingEndProject2 => GetText("SolutionFiles.MissingEndProject2.sln");
             public static string MissingEndProject3 => GetText("SolutionFiles.MissingEndProject3.sln");
             public static string NonExistentProject => GetText("SolutionFiles.NonExistentProject.sln");
+            public static string ProjectLoadErrorOnMissingDebugType => GetText("SolutionFiles.ProjectLoadErrorOnMissingDebugType.sln");
             public static string SolutionFolder => GetText("SolutionFiles.SolutionFolder.sln");
             public static string VB_and_CSharp => GetText("SolutionFiles.VB_and_CSharp.sln");
         }
@@ -134,6 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Library.csproj");
                 public static string NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project => GetText("NetCoreMultiTFM_ProjectReferenceWithReversedTFMs.Project.csproj");
                 public static string PortableProject => GetText("ProjectFiles.CSharp.PortableProject.csproj");
+                public static string ProjectLoadErrorOnMissingDebugType => GetText("ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
                 public static string ReferencesPortableProject => GetText("ProjectFiles.CSharp.ReferencesPortableProject.csproj");
                 public static string Wildcards => GetText("ProjectFiles.CSharp.Wildcards.csproj");

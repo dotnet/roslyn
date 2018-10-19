@@ -502,8 +502,11 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Index,
+                         WellKnownType.System_Range
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -514,6 +517,10 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
+                        Continue For
+                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                        ' Injected type
                         Continue For
                 End Select
 
@@ -543,8 +550,11 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_NullableAttribute,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Index,
+                         WellKnownType.System_Range
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -556,6 +566,10 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
+                    Case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute,
+                         WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute
+                        ' Injected type
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -565,7 +579,7 @@ End Namespace
         End Sub
 
         <Fact>
-        <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
+               <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllWellKnownTypeMembers()
             Dim refs As MetadataReference() =
             {
@@ -589,6 +603,8 @@ End Namespace
                         ' Not a real value.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
@@ -601,8 +617,16 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Index__ctor,
+                         WellKnownMember.System_Range__All,
+                         WellKnownMember.System_Range__Create,
+                         WellKnownMember.System_Range__FromStart,
+                         WellKnownMember.System_Range__ToEnd
                         ' Not always available.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
+                        ' Injected type available in VB.
                         Continue For
                 End Select
 
@@ -683,6 +707,8 @@ End Namespace
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
@@ -695,8 +721,16 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Index__ctor,
+                         WellKnownMember.System_Range__All,
+                         WellKnownMember.System_Range__Create,
+                         WellKnownMember.System_Range__FromStart,
+                         WellKnownMember.System_Range__ToEnd
                         ' Not always available.
+                        Continue For
+                    Case WellKnownMember.Microsoft_CodeAnalysis_EmbeddedAttribute__ctor
+                        ' Injected type available in VB.
                         Continue For
                 End Select
 

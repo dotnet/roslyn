@@ -9,9 +9,52 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return GetBestType(types, conversions, ref useSiteDiagnostics);
+            var builder = ArrayBuilder<TypeSymbol>.GetInstance(types.Length);
+            foreach (var type in types)
+            {
+                builder.Add(type.TypeSymbol);
+            }
+            var bestType = GetBestType(builder, conversions, ref useSiteDiagnostics);
+            builder.Free();
+            if ((object)bestType == null)
+            {
+                return default;
+            }
+            return TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: conversions.IncludeNullability ? GetIsNullable(types) : null);
+        }
+
+        private static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
+        {
+            bool? isNullable = false;
+            foreach (var type in types)
+            {
+                if (type.IsNull)
+                {
+                    // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
+                    // expressions such as unbound lambdas and typeless tuples.
+                    isNullable = true;
+                    continue;
+                }
+                if (!type.IsReferenceType)
+                {
+                    return null;
+                }
+                switch (type.IsNullable)
+                {
+                    case null:
+                        if (isNullable == false)
+                        {
+                            isNullable = null;
+                        }
+                        break;
+                    case true:
+                        isNullable = true;
+                        break;
+                }
+            }
+            return isNullable;
         }
 
         /// <remarks>
@@ -51,7 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             hadMultipleCandidates = candidateTypes.Count > 1;
 
             // Perform best type inference on candidate types.
-            return InferBestType(candidateTypes.AsImmutableOrEmpty(), conversions, ref useSiteDiagnostics);
+            var builder = ArrayBuilder<TypeSymbol>.GetInstance(candidateTypes.Count);
+            builder.AddRange(candidateTypes);
+            var result = GetBestType(builder, conversions, ref useSiteDiagnostics);
+            builder.Free();
+            return result;
         }
 
         /// <remarks>
@@ -70,47 +117,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // A type is a candidate if all expressions are convertible to that type.
             ArrayBuilder<TypeSymbol> candidateTypes = ArrayBuilder<TypeSymbol>.GetInstance();
-
-            TypeSymbol type1 = expr1.Type;
-
-            if ((object)type1 != null)
+            try
             {
-                if (type1.IsErrorType())
+                TypeSymbol type1 = expr1.Type;
+
+                if ((object)type1 != null)
                 {
-                    candidateTypes.Free();
-                    hadMultipleCandidates = false;
-                    return type1;
+                    if (type1.IsErrorType())
+                    {
+                        hadMultipleCandidates = false;
+                        return type1;
+                    }
+
+                    if (conversions.ClassifyImplicitConversionFromExpression(expr2, type1, ref useSiteDiagnostics).Exists)
+                    {
+                        candidateTypes.Add(type1);
+                    }
                 }
 
-                if (conversions.ClassifyImplicitConversionFromExpression(expr2, type1, ref useSiteDiagnostics).Exists)
+                TypeSymbol type2 = expr2.Type;
+
+                if ((object)type2 != null)
                 {
-                    candidateTypes.Add(type1);
+                    if (type2.IsErrorType())
+                    {
+                        hadMultipleCandidates = false;
+                        return type2;
+                    }
+
+                    if (conversions.ClassifyImplicitConversionFromExpression(expr1, type2, ref useSiteDiagnostics).Exists)
+                    {
+                        candidateTypes.Add(type2);
+                    }
                 }
+
+                hadMultipleCandidates = candidateTypes.Count > 1;
+
+                return GetBestType(candidateTypes, conversions, ref useSiteDiagnostics);
             }
-
-            TypeSymbol type2 = expr2.Type;
-
-            if ((object)type2 != null && type2 != type1)
+            finally
             {
-                if (type2.IsErrorType())
-                {
-                    candidateTypes.Free();
-                    hadMultipleCandidates = false;
-                    return type2;
-                }
-
-                if (conversions.ClassifyImplicitConversionFromExpression(expr1, type2, ref useSiteDiagnostics).Exists)
-                {
-                    candidateTypes.Add(type2);
-                }
+                candidateTypes.Free();
             }
-
-            hadMultipleCandidates = candidateTypes.Count > 1;
-
-            return InferBestType(candidateTypes.ToImmutableAndFree(), conversions, ref useSiteDiagnostics);
         }
 
-        private static TypeSymbol GetBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol GetBestType(ArrayBuilder<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // This code assumes that the types in the list are unique. 
 
@@ -119,18 +170,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might be intransitive?
 
             // Short-circuit some common cases.
-            if (types.IsEmpty)
+            switch (types.Count)
             {
-                return null;
-            }
-            else if (types.Length == 1)
-            {
-                return types[0];
+                case 0:
+                    return null;
+                case 1:
+                    return types[0];
             }
 
             TypeSymbol best = null;
             int bestIndex = -1;
-            for(int i = 0; i < types.Length; i++)
+            for(int i = 0; i < types.Count; i++)
             {
                 TypeSymbol type = types[i];
                 if ((object)best == null)
@@ -146,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         best = null;
                     }
-                    else if ((object)better != (object)best)
+                    else
                     {
                         best = better;
                         bestIndex = i;
@@ -208,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
-                    return MethodTypeInferrer.MergeTupleNames(MethodTypeInferrer.MergeDynamic(type1, type2, conversions.CorLibrary), type2);
+                    return MethodTypeInferrer.Merge(type1, type2, conversions.CorLibrary);
                 }
 
                 return null;

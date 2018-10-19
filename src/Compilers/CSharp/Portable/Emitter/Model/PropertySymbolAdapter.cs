@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.TypeCustomModifiers.As<ICustomModifier>();
+                return this.Type.CustomModifiers.As<ICustomModifier>();
             }
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ITypeReference ISignature.GetType(EmitContext context)
         {
             CheckDefinitionInvariantAllowEmbedded();
-            return ((PEModuleBuilder)context.Module).Translate(this.Type,
+            return ((PEModuleBuilder)context.Module).Translate(this.Type.TypeSymbol,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);
         }

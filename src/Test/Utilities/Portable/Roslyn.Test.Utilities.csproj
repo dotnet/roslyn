@@ -12,18 +12,24 @@
     <RootNamespace></RootNamespace>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <IsShipping>false</IsShipping>
-
-    <!-- 
-      Directory where to deploy ILAsm when targeting .NET Core app.
-      IlasmUtilities relies on ILAsm being deployed to this location.
-    -->
-    <IlasmPublishDir>$(ArtifactsDir)Tools\ILAsm\</IlasmPublishDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+
+    <!-- 
+      Reference ILAsm deploy project to make sure it's built since we need its outputs, but not reference the outputs themselves.
+      Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
+      GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
+    -->
+    <ProjectReference Include="..\..\..\Tools\ILAsm\IlAsmDeploy.csproj" 
+       ReferenceOutputAssembly="false"
+       SkipGetTargetFrameworkProperties="true"
+       GlobalPropertiesToRemove="TargetFramework" 
+       Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -34,6 +40,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.PerformanceTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
@@ -72,6 +79,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" Link="CoreClrAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -109,6 +117,4 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
   </ItemGroup>
-
-  <Import Project="..\..\..\Tools\ILAsm\DeployILAsm.targets"/>
 </Project>

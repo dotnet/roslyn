@@ -1889,7 +1889,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
+            SyntaxToken questionToken = null;
             var syntaxKind = this.CurrentToken.Kind;
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.NewKeyword:
@@ -1899,10 +1901,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.ConstructorConstraint(newToken, open, close);
                 case SyntaxKind.StructKeyword:
                     var structToken = this.EatToken();
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                    {
+                        questionToken = this.EatToken();
+                        questionToken = this.AddError(questionToken, ErrorCode.ERR_UnexpectedToken, questionToken.Text);
+                    }
+
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken, questionToken);
                 case SyntaxKind.ClassKeyword:
                     var classToken = this.EatToken();
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken);
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                    {
+                        questionToken = this.EatToken();
+                    }
+
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
@@ -4509,7 +4524,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, allowQuestionToken: false, sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -5905,6 +5920,11 @@ tryAgain:
 
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
+
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    lastTokenOfType = this.EatToken();
+                }
             }
 
             return result;
@@ -6281,7 +6301,7 @@ tryAgain:
                     while (this.IsPossibleRankAndDimensionSpecifier())
                     {
                         bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out unused);
+                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, allowQuestionToken: true, out unused);
                         ranks.Add(rank);
                         expectSizes = false;
                     }
@@ -6320,7 +6340,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, bool allowQuestionToken, out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6386,7 +6406,13 @@ tryAgain:
                 // Eat the close brace and we're done.
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
-                return _syntaxFactory.ArrayRankSpecifier(open, list, close);
+                SyntaxToken questionToken = null;
+                if (allowQuestionToken && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    questionToken = this.EatToken();
+                }
+
+                return _syntaxFactory.ArrayRankSpecifier(open, list, close, questionToken);
             }
             finally
             {
@@ -8667,7 +8693,7 @@ tryAgain:
             return this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleExpression()
+        private bool IsPossibleExpression(bool allowBinaryExpressions = true, bool allowAssignmentExpressions = true)
         {
             var tk = this.CurrentToken.Kind;
             switch (tk)
@@ -8697,17 +8723,17 @@ tryAgain:
                 case SyntaxKind.ColonColonToken: // bad aliased name
                 case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.StackAllocKeyword:
+                case SyntaxKind.DotDotToken:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
                     return this.IsTrueIdentifier() || (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
                 default:
-                    return IsExpectedPrefixUnaryOperator(tk)
-                        || (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword)
+                    return (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword)
                         || SyntaxFacts.IsAnyUnaryExpression(tk)
-                        || SyntaxFacts.IsBinaryExpression(tk)
-                        || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk);
+                        || (allowBinaryExpressions && SyntaxFacts.IsBinaryExpression(tk))
+                        || (allowAssignmentExpressions && SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
             }
         }
 
@@ -8753,6 +8779,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                 case SyntaxKind.CoalesceExpression:
                     return true;
                 default:
@@ -8775,6 +8802,7 @@ tryAgain:
             Equality,
             Relational,
             Shift,
+            Range,
             Additive,
             Mutiplicative,
             Unary,
@@ -8799,6 +8827,7 @@ tryAgain:
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                     return Precedence.Assignment;
                 case SyntaxKind.CoalesceExpression:
                     return Precedence.Coalescing;
@@ -8847,6 +8876,7 @@ tryAgain:
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
                 case SyntaxKind.AwaitExpression:
+                case SyntaxKind.IndexExpression:
                     return Precedence.Unary;
                 case SyntaxKind.CastExpression:
                     return Precedence.Cast;
@@ -8854,6 +8884,8 @@ tryAgain:
                     return Precedence.PointerIndirection;
                 case SyntaxKind.AddressOfExpression:
                     return Precedence.AddressOf;
+                case SyntaxKind.RangeExpression:
+                    return Precedence.Range;
                 default:
                     return Precedence.Expression;
             }
@@ -8966,6 +8998,25 @@ tryAgain:
                 var operand = this.ParseSubExpression(newPrecedence);
                 leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
             }
+            else if (tk == SyntaxKind.DotDotToken)
+            {
+                // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
+                var opToken = this.EatToken();
+                opKind = SyntaxKind.RangeExpression;
+                newPrecedence = GetPrecedence(opKind);
+
+                ExpressionSyntax rightOperand;
+                if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
+                {
+                    rightOperand = this.ParseSubExpression(newPrecedence);
+                }
+                else
+                {
+                    rightOperand = null;
+                }
+
+                leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand);
+            }
             else if (IsAwaitExpression())
             {
                 opKind = SyntaxKind.AwaitExpression;
@@ -9019,6 +9070,10 @@ tryAgain:
                 {
                     opKind = SyntaxFacts.GetAssignmentExpression(tk);
                     isAssignmentOperator = true;
+                }
+                else if (tk == SyntaxKind.DotDotToken)
+                {
+                    opKind = SyntaxKind.RangeExpression;
                 }
                 else
                 {
@@ -9089,11 +9144,38 @@ tryAgain:
                         ExpressionSyntax rhs = opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword
                             ? rhs = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
                             : rhs = this.ParseSubExpression(newPrecedence);
+
+                        if (opKind == SyntaxKind.CoalesceAssignmentExpression)
+                        {
+                            opToken = CheckFeatureAvailability(opToken, MessageID.IDS_FeatureCoalesceAssignmentExpression);
+                        }
+
                         leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rhs);
                     }
                     else
                     {
-                        leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
+                        if (tk == SyntaxKind.DotDotToken)
+                        {
+                            // Operator ".." here can either be a binary or a postfix unary operator:
+                            Debug.Assert(opKind == SyntaxKind.RangeExpression);
+
+                            ExpressionSyntax rightOperand;
+                            if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
+                            {
+                                newPrecedence = GetPrecedence(opKind);
+                                rightOperand = this.ParseSubExpression(newPrecedence);
+                            }
+                            else
+                            {
+                                rightOperand = null;
+                            }
+
+                            leftOperand = _syntaxFactory.RangeExpression(leftOperand, opToken, rightOperand);
+                        }
+                        else
+                        {
+                            leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
+                        }
                     }
                 }
             }
@@ -9453,6 +9535,12 @@ tryAgain:
                         }
 
                         goto default;
+
+                    case SyntaxKind.ExclamationToken:
+                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
+                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureStaticNullChecking);
+                        break;
+
                     default:
                         return expr;
                 }
@@ -10205,6 +10293,7 @@ tryAgain:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:
                 case SyntaxKind.GreaterThanEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
                 case SyntaxKind.PlusToken:

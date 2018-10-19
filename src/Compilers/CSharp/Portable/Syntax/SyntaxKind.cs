@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         QuestionToken = 8219,
         HashToken = 8220,
         SlashToken = 8221,
+        DotDotToken = 8222,
 
         // additional xml tokens
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         MinusEqualsToken = 8281,
         CaretEqualsToken = 8282,
         PercentEqualsToken = 8283,
+        QuestionQuestionEqualsToken = 8284,
 
         // Keywords
         BoolKeyword = 8304,
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
-        InterpolatedVerbatimStringStartToken = 8484,    // $@"
+        InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
 
         // Other
         UnderscoreToken = 8491,
@@ -331,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
+        RangeExpression = 8658,
 
         // binary expressions
         AddExpression = 8668,
@@ -374,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         OrAssignmentExpression = 8722,
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
+        CoalesceAssignmentExpression = 8725,
 
         // unary expressions
         UnaryPlusExpression = 8730,
@@ -387,6 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PostIncrementExpression = 8738,
         PostDecrementExpression = 8739,
         AwaitExpression = 8740,
+        IndexExpression = 8741,
 
         // primary expression
         ThisExpression = 8746,
@@ -563,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefExpression = 9050,
         RefType = 9051,
         ThrowExpression = 9052,
-
         ImplicitStackAllocArrayCreationExpression = 9053,
+        SuppressNullableWarningExpression = 9054,
     }
 }

@@ -189,14 +189,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new InvalidOperationException($"Unexpected failure in Code Model while updating node keys {oldNodeKey} -> {newNodeKey}");
             }
 
+            // If we're updating this element with the same node key as an element that's already in the table,
+            // just remove the old element. The old element will continue to function (through its node key), but
+            // the new element will replace it in the cache.
+            if (_codeElementTable.ContainsKey(newNodeKey))
+            {
+                _codeElementTable.Remove(newNodeKey);
+            }
+
             _codeElementTable.Add(newNodeKey, codeElement);
         }
 
         internal void OnCodeElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
         {
-            // If we're creating an element with the same node key as an element that's already in the table, just remove
-            // the old element. The old element will continue to function but the new element will replace it in the cache.
-
+            // If we're updating this element with the same node key as an element that's already in the table,
+            // just remove the old element. The old element will continue to function (through its node key), but
+            // the new element will replace it in the cache.
             if (_codeElementTable.ContainsKey(nodeKey))
             {
                 _codeElementTable.Remove(nodeKey);
@@ -332,7 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             });
         }
 
-        private void ApplyChanges(Microsoft.CodeAnalysis.Workspace workspace, Document document)
+        private void ApplyChanges(Workspace workspace, Document document)
         {
             if (IsBatchOpen)
             {

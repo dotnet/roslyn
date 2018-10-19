@@ -1762,7 +1762,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public async Task TestParseOptions_CSharp_LanguageVersion_Latest()
+        public async Task TestParseOptions_CSharp_LanguageVersion_Default()
         {
             CreateCSharpFiles();
             await AssertCSParseOptionsAsync(CS.LanguageVersion.CSharp7, options => options.LanguageVersion);
@@ -3029,6 +3029,20 @@ class C1
                 var library2Project = solution.Projects.FirstOrDefault(p => p.Name == "Library2");
                 Assert.NotNull(library2Project);
                 Assert.Empty(library2Project.AllProjectReferences);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestOpenProject_CSharp_WithMissingDebugType()
+        {
+            CreateFiles(new FileSet(
+                (@"ProjectLoadErrorOnMissingDebugType.sln", Resources.SolutionFiles.ProjectLoadErrorOnMissingDebugType),
+                (@"ProjectLoadErrorOnMissingDebugType\ProjectLoadErrorOnMissingDebugType.csproj", Resources.ProjectFiles.CSharp.ProjectLoadErrorOnMissingDebugType)));
+            var solutionFilePath = GetSolutionFileName(@"ProjectLoadErrorOnMissingDebugType.sln");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                await workspace.OpenSolutionAsync(solutionFilePath);
             }
         }
 

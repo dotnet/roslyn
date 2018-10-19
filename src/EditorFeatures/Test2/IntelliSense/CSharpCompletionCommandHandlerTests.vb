@@ -1534,11 +1534,12 @@ class C
         End Function
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoKeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                        <Workspace>
+                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
+                                <Document>
 class Goo
 {
     void Test()
@@ -1551,13 +1552,41 @@ class Goo
     {
     }
 }
-                              </Document>)
+                              </Document>
+                            </Project>
+                        </Workspace>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num:"))
                 Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
                 Assert.False(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
+            End Using
+        End Function
+
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function KeywordsOrSymbolsAfterNamedParameter() As Task
+            Using state = TestState.CreateCSharpTestState(
+                                <Document>
+class Goo
+{
+    void Test()
+    {
+        object m = null;
+        Method(obj:m, $$
+    }
+
+    void Method(object obj, int num = 23, string str = "")
+    {
+    }
+}
+                              </Document>, languageVersion:=LanguageVersion.CSharp7)
+
+                state.SendTypeChars("a")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 
@@ -1900,6 +1929,30 @@ public class Goo
         End Function
 
         <WorkItem(545590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545590")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestOverrideDefaultParameter_CSharp7() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    public virtual void Goo<S>(S x = default(S))
+    {
+    }
+}
+
+class D : C
+{
+    override $$
+}
+            ]]></Document>,
+                   languageVersion:=LanguageVersion.CSharp7)
+                state.SendTypeChars(" Goo")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOverrideDefaultParameter(completionImplementation As CompletionImplementation) As Task

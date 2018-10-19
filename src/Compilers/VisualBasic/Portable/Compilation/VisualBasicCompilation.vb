@@ -1672,18 +1672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
-            If EventQueue Is Nothing Then
-                Return False
-            End If
-
-            For Each location As Location In symbol.Locations
-                If location.SourceTree IsNot Nothing Then
-                    Debug.Assert(AllSyntaxTrees.Contains(location.SourceTree))
-                    Return True
-                End If
-            Next
-
-            Return False
+            Return EventQueue IsNot Nothing AndAlso symbol.IsInSource()
         End Function
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
@@ -1880,6 +1869,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeSymbol = GetSpecialType(type)
             Dim diagnostic = typeSymbol.GetUseSiteErrorInfo
             Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
+        End Function
+
+        Private Protected Overrides Function IsSymbolAccessibleWithinCore(symbol As ISymbol, within As ISymbol, throughType As ITypeSymbol) As Boolean
+            Dim symbol0 = symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol))
+            Dim within0 = within.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(within))
+            Dim throughType0 = throughType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(throughType))
+            Return If(within0.Kind = SymbolKind.Assembly,
+                AccessCheck.IsSymbolAccessible(symbol0, DirectCast(within0, AssemblySymbol), useSiteDiagnostics:=Nothing),
+                AccessCheck.IsSymbolAccessible(symbol0, DirectCast(within0, NamedTypeSymbol), throughType0, useSiteDiagnostics:=Nothing))
+        End Function
+
+        <Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", True)>
+        Friend Shadows Function IsSymbolAccessibleWithin(symbol As ISymbol, within As ISymbol, Optional throughType As ITypeSymbol = Nothing) As Boolean
+            Throw New NotImplementedException
         End Function
 
 #End Region

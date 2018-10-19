@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfoOpt.MoveNextMethod,
                 (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                 enumeratorInfoOpt.NeedsDisposeMethod ? (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose) : null,
-                enumeratorInfoOpt.ElementType,
+                enumeratorInfoOpt.ElementType.TypeSymbol,
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
         }
