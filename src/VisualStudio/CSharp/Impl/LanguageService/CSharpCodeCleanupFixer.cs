@@ -309,52 +309,47 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 cancellationToken = cancellationTokenSource.Token;
 
                 var buffer = textBufferScope.SubjectBuffer;
-                if (buffer != null)
+                using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
                 {
-                    using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
+                    var progressTracker = new ProgressTracker((description, completed, total) =>
                     {
-                        var progressTracker = new ProgressTracker((description, completed, total) =>
+                        if (scope != null)
                         {
-                            if (scope != null)
-                            {
-                                scope.Description = description;
-                                scope.Progress.Report(new ProgressInfo(completed, total));
-                            }
-                        });
+                            scope.Description = description;
+                            scope.Progress.Report(new ProgressInfo(completed, total));
+                        }
+                    });
 
-                        var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                    var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
-                        var allDiagnostics = codeCleanupService.GetAllDiagnostics();
+                    var allDiagnostics = codeCleanupService.GetAllDiagnostics();
 
-                        var enabedDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
+                    var enabedDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
 
-                        foreach (var diagnostic in allDiagnostics.Diagnostics)
+                    foreach (var diagnostic in allDiagnostics.Diagnostics)
+                    {
+                        foreach (var diagnosticId in diagnostic.DiagnosticIds)
                         {
-                            foreach (var diagnosticId in diagnostic.DiagnosticIds)
+                            if (context.EnabledFixIds.IsFixIdEnabled(diagnosticId))
                             {
-                                if (context.EnabledFixIds.IsFixIdEnabled(diagnosticId))
-                                {
-                                    enabedDiagnosticSets.Add(diagnostic);
-                                    break;
-                                }
+                                enabedDiagnosticSets.Add(diagnostic);
+                                break;
                             }
                         }
-
-                        var isRemoveUnusedUsingsEnabled = context.EnabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
-                        var isSortUsingsEnabled = context.EnabledFixIds.IsFixIdEnabled(SortImportsFixId);
-                        var enabledDiagnostics = new EnabledDiagnosticOptions(enabedDiagnosticSets.ToImmutableArray(),
-                            new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
-
-                        var newDoc = await codeCleanupService.CleanupAsync(
-                            document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(true);
-
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        return document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution, progressTracker);
                     }
-                }
 
-                return false;
+                    var isRemoveUnusedUsingsEnabled = context.EnabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
+                    var isSortUsingsEnabled = context.EnabledFixIds.IsFixIdEnabled(SortImportsFixId);
+                    var enabledDiagnostics = new EnabledDiagnosticOptions(enabedDiagnosticSets.ToImmutableArray(),
+                        new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
+
+                    var newDoc = await codeCleanupService.CleanupAsync(
+                        document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(true);
+
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    return document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution, progressTracker);
+                }
             }
         }
     }

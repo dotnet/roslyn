@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
             // and one for 'remove/sort usings' if we're going to run that.
             var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled || 
-                                           enabledDiagnostics.OrganizeUsings.IsSortImportsEnabled;
+                enabledDiagnostics.OrganizeUsings.IsSortImportsEnabled;
             if (organizeUsings)
             {
                 progressTracker.AddItems(1);
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         public EnabledDiagnosticOptions GetAllDiagnostics()
         {
             var diagnosticSets = _optionDiagnosticsMappings.SelectAsArray(i => i.diagnosticSet);
-            return new EnabledDiagnosticOptions(diagnosticSets, new OrganizeUsingsSet(true, true));
+            return new EnabledDiagnosticOptions(diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
         }
 
         public EnabledDiagnosticOptions GetEnabledDiagnostics(OptionSet optionSet)
