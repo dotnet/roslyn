@@ -84,8 +84,7 @@ prefer auto properties;</source>
 Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
-Automatically format on paste;
-Format Document Settings;</source>
+Automatically format on paste;</source>
         <target state="needs-review-translation">Anweisung bei Semikolon automatisch formatieren;Block bei geschweifter Klammer automatisch formatieren;Beim Einfügen automatisch formatieren;Codebereinigung;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
