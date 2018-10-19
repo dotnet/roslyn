@@ -25,6 +25,22 @@ class C
         }
 
         [Fact]
+        public void FakeRangeIndexerStringBothFromEnd()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        Console.WriteLine(s[^4..^1]);
+    }
+}", TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "cde");
+        }
+
+        [Fact]
         public void IndexIndexerStringTwoArgs()
         {
             var comp = CreateCompilationWithIndex(@"
@@ -378,11 +394,17 @@ class C
     public static void Main()
     {
         var x = new[] { 11 };
+        M();
         Console.WriteLine(x[^1]);
+    }
+
+    static void M()
+    {
         Console.WriteLine(""test""[^1]);
     }
 }", options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/30620
             // We check for the well-known member in lowering, so you won't normally see this
             // error during binding. This is fine for a preview-only feature.
             comp.VerifyEmitDiagnostics(
@@ -390,9 +412,14 @@ class C
                 //     {
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
         var x = new[] { 11 };
+        M();
         Console.WriteLine(x[^1]);
+    }").WithArguments("System.Index", "Value").WithLocation(28, 5),
+                // (35,5): error CS0656: Missing compiler required member 'System.Index.Value'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
         Console.WriteLine(""test""[^1]);
-    }").WithArguments("System.Index", "Value").WithLocation(28, 5));
+    }").WithArguments("System.Index", "Value").WithLocation(35, 5));
         }
 
         [Fact]
@@ -518,6 +545,30 @@ class C
             CompileAndVerify(comp, expectedOutput: @"2
 3
 11");
+        }
+
+        [Fact]
+        public void FakeRangeBothFromEndIndexerArray()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var arr = new[] { 1, 2, 3, 11 };
+        var result = M(arr);
+        Console.WriteLine(result.Length);
+        foreach (var x in result)
+        {
+            Console.WriteLine(x);
+        }
+    }
+    public static int[] M(int[] array) => array[^3..^1];
+}", TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"2
+2
+3");
         }
 
         [Fact]

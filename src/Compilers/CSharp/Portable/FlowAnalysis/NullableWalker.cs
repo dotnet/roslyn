@@ -3673,7 +3673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29964 Update indexer based on inferred receiver type.
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            // PROTOTYPE: REMOVE BEFORE SHIPPING DEV16
+            // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
             if (node.Arguments.Length == 1 &&
                 node.Arguments[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
             {
