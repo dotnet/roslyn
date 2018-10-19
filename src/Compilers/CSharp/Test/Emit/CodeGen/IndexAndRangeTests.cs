@@ -196,7 +196,7 @@ class C
   IL_0038:  ldloc.1
   IL_0039:  callvirt   ""int string.Length.get""
   IL_003e:  ldloca.s   V_0
-  IL_0040:  call       ""System.Index System.Range.End.get""
+  IL_0040:  call       ""System.Index System.Range.Start.get""
   IL_0045:  stloc.s    V_4
   IL_0047:  ldloca.s   V_4
   IL_0049:  call       ""int System.Index.Value.get""
@@ -451,7 +451,7 @@ class C
   IL_0039:  ldlen
   IL_003a:  conv.i4
   IL_003b:  ldloca.s   V_0
-  IL_003d:  call       ""System.Index System.Range.End.get""
+  IL_003d:  call       ""System.Index System.Range.Start.get""
   IL_0042:  stloc.s    V_5
   IL_0044:  ldloca.s   V_5
   IL_0046:  call       ""int System.Index.Value.get""
@@ -575,7 +575,7 @@ class C
   IL_0033:  ldlen
   IL_0034:  conv.i4
   IL_0035:  ldloca.s   V_0
-  IL_0037:  call       ""System.Index System.Range.End.get""
+  IL_0037:  call       ""System.Index System.Range.Start.get""
   IL_003c:  stloc.s    V_5
   IL_003e:  ldloca.s   V_5
   IL_0040:  call       ""int System.Index.Value.get""
@@ -675,7 +675,7 @@ class C
   IL_0033:  ldlen
   IL_0034:  conv.i4
   IL_0035:  ldloca.s   V_0
-  IL_0037:  call       ""System.Index System.Range.End.get""
+  IL_0037:  call       ""System.Index System.Range.Start.get""
   IL_003c:  stloc.s    V_5
   IL_003e:  ldloca.s   V_5
   IL_0040:  call       ""int System.Index.Value.get""
