@@ -199,25 +199,32 @@ namespace Microsoft.CodeAnalysis
 
         private DiffAction GetNextAction()
         {
-            bool oldIsToken = _oldNodes.Peek().IsToken;
-            bool newIsToken = _newNodes.Peek().IsToken;
+            SyntaxNodeOrToken oldNode = _oldNodes.Peek();
+            SyntaxNodeOrToken newNode = _newNodes.Peek();
+
+            bool oldIsToken = oldNode.IsToken;
+            bool newIsToken = newNode.IsToken;
 
             // look for exact match
-            int indexOfOldInNew;
-            int similarityOfOldInNew;
-            int indexOfNewInOld;
-            int similarityOfNewInOld;
-
-            FindBestMatch(_newNodes, _oldNodes.Peek(), out indexOfOldInNew, out similarityOfOldInNew);
-            FindBestMatch(_oldNodes, _newNodes.Peek(), out indexOfNewInOld, out similarityOfNewInOld);
+            FindBestMatch(_newNodes, oldNode, out int indexOfOldInNew, out int similarityOfOldInNew);
+            FindBestMatch(_oldNodes, newNode, out int indexOfNewInOld, out int similarityOfNewInOld);
 
             if (indexOfOldInNew == 0 && indexOfNewInOld == 0)
             {
                 // both first nodes are somewhat similar to each other
 
-                if (AreIdentical(_oldNodes.Peek(), _newNodes.Peek()))
+                if (AreIdentical(oldNode, newNode))
                 {
                     // they are identical, so just skip over both first new and old nodes.
+                    return new DiffAction(DiffOp.SkipBoth, 1);
+                }
+                else if (oldNode.FullSpan.Length == newNode.FullSpan.Length &&
+                         (similarityOfOldInNew >= newNode.Span.Length ||
+                          similarityOfNewInOld >= oldNode.Span.Length) &&
+                         oldNode.ToFullString() == newNode.ToFullString())
+                {
+                    // textually identical, even though they have different green nodes;
+                    // skip over both too
                     return new DiffAction(DiffOp.SkipBoth, 1);
                 }
                 else if (!oldIsToken && !newIsToken)
@@ -248,7 +255,7 @@ namespace Microsoft.CodeAnalysis
                         // look ahead to see if the old node also appears again later in its own list
                         int indexOfOldInOld;
                         int similarityOfOldInOld;
-                        FindBestMatch(_oldNodes, _oldNodes.Peek(), out indexOfOldInOld, out similarityOfOldInOld, 1);
+                        FindBestMatch(_oldNodes, oldNode, out indexOfOldInOld, out similarityOfOldInOld, 1);
 
                         // don't declare an insert if the node also appeared later in the original list
                         var oldHasSimilarSibling = (indexOfOldInOld >= 1 && similarityOfOldInOld >= similarityOfOldInNew);
@@ -260,7 +267,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (!newIsToken)
                     {
-                        if (AreSimilar(_oldNodes.Peek(), _newNodes.Peek()))
+                        if (AreSimilar(oldNode, newNode))
                         {
                             return new DiffAction(DiffOp.ReduceBoth, 1);
                         }
@@ -282,7 +289,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (!oldIsToken)
                     {
-                        if (AreSimilar(_oldNodes.Peek(), _newNodes.Peek()))
+                        if (AreSimilar(oldNode, newNode))
                         {
                             return new DiffAction(DiffOp.ReduceBoth, 1);
                         }
@@ -304,8 +311,8 @@ namespace Microsoft.CodeAnalysis
                 if (!oldIsToken && !newIsToken)
                 {
                     // check similarity anyway
-                    var sim = GetSimilarity(_oldNodes.Peek(), _newNodes.Peek());
-                    if (sim >= Math.Max(_oldNodes.Peek().FullSpan.Length, _newNodes.Peek().FullSpan.Length))
+                    var sim = GetSimilarity(oldNode, newNode);
+                    if (sim >= Math.Max(oldNode.FullSpan.Length, newNode.FullSpan.Length))
                     {
                         return new DiffAction(DiffOp.ReduceBoth, 1);
                     }

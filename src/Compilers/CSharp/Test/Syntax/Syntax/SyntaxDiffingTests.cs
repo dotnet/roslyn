@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -48,6 +47,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(6, 1), changes[0].Span);
             Assert.Equal("B", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestDiffClassWithWhitespaceChanged()
+        {
+            var oldTree = SyntaxFactory.ParseSyntaxTree(" class A\r\n{\r\n} ");
+            // this approach ensures tokens are not interned
+            var newTree = SyntaxFactory.SyntaxTree(
+                SyntaxFactory.CompilationUnit().AddMembers(
+                    SyntaxFactory.ClassDeclaration("A")).NormalizeWhitespace());
+
+            var changes = newTree.GetChanges(oldTree);
+            Assert.NotNull(changes);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(0, 1), changes[0].Span);
+            Assert.Equal("", changes[0].NewText);
+            Assert.Equal(new TextSpan(14, 1), changes[1].Span);
+            Assert.Equal("", changes[0].NewText);
         }
 
         [Fact]
