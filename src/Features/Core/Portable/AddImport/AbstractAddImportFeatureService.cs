@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, SyntaxNode node, ISyntaxFactsService syntaxFactsService, CancellationToken cancellationToken)
+        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, SyntaxNode node, ISyntaxFactsService syntaxFactsService, CancellationToken cancellationToken)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(node, syntaxFactsService);
 
