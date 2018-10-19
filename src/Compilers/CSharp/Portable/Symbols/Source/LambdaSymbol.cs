@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
             _refKind = refKind;
-            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(NonNullTypesFalseContext.Instance, ReturnTypeIsBeingInferred) : returnType;
+            _returnType = returnType.IsNull ? TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, ReturnTypeIsBeingInferred) : returnType;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.

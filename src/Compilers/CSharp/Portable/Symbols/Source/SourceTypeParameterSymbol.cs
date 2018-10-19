@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         Debug.Assert(overriddenTypeParameters.Length == overridingTypeParameters.Length);
 
-                        var typeMap = new TypeMap(nonNullTypesContext: _overridingMethod, overriddenTypeParameters, overridingTypeParameters, allowAlpha: true);
+                        var typeMap = new TypeMap(overriddenTypeParameters, overridingTypeParameters, allowAlpha: true);
                         Interlocked.CompareExchange(ref _lazyTypeMap, typeMap, null);
                     }
                 }

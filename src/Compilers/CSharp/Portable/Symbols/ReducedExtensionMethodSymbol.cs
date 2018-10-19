@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(reducedFrom.ParameterCount > 0);
 
             _reducedFrom = reducedFrom;
-            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, nonNullTypesContext: reducedFrom, out _typeParameters);
+            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArguments);
         }
 
