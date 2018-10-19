@@ -30,13 +30,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
-        protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, SyntaxNode node);
+        protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, SyntaxNode node, ISyntaxFactsService syntaxFactsService);
         protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
         protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
         protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
 
@@ -542,5 +541,20 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             throw ExceptionUtilities.Unreachable;
         }
+
+        protected ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, SyntaxNode node, ISyntaxFactsService syntaxFactsService, CancellationToken cancellationToken)
+        {
+            var awaitExpression = FirstAwaitExpressionAncestor(node, syntaxFactsService);
+
+            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(node);
+
+            return semanticModel.GetTypeInfo(innerExpression).Type;
+        }
+
+        protected bool AncestorOrSelfIsAwaitExpression(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
+            => FirstAwaitExpressionAncestor(node, syntaxFactsService) != null;
+
+        private SyntaxNode FirstAwaitExpressionAncestor(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
+            => node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFactsService.IsAwaitExpression(n));
     }
 }

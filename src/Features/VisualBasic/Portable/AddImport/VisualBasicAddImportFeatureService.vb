@@ -104,9 +104,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return False
         End Function
 
-        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, node As SyntaxNode, syntaxFactsService As ISyntaxFactsService) As Boolean
             Return diagnosticId = BC36610 And
-                node.AncestorsAndSelf().Any(Function(n) TypeOf n Is AwaitExpressionSyntax)
+                AncestorOrSelfIsAwaitExpression(node, syntaxFactsService)
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
@@ -211,14 +211,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function GetDeconstructInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
             Return Nothing
-        End Function
-
-        Protected Overrides Function GetAwaitInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
-            Dim await = node.AncestorsAndSelf().OfType(Of AwaitExpressionSyntax)().First()
-
-            Dim expression = await.Expression
-
-            Return semanticModel.GetTypeInfo(expression).Type
         End Function
 
         Protected Overrides Function GetQueryClauseInfo(

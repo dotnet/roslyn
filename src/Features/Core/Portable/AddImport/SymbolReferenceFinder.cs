@@ -473,12 +473,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _node))
+                if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _node, _syntaxFacts))
                 {
-                    var type = _owner.GetAwaitInfo(_semanticModel, _node, searchScope.CancellationToken);
+                    var type = _owner.GetAwaitInfo(_semanticModel, _node, _syntaxFacts, searchScope.CancellationToken);
                     if (type != null)
                     {
-                        return await GetReferencesForExtensionMethodAsync(searchScope, "GetAwaiter", type,
+                        return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
                             m => m.IsValidGetAwaiter()).ConfigureAwait(false); 
                     }
                 }
