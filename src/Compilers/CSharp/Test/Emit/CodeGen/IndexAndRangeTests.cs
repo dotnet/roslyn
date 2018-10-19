@@ -9,6 +9,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class IndexAndRangeTests : CSharpTestBase
     {
         [Fact]
+        public void RangeIndexerStringFromEndStart()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var s = ""abcdef"";
+        Console.WriteLine(s[^2..]);
+    }
+}", options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "ef");
+        }
+
+        [Fact]
         public void IndexIndexerStringTwoArgs()
         {
             var comp = CreateCompilationWithIndex(@"
@@ -478,6 +494,30 @@ class C
   IL_009d:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void FakeRangeStartFromEndIndexerArray()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        var arr = new[] { 1, 2, 3, 11 };
+        var result = M(arr);
+        Console.WriteLine(result.Length);
+        foreach (var x in result)
+        {
+            Console.WriteLine(x);
+        }
+    }
+    public static int[] M(int[] array) => array[^2..];
+}", TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"2
+3
+11");
         }
 
         [Fact]

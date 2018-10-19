@@ -6804,9 +6804,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var resultType = rank == 1 &&
-                convertedArguments[0].Type == GetWellKnownType(WellKnownType.System_Range, ref useSiteDiagnostics)
+                convertedArguments[0].Type == Compilation.GetWellKnownType(WellKnownType.System_Range)
                 ? arrayType
                 : arrayType.ElementType.TypeSymbol;
 
@@ -6839,7 +6838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
             }
 
-            if (result == null)
+            if (result is null)
             {
                 // Give the error that would be given upon conversion to int32.
                 NamedTypeSymbol int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
@@ -6860,19 +6859,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             TypeSymbol type = GetWellKnownType(wellKnownType, ref useSiteDiagnostics);
 
-            if (!type.IsErrorType())
+            if (type.IsErrorType())
             {
-                var attemptDiagnostics = DiagnosticBag.GetInstance();
-                var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
-                if (!(result is null))
-                {
-                    diagnostics.AddRange(attemptDiagnostics);
-                }
-                attemptDiagnostics.Free();
-                return result;
+                return null;
             }
 
-            return null;
+            var attemptDiagnostics = DiagnosticBag.GetInstance();
+            var result = TryImplicitConversionToArrayIndex(expr, type, node, attemptDiagnostics);
+            if (!(result is null))
+            {
+                diagnostics.AddRange(attemptDiagnostics);
+            }
+            attemptDiagnostics.Free();
+            return result;
         }
 
         private BoundExpression TryImplicitConversionToArrayIndex(BoundExpression expr, SpecialType specialType, SyntaxNode node, DiagnosticBag diagnostics)
@@ -7157,19 +7156,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!analyzedArguments.HasErrors)
                 {
-                    // PROTOTYPE: REMOVE BEFORE SHIPPING DEV16
+                    // https://github.com/dotnet/roslyn/issues/30620
                     // Pretend like there are indexers that support range and index
                     if (receiverOpt?.Type.SpecialType == SpecialType.System_String &&
                         analyzedArguments.Arguments.Count == 1)
                     {
-                        HashSet<DiagnosticInfo> diags = null;
                         var argType = analyzedArguments.Arguments[0].Type;
                         TypeSymbol resultType = null;
-                        if (argType == GetWellKnownType(WellKnownType.System_Index, ref diags))
+                        if (argType == Compilation.GetWellKnownType(WellKnownType.System_Index))
                         {
                             resultType = GetSpecialType(SpecialType.System_Char, diagnostics, syntax);
                         }
-                        else if (argType == GetWellKnownType(WellKnownType.System_Range, ref diags))
+                        else if (argType == Compilation.GetWellKnownType(WellKnownType.System_Range))
                         {
                             resultType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                         }
@@ -7177,7 +7175,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!(resultType is null))
                         {
                             var args = analyzedArguments.Arguments.ToImmutable();
-                            
+
+                            overloadResolutionResult.Free();
                             return new BoundIndexerAccess(
                                 syntax,
                                 receiverOpt,

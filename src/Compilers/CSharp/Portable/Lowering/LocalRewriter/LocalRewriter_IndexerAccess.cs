@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
 
-            // PROTOTYPE: REMOVE BEFORE SHIPPING DEV16
+            // https://github.com/dotnet/roslyn/issues/30620
             if (rewrittenReceiver?.Type.SpecialType == SpecialType.System_String &&
                 rewrittenArguments.Length == 1 && rewrittenArguments[0].Type.SpecialType == SpecialType.None)
             {
@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stringAssign),
                         F.Conditional(
                             F.Property(indexLocal, indexFromEndSymbol),
-                            F.Property(stringLocal, node.Indexer,
+                            F.Indexer(stringLocal, node.Indexer,
                                 F.Binary(
                                     BinaryOperatorKind.Subtraction,
                                     F.SpecialType(SpecialType.System_Int32),
                                     F.Call(stringLocal, F.SpecialMethod(SpecialMember.System_String__Length)),
                                     indexValueExpr)),
-                            F.Property(stringLocal, node.Indexer, indexValueExpr),
+                            F.Indexer(stringLocal, node.Indexer, indexValueExpr),
                             F.SpecialType(SpecialType.System_Char)));
                 }
                 else if (argType == _compilation.GetWellKnownType(WellKnownType.System_Range))
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BinaryOperatorKind.Subtraction,
                                 F.SpecialType(SpecialType.System_Int32),
                                 F.Call(stringLocal, F.SpecialMethod(SpecialMember.System_String__Length)),
-                                F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
+                                F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
                             F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
                             F.SpecialType(SpecialType.System_Int32)),
                         out BoundAssignmentOperator startAssign);

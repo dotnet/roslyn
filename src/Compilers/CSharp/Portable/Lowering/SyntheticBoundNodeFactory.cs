@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
         }
 
-        public BoundExpression Property(BoundExpression receiverOpt, PropertySymbol property, BoundExpression arg0)
+        public BoundExpression Indexer(BoundExpression receiverOpt, PropertySymbol property, BoundExpression arg0)
         {
             Debug.Assert((receiverOpt == null) == property.IsStatic);
             return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?

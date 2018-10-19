@@ -527,21 +527,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
+            // https://github.com/dotnet/roslyn/issues/30620
             // If the array access index is of type System.Index or System.Range
-            // we need to translate it into a call into an actual indexer, instead
+            // we need to emit code as if there were a real indexer, instead
             // of a simple array element access.
 
-            if (this.EmitModule is null || 
-                node.Indices.Length != 1 ||
-                node.Indices[0].Type.SpecialType != SpecialType.None)
+            if (node.Indices.Length != 1)
             {
                 return base.VisitArrayAccess(node);
             }
 
-            // PROTOTYPE: THIS MUST BE REMOVED BEFORE DEV16
-            // Since it takes a long time to update mscorlib we fake up the right
-            // code to pretend there are two indexers that support Index and Range
-            // on arrays.
+            TypeSymbol rawIndexType = node.Indices[0].Type;
+            if (!(rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Index) ||
+                  rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Range)))
+            {
+                return base.VisitArrayAccess(node);
+            }
 
             var syntax = node.Syntax;
             var F = _factory;
@@ -603,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BinaryOperatorKind.Subtraction,
                             F.SpecialType(SpecialType.System_Int32),
                             F.ArrayLength(arrayLocal),
-                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
+                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
                         F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
                         F.SpecialType(SpecialType.System_Int32)),
                     out BoundAssignmentOperator startAssign);
