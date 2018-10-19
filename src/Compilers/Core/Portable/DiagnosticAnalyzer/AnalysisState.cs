@@ -135,7 +135,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerDriver driver,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             using (_gate.DisposableWait(cancellationToken))
             {
                 if (_treesWithGeneratedSourceEvents.Contains(tree))
