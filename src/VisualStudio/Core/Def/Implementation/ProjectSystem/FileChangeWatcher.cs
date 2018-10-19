@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the end of the queue.
         /// </summary>
         private Task<IVsFileChangeEx> _taskQueue;
-        private readonly static Func<Task<IVsFileChangeEx>, object, IVsFileChangeEx> _executeActionDelegate =
+        private static readonly Func<Task<IVsFileChangeEx>, object, IVsFileChangeEx> _executeActionDelegate =
             (precedingTask, state) => { ((Action<IVsFileChangeEx>)state)(precedingTask.Result); return precedingTask.Result; };
 
         public FileChangeWatcher(Task<IVsFileChangeEx> fileChangeService)
@@ -189,10 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     uint cookie;
                     ErrorHandler.ThrowOnFailure(service.AdviseFileChange(filePath, (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Time), this, out cookie));
 
-                    lock (_gate)
-                    {
-                        token.Cookie = cookie;
-                    }
+                    token.Cookie = cookie;
                 });
 
                 return token;
