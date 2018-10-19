@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // build anonymous type field descriptor
                 fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent : fieldInitializer;
                 // https://github.com/dotnet/roslyn/issues/24018: Initial binding should set IsNullable = null.
-                bool? isNullableIfReferenceType = ((CSharpParseOptions)node.SyntaxTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true;
+                bool? isNullableIfReferenceType = ((CSharpParseOptions)node.SyntaxTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true;
                 fields[i] = new AnonymousTypeField(
                     fieldName == null ? "$" + i.ToString() : fieldName,
                     fieldSyntaxNodes[i].Location, 

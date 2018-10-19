@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                             {
-                                questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
+                                questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureNullableReferenceTypes);
                             }
 
                             rankList.Add(SyntaxFactory.ArrayRankSpecifier(open, dimensionList, close, questionToken));

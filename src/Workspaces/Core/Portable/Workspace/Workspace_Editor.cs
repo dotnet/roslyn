@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// 
         /// </summary>
-        protected void OnDocumentContextUpdated(DocumentId documentId)
+        protected internal void OnDocumentContextUpdated(DocumentId documentId)
         {
             // TODO: remove linear search
 
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// 
         /// </summary>
-        internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
+        private void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
             if (_isProjectUnloading.Value)
             {
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
+        private void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
         {
             DocumentId oldActiveContextDocumentId;
 
