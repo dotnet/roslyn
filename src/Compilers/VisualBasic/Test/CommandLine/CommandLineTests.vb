@@ -3195,6 +3195,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub SdkPathArg()
             Dim parentDir = Temp.CreateDirectory()
 
@@ -3206,6 +3207,7 @@ print Goodbye, World"
         End Sub
 
         <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub SdkPathNoArg()
             Dim parentDir = Temp.CreateDirectory()
             Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", "-sdkPath", $"-out:{parentDir.Path}"}, parentDir.Path, Nothing)
@@ -3213,6 +3215,23 @@ print Goodbye, World"
                 Diagnostic(ERRID.ERR_ArgumentRequired, arguments:={"sdkpath", ":<path>"}).WithLocation(1, 1),
                 Diagnostic(ERRID.WRN_CannotFindStandardLibrary1).WithArguments("System.dll").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathArgFollowedByNull()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/sdkPath-"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray(Of String).Empty, parser.ReferencePaths)
+        End Sub
+
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub SdkPathNullFollowedByArg()
+            Dim parentDir = Temp.CreateDirectory()
+            Dim sdkDir = parentDir.CreateDirectory("sdk")
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "/sdkPath-", $"-sdkPath:{sdkDir.Path}"}, parentDir.Path, Nothing)
+            AssertEx.Equal(ImmutableArray.Create(sdkDir.Path), parser.ReferencePaths)
         End Sub
 
         <CompilerTrait(CompilerFeature.Determinism)>
