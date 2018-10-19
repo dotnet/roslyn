@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return "null";
             }
 
-            var text = syntax.ToString();
+            var text = syntax.ToString().Trim(Environment.NewLine.ToCharArray());
             var lines = text.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToArray();
             if (lines.Length <= 1 && text.Length < 25)
             {
@@ -1823,6 +1823,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.LeftOperand, nameof(operation.LeftOperand));
             Visit(operation.RightOperand, nameof(operation.RightOperand));
+        }
+
+        public override void VisitReDim(IReDimOperation operation)
+        {
+            LogString(nameof(IReDimOperation));
+            if (operation.Preserve)
+            {
+                LogString(" (Preserve)");
+            }
+            LogCommonPropertiesAndNewLine(operation);
+            VisitArray(operation.Clauses, "Clauses", logElementCount: true);
+        }
+
+        public override void VisitReDimClause(IReDimClauseOperation operation)
+        {
+            LogString(nameof(IReDimClauseOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Operand, "Operand");
+            VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
         }
 
         #endregion

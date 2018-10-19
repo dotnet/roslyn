@@ -682,6 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            hadNullabilityMismatch = false;
+            return this;
+        }
+
         public override sealed bool? NonNullTypes
         {
             get

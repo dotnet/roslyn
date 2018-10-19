@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static DiagnosticInfo ReportNullableReferenceTypesIfNeeded(CSharpCompilation compilation, INonNullTypesContext nonNullTypesContext)
         {
-            var featureID = MessageID.IDS_FeatureStaticNullChecking;
+            var featureID = MessageID.IDS_FeatureNullableReferenceTypes;
             if (!compilation.IsFeatureEnabled(featureID))
             {
                 LanguageVersion availableVersion = compilation.LanguageVersion;
