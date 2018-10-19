@@ -218,8 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 }
             }
 
-            var desc = CSharpFeaturesResources.Organize_Usings;
-
             return new EnabledDiagnosticOptions(diagnosticSets.ToImmutableArray(), new OrganizeUsingsSet(optionSet, LanguageNames.CSharp));
         }
     }

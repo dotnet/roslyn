@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
@@ -20,25 +21,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
     [Export]
     internal class CodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
     {
-        private readonly IList<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
+        private readonly ImmutableArray<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeCleanUpFixerProvider(
             [ImportMany] IEnumerable<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
         {
-            _codeCleanUpFixers = codeCleanUpFixers.ToList();
+            _codeCleanUpFixers = codeCleanUpFixers.ToImmutableArray();
         }
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()
         {
-            var fixers = new List<CodeCleanUpFixer>();
-            foreach (var fixerLazy in _codeCleanUpFixers)
-            {
-                fixers.Add(fixerLazy.Value);
-            }
-
-            return fixers;
+            return _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
         }
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)

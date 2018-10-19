@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -10,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -245,6 +248,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Sort_usings))]
         public static readonly FixIdDefinition SortImports;
 
+        private readonly IThreadingContext _threadingContext;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpCodeCleanUpFixer(IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+        }
+
         public override Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
             switch (scope)
@@ -310,8 +322,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                         var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
-                        // TODO: enable all diagnostics for now, need to be replace by inclusion/ exclusion list from .editorconfig
-                        // https://github.com/dotnet/roslyn/issues/30163
                         var allDiagnostics = codeCleanupService.GetAllDiagnostics();
 
                         var enabedDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
@@ -334,15 +344,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
                         var newDoc = await codeCleanupService.CleanupAsync(
-                            document, enabledDiagnostics, progressTracker, cancellationToken);
+                            document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(true);
 
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         return document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution, progressTracker);
                     }
                 }
 
                 return false;
             }
-
         }
     }
 }

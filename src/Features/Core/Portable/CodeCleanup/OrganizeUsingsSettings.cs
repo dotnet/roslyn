@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public OrganizeUsingsSet(bool isRemoveUnusedImportEnabled, bool isSortImportsEnabled)
         {
             IsRemoveUnusedImportEnabled = isRemoveUnusedImportEnabled;
-            IsSortImportsEnabled = IsSortImportsEnabled;
+            IsSortImportsEnabled = isSortImportsEnabled;
         }
     }
 }
