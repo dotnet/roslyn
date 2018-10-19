@@ -474,6 +474,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxTree.GetDiagnostics(Me)
         End Function
 
+        Friend Overrides Function IsSimilarTo(other As SyntaxNode) As Boolean
+            Dim kindGroup =
+                Function(node As SyntaxNode) As Integer
+                    Select Case node.Kind()
+                        Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
+                            Return 1
+                        Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
+                            Return 2
+                        Case Else
+                            Return -1
+                    End Select
+                End Function
+
+            Dim meGroup = kindGroup(Me)
+
+            Return meGroup <> -1 AndAlso meGroup = kindGroup(other)
+        End Function
+
         Protected Overrides Function IsEquivalentToCore(node As SyntaxNode, Optional topLevel As Boolean = False) As Boolean
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
