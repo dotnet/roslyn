@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
-        protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, SyntaxNode node, ISyntaxFactsService syntaxFactsService);
+        protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFactsService syntaxFactsService, SyntaxNode node);
         protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
         protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
@@ -542,19 +542,19 @@ namespace Microsoft.CodeAnalysis.AddImport
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, SyntaxNode node, ISyntaxFactsService syntaxFactsService, CancellationToken cancellationToken)
+        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var awaitExpression = FirstAwaitExpressionAncestor(node, syntaxFactsService);
+            var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
             var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(node);
 
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
-        protected bool AncestorOrSelfIsAwaitExpression(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
-            => FirstAwaitExpressionAncestor(node, syntaxFactsService) != null;
+        protected bool AncestorOrSelfIsAwaitExpression(ISyntaxFactsService syntaxFactsService, SyntaxNode node)
+            => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
-        private SyntaxNode FirstAwaitExpressionAncestor(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
+        private SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFactsService syntaxFactsService, SyntaxNode node)
             => node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFactsService.IsAwaitExpression(n));
     }
 }

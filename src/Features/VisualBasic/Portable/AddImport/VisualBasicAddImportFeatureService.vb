@@ -104,9 +104,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return False
         End Function
 
-        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, node As SyntaxNode, syntaxFactsService As ISyntaxFactsService) As Boolean
+        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
             Return diagnosticId = BC36610 And
-                AncestorOrSelfIsAwaitExpression(node, syntaxFactsService)
+                AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
