@@ -4852,10 +4852,10 @@ namespace A
 
 namespace B
 {
-    using A;
     using System;
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
+    using A;
 
     static class Extensions
     {
@@ -4874,6 +4874,9 @@ namespace B
 @"
 namespace A
 {
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
     using B;
 
     class C
@@ -4886,6 +4889,9 @@ namespace A
 
 namespace B
 {
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
     using A;
 
     static class Extensions
