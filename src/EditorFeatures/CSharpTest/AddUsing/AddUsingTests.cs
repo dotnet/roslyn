@@ -4896,11 +4896,11 @@ namespace B
 
     static class Extensions
     {
-        public static Awaitable GetAwaiter(this C scheduler) => default;
+        public static Awaitable GetAwaiter(this C scheduler) => null;
 
         public class Awaitable : INotifyCompletion
         {
-            public object GetResult() => default;
+            public object GetResult() => null;
 
             public void OnCompleted(Action continuation) { }
 

@@ -132,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node)
             => diagnosticId == CS8129;
 
+        protected override bool CanAddImportForGetAwaiter(string diagnosticId, SyntaxNode node) =>
+            diagnosticId == CS1061 &&
+            node.AncestorsAndSelf().Any(n => n is AwaitExpressionSyntax);
+
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
@@ -223,6 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
             return semanticModel.GetTypeInfo(node).Type;
+        }
+
+        protected override ITypeSymbol GetAwaitInfo(
+            SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var @await = node.AncestorsAndSelf().OfType<AwaitExpressionSyntax>().First();
+
+            var expression = @await.Expression;
+
+            return semanticModel.GetTypeInfo(expression).Type;
         }
 
         protected override ITypeSymbol GetQueryClauseInfo(
