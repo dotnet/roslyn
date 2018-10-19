@@ -242,6 +242,11 @@
         <target state="new">indexing movable fixed buffers</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNullableReferenceTypes">
+        <source>nullable reference types</source>
+        <target state="new">nullable reference types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
         <source>object generic type constraint</source>
         <target state="new">object generic type constraint</target>
@@ -275,11 +280,6 @@
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="new">stackalloc initializer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureStaticNullChecking">
-        <source>static null checking</source>
-        <target state="new">static null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">

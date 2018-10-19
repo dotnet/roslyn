@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
-                bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+                bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
                 var conversions = this.Conversions.WithNullability(includeNullability);
                 if (includeNullability && !ShouldCheckConstraintsNullability)
                 {
