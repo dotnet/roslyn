@@ -282,8 +282,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             var itemId = hierarchyContent.ItemId;
-
-            if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
+            if (itemId == (uint)VSConstants.VSITEMID.Root)
+            {
+                // Project
+            }
+            else if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
             {
                 var attr = File.GetAttributes(path);
                 if (attr.HasFlag(FileAttributes.Directory))
