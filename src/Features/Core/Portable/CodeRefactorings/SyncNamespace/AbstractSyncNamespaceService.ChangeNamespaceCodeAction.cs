@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -167,22 +168,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 return builder.ToImmutableAndFree();
             }
 
-            private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names)
+            private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var builder = ArrayBuilder<SyntaxNode>.GetInstance(names.Length);
                 for (var i = 0; i < names.Length; ++i)
                 {
-                    builder.Add(generator.NamespaceImportDeclaration(names[i]));
+                    builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
                 }
 
                 return builder.ToImmutableAndFree();
             }
 
-            private SyntaxNode CreateImport(Document document, string name)
+            private SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)
             {
-                var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-                return syntaxGenerator.NamespaceImportDeclaration(name);
+                var import = syntaxGenerator.NamespaceImportDeclaration(name);
+                if (withFormatterAnnotation)
+                {
+                    import = import.WithAdditionalAnnotations(Formatter.Annotation);
+                }
+                return import;
             }
 
             private async Task<(Solution, ImmutableArray<DocumentId>)> ChangeNamespaceToMatchFoldersAsync(Solution solution, DocumentId id, CancellationToken cancellationToken)
@@ -304,6 +309,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 root = _service.ChangeNamespaceDeclaration(root, OldNamespaceParts, NewNamespaceParts);
 
+                // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
+                root = await Formatter.FormatAsync(root, Formatter.Annotation, document.Project.Solution.Workspace, optionSet, cancellationToken)
+                    .ConfigureAwait(false);
+
                 root = root.WithAdditionalAnnotations(Simplifier.Annotation);
                 document = document.WithSyntaxRoot(root);
                 return await Simplifier.ReduceAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
@@ -337,6 +346,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     placeSystemNamespaceFirst, 
                     cancellationToken).ConfigureAwait(false);
 
+                // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
+                document = await Formatter.FormatAsync(document, Formatter.Annotation, optionSet, cancellationToken)
+                    .ConfigureAwait(false);
+
                 return await Simplifier.ReduceAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
             }
 
@@ -359,7 +372,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
                 var root = editor.OriginalRoot;
                 var containers = new HashSet<SyntaxNode>();
-                var dummyImport = CreateImport(document, "Dummy");
+
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var dummyImport = CreateImport(generator, "Dummy", withFormatterAnnotation: false);
 
                 foreach (var refLoc in refLocations)
                 {
@@ -422,7 +437,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     var document = solution.GetDocument(id);
                     LinkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
 
-                    document = await RemoveUnnecessaryImportsAsync(document, CreateImports(document, names), cancellationToken)
+                    document = await RemoveUnnecessaryImportsAsync(
+                        document, 
+                        CreateImports(document, names, withFormatterAnnotation: false), 
+                        cancellationToken)
                         .ConfigureAwait(false);
                     solution = document.Project.Solution;
                 }
@@ -463,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
                 }
 
-                var imports = CreateImports(document, names);
+                var imports = CreateImports(document, names, withFormatterAnnotation: true);
                 foreach (var container in containers)
                 {
                     // If the container is a namespace declaration, the context we pass to 

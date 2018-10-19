@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 namespaceDeclaration.WithName(
                     CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                     .WithTriviaFrom(namespaceDeclaration.Name)
-                    .WithAdditionalAnnotations(WarningAnnotation)));
+                    .WithAdditionalAnnotations(WarningAnnotation, Formatter.Annotation)));
         }
 
         private static NameSyntax GetQualifiedNameSyntax(NameSyntax node)
