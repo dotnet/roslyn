@@ -254,6 +254,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("struct", changes[0].NewText);
         }
 
+        [Fact]
+        public void TestDiffClassChangedToStruct2()
+        {
+            var oldTree = SyntaxFactory.ParseSyntaxTree("class A { }");
+            // the trailing space is necessary, so that ReduceChanges doesn't help
+            var newTree = SyntaxFactory.ParseSyntaxTree("struct A { } ");
+
+            var changes = newTree.GetChanges(oldTree);
+            Assert.NotNull(changes);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(0, 5), changes[0].Span);
+            Assert.Equal("struct", changes[0].NewText);
+            Assert.Equal(new TextSpan(11, 0), changes[1].Span);
+            Assert.Equal(" ", changes[1].NewText);
+        }
+
         [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
         public void TestQualifyWithThis()
         {

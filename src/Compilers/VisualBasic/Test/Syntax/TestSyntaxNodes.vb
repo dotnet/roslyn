@@ -2797,6 +2797,28 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TestSyntaxTree_GetChangesWhenSubChangedToFunction()
+            Dim oldTree = SyntaxFactory.ParseSyntaxTree("Module M
+  Sub M()
+    Console.WriteLine(42)
+  End Sub
+End Module")
+            Dim newTree = SyntaxFactory.ParseSyntaxTree("Module M
+  Async Function M() of Task
+    Console.WriteLine(42)
+  End Function
+End Module")
+
+            Dim changes = newTree.GetChanges(oldTree)
+            Assert.NotNull(changes)
+            Assert.Equal(2, changes.Count)
+            Assert.Equal(new TextSpan(12, 7), changes(0).Span)
+            Assert.Equal("Async Function M() of Task", changes(0).NewText)
+            Assert.Equal(new TextSpan(54, 3), changes(1).Span)
+            Assert.Equal("Function", changes(1).NewText)
+        End Sub
+
+        <Fact>
         Public Sub TestSyntaxList_Failures()
             'Validate the exceptions being generated when Invalid arguments are used for a TextSpan Constructor           
 

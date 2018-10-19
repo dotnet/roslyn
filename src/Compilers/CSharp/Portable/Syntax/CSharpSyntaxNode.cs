@@ -460,6 +460,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region SyntaxNode members
 
+        internal override bool IsSimilarTo(SyntaxNode other)
+        {
+            int kindGroup(SyntaxNode node)
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.InterfaceDeclaration:
+                        return 1;
+                    default:
+                        return -1;
+                }
+            }
+
+            int thisGroup = kindGroup(this);
+
+            return thisGroup != -1 && thisGroup == kindGroup(other);
+        }
+
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
         /// </summary>

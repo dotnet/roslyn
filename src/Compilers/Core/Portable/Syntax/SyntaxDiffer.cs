@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool AreSimilar(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
-            return node1.RawKind == node2.RawKind;
+            return node1.IsSimilarTo(node2);
         }
 
         private struct ChangeRecord

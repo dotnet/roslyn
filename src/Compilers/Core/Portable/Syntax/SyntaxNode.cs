@@ -1221,6 +1221,8 @@ recurse:
 
         #endregion
 
+        internal virtual bool IsSimilarTo(SyntaxNode other) => false;
+
         /// <summary>
         /// Determines if two nodes are the same, disregarding trivia differences.
         /// </summary>
