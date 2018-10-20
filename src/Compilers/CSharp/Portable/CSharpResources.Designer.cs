@@ -845,6 +845,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_AwaitForEachMissingMember {
+            get {
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;foreach&apos; rather than &apos;await foreach&apos;?.
+        /// </summary>
+        internal static string ERR_AwaitForEachMissingMemberWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_AwaitForEachMissingMemberWrongAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot await in an unsafe context.
         /// </summary>
         internal static string ERR_AwaitInUnsafeContext {
@@ -1007,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type of an async method must be void, Task or Task&lt;T&gt;.
+        ///   Looks up a localized string similar to The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, or IAsyncEnumerable&lt;T&gt;.
         /// </summary>
         internal static string ERR_BadAsyncReturn {
             get {
@@ -1052,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the type {0} have a suitable GetAwaiter method.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the type {0} have a suitable &apos;GetAwaiter&apos; method.
         /// </summary>
         internal static string ERR_BadAwaitArg {
             get {
@@ -1061,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the type &apos;{0}&apos; have a suitable GetAwaiter method. Are you missing a using directive for &apos;System&apos;?.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the type &apos;{0}&apos; have a suitable &apos;GetAwaiter&apos; method. Are you missing a using directive for &apos;System&apos;?.
         /// </summary>
         internal static string ERR_BadAwaitArg_NeedSystem {
             get {
@@ -1097,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;await&apos; requires that the return type &apos;{0}&apos; of &apos;{1}.GetAwaiter()&apos; have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.
+        ///   Looks up a localized string similar to &apos;await&apos; requires that the return type &apos;{0}&apos; of &apos;{1}.GetAwaiter()&apos; have suitable &apos;IsCompleted&apos;, &apos;OnCompleted&apos;, and &apos;GetResult&apos; members, and implement &apos;INotifyCompletion&apos; or &apos;ICriticalNotifyCompletion&apos;.
         /// </summary>
         internal static string ERR_BadAwaiterPattern {
             get {
@@ -1412,6 +1430,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot use a collection of dynamic type in an asynchronous foreach.
+        /// </summary>
+        internal static string ERR_BadDynamicAwaitForEach {
+            get {
+                return ResourceManager.GetString("ERR_BadDynamicAwaitForEach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from the dynamic type are not allowed.
         /// </summary>
         internal static string ERR_BadDynamicConversion {
@@ -1592,7 +1619,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public MoveNext method and public Current property.
+        ///   Looks up a localized string similar to Async foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNextAsync&apos; method and public &apos;Current&apos; property.
+        /// </summary>
+        internal static string ERR_BadGetAsyncEnumerator {
+            get {
+                return ResourceManager.GetString("ERR_BadGetAsyncEnumerator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNext&apos; method and public &apos;Current&apos; property.
         /// </summary>
         internal static string ERR_BadGetEnumerator {
             get {
@@ -4274,6 +4310,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NonNullTypesAttribute&apos; is not allowed..
+        /// </summary>
+        internal static string ERR_ExplicitNonNullTypesAttribute {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitNonNullTypesAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explicit application of &apos;System.Runtime.CompilerServices.NullableAttribute&apos; is not allowed..
         /// </summary>
         internal static string ERR_ExplicitNullableAttribute {
@@ -4927,6 +4972,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ForEachMissingMember {
             get {
                 return ResourceManager.GetString("ERR_ForEachMissingMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;. Did you mean &apos;await foreach&apos;?.
+        /// </summary>
+        internal static string ERR_ForEachMissingMemberWrongAsync {
+            get {
+                return ResourceManager.GetString("ERR_ForEachMissingMemberWrongAsync", resourceCulture);
             }
         }
         
@@ -6542,7 +6596,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No suitable Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
+        ///   Looks up a localized string similar to No suitable &apos;Deconstruct&apos; instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
         /// </summary>
         internal static string ERR_MissingDeconstruct {
             get {
@@ -6673,6 +6727,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_MultipleEntryPoints {
             get {
                 return ResourceManager.GetString("ERR_MultipleEntryPoints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
+        /// </summary>
+        internal static string ERR_MultipleIAsyncEnumOfT {
+            get {
+                return ResourceManager.GetString("ERR_MultipleIAsyncEnumOfT", resourceCulture);
             }
         }
         
@@ -7046,6 +7109,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos;.
+        /// </summary>
+        internal static string ERR_NoConvToIAsyncDisp {
+            get {
+                return ResourceManager.GetString("ERR_NoConvToIAsyncDisp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;.
         /// </summary>
         internal static string ERR_NoConvToIDisp {
@@ -7154,7 +7226,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a suitable static Main method.
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a suitable static &apos;Main&apos; method.
         /// </summary>
         internal static string ERR_NoMainInClass {
             get {
@@ -7249,15 +7321,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NonInvocableMemberCalled {
             get {
                 return ResourceManager.GetString("ERR_NonInvocableMemberCalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please use language version {0} or greater to use the NonNullTypes attribute..
-        /// </summary>
-        internal static string ERR_NonNullTypesNotAvailable {
-            get {
-                return ResourceManager.GetString("ERR_NonNullTypesNotAvailable", resourceCulture);
             }
         }
         
@@ -7429,6 +7492,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoVoidParameter {
             get {
                 return ResourceManager.GetString("ERR_NoVoidParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected enable or disable.
+        /// </summary>
+        internal static string ERR_NullableDirectiveQualifierExpected {
+            get {
+                return ResourceManager.GetString("ERR_NullableDirectiveQualifierExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid &apos;{0}&apos; value: &apos;{1}&apos; for C# {2}. Please use language version {3} or greater..
+        /// </summary>
+        internal static string ERR_NullableOptionNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_NullableOptionNotAvailable", resourceCulture);
             }
         }
         
@@ -9548,6 +9629,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected character sequence &apos;...&apos;.
+        /// </summary>
+        internal static string ERR_TripleDotNotAllowed {
+            get {
+                return ResourceManager.GetString("ERR_TripleDotNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element names must be unique..
         /// </summary>
         internal static string ERR_TupleDuplicateElementName {
@@ -10575,6 +10665,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to async streams.
+        /// </summary>
+        internal static string IDS_FeatureAsyncStreams {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAsyncStreams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to automatically implemented properties.
         /// </summary>
         internal static string IDS_FeatureAutoImplementedProperties {
@@ -10827,6 +10926,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to index operator.
+        /// </summary>
+        internal static string IDS_FeatureIndexOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureIndexOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to interpolated strings.
         /// </summary>
         internal static string IDS_FeatureInterpolatedStrings {
@@ -10904,6 +11012,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureNullable {
             get {
                 return ResourceManager.GetString("IDS_FeatureNullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to nullable reference types.
+        /// </summary>
+        internal static string IDS_FeatureNullableReferenceTypes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNullableReferenceTypes", resourceCulture);
             }
         }
         
@@ -11016,6 +11133,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to range operator.
+        /// </summary>
+        internal static string IDS_FeatureRangeOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRangeOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to readonly automatically implemented properties.
         /// </summary>
         internal static string IDS_FeatureReadonlyAutoImplementedProperties {
@@ -11120,15 +11246,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureStaticClasses {
             get {
                 return ResourceManager.GetString("IDS_FeatureStaticClasses", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to static null checking.
-        /// </summary>
-        internal static string IDS_FeatureStaticNullChecking {
-            get {
-                return ResourceManager.GetString("IDS_FeatureStaticNullChecking", resourceCulture);
             }
         }
         
@@ -12497,6 +12614,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_CantHaveManifestForModule_Title {
             get {
                 return ResourceManager.GetString("WRN_CantHaveManifestForModule_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The nullability of type arguments for method &apos;{0}&apos; cannot be inferred from the usage. Try specifying the type arguments explicitly..
+        /// </summary>
+        internal static string WRN_CantInferNullabilityOfMethodTypeArgs {
+            get {
+                return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly..
+        /// </summary>
+        internal static string WRN_CantInferNullabilityOfMethodTypeArgs_Title {
+            get {
+                return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs_Title", resourceCulture);
             }
         }
         
@@ -14060,7 +14195,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a &apos;[NonNullTypes(true/false)]&apos; context..
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code within a &apos;#nullable&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContext {
             get {
@@ -14069,7 +14204,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The suppression operator (!) should be used in code with a &apos;[NonNullTypes(true/false)]&apos; context..
+        ///   Looks up a localized string similar to The suppression operator (!) should be used in code within a &apos;#nullable&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContext_Title {
             get {
@@ -14078,7 +14213,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;[NonNullTypes(true)]&apos; context..
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContextForAnnotation {
             get {
@@ -14087,7 +14222,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;[NonNullTypes(true)]&apos; context..
+        ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContextForAnnotation_Title {
             get {
@@ -14330,6 +14465,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NoAnalyzerInAssembly_Title {
             get {
                 return ResourceManager.GetString("WRN_NoAnalyzerInAssembly_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability found for implicitly-typed array..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityArrayElements {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No best nullability found for implicitly-typed array..
+        /// </summary>
+        internal static string WRN_NoBestNullabilityArrayElements_Title {
+            get {
+                return ResourceManager.GetString("WRN_NoBestNullabilityArrayElements_Title", resourceCulture);
             }
         }
         

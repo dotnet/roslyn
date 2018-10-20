@@ -1280,6 +1280,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to analyze data-flow for: {0}.
+        /// </summary>
+        internal static string Failed_to_analyze_data_flow_for_0 {
+            get {
+                return ResourceManager.GetString("Failed_to_analyze_data_flow_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create a remote process for interactive code execution..
         /// </summary>
         internal static string Failed_to_create_a_remote_process_for_interactive_code_execution {
@@ -1357,6 +1366,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Fix_all_occurrences {
             get {
                 return ResourceManager.GetString("Fix_all_occurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Fix_formatting {
+            get {
+                return ResourceManager.GetString("Fix_formatting", resourceCulture);
             }
         }
         
@@ -1928,6 +1946,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce constant.
+        /// </summary>
+        internal static string Introduce_constant {
+            get {
+                return ResourceManager.GetString("Introduce_constant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce constant for &apos;{0}&apos;.
         /// </summary>
         internal static string Introduce_constant_for_0 {
@@ -1946,6 +1973,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce field.
+        /// </summary>
+        internal static string Introduce_field {
+            get {
+                return ResourceManager.GetString("Introduce_field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce field for &apos;{0}&apos;.
         /// </summary>
         internal static string Introduce_field_for_0 {
@@ -1960,6 +1996,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Introduce_field_for_all_occurrences_of_0 {
             get {
                 return ResourceManager.GetString("Introduce_field_for_all_occurrences_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduce local.
+        /// </summary>
+        internal static string Introduce_local {
+            get {
+                return ResourceManager.GetString("Introduce_local", resourceCulture);
             }
         }
         
@@ -1996,6 +2041,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Introduce_local_for_all_occurrences_of_0 {
             get {
                 return ResourceManager.GetString("Introduce_local_for_all_occurrences_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduce query variable.
+        /// </summary>
+        internal static string Introduce_query_variable {
+            get {
+                return ResourceManager.GetString("Introduce_query_variable", resourceCulture);
             }
         }
         

@@ -109,8 +109,26 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-        protected const string NonNullTypesFalse = "[module: System.Runtime.CompilerServices.NonNullTypes(false)]";
-        protected const string NonNullTypesTrue = "[module: System.Runtime.CompilerServices.NonNullTypes(true)]";
+
+        protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullable(true);
+        }
+
+        protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        {
+            return (options ?? TestOptions.ReleaseDll).WithNullable(false);
+        }
+
+        protected static string NonNullTypesOff()
+        {
+            return "#nullable disable";
+        }
+
+        internal static string NonNullTypesOn()
+        {
+            return "#nullable enable";
+        }
 
         internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             CSharpTestSource source,
@@ -556,6 +574,28 @@ namespace System.Runtime.CompilerServices
             return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
 
+        public static CSharpCompilation CreateCompilationWithTasksExtensions(
+                CSharpTestSource source,
+                IEnumerable<MetadataReference> references = null,
+                CSharpCompilationOptions options = null,
+                CSharpParseOptions parseOptions = null,
+                string assemblyName = "",
+                string sourceFileName = "")
+        {
+            IEnumerable<MetadataReference> allReferences = CoreClrShim.IsRunningOnCoreClr
+                ? TargetFrameworkUtil.NetStandard20References
+                : TargetFrameworkUtil.Mscorlib461ExtendedReferences.Add(TestReferences.Net461.netstandardRef);
+
+            allReferences = allReferences.Concat(new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef });
+
+            if (references != null)
+            {
+                allReferences = allReferences.Concat(references);
+            }
+
+            return CreateCompilation(source, allReferences, options, parseOptions, TargetFramework.Empty, assemblyName, sourceFileName);
+        }
+
         public static CSharpCompilation CreateCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -626,7 +666,7 @@ namespace System.Runtime.CompilerServices
                 return false;
             }
             var options = (CSharpParseOptions)trees[0].Options;
-            return options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+            return options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
         }
 
         internal static void VerifyUsesOfNullability(Symbol symbol, ImmutableArray<string> expectedUsesOfNullable)
@@ -1239,13 +1279,15 @@ namespace System.Runtime.CompilerServices
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
+        protected static IOperation VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
+
+            return actualOperation;
         }
 
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
@@ -1391,9 +1433,9 @@ namespace System.Runtime.CompilerServices
             return ilReference;
         }
 
-#endregion
+        #endregion
 
-#region Span
+        #region Span
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
@@ -1628,6 +1670,41 @@ namespace System
             }
         }
     }";
-#endregion
+        #endregion
+
+        #region Index and Range
+        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+        #endregion
     }
 }

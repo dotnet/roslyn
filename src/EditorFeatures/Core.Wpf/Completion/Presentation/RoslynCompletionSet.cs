@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
         protected CompletionItem SuggestionModeItem;
 
-        private readonly Dictionary<string, string> _displayTextToBoldingTextMap = new Dictionary<string, string>();
+        private readonly Dictionary<string, CompletionItem> _displayTextToItem = new Dictionary<string, CompletionItem>();
 
         protected string FilterText;
 
@@ -93,14 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             string filterText)
         {
             CompletionPresenterSession.AssertIsForeground();
-
-            foreach (var item in completionItems)
-            {
-                if (!_displayTextToBoldingTextMap.ContainsKey(item.DisplayText))
-                {
-                    _displayTextToBoldingTextMap.Add(item.DisplayText, CompletionHelper.GetDisplayTextForMatching(item));
-                }
-            }
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
@@ -177,7 +169,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 CompletionItemMap.Add(item, value);
             }
 
-            value.DisplayText = displayText ?? item.DisplayText;
+            value.DisplayText = displayText ?? (item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix);
+            _displayTextToItem[value.DisplayText] = item;
 
             return value;
         }
@@ -227,8 +220,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
-            var textForBolding = _displayTextToBoldingTextMap.TryGetValue(displayText, out var matchingText) ? matchingText : displayText;
-            Debug.Assert(displayText.Contains(textForBolding));
+            if (!_displayTextToItem.TryGetValue(displayText, out var completionItem))
+            {
+                return null;
+            }
 
             var pattern = this.FilterText;
             if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(pattern))
@@ -237,9 +232,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 if (completionHelper != null)
                 {
                     var highlightedSpans = completionHelper.GetHighlightedSpans(
-                        textForBolding, pattern, CultureInfo.CurrentCulture);
+                        completionItem.DisplayText, pattern, CultureInfo.CurrentCulture);
 
-                    return highlightedSpans.SelectAsArray(s => new Span(s.Start + Math.Max(0, displayText.IndexOf(textForBolding)), s.Length));
+                    // If there's a prefix that we're displaying, then actually shift over the
+                    // highlight spans accordingly as they're computed against the middle
+                    // 'DisplayText' section.
+                    var offset = completionItem.DisplayTextPrefix?.Length ?? 0;
+
+                    return highlightedSpans.SelectAsArray(s => new Span(s.Start + offset, s.Length));
                 }
             }
 

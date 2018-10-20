@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
 
     <!-- NuGet -->
@@ -20,6 +20,9 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\CoreClrAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>

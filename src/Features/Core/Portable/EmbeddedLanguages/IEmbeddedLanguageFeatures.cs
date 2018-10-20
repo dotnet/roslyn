@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// <summary>
         /// An optional analyzer that produces diagnostics for an embedded language string.
         /// </summary>
-        AbstractCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
     }
 }

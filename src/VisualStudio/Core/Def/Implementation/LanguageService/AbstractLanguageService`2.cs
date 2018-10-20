@@ -241,10 +241,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 new StandaloneCommandFilter<TPackage, TLanguageService>(
                     (TLanguageService)this, v, commandHandlerFactory, EditorAdaptersFactoryService).AttachToVsTextView());
 
+            // Ensure we start sending save events
+            var saveEventsService = Package.ComponentModel.GetService<SaveEventsService>();
+            saveEventsService.StartSendingSaveEvents();
+
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
+
             // If this is a metadata-to-source view, we want to consider the file read-only
             if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
@@ -388,12 +393,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected virtual IVsContainedLanguage CreateContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator, AbstractProject project,
+            IVsTextBufferCoordinator bufferCoordinator, VisualStudioProject project,
             IVsHierarchy hierarchy, uint itemid)
         {
             return new ContainedLanguage<TPackage, TLanguageService>(
                 bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid,
-                (TLanguageService)this, SourceCodeKind.Regular);
+                (TLanguageService)this);
         }
     }
 }

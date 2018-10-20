@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer = 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions |
                                                                                          TypeCompareKind.CompareNullableModifiersForReferenceTypes |
                                                                                          TypeCompareKind.UnknownNullableModifierMatchesAny);
@@ -644,6 +644,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
+        /// Merges nested nullability from an otherwise identical type.
+        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
+        /// merging nullability and warning should be reported by the caller.
+        /// </summary>
+        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch);
+
+        /// <summary>
         /// Returns true if the type may contain embedded references
         /// </summary>
         internal abstract bool IsByRefLikeType { get; }
@@ -1134,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CSharpCompilation compilation;
 
-            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                 !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
                 (compilation = implementingMember.DeclaringCompilation) != null)
             {

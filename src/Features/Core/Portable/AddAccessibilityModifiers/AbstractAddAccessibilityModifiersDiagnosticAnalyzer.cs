@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 {
     internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TCompilationUnitSyntax : SyntaxNode
     {
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()

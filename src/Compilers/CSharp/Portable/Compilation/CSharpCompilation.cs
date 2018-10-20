@@ -1263,7 +1263,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
-            var result = Assembly.GetSpecialType(specialType);
+            NamedTypeSymbol result;
+            if (IsTypeMissing(specialType))
+            {
+                MetadataTypeName emittedName = MetadataTypeName.FromFullName(specialType.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
+                result = new MissingMetadataTypeSymbol.TopLevel(Assembly.CorLibrary.Modules[0], ref emittedName, specialType);
+            }
+            else
+            {
+                result = Assembly.GetSpecialType(specialType);
+            }
+
             Debug.Assert(result.SpecialType == specialType);
             return result;
         }
@@ -2208,6 +2218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
+
+                if (Options.Nullable.HasValue && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                    _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 nameof(Options.Nullable), Options.Nullable, LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
 

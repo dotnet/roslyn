@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
+        public static ControlFlowGraph Create(IOperation body, ControlFlowGraph parent = null, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
             Debug.Assert(((Operation)body).OwningSemanticModel != null);
@@ -71,10 +71,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.PropertyInitializer ||
                     body.Kind == OperationKind.ParameterInitializer,
                     $"Unexpected root operation kind: {body.Kind}");
+                Debug.Assert(parent == null);
             }
             else
             {
                 Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
+                Debug.Assert(parent != null);
             }
 #endif
 
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
@@ -6498,6 +6500,43 @@ oneMoreTime:
                                      new InvalidOperation(VisitArray(invalidOperation.Children.ToImmutableArray()), semanticModel: null,
                                                                  invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation)));
             }
+        }
+
+        public override IOperation VisitReDim(IReDimOperation operation, int? argument)
+        {
+            StartVisitingStatement(operation);
+
+            // We split the ReDim clauses into separate ReDim operations to ensure that we preserve the evaluation order,
+            // i.e. each ReDim clause operand is re-allocated prior to evaluating the next clause.
+
+            // Mark the split ReDim operations as implicit if we have more than one ReDim clause.
+            bool isImplicit = operation.Clauses.Length > 1 || IsImplicit(operation);
+
+            foreach (var clause in operation.Clauses)
+            {
+                EvalStackFrame frame = PushStackFrame();
+                var visitedReDimClause = visitReDimClause(clause);
+                var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit);
+                AddStatement(visitedReDimOperation);
+                PopStackFrameAndLeaveRegion(frame);
+            }
+
+            return FinishVisitingStatement(operation);
+
+            IReDimClauseOperation visitReDimClause(IReDimClauseOperation clause)
+            {
+                PushOperand(Visit(clause.Operand));
+                var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
+                var visitedOperand = PopOperand();
+                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null,
+                    clause.Syntax, clause.Type, clause.ConstantValue, IsImplicit(clause));
+            }
+        }
+
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
