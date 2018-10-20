@@ -496,7 +496,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // rename. This is silly. This functionality should be moved down
             // into the service layer.
 
-            var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
+            var workspace = solution.Workspace as VisualStudioWorkspace;
             if (workspace == null)
             {
                 throw Exceptions.ThrowEFail();
@@ -504,7 +504,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Save the node keys.
             var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.DeferredState.ProjectTracker.ImmutableProjects)
+            foreach (var project in workspace.CurrentSolution.Projects)
             {
                 nodeKeyValidation.AddProject(project);
             }

@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsContainedLanguageFactory
     {
-        private AbstractProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
+        private VisualStudioProject FindMatchingProject(IVsHierarchy hierarchy, uint itemid)
         {
             // Here we must determine the project that this file's document is to be a part of.
             // Venus creates a separate Project for a .aspx or .ascx file, and so we must associate
@@ -60,10 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return null;
             }
 
-            return this.Workspace.DeferredState.ProjectTracker.ImmutableProjects
-                .Where(p => p.Hierarchy == hierarchy)
-                .Where(p => p.ProjectSystemName == projectName)
-                .SingleOrDefault();
+            return this.Workspace.GetProjectForUniqueName(projectName);
         }
 
         public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)

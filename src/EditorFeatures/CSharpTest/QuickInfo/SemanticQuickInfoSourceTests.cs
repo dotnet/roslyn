@@ -1090,7 +1090,7 @@ public static int SomeField; }
 static class Test { int a = MyStruct.Some$$Field; }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"));
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
         }
 
         [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
@@ -1104,7 +1104,7 @@ public static int SomeField; }
 static class Test { int a = MyStruct.Some$$Field; }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"),
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
                 Documentation("My Field"));
         }
 
@@ -1117,7 +1117,7 @@ public static int SomeField; }
 static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"));
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
         }
 
         [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
@@ -1131,7 +1131,7 @@ public static int SomeField; }
 static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
 
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) int MyStruct.SomeField"),
+                MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
                 Documentation("My Field"));
         }
 
@@ -1139,7 +1139,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         public async Task TestMetadataFieldMinimal()
         {
             await TestInMethodAsync(@"DateTime dt = DateTime.MaxValue$$",
-                MainDescription($"({FeaturesResources.field}) DateTime DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly DateTime DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1154,7 +1154,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
     }
 }";
             await TestAsync(markup,
-                MainDescription($"({FeaturesResources.field}) System.DateTime System.DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1168,7 +1168,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         DateTime dt = System.DateTime.MaxValue$$
     }
 }",
-                MainDescription($"({FeaturesResources.field}) System.DateTime System.DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1184,7 +1184,7 @@ class C
         DateTime dt = System.DateTime.MaxValue$$
     }
 }",
-                MainDescription($"({FeaturesResources.field}) DateTime DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.field}) static readonly DateTime DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

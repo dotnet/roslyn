@@ -621,11 +621,11 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do you still want to proceed? it will generate broken code..
+        ///   Looks up a localized string similar to Do you still want to proceed? This may produce broken code..
         /// </summary>
-        internal static string Do_you_still_want_to_proceed_it_will_generate_broken_code {
+        internal static string Do_you_still_want_to_proceed_This_may_produce_broken_code {
             get {
-                return ResourceManager.GetString("Do_you_still_want_to_proceed_it_will_generate_broken_code", resourceCulture);
+                return ResourceManager.GetString("Do_you_still_want_to_proceed_This_may_produce_broken_code", resourceCulture);
             }
         }
         
@@ -711,11 +711,11 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extract method failed with following reasons :.
+        ///   Looks up a localized string similar to Extract method encountered the following issues:.
         /// </summary>
-        internal static string Extract_method_failed_with_following_reasons_colon {
+        internal static string Extract_method_encountered_the_following_issues {
             get {
-                return ResourceManager.GetString("Extract_method_failed_with_following_reasons_colon", resourceCulture);
+                return ResourceManager.GetString("Extract_method_encountered_the_following_issues", resourceCulture);
             }
         }
         
@@ -1337,6 +1337,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Paste_in_Interactive {
             get {
                 return ResourceManager.GetString("Paste_in_Interactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste Tracking.
+        /// </summary>
+        internal static string Paste_Tracking {
+            get {
+                return ResourceManager.GetString("Paste_Tracking", resourceCulture);
             }
         }
         

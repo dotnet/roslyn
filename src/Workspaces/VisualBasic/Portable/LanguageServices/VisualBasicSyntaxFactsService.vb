@@ -314,50 +314,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
             Select Case token.Kind()
-                Case SyntaxKind.GroupKeyword,
-                     SyntaxKind.JoinKeyword,
-                     SyntaxKind.IntoKeyword,
-                     SyntaxKind.AggregateKeyword,
-                     SyntaxKind.DistinctKeyword,
-                     SyntaxKind.SkipKeyword,
-                     SyntaxKind.TakeKeyword,
-                     SyntaxKind.LetKeyword,
-                     SyntaxKind.ByKeyword,
-                     SyntaxKind.OrderKeyword,
-                     SyntaxKind.EqualsKeyword,
-                     SyntaxKind.AscendingKeyword,
-                     SyntaxKind.DescendingKeyword,
-                     SyntaxKind.WhereKeyword
-                    Return True
+                Case _
+                    SyntaxKind.JoinKeyword,
+                    SyntaxKind.IntoKeyword,
+                    SyntaxKind.AggregateKeyword,
+                    SyntaxKind.DistinctKeyword,
+                    SyntaxKind.SkipKeyword,
+                    SyntaxKind.TakeKeyword,
+                    SyntaxKind.LetKeyword,
+                    SyntaxKind.ByKeyword,
+                    SyntaxKind.OrderKeyword,
+                    SyntaxKind.WhereKeyword,
+                    SyntaxKind.OnKeyword,
+                    SyntaxKind.FromKeyword,
+                    SyntaxKind.WhileKeyword,
+                    SyntaxKind.SelectKeyword
+                    Return TypeOf token.Parent Is QueryClauseSyntax
+                Case SyntaxKind.GroupKeyword
+                    Return (TypeOf token.Parent Is QueryClauseSyntax) OrElse (token.Parent.IsKind(SyntaxKind.GroupAggregation))
+                Case SyntaxKind.EqualsKeyword
+                    Return TypeOf token.Parent Is JoinConditionSyntax
+                Case SyntaxKind.AscendingKeyword, SyntaxKind.DescendingKeyword
+                    Return TypeOf token.Parent Is OrderingSyntax
                 Case SyntaxKind.InKeyword
-                    Select Case token.Parent.Kind()
-                        Case SyntaxKind.FromClause,
-                             SyntaxKind.SimpleJoinClause,
-                             SyntaxKind.GroupJoinClause
-                            Return True
-                        Case Else
-                            Return False ' e.g. ForEach ... in
-                    End Select
-                Case SyntaxKind.OnKeyword
-                    Select Case token.Parent.Kind()
-                        Case SyntaxKind.SimpleJoinClause,
-                             SyntaxKind.GroupJoinClause
-                            Return True
-                        Case Else
-                            Return False ' e.g. On Error Goto
-                    End Select
-                Case SyntaxKind.FromKeyword
-                    Return token.Parent.Kind() = SyntaxKind.FromClause ' False for e.g. Object collection initializer
-                Case SyntaxKind.WhileKeyword
-                    Select Case token.Parent.Kind()
-                        Case SyntaxKind.SkipWhileClause,
-                             SyntaxKind.TakeWhileClause
-                            Return True
-                        Case Else
-                            Return False ' e.g. Exit While
-                    End Select
-                Case SyntaxKind.SelectKeyword
-                    Return token.Parent.Kind() = SyntaxKind.SelectClause ' False for e.g. Select Case
+                    Return TypeOf token.Parent Is CollectionRangeVariableSyntax
                 Case Else
                     Return False
             End Select

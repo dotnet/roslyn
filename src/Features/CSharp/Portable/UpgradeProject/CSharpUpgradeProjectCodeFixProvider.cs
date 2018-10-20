@@ -41,6 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             return RequiredVersion(diagnostics).ToDisplayString();
         }
 
+        public override string AddBetaIfNeeded(string version)
+        {
+            if (version == "8.0")
+            {
+                // https://github.com/dotnet/roslyn/issues/29819 Remove once C# 8.0 is RTM
+                return "8.0 *beta*";
+            }
+            return version;
+        }
+
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
         {
             LanguageVersion max = 0;

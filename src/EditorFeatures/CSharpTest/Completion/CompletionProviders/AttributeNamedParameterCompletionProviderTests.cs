@@ -84,7 +84,7 @@ public class TestAttribute : Attribute
     public ConsoleColor Color { get; set; }
 }";
 
-            await VerifyItemExistsAsync(markup, "Color =");
+            await VerifyItemExistsAsync(markup, "Color", displayTextSuffix: " =");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -106,7 +106,7 @@ public class TestAttribute : Attribute
     public string Text { get; set; }
 }";
 
-            await VerifyItemExistsAsync(markup, "Text =");
+            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
 
         [WorkItem(544345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
@@ -129,8 +129,8 @@ public class TestAttribute : Attribute
     public string Text { get; set; }
 }";
 
-            await VerifyItemExistsAsync(markup, "Text =");
-            await VerifyItemIsAbsentAsync(markup, "Color =");
+            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
+            await VerifyItemIsAbsentAsync(markup, "Color", displayTextSuffix: " =");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -149,7 +149,7 @@ class Goo
 { }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -168,7 +168,7 @@ class Goo
 { }
 ";
 
-            await VerifyItemExistsAsync(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
         }
 
         [WorkItem(545426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
@@ -191,7 +191,7 @@ class Goo
 {
 }";
 
-            await VerifyItemExistsAsync(markup, "Text =");
+            await VerifyItemExistsAsync(markup, "Text", displayTextSuffix: " =");
         }
 
         [WorkItem(1075278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]

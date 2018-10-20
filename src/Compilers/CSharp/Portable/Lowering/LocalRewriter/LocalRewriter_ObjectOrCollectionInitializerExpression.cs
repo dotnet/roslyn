@@ -132,12 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                  ~                               ~~~~~~~~
         private BoundExpression MakeCollectionInitializer(BoundExpression rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {
-            Debug.Assert(initializer.AddMethod.Name == "Add");
+            MethodSymbol addMethod = initializer.AddMethod;
+
+            Debug.Assert(addMethod.Name == "Add");
+            Debug.Assert(addMethod.Parameters
+                .Skip(addMethod.IsExtensionMethod ? 1 : 0)
+                .All(p => p.RefKind == RefKind.None || p.RefKind == RefKind.In));
             Debug.Assert(initializer.Arguments.Any());
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
             var syntax = initializer.Syntax;
-            MethodSymbol addMethod = initializer.AddMethod;
 
             if (_allowOmissionOfConditionalCalls)
             {
@@ -156,6 +160,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            if (addMethod.Parameters[0].RefKind == RefKind.Ref)
+            {
+                // If the Add method is an extension which takes a `ref this` as the first parameter, implicitly add a `ref` to the argument
+                // Initializer element syntax cannot have `ref`, `in`, or `out` keywords.
+                // Arguments to `in` parameters will be converted to have RefKind.In later on.
+                var builder = ArrayBuilder<RefKind>.GetInstance(addMethod.Parameters.Length, RefKind.None);
+                builder[0] = RefKind.Ref;
+                argumentRefKindsOpt = builder.ToImmutableAndFree();
+            }
+
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
 
             if (initializer.InvokedAsExtensionMethod)
