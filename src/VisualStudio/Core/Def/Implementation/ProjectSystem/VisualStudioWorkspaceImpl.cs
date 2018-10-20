@@ -438,13 +438,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var compilationOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<ICompilationOptionsService>();
+            var project = CurrentSolution.GetProject(projectId);
+
+            var compilationOptionsService = project.LanguageServices.GetService<ICompilationOptionsService>();
             Contract.ThrowIfNull(compilationOptionsService, nameof(compilationOptionsService));
 
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
 
-            GetProjectData(projectId, out var hierarchy, out var project);
-            switch (CurrentSolution.GetProject(projectId).Language)
+            switch (project.Language)
             {
                 case LanguageNames.CSharp:
                     storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
@@ -467,13 +468,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
+            var project = CurrentSolution.GetProject(projectId);
+
+            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
             Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
 
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
 
-            GetProjectData(projectId, out var hierarchy, out var project);
-            switch (CurrentSolution.GetProject(projectId).Language)
+            switch (project.Language)
             {
                 case LanguageNames.CSharp:
                     storage.SetProperty("LangVersion", nameof(CSharpProjectConfigurationProperties3.LanguageVersion),
