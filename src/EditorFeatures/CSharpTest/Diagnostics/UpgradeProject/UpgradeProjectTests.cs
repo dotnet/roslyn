@@ -469,9 +469,10 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0 *beta*"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0 *beta*")
     });
+            // https://github.com/dotnet/roslyn/issues/29819 Remove beta label once C# 8.0 is RTM
         }
 
         [Fact]
@@ -574,7 +575,7 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0 *beta*"),
                     });
         }
 

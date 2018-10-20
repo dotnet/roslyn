@@ -447,6 +447,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
+        internal SynthesizedAttributeData TrySynthesizeNonNullTypesAttribute(bool value)
+        {
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_NonNullTypesAttribute__ctor,
+                                          ImmutableArray.Create(new TypedConstant(GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, value)),
+                                          isOptionalUse: true);
+        }
+
         internal SynthesizedAttributeData SynthesizeDecimalConstantAttribute(decimal value)
         {
             bool isNegative;
@@ -1014,6 +1021,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override bool IsByRefMethod(MethodSymbol method)
             {
                 return method.RefKind != RefKind.None;
+            }
+
+            protected override bool IsByRefProperty(PropertySymbol property)
+            {
+                return property.RefKind != RefKind.None;
             }
 
             protected override bool IsGenericMethodTypeParam(TypeSymbol type, int paramPosition)

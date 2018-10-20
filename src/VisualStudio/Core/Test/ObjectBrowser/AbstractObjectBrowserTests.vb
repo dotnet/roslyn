@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser

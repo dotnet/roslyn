@@ -67,6 +67,16 @@
         <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">修正笔误“{0}”</target>

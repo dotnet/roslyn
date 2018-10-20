@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         TSyntaxKind,
         TAssignmentSyntax,
         TBinaryExpressionSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TAssignmentSyntax : SyntaxNode
         where TBinaryExpressionSyntax : SyntaxNode

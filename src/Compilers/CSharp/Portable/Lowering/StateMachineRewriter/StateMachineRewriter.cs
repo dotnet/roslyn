@@ -325,5 +325,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentFunction = result;
             return result;
         }
+
+        /// <summary>
+        /// Produce Environment.CurrentManagedThreadId if available, otherwise CurrentThread.ManagedThreadId
+        /// </summary>
+        protected BoundExpression MakeCurrentThreadId()
+        {
+            Debug.Assert(CanGetThreadId());
+            var currentManagedThreadIdProperty = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true);
+            if ((object)currentManagedThreadIdProperty != null)
+            {
+                MethodSymbol currentManagedThreadIdMethod = currentManagedThreadIdProperty.GetMethod;
+                if ((object)currentManagedThreadIdMethod != null)
+                {
+                    return F.Call(null, currentManagedThreadIdMethod);
+                }
+            }
+
+            return F.Property(F.Property(WellKnownMember.System_Threading_Thread__CurrentThread), WellKnownMember.System_Threading_Thread__ManagedThreadId);
+        }
+
+        /// <summary>
+        /// Returns true if either Thread.ManagedThreadId or Environment.CurrentManagedThreadId are available
+        /// </summary>
+        protected bool CanGetThreadId()
+        {
+            return (object)F.WellKnownMember(WellKnownMember.System_Threading_Thread__ManagedThreadId, isOptional: true) != null ||
+                (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null;
+        }
     }
 }

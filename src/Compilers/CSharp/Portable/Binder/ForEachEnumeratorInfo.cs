@@ -2,8 +2,6 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposeMethod;
 
+        // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
+        public AwaitableInfo DisposeAwaitableInfo;
+
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
         public readonly Conversion CurrentConversion; // current to element type
@@ -35,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly BinderFlags Location;
 
+        internal bool IsAsync
+            => DisposeAwaitableInfo != null;
+
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
             TypeSymbolWithAnnotations elementType,
@@ -42,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
             bool needsDisposeMethod,
+            AwaitableInfo disposeAwaitableInfo,
             Conversion collectionConversion,
             Conversion currentConversion,
             Conversion enumeratorConversion,
@@ -59,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
             this.NeedsDisposeMethod = needsDisposeMethod;
+            this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.CollectionConversion = collectionConversion;
             this.CurrentConversion = currentConversion;
             this.EnumeratorConversion = enumeratorConversion;
@@ -76,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodSymbol MoveNextMethod;
 
             public bool NeedsDisposeMethod;
+            public AwaitableInfo DisposeAwaitableInfo;
 
             public Conversion CollectionConversion;
             public Conversion CurrentConversion;
@@ -83,6 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ForEachEnumeratorInfo Build(BinderFlags location)
             {
+                Debug.Assert((object)CollectionType != null, "'CollectionType' cannot be null");
+                Debug.Assert((object)ElementType != null, "'ElementType' cannot be null");
+                Debug.Assert((object)GetEnumeratorMethod != null, "'GetEnumeratorMethod' cannot be null");
+
+                Debug.Assert(MoveNextMethod != null);
+                Debug.Assert(CurrentPropertyGetter != null);
+
                 return new ForEachEnumeratorInfo(
                     CollectionType,
                     ElementType,
@@ -90,11 +104,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CurrentPropertyGetter,
                     MoveNextMethod,
                     NeedsDisposeMethod,
+                    DisposeAwaitableInfo,
                     CollectionConversion,
                     CurrentConversion,
                     EnumeratorConversion,
                     location);
             }
+
+            public bool IsIncomplete
+                => GetEnumeratorMethod is null || MoveNextMethod is null || CurrentPropertyGetter is null;
         }
     }
 }
