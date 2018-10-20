@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.Text
             private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
 
-            private SnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot) :
-                this(textBufferCloneServiceOpt, editorSnapshot, TextBufferContainer.From(editorSnapshot.TextBuffer))
-            {
-            }
-
             private SnapshotSourceText(ITextBufferCloneService textBufferCloneServiceOpt, ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
                 Contract.ThrowIfNull(editorSnapshot);
@@ -80,9 +75,13 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (!s_textSnapshotMap.TryGetValue(editorSnapshot, out var snapshot))
                 {
+                    // Explicitly obtain the TextBufferContainer before calling GetValue to avoid reentrancy in
+                    // ConditionalWeakTable. https://github.com/dotnet/roslyn/issues/28256
+                    var container = TextBufferContainer.From(editorSnapshot.TextBuffer);
+
                     // Avoid capturing `textBufferCloneServiceOpt` on the fast path
                     var tempTextBufferCloneServiceOpt = textBufferCloneServiceOpt;
-                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneServiceOpt, s));
+                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneServiceOpt, s, container));
                 }
 
                 return snapshot;

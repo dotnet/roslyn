@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
+using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -1001,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 var receiver = fieldAccess.ReceiverOpt;
-                var fieldType = field.Type;
+                TypeSymbol fieldType = field.Type.TypeSymbol;
                 if (fieldType.IsValueType && (object)fieldType == (object)receiver.Type)
                 {
                     //Handle emitting a field of a self-containing struct (only possible in mscorlib)
@@ -1244,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used && local.LocalSymbol.RefKind != RefKind.None)
             {
-                EmitLoadIndirect(local.LocalSymbol.Type, local.Syntax);
+                EmitLoadIndirect(local.LocalSymbol.Type.TypeSymbol, local.Syntax);
             }
         }
 
@@ -1255,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (parameter.ParameterSymbol.RefKind != RefKind.None)
             {
-                var parameterType = parameter.ParameterSymbol.Type;
+                var parameterType = parameter.ParameterSymbol.Type.TypeSymbol;
                 EmitLoadIndirect(parameterType, parameter.Syntax);
             }
         }
@@ -1673,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
             {
-                EmitLoadIndirect(method.ReturnType, call.Syntax);
+                EmitLoadIndirect(method.ReturnType.TypeSymbol, call.Syntax);
             }
             else if (useKind == UseKind.UsedAsAddress)
             {
@@ -1876,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (arrayType.IsSZArray)
             {
                 _builder.EmitOpCode(ILOpCode.Newarr);
-                EmitSymbolToken(arrayType.ElementType, expression.Syntax);
+                EmitSymbolToken(arrayType.ElementType.TypeSymbol, expression.Syntax);
             }
             else
             {
@@ -2539,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     BoundLocal local = (BoundLocal)expression;
                     if (local.LocalSymbol.RefKind != RefKind.None && !assignment.IsRef)
                     {
-                        EmitIndirectStore(local.LocalSymbol.Type, local.Syntax);
+                        EmitIndirectStore(local.LocalSymbol.Type.TypeSymbol, local.Syntax);
                     }
                     else
                     {
@@ -2667,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private void EmitVectorElementStore(ArrayTypeSymbol arrayType, SyntaxNode syntaxNode)
         {
-            var elementType = arrayType.ElementType;
+            var elementType = arrayType.ElementType.TypeSymbol;
 
             if (elementType.IsEnumType())
             {
@@ -2748,7 +2749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 //NOTE: we should have the actual parameter already loaded, 
                 //now need to do a store to where it points to
-                EmitIndirectStore(parameter.ParameterSymbol.Type, parameter.Syntax);
+                EmitIndirectStore(parameter.ParameterSymbol.Type.TypeSymbol, parameter.Syntax);
             }
             else
             {
@@ -3060,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(getMethod, node.Syntax, null);
-            if (node.Type != getMethod.ReturnType)
+            if (node.Type != getMethod.ReturnType.TypeSymbol)
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
@@ -3087,7 +3088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(getField, node.Syntax, null);
-            if (node.Type != getField.ReturnType)
+            if (node.Type != getField.ReturnType.TypeSymbol)
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
@@ -3329,7 +3330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // unless the element types are converted via variance.
             if (to.IsArray())
             {
-                return IsVarianceCast(((ArrayTypeSymbol)to).ElementType, ((ArrayTypeSymbol)from).ElementType);
+                return IsVarianceCast(((ArrayTypeSymbol)to).ElementType.TypeSymbol, ((ArrayTypeSymbol)from).ElementType.TypeSymbol);
             }
 
             return (to.IsDelegateType() && to != from) ||

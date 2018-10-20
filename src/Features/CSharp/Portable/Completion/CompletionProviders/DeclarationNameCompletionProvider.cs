@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     sortValue++;
                 }
 
-                completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
+                completionContext.SuggestionModeItem = CommonCompletionItem.Create(
+                    CSharpFeaturesResources.Name, displayTextSuffix: "", CompletionItemRules.Default);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -254,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return CommonCompletionItem.Create(
                 name, 
+                displayTextSuffix: "",
                 CompletionItemRules.Default, 
                 glyph: glyph, 
                 sortText: sortText, 

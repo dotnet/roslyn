@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -905,11 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 _builder.OpenLocalScope(ScopeType.Catch, exceptionType);
 
-                if (catchBlock.IsSynthesizedAsyncCatchAll)
-                {
-                    Debug.Assert(_asyncCatchHandlerOffset < 0); // only one expected
-                    _asyncCatchHandlerOffset = _builder.AllocateILMarker();
-                }
+                RecordAsyncCatchHandlerOffset(catchBlock);
 
                 // Dev12 inserts the sequence point on catch clause without a filter, just before 
                 // the exception object is assigned to the variable.
@@ -941,6 +938,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 _builder.OpenLocalScope(ScopeType.Filter);
+
+                RecordAsyncCatchHandlerOffset(catchBlock);
 
                 // Filtering starts with simulating regular catch through a 
                 // type check. If this is not our type then we are done.
@@ -1063,6 +1062,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitBlock(catchBlock.Body);
 
             _builder.CloseLocalScope();
+        }
+
+        private void RecordAsyncCatchHandlerOffset(BoundCatchBlock catchBlock)
+        {
+            if (catchBlock.IsSynthesizedAsyncCatchAll)
+            {
+                Debug.Assert(_asyncCatchHandlerOffset < 0); // only one expected
+                _asyncCatchHandlerOffset = _builder.AllocateILMarker();
+            }
         }
 
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
@@ -1436,17 +1444,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
-            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
-                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, RefKind.None, 0) :
+            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsDynamic() ?
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, RefKind.None, 0) :
                 ImmutableArray<bool>.Empty;
-            var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
-                CSharpCompilation.TupleNamesEncoder.Encode(local.Type) :
+            var tupleElementNames = !local.IsCompilerGenerated && local.Type.TypeSymbol.ContainsTupleNames() ?
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type.TypeSymbol) :
                 ImmutableArray<string>.Empty;
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
-                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
+                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type.TypeSymbol, local.ConstantValue, syntaxNode, _diagnostics);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
                     local.Name,
                     local.Locations.FirstOrDefault() ?? Location.None,
@@ -1471,8 +1479,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(local.Type.IsPointerType());
 
                 constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
-                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type;
-                TypeSymbol pointedAtType = pointerType.PointedAtType;
+                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type.TypeSymbol;
+                TypeSymbol pointedAtType = pointerType.PointedAtType.TypeSymbol;
 
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
@@ -1484,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics);
+                translatedType = _module.Translate(local.Type.TypeSymbol, syntaxNode, _diagnostics);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.

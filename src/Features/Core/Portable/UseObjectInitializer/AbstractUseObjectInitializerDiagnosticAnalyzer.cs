@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
         TVariableDeclaratorSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode

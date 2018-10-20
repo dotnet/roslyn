@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
-        //ERR_FeatureIsExperimental = 8058, No experimental feature
+        ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
@@ -1461,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
         //ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        //ERR_ExpressionVariableInQueryClause = 8201, 
+        //ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
@@ -1576,8 +1576,66 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
+
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
+
+        #region diagnostics introduced for C# 8.0
+        ERR_FeatureNotAvailableInVersion8 = 8400,
+        ERR_AltInterpolatedVerbatimStringsNotAvailable = 8401,
+        WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
+
+        ERR_NoConvToIAsyncDisp = 8410,
+        ERR_AwaitForEachMissingMember = 8411,
+        ERR_BadGetAsyncEnumerator = 8412,
+        ERR_MultipleIAsyncEnumOfT = 8413,
+        ERR_ForEachMissingMemberWrongAsync = 8414,
+        ERR_AwaitForEachMissingMemberWrongAsync = 8415,
+        ERR_BadDynamicAwaitForEach = 8416,
+
+        WRN_ConvertingNullableToNonNullable = 8600,
+        WRN_NullReferenceAssignment = 8601,
+        WRN_NullReferenceReceiver = 8602,
+        WRN_NullReferenceReturn = 8603,
+        WRN_NullReferenceArgument = 8604,
+        HDN_NullCheckIsProbablyAlwaysTrue = 8605,
+        HDN_NullCheckIsProbablyAlwaysFalse = 8606,
+        HDN_ExpressionIsProbablyNeverNull = 8607,
+        WRN_NullabilityMismatchInTypeOnOverride = 8608,
+        WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
+        WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
+        WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,
+        WRN_NullabilityMismatchInTypeOnImplicitImplementation = 8612,
+        WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation = 8613,
+        WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation = 8614,
+        WRN_NullabilityMismatchInTypeOnExplicitImplementation = 8615,
+        WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation = 8616,
+        WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation = 8617,
+        WRN_UninitializedNonNullableField = 8618,
+        WRN_NullabilityMismatchInAssignment = 8619,
+        WRN_NullabilityMismatchInArgument = 8620,
+        WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8621,
+        WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
+        ERR_ExplicitNullableAttribute = 8623,
+        WRN_SuppressionOperatorNotReferenceType = 8624,
+        WRN_NullAsNonNullable = 8625,
+        WRN_NoBestNullabilityConditionalExpression = 8626,
+        ERR_NullableUnconstrainedTypeParameter = 8627,
+        ERR_AnnotationDisallowedInObjectCreation = 8628,
+        WRN_MissingNonNullTypesContext = 8629,
+        ERR_NullableOptionNotAvailable = 8630,
+        WRN_NullabilityMismatchInTypeParameterConstraint = 8631,
+        WRN_MissingNonNullTypesContextForAnnotation = 8632,
+        WRN_NullabilityMismatchInConstraintsOnImplicitImplementation = 8633,
+        WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint = 8634,
+        ERR_TripleDotNotAllowed = 8635,
+        ERR_ExplicitNonNullTypesAttribute = 8636,
+        ERR_NullableDirectiveQualifierExpected = 8637,
+        WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
+        WRN_NoBestNullabilityArrayElements = 8639,
+
+        #endregion diagnostics introduced for C# 8.0
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
-    // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

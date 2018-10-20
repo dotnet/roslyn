@@ -1745,6 +1745,31 @@ End Class]]></text>.NormalizedValue(),
                         Text("cref."))))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestIntegerLiteral() As Task
+            Await TestInMethodAsync("Dim f = 37$$",
+                                    MainDescription("Structure System.Int32"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestTrueKeyword() As Task
+            Await TestInMethodAsync("Dim f = True$$",
+                                    MainDescription("Structure System.Boolean"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestFalseKeyword() As Task
+            Await TestInMethodAsync("Dim f = False$$",
+                                    MainDescription("Structure System.Boolean"))
+        End Function
+
+        <WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteral() As Task
+            Await TestInMethodAsync("Dim f As String = Nothing$$",
+                                    MainDescription("Class System.String"))
+        End Function
+
         ''' <Remarks>
         ''' As a part of fix for 756226, quick info for VB Await keyword now displays the type inferred from the AwaitExpression. This is C# behavior.
         ''' In Dev12, quick info for VB Await keyword was the syntactic help "Await &lt;expression&gt;".

@@ -9085,6 +9085,10 @@ End Module
             Assert.Equal("I1#I2#I3#I5#I6#I7#Item1#Item2#Item3#Item4#Item5#Item6#Item7#Item8#Item9#Rest", fields.Join("#"))
         End Sub
 
+        ' The NonNullTypes context for nested tuple types is using a dummy rather than actual context from surrounding code.
+        ' This does not affect `IsNullable`, but it affects `IsAnnotatedWithNonNullTypesContext`, which is used in comparisons.
+        ' So when we copy modifiers (re-applying nullability information, including actual NonNullTypes context), we make the comparison fail.
+        ' I think the solution is to never use a dummy context, even for value types.
         <Fact>
         Public Sub TupleNamesFromCS001()
 

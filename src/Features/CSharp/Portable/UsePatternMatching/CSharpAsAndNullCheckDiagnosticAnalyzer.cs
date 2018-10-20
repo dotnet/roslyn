@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
 

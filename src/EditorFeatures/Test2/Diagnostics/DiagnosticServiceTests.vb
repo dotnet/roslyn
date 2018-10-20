@@ -1195,6 +1195,55 @@ public class B
                 Assert.Equal("public int field5, field6 = 1;", diagnostics(3).Message)
             End Using
         End Sub
+        
+        <WpfFact, WorkItem(27703, "https://github.com/dotnet/roslyn/issues/27703")>
+        Public Sub TestDiagnosticsForSpanWorksWithEmptySpan()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>
+public class B
+{
+    public string field0;
+    public string field1, field2;
+    public int field3 = 0, field4 = 1;
+    public int field5, field6 = 1;
+}
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+                Dim analyzer = New FieldDeclarationAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
+                Dim diagnosticService = New TestDiagnosticAnalyzerService(hostDiagnosticUpdateSource:=Nothing, mefExportProvider.GetExports(Of PrimaryWorkspace).Single.Value)
+
+                Dim descriptorsMap = diagnosticService.CreateDiagnosticDescriptorsPerReference(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                Dim document = project.Documents.Single()
+                Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
+                    WaitAndGetResult(CancellationToken.None).
+                    OrderBy(Function(d) d.TextSpan.Start).
+                    ToArray()
+
+                For Each diagnostic In diagnostics
+                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.SourceSpan.Value.Start, 0)
+                    Dim otherDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, spanAtCaret).
+                        WaitAndGetResult(CancellationToken.None).
+                        ToArray()
+
+                    Assert.Equal(1, otherDiagnostics.Length)
+                    Assert.Equal(diagnostic.Message, otherDiagnostics(0).Message)
+                Next
+            End Using
+        End Sub
 
         Public Class FieldDeclarationAnalyzer
             Inherits DiagnosticAnalyzer
