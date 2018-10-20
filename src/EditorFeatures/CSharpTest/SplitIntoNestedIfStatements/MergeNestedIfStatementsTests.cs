@@ -532,7 +532,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
 }");
         }
 
-
         [Fact]
         public async Task MergedWithNestedIfInsideBlockStatementInsideBlock()
         {
