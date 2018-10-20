@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
         {
-            var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}";
+            var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
 
             if (configuration != null)
             {

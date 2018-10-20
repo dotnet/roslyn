@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
         }
 
-        private ImmutableDictionary<string, string> AllGlobalProperties()
+        private ImmutableDictionary<string, string> AllGlobalProperties
             => s_defaultGlobalProperties.AddRange(_additionalGlobalProperties);
 
         private static async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
             else
             {
-                var projectCollection = new MSB.Evaluation.ProjectCollection(AllGlobalProperties());
+                var projectCollection = new MSB.Evaluation.ProjectCollection(AllGlobalProperties);
                 try
                 {
                     return LoadProjectAsync(path, projectCollection, cancellationToken);
