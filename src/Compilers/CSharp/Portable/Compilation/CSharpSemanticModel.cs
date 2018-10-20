@@ -3184,7 +3184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AwaitExpression:
                     var await = (BoundAwaitExpression)boundNode;
-                    isDynamic = await.IsDynamic;
+                    isDynamic = await.AwaitableInfo.IsDynamic;
                     // TODO:
                     goto default;
 
@@ -3300,6 +3300,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols = thisParam != null ? ImmutableArray.Create<Symbol>(thisParam) : ImmutableArray<Symbol>.Empty;
                     }
                     break;
+
+                case BoundKind.FromEndIndexExpression:
+                    {
+                        var fromEndIndexExpression = (BoundFromEndIndexExpression)boundNode;
+                        if ((object)fromEndIndexExpression.MethodOpt != null)
+                        {
+                            symbols = ImmutableArray.Create<Symbol>(fromEndIndexExpression.MethodOpt);
+                        }
+                        break;
+                    }
+
+                case BoundKind.RangeExpression:
+                    {
+                        var rangeExpression = (BoundRangeExpression)boundNode;
+                        if ((object)rangeExpression.MethodOpt != null)
+                        {
+                            symbols = ImmutableArray.Create<Symbol>(rangeExpression.MethodOpt);
+                        }
+                        break;
+                    }
 
                 default:
                     {

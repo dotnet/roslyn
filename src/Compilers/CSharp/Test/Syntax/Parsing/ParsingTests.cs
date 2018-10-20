@@ -186,7 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected void EOF()
         {
-            Assert.False(_treeEnumerator.MoveNext());
+            if (_treeEnumerator.MoveNext())
+            {
+                Assert.False(true, "Found unexpected node or token of kind: " + _treeEnumerator.Current.Kind());
+            }
         }
 
         private IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node)

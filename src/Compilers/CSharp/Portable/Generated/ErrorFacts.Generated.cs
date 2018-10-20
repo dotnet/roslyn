@@ -209,6 +209,8 @@
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
+                case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
+                case ErrorCode.WRN_NoBestNullabilityArrayElements:
                     return true;
                 default:
                     return false;

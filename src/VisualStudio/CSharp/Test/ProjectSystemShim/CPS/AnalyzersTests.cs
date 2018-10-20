@@ -36,7 +36,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 Assert.Equal(expected: ReportDiagnostic.Default, actual: options.GeneralDiagnosticOption);
 
-                project.SetRuleSetFile(ruleSetFile.Path);
                 project.SetOptions($"/ruleset:{ruleSetFile.Path}");
 
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
@@ -58,36 +57,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
   </Rules>
 </RuleSet>
 ";
-            string ruleSetSource2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
-  <IncludeAll Action=""Warning"" />
-  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
-    <Rule Id=""CA1012"" Action=""Warning"" />
-  </Rules>
-</RuleSet>
-";
+            
             using (var ruleSetFile = new DisposableFile())
             using (var environment = new TestEnvironment())
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
             {
-                Assert.Null(project.RuleSetFile);
-                
                 // Verify SetRuleSetFile updates the ruleset.
                 File.WriteAllText(ruleSetFile.Path, ruleSetSource);
-                project.SetRuleSetFile(ruleSetFile.Path);
-                Assert.Equal(ruleSetFile.Path, project.RuleSetFile.Target.FilePath);
+                project.SetOptions($"/ruleset:{ruleSetFile.Path}");
 
                 // We need to explicitly update the command line arguments so the new ruleset is used to update options.
                 project.SetOptions($"/ruleset:{ruleSetFile.Path}");
-                var ca1012DiagnosticOption = project.CurrentCompilationOptions.SpecificDiagnosticOptions["CA1012"];
+                var ca1012DiagnosticOption = environment.Workspace.CurrentSolution.Projects.Single().CompilationOptions.SpecificDiagnosticOptions["CA1012"];
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
-
-                // Verify edits to the ruleset file updates options.
-                var lastOptions = project.CurrentCompilationOptions;
-                File.WriteAllText(ruleSetFile.Path, ruleSetSource2);
-                project.OnRuleSetFileUpdateOnDisk(this, EventArgs.Empty);
-                ca1012DiagnosticOption = project.CurrentCompilationOptions.SpecificDiagnosticOptions["CA1012"];
-                Assert.Equal(expected: ReportDiagnostic.Warn, actual: ca1012DiagnosticOption);
             }
         }
     }

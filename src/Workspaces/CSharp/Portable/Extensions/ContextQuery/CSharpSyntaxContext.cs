@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
                 syntaxTree.IsDeclarationExpressionContext(position, leftToken, cancellationToken),
                 syntaxTree.IsFixedVariableDeclarationContext(position, leftToken, cancellationToken),
-                syntaxTree.IsParameterTypeContext(position, leftToken, cancellationToken),
+                syntaxTree.IsParameterTypeContext(position, leftToken),
                 syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken, cancellationToken),
@@ -339,6 +339,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
         {
             return new CSharpTypeInferenceService();
+        }
+
+        /// <summary>
+        /// Is this a possible position for an await statement (`await using` or `await foreach`)?
+        /// </summary>
+        internal bool IsAwaitStatementContext(int position, CancellationToken cancellationToken)
+        {
+            var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.GetPreviousToken().IsBeginningOfStatementContext();
         }
     }
 }

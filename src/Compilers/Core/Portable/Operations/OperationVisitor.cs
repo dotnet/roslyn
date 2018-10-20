@@ -569,6 +569,26 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitRangeOperation(IRangeOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitReDim(IReDimOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitReDimClause(IReDimClauseOperation operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -1139,6 +1159,26 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFromEndIndexOperation(IFromEndIndexOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitRangeOperation(IRangeOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitReDim(IReDimOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitReDimClause(IReDimClauseOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureBinaryLiteral = MessageBase + 12706,
         IDS_FeatureDigitSeparator = MessageBase + 12707,
         IDS_FeatureLocalFunctions = MessageBase + 12708,
-        IDS_FeatureStaticNullChecking = MessageBase + 12709,
+        IDS_FeatureNullableReferenceTypes = MessageBase + 12709,
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
@@ -167,6 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
         IDS_InjectedDeclaration = MessageBase + 12748,
         IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12749,
+        IDS_FeatureIndexOperator = MessageBase + 12750,
+        IDS_FeatureRangeOperator = MessageBase + 12751,
+        IDS_FeatureAsyncStreams = MessageBase + 12752,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -216,6 +219,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        {
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            if (requiredVersion > availableVersion)
+            {
+                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+            }
+        }
+
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
@@ -226,8 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
                 case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
-                case MessageID.IDS_FeatureStaticNullChecking: // syntax and semantic check
+                case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check
                 case MessageID.IDS_FeatureObjectGenericTypeConstraint:   // semantic check
+                case MessageID.IDS_FeatureIndexOperator: // semantic check
+                case MessageID.IDS_FeatureRangeOperator: // semantic check
+                case MessageID.IDS_FeatureAsyncStreams:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

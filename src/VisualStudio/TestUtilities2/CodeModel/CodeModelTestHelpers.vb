@@ -53,7 +53,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     mockServiceProvider,
                     project.LanguageServices,
-                    mockVisualStudioWorkspace)
+                    mockVisualStudioWorkspace,
+                    Nothing)
 
                 Dim mockTextManagerAdapter = New MockTextManagerAdapter()
 

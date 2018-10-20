@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddMissingReference = nameof(AddMissingReference);
         public const string AddImport = nameof(AddImport);
         public const string FullyQualify = nameof(FullyQualify);
+        public const string FixFormatting = nameof(FixFormatting);
         public const string FixIncorrectFunctionReturnType = nameof(FixIncorrectFunctionReturnType);
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
         public const string GenerateConstructor = nameof(GenerateConstructor);

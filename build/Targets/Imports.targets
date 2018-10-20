@@ -15,7 +15,7 @@
 
     <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
          but gets included in lots of output items like VSIX. -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0' AND '$(TargetFramework)' != 'netcoreapp2.1'">false</GenerateRuntimeConfigurationFiles>
 
     <!-- Place VS insertion (CoreXT) packages to a separate directory -->
     <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\</PackageOutputPath>

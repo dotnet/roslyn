@@ -320,6 +320,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -340,19 +344,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
-                case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
-                case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                case ErrorCode.WRN_Experimental:
-                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
-                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
-                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
-                case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                 case ErrorCode.WRN_MissingNonNullTypesContext:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
+                case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
-                case ErrorCode.WRN_SuppressionOperatorNotReferenceType:
+                case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
+                case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
+                case ErrorCode.WRN_NoBestNullabilityArrayElements:
                     return 1;
                 default:
                     return 0;

@@ -59,6 +59,11 @@
         <target state="translated">模块复制不能用于创建程序集元数据。</target>
         <note />
       </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unresolved">
         <source>Unresolved: </source>
         <target state="translated">未解析:</target>

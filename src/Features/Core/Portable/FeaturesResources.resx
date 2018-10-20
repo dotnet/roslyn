@@ -1463,4 +1463,10 @@ This version used in: {2}</value>
   <data name="Introduce_query_variable" xml:space="preserve">
     <value>Introduce query variable</value>
   </data>
+  <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
+    <value>Failed to analyze data-flow for: {0}</value>
+  </data>
+  <data name="Fix_formatting" xml:space="preserve">
+    <value>Fix formatting</value>
+  </data>
 </root>

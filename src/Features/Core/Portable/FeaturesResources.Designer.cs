@@ -1280,6 +1280,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to analyze data-flow for: {0}.
+        /// </summary>
+        internal static string Failed_to_analyze_data_flow_for_0 {
+            get {
+                return ResourceManager.GetString("Failed_to_analyze_data_flow_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create a remote process for interactive code execution..
         /// </summary>
         internal static string Failed_to_create_a_remote_process_for_interactive_code_execution {
@@ -1357,6 +1366,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Fix_all_occurrences {
             get {
                 return ResourceManager.GetString("Fix_all_occurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Fix_formatting {
+            get {
+                return ResourceManager.GetString("Fix_formatting", resourceCulture);
             }
         }
         

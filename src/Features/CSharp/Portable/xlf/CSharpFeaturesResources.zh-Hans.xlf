@@ -17,6 +17,11 @@
         <target state="new">Add await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="new">Add missing usings</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
         <target state="new">Add/remove braces for single-line control statements</target>

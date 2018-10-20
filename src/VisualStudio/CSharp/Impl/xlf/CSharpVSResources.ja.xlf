@@ -732,7 +732,7 @@
         <target state="translated">名前の提案を表示(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">イベント サブスクリプションの生成</target>
         <note />

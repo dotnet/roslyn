@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseNamedArguments;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -307,7 +308,7 @@ class C
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestNotMissingWhenInsideSingleLineArgument2_WithCSharp7()
+        public async Task TestNotMissingWhenInsideSingleLineArgument2_CSharp7()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -319,10 +320,12 @@ class C
 {
     void M(int arg1, int arg2) 
         => M(arg1: 1 + 2, arg2: 2);
-}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+}",
+                parameters: new TestParameters(parseOptions: TestOptions.Regular7));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestNotMissingWhenInsideSingleLineArgument2()
         {
             await TestInRegularAndScript1Async(
@@ -335,7 +338,7 @@ class C
 {
     void M(int arg1, int arg2)
         => M(arg1: 1 + 2, 2);
-}");
+}", parameters: new TestParameters(parseOptions: TestOptions.Regular7_3));
         }
 
         [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
@@ -358,6 +361,23 @@ class C
 {
     void M(Action arg1, int arg2) 
         => M(arg1: () => {  }, arg2: 2);
+}");
+        }
+
+        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNotMissingWhenInsideSingleLineArgument4()
+        {
+            await TestWithCSharp7(
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(1 [||]+ 2, 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(arg1: 1 + 2, arg2: 2);
 }");
         }
 
