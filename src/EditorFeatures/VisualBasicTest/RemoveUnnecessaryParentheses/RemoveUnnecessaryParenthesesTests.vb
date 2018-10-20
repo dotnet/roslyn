@@ -39,6 +39,17 @@ end class", New TestParameters(options:=IgnoreAllParentheses))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        <WorkItem(29736, "https://github.com/dotnet/roslyn/issues/29736")>
+        Public Async Function TestVariableInitializer_MissingParenthesis() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        dim x = $$(1
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
         Public Async Function TestArithmeticRequiredForClarity1() As Task
             Await TestMissingAsync(
 "class C

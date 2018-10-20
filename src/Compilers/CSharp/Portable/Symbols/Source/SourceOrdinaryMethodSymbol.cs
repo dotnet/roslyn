@@ -411,16 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.RefKind != RefKind.None)
             {
-                var returnTypeSyntax = GetSyntax().ReturnType;
-                if (!returnTypeSyntax.HasErrors)
-                {
-                    var refKeyword = returnTypeSyntax.GetFirstToken();
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
-                }
+                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
             }
-            else if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
+            else if (ReturnType.TypeSymbol.IsBadAsyncReturn(this.DeclaringCompilation))
             {
-                // The return type of an async method must be void, Task or Task<T>
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
             }
 
@@ -1120,7 +1114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            Debug.Assert(part1.NonNullTypes == part2.NonNullTypes);
             var typeParameters2 = part2.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(nonNullTypesContext: part1, typeParameters1, indexedTypeParameters, allowAlpha: true);

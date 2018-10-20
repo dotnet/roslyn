@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem CreateNetworkRoot()
             => CommonCompletionItem.Create(
                 "\\\\",
+                displayTextSuffix: "",
                 glyph: null,
                 description: "\\\\".ToSymbolDisplayParts(),
                 rules: _itemRules);
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem CreateUnixRoot() 
             => CommonCompletionItem.Create(
                 "/",
+                displayTextSuffix: "",
                 glyph: _folderGlyph,
                 description: "/".ToSymbolDisplayParts(),
                 rules: _itemRules);
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem CreateFileSystemEntryItem(string fullPath, bool isDirectory) 
             => CommonCompletionItem.Create(
                 PathUtilities.GetFileName(fullPath),
+                displayTextSuffix: "",
                 glyph: isDirectory ? _folderGlyph : _fileGlyph,
                 description: fullPath.ToSymbolDisplayParts(),
                 rules: _itemRules);
@@ -105,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionItem CreateLogicalDriveItem(string drive) 
             => CommonCompletionItem.Create(
                 drive,
+                displayTextSuffix: "",
                 glyph: _folderGlyph,
                 description: drive.ToSymbolDisplayParts(),
                 rules: _itemRules);
