@@ -525,6 +525,136 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundStatementList(node.Syntax, rewrittenStatements, node.HasErrors);
         }
 
+        public override BoundNode VisitArrayAccess(BoundArrayAccess node)
+        {
+            // https://github.com/dotnet/roslyn/issues/30620
+            // If the array access index is of type System.Index or System.Range
+            // we need to emit code as if there were a real indexer, instead
+            // of a simple array element access.
+
+            if (node.Indices.Length != 1)
+            {
+                return base.VisitArrayAccess(node);
+            }
+
+            TypeSymbol rawIndexType = node.Indices[0].Type;
+            if (!(rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Index) ||
+                  rawIndexType == _compilation.GetWellKnownType(WellKnownType.System_Range)))
+            {
+                return base.VisitArrayAccess(node);
+            }
+
+            var syntax = node.Syntax;
+            var F = _factory;
+            var indexLocal = F.StoreToTemp(
+                VisitExpression(node.Indices[0]),
+                out BoundAssignmentOperator indexAssign);
+            var arrayLocal = F.StoreToTemp(
+                VisitExpression(node.Expression),
+                out BoundAssignmentOperator arrayAssign);
+            var indexType = VisitType(node.Indices[0].Type);
+
+            var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
+            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__FromEnd);
+
+            BoundExpression resultExpr;
+            if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Index))
+            {
+
+                // array[Index] is translated to:
+                // index.FromEnd ? array[array.Length - index.Value] : array[index.Value]
+
+                var indexValueExpr = F.Property(indexLocal, indexValueSymbol);
+
+                resultExpr = F.Sequence(
+                    ImmutableArray.Create<LocalSymbol>(
+                        indexLocal.LocalSymbol,
+                        arrayLocal.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(
+                        indexAssign,
+                        arrayAssign),
+                    F.Conditional(
+                        F.Property(indexLocal, indexFromEndSymbol),
+                        F.ArrayAccess(arrayLocal, ImmutableArray.Create<BoundExpression>(F.Binary(
+                            BinaryOperatorKind.Subtraction,
+                            F.SpecialType(SpecialType.System_Int32),
+                            F.ArrayLength(arrayLocal),
+                            indexValueExpr))),
+                        F.ArrayAccess(arrayLocal, ImmutableArray.Create(indexValueExpr)),
+                        node.Type));
+            }
+            else if (indexType == _compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                // array[Range] is translated to:
+                // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
+                // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
+                // var length = end - start;
+                // var newArr = new T[length];
+                // Array.Copy(array, start, newArr, 0, length);
+                // push newArray
+
+                var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
+                var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
+                var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
+
+                var startLocal = F.StoreToTemp(
+                    F.Conditional(
+                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexFromEndSymbol),
+                        F.Binary(
+                            BinaryOperatorKind.Subtraction,
+                            F.SpecialType(SpecialType.System_Int32),
+                            F.ArrayLength(arrayLocal),
+                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
+                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
+                        F.SpecialType(SpecialType.System_Int32)),
+                    out BoundAssignmentOperator startAssign);
+                var endLocal = F.StoreToTemp(
+                    F.Conditional(
+                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexFromEndSymbol),
+                        F.Binary(
+                            BinaryOperatorKind.Subtraction,
+                            F.SpecialType(SpecialType.System_Int32),
+                            F.ArrayLength(arrayLocal),
+                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
+                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol),
+                        F.SpecialType(SpecialType.System_Int32)),
+                    out BoundAssignmentOperator endAssign);
+                var lengthLocal = F.StoreToTemp(
+                    F.Binary(BinaryOperatorKind.Subtraction, F.SpecialType(SpecialType.System_Int32), endLocal, startLocal),
+                    out BoundAssignmentOperator lengthAssign);
+                var elementType = ((ArrayTypeSymbol)node.Type).ElementType.TypeSymbol;
+                var newArrLocal = F.StoreToTemp(F.Array(elementType, lengthLocal), out BoundAssignmentOperator newArrAssign);
+                var copyExpr = F.Call(null, arrayCopySymbol, ImmutableArray.Create<BoundExpression>(
+                    arrayLocal,
+                    startLocal,
+                    newArrLocal,
+                    F.Literal(0),
+                    lengthLocal));
+                resultExpr = F.Sequence(
+                    ImmutableArray.Create(
+                        indexLocal.LocalSymbol,
+                        arrayLocal.LocalSymbol,
+                        startLocal.LocalSymbol,
+                        endLocal.LocalSymbol,
+                        lengthLocal.LocalSymbol,
+                        newArrLocal.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(
+                        indexAssign,
+                        arrayAssign,
+                        startAssign,
+                        endAssign,
+                        lengthAssign,
+                        newArrAssign,
+                        copyExpr),
+                    newArrLocal);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+            return resultExpr;
+        }
+
         internal static bool IsFieldOrPropertyInitializer(BoundStatement initializer)
         {
             var syntax = initializer.Syntax;

@@ -1365,7 +1365,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(i);
             }
 
-            _resultType = type?.ElementType ?? default;
+            if (node.Indices.Length == 1 &&
+                node.Indices[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                _resultType = TypeSymbolWithAnnotations.Create(type);
+            }
+            else
+            {
+                _resultType = type?.ElementType ?? default;
+            }
+
             return null;
         }
 
@@ -3687,7 +3696,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/29964 Update indexer based on inferred receiver type.
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            _resultType = node.Indexer.Type;
+            // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
+            if (node.Arguments.Length == 1 &&
+                node.Arguments[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                _resultType = TypeSymbolWithAnnotations.Create(node.Type);
+            }
+            else
+            {
+                _resultType = node.Indexer.Type;
+            }
             return null;
         }
 
