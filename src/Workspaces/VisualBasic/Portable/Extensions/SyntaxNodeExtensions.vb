@@ -471,6 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                          SyntaxKind.SingleLineElseClause,
                          SyntaxKind.SingleLineSubLambdaExpression,
                          SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.ElseIfBlock,
                          SyntaxKind.ElseBlock,
                          SyntaxKind.TryBlock,
                          SyntaxKind.CatchBlock,
@@ -540,6 +541,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return SyntaxFactory.SingletonList(DirectCast(DirectCast(node, SingleLineLambdaExpressionSyntax).Body, StatementSyntax))
                     Case SyntaxKind.MultiLineIfBlock
                         Return DirectCast(node, MultiLineIfBlockSyntax).Statements
+                    Case SyntaxKind.ElseIfBlock
+                        Return DirectCast(node, ElseIfBlockSyntax).Statements
                     Case SyntaxKind.ElseBlock
                         Return DirectCast(node, ElseBlockSyntax).Statements
                     Case SyntaxKind.TryBlock

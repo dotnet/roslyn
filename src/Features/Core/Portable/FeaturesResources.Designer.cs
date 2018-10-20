@@ -2234,6 +2234,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Merge consecutive &apos;{0}&apos; statements.
+        /// </summary>
+        internal static string Merge_consecutive_0_statements {
+            get {
+                return ResourceManager.GetString("Merge_consecutive_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Merge nested &apos;{0}&apos; statements.
         /// </summary>
         internal static string Merge_nested_0_statements {

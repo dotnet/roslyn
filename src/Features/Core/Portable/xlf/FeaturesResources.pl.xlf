@@ -107,6 +107,11 @@
         <target state="new">Introduce query variable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Merge_consecutive_0_statements">
+        <source>Merge consecutive '{0}' statements</source>
+        <target state="new">Merge consecutive '{0}' statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Merge_nested_0_statements">
         <source>Merge nested '{0}' statements</source>
         <target state="new">Merge nested '{0}' statements</target>
