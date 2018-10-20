@@ -5,443 +5,289 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.SplitIntoConsecutiveIfStatements
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitIntoConsecutiveIfStatements
-    <Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)>
-    Public NotInheritable Class SplitIntoConsecutiveIfStatementsTests
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMergeConsecutiveIfStatements)>
+    Public NotInheritable Class MergeConsecutiveIfStatementsTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider()
+            Return New VisualBasicMergeConsecutiveIfStatementsCodeRefactoringProvider()
         End Function
 
         <Fact>
-        Public Async Function SplitOnOrElseOperatorCaret1() As Task
+        Public Async Function MergedOnElseIfCaret1() As Task
             Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-        end if
-    end sub
-end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        [||]elseif b then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitOnOrElseOperatorCaret2() As Task
+        Public Async Function MergedOnElseIfCaret2() As Task
             Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a ore[||]lse b then
-        end if
-    end sub
-end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        el[||]seif b then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitOnOrElseOperatorCaret3() As Task
+        Public Async Function MergedOnElseIfCaret3() As Task
             Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a orelse[||] b then
-        end if
-    end sub
-end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        elseif[||] b then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitOnOrElseOperatorSelection() As Task
+        Public Async Function MergedOnElseIfCaret4() As Task
             Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [|orelse|] b then
-        end if
-    end sub
-end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOrElseOperatorPartialSelection() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [|or|]else b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOrElseOperatorOverreachingSelection() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a[| orelse|] b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOperandCaret() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a[||] orelse b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnAndAlsoOperator() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]andalso b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnBitwiseOrOperator() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]or b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOrElseOperatorOutsideIfStatement() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        dim v = a [||]orelse b
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOrElseOperatorInIfStatementBody() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a orelse b then
-            a [||]orelse b
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithChainedOrElseExpression1() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a [||]orelse b orelse c orelse d then
+        elseif b [||]then
         end if
     end sub
 end class",
 "class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedOnElseIfCaret5() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b orelse c orelse d Then
+        elseif b then[||]
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithChainedOrElseExpression2() As Task
+        Public Async Function MergedOnElseIfSelection() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a orelse b [||]orelse c orelse d then
+    sub M(a as boolean, b as boolean)
+        if a then
+        [|elseif|] b then
         end if
     end sub
 end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnElseIfPartialSelection() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+        [|else|]if b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnElseIfOverreachingSelection() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+        [|elseif |]b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnElseIfConditionCaret() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+        elseif [||]b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnParentIf() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        [||]if a then
+        elseif b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnSingleIf() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        [||]if b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithOrElseExpressions() As Task
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse b then
-        ElseIf c orelse d Then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithChainedOrElseExpression3() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a orelse b orelse c [||]orelse d then
+        [||]elseif c orelse d then
         end if
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a orelse b orelse c then
-        ElseIf d Then
+        if a orelse b OrElse c orelse d then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function NotSplitInsideParentheses1() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if (a [||]orelse b) orelse c orelse d then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitInsideParentheses2() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a orelse b orelse (c [||]orelse d) then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitInsideParentheses3() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if (a orelse b [||]orelse c orelse d) then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithOtherExpressionInsideParentheses1() As Task
+        Public Async Function MergedWithAndAlsoExpressionNotParenthesized1() As Task
             Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a [||]orelse (b orelse c) orelse d then
-        end if
-    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a then
-        ElseIf (b orelse c) orelse d Then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithOtherExpressionInsideParentheses2() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a orelse (b orelse c) [||]orelse d then
-        end if
-    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a orelse (b orelse c) then
-        ElseIf d Then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithMixedAndAlsoOrElseExpressions1() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a [||]orelse b andalso c then
-        end if
-    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a then
-        ElseIf b andalso c Then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithMixedAndAlsoOrElseExpressions2() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
-        if a andalso b [||]orelse c then
-        end if
-    end sub
-end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b then
-        ElseIf c Then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitWithStatement() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            System.Console.WriteLine(a orelse b)
+        [||]elseif c orelse d then
         end if
     end sub
 end class",
 "class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            System.Console.WriteLine(a orelse b)
-        ElseIf b Then
-            System.Console.WriteLine(a orelse b)
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a andalso b OrElse c orelse d then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithNestedIfStatement() As Task
+        Public Async Function MergedWithAndAlsoExpressionNotParenthesized2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            if true
-            end if
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a orelse b then
+        [||]elseif c andalso d then
         end if
     end sub
 end class",
 "class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            if true
-            end if
-        ElseIf b Then
-
-            if true
-            end if
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a orelse b OrElse c andalso d then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithElseStatement() As Task
+        Public Async Function MergedWithExclusiveOrExpressionParenthesized1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            System.Console.WriteLine()
-        else
-            System.Console.WriteLine(a orelse b)
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a xor b then
+        [||]elseif c = d then
         end if
     end sub
 end class",
 "class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            System.Console.WriteLine()
-        ElseIf b Then
-            System.Console.WriteLine()
-        else
-            System.Console.WriteLine(a orelse b)
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if (a xor b) OrElse c = d then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithElseNestedIfStatement() As Task
+        Public Async Function MergedWithExclusiveOrExpressionParenthesized2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            System.Console.WriteLine()
-        else
-            if true
-            end if
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a = b then
+        [||]elseif c xor d then
         end if
     end sub
 end class",
 "class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            System.Console.WriteLine()
-        ElseIf b Then
-            System.Console.WriteLine()
-        else
-            if true
-            end if
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a = b OrElse (c xor d) then
         end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithElseIfElse() As Task
+        Public Async Function MergedWithParentWithStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            System.Console.WriteLine()
-        elseif a then
+        if a then
             System.Console.WriteLine(a)
-        else
+            System.Console.WriteLine(b)
+        [||]elseif b then
+            System.Console.WriteLine(a)
             System.Console.WriteLine(b)
         end if
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean)
-        if a then
-            System.Console.WriteLine()
-        ElseIf b Then
-            System.Console.WriteLine()
-        elseif a then
+        if a OrElse b then
             System.Console.WriteLine(a)
-        else
             System.Console.WriteLine(b)
         end if
     end sub
@@ -449,13 +295,126 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotSplitAsPartOfElseIfElse() As Task
+        Public Async Function NotMergedWithParentWithUnmatchingStatements1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if true then
+        if a then
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        [||]elseif b then
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(a)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithParentWithUnmatchingStatements2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        [||]elseif b then
+            System.Console.WriteLine(a)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithParentWithUnmatchingStatements3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine(a)
+        [||]elseif b then
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithParentWithElseStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
             System.Console.WriteLine()
-        elseif a [||]orelse b then
+        [||]elseif b then
+            System.Console.WriteLine()
+        else
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            System.Console.WriteLine()
+        else
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithParentWithElseNestedIfStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine()
+        [||]elseif b then
+            System.Console.WriteLine()
+        elseif a then
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            System.Console.WriteLine()
+        elseif a then
+            System.Console.WriteLine(a)
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithParentWithElseIfElse() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine()
+        [||]elseif b then
+            System.Console.WriteLine()
+        elseif a then
+            System.Console.WriteLine(a)
+        else
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            System.Console.WriteLine()
+        elseif a then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine(b)
@@ -465,63 +424,83 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits1() As Task
+        Public Async Function MergedWithParentPartOfElseIf() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            return
+        if a then
+            System.Console.WriteLine()
+        elseif b then
+            System.Console.WriteLine(a)
+        [||]elseif a then
+            System.Console.WriteLine(a)
+        else
+            System.Console.WriteLine(b)
         end if
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            return
+            System.Console.WriteLine()
+        elseif b OrElse a then
+            System.Console.WriteLine(a)
+        else
+            System.Console.WriteLine(b)
         end if
-
-        If b Then
-            return
-        End If
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits2() As Task
+        Public Async Function MergedWithPreviousStatementIfControlFlowQuits1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            throw new System.Exception()
+        if a then
+            return
+        end if
+
+        [||]if b then
+            return
         end if
     end sub
 end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithPreviousStatementIfControlFlowQuits2() As Task
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
             throw new System.Exception()
         end if
 
-        If b Then
+        [||]if b then
             throw new System.Exception()
-        End If
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            throw new System.Exception()
+        end if
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits3() As Task
+        Public Async Function MergedWithPreviousStatementIfControlFlowQuits3() As Task
             Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        while true
-            if a [||]orelse b then
-                continue while
-            end if
-        end while
-    end sub
-end class",
 "class C
     sub M(a as boolean, b as boolean)
         while true
@@ -529,21 +508,38 @@ end class",
                 continue while
             end if
 
-            If b Then
+            [||]if b then
                 continue while
-            End If
+            end if
+        end while
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        while true
+            if a OrElse b then
+                continue while
+            end if
         end while
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits4() As Task
+        Public Async Function MergedWithPreviousStatementIfControlFlowQuits4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         while true
-            if a [||]orelse b then
+            if a then
+                if a then
+                    continue while
+                else
+                    exit while
+                end if
+            end if
+
+            [||]if b then
                 if a then
                     continue while
                 else
@@ -556,38 +552,33 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         while true
-            if a then
+            if a OrElse b then
                 if a then
                     continue while
                 else
                     exit while
                 end if
             end if
-
-            If b Then
-
-                if a then
-                    continue while
-                else
-                    exit while
-                end if
-            End If
         end while
     end sub
 end class")
         End Function
 
         <Fact>
-        Public Async Function SplitIntoSeparateStatementsIfControlFlowQuitsInCaseBlock() As Task
+        Public Async Function MergedWithPreviousStatementIfControlFlowQuitsInCaseBlock() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         select a
             case true
-                if a [||]orelse b then
+                if a then
                     exit select
                 end if
-                
+
+                [||]if b then
+                    exit select
+                end if
+
                 exit select
         end select
     end sub
@@ -596,13 +587,9 @@ end class",
     sub M(a as boolean, b as boolean)
         select a
             case true
-                if a then
+                if a OrElse b then
                     exit select
                 end if
-
-                If b Then
-                    exit select
-                End If
 
                 exit select
         end select
@@ -611,25 +598,33 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues1() As Task
-            Await TestInRegularAndScriptAsync(
+        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues1() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            if a then
-                return
-            end if
+        if a then
+            System.Console.WriteLine()
+        end if
+
+        [||]if b then
+            System.Console.WriteLine()
         end if
     end sub
-end class",
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues2() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
             if a then
                 return
             end if
-        ElseIf b Then
+        end if
 
+        [||]if b then
             if a then
                 return
             end if
@@ -639,25 +634,17 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues2() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            while a
-                exit while
-            end while
-        end if
-    end sub
-end class",
+        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues3() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
             while a
                 exit while
             end while
-        ElseIf b Then
+        end if
 
+        [||]if b then
             while a
                 exit while
             end while
@@ -667,19 +654,8 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues3() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        while a <> b
-            if a [||]orelse b then
-                while a
-                    continue while
-                end while
-            end if
-        end while
-    end sub
-end class",
+        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues4() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         while a <> b
@@ -687,8 +663,9 @@ end class",
                 while a
                     continue while
                 end while
-            ElseIf b Then
+            end if
 
+            [||]if b then
                 while a
                     continue while
                 end while
@@ -699,22 +676,31 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            return
-        else
-            return
-        end if
-    end sub
-end class",
+        Public Async Function NotMergedWithPreviousStatementWithUnmatchingStatementsIfControlFlowQuits() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
             return
-        ElseIf b Then
+        end if
+
+        [||]if b then
+            throw new System.Exception()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+
+        [||]if b then
             return
         else
             return
@@ -724,24 +710,17 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsWithElseIfIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
-            return
-        else if a then
-            return
-        end if
-    end sub
-end class",
+        Public Async Function NotMergedWithPreviousStatementWithElseIfClauseIfControlFlowQuits1() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
             return
-        ElseIf b Then
+        end if
+
+        [||]if b then
             return
-        else if a then
+        elseif true then
             return
         end if
     end sub
@@ -749,28 +728,92 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsWithElseIfElseIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
+        Public Async Function NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits2() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
+        if a then
             return
-        else if a then
+        else
+            return
+        end if
+
+        [||]if b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementWithElseIfClauseIfControlFlowQuits2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        elseif true then
+            return
+        end if
+
+        [||]if b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        else
+            return
+        end if
+
+        [||]if b then
             return
         else
             return
         end if
     end sub
-end class",
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementWithElseIfClauseIfControlFlowQuits3() As Task
+            Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
             return
-        ElseIf b Then
+        elseif true then
             return
-        else if a then
+        end if
+
+        [||]if b then
             return
-        else
+        elseif true then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementAsPartOfElseIfIfControlFlowQuits() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+
+        if a then
+        [||]elseif b then
             return
         end if
     end sub
