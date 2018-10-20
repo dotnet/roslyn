@@ -47,8 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoConsecutiveIfStatements
         Protected Overrides Function HasElseClauses(ifStatement As SyntaxNode) As Boolean
             If TypeOf ifStatement Is MultiLineIfBlockSyntax Then
                 Dim ifBlock = DirectCast(ifStatement, MultiLineIfBlockSyntax)
-                Return ifBlock.ElseIfBlocks.Count > 0 OrElse
-                       ifBlock.ElseBlock IsNot Nothing
+                Return ifBlock.ElseIfBlocks.Count > 0 OrElse ifBlock.ElseBlock IsNot Nothing
             End If
 
             Return True

@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SplitIntoConsecutiveIfStatements), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical, Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     internal sealed class CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
-        : AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<IfStatementSyntax, ExpressionSyntax>
+        : AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
         protected override int LogicalOrSyntaxKind => (int)SyntaxKind.LogicalOrExpression;
 
-        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out IfStatementSyntax ifStatement)
+        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement)
         {
             if (expression.Parent is IfStatementSyntax s && s.Condition == expression)
             {
@@ -29,14 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
             return false;
         }
 
-        protected override bool HasElseClauses(IfStatementSyntax ifStatement)
+        protected override bool HasElseClauses(SyntaxNode ifStatement)
         {
-            return ifStatement.Else != null;
+            return ((IfStatementSyntax)ifStatement).Else != null;
         }
 
-        protected override IfStatementSyntax SplitIfStatementIntoElseClause(
-            IfStatementSyntax currentIfStatement, ExpressionSyntax condition1, ExpressionSyntax condition2)
+        protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
+            SyntaxNode currentIfStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
+            var currentIfStatement = (IfStatementSyntax)currentIfStatementNode;
+
             if (ContainsEmbeddedIfStatement(currentIfStatement))
             {
                 currentIfStatement = currentIfStatement.WithStatement(SyntaxFactory.Block(currentIfStatement.Statement));
@@ -47,12 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
                 .WithCondition(condition1)
                 .WithElse(SyntaxFactory.ElseClause(secondIfStatement));
 
-            return firstIfStatement;
+            return (firstIfStatement, null);
         }
 
-        protected override (IfStatementSyntax, IfStatementSyntax) SplitIfStatementIntoSeparateStatements(
-            IfStatementSyntax currentIfStatement, ExpressionSyntax condition1, ExpressionSyntax condition2)
+        protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
+            SyntaxNode currentIfStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
+            var currentIfStatement = (IfStatementSyntax)currentIfStatementNode;
+
             var secondIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement);
             var firstIfStatement = currentIfStatement.WithCondition(condition1);
 

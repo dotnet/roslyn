@@ -449,13 +449,26 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotSplitAsPartOfElseIfElse() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function SplitAsPartOfElseIfElse() As Task
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if true then
             System.Console.WriteLine()
         elseif a [||]orelse b then
+            System.Console.WriteLine(a)
+        else
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if true then
+            System.Console.WriteLine()
+        elseif a then
+            System.Console.WriteLine(a)
+        ElseIf b Then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine(b)
@@ -771,6 +784,31 @@ end class",
         else if a then
             return
         else
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function SplitNotIntoSeparateStatementsAsPartOfElseIfIfControlFlowQuits() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if true then
+            return
+        elseif a [||]orelse b then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if true then
+            return
+        elseif a then
+            return
+        ElseIf b Then
             return
         end if
     end sub

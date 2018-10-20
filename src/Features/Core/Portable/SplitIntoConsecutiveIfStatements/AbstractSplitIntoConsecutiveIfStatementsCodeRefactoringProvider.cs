@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,23 +16,22 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 {
     internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<
-        TIfStatementSyntax, TExpressionSyntax> : CodeRefactoringProvider
-        where TIfStatementSyntax : SyntaxNode
+        TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract string IfKeywordText { get; }
 
         protected abstract int LogicalOrSyntaxKind { get; }
 
-        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out TIfStatementSyntax ifStatement);
+        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement);
 
-        protected abstract bool HasElseClauses(TIfStatementSyntax ifStatement);
+        protected abstract bool HasElseClauses(SyntaxNode ifStatement);
 
-        protected abstract TIfStatementSyntax SplitIfStatementIntoElseClause(
-            TIfStatementSyntax currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
+        protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
+            SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
-        protected abstract (TIfStatementSyntax, TIfStatementSyntax) SplitIfStatementIntoSeparateStatements(
-            TIfStatementSyntax currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
+        protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
+            SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -66,24 +66,19 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, syntaxFacts);
 
-            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken))
-            {
-                var (firstIfStatement, secondIfStatement) = SplitIfStatementIntoSeparateStatements(currentIfStatement, left, right);
+            var (firstIfStatement, secondIfStatement) = await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken)
+                ? SplitIfStatementIntoSeparateStatements(currentIfStatement, left, right)
+                : SplitIfStatementIntoElseClause(currentIfStatement, left, right);
 
-                var newRoot = root.ReplaceNode(currentIfStatement, new[]
-                {
+            var newNodes = secondIfStatement != null
+                ? ImmutableArray.Create(
                     firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation),
-                    secondIfStatement.WithAdditionalAnnotations(Formatter.Annotation)
-                });
-                return document.WithSyntaxRoot(newRoot);
-            }
-            else
-            {
-                var newIfStatement = SplitIfStatementIntoElseClause(currentIfStatement, left, right);
+                    secondIfStatement.WithAdditionalAnnotations(Formatter.Annotation))
+                : ImmutableArray.Create(
+                    firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
 
-                var newRoot = root.ReplaceNode(currentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
-                return document.WithSyntaxRoot(newRoot);
-            }
+            var newRoot = root.ReplaceNode(currentIfStatement, newNodes);
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)
@@ -114,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
         private async Task<bool> CanBeSeparateStatementsAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
-            TIfStatementSyntax ifStatement,
+            SyntaxNode ifStatement,
             CancellationToken cancellationToken)
         {
             if (HasElseClauses(ifStatement))
