@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
-        public async Task MergedOnNestedIfSelection()
+        public async Task MergedOnNestedIfIfKeywordSelection()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -178,7 +178,106 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
-        public async Task NotMergedOnNestedIfPartialSelection()
+        public async Task MergedOnNestedIfHeaderSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            [|if (b)|]
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a && b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnNestedIfHeaderSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+[|            if (b)
+|]            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a && b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnNestedIfFullSelection()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+[|            if (b)
+            {
+            }
+|]        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a && b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfParenthesisSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if (b[|)|]
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfIfKeywordPartialSelection()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -196,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
-        public async Task NotMergedOnNestedIfOverreachingSelection()
+        public async Task NotMergedOnNestedIfOverreachingSelection1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -205,9 +304,99 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
     {
         if (a)
         {
-            [|if |](b)
+            [|if (|]b)
             {
             }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfOverreachingSelection2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            [|if (b)
+            |]{
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfOverreachingSelection3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            [|if (b)
+            {|]
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfConditionSelection1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if ([|b|])
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfConditionSelection2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if [|(b)|]
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfBodySelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if (b)
+            [|{
+            }|]
         }
     }
 }");
@@ -226,6 +415,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
             if ([||]b)
             {
             }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfBodyCaret1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if (b)
+            [||]{
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfBodyCaret2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if (b)
+            {
+            }[||]
         }
     }
 }");

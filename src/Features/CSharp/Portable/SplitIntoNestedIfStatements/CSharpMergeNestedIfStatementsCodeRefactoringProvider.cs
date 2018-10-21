@@ -4,7 +4,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SplitIntoNestedIfStatements;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
 {
@@ -14,15 +16,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
-        protected override bool IsTokenOfIfStatement(SyntaxToken token, out SyntaxNode ifStatement)
+        protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode)
         {
-            if (token.Parent is IfStatementSyntax s)
+            if (node is IfStatementSyntax ifStatement)
             {
-                ifStatement = s;
-                return true;
+                // Cases:
+                // 1. Position is at a direct token child of an if statement with no selection (e.g. 'if' keyword, a parenthesis)
+                // 2. Selection around the 'if' keyword
+                // 3. Selection around the header - from 'if' keyword to the end of the condition
+                // 4. Selection around the whole if statement
+                if (span.Length == 0 ||
+                    span.IsAround(ifStatement.IfKeyword) ||
+                    span.IsAround(ifStatement.IfKeyword, ifStatement.CloseParenToken) ||
+                    span.IsAround(node))
+                {
+                    ifStatementNode = ifStatement;
+                    return true;
+                }
             }
 
-            ifStatement = null;
+            ifStatementNode = null;
             return false;
         }
 
