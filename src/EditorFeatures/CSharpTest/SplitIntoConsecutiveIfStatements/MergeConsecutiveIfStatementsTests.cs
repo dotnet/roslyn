@@ -454,6 +454,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         }
 
         [Fact]
+        public async Task MergedWithParentWithDifferenceInBlocks1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            System.Console.WriteLine(a || b);
+        else [||]if (b)
+        {
+            System.Console.WriteLine(a || b);
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine(a || b);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedWithParentWithDifferenceInBlocks2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            System.Console.WriteLine(a || b);
+        }
+        else [||]if (b)
+            System.Console.WriteLine(a || b);
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+            System.Console.WriteLine(a || b);
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedWithParentWithDifferenceInBlocks3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            System.Console.WriteLine(a || b);
+        }
+        else [||]if (b)
+        {
+            {
+                System.Console.WriteLine(a || b);
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+            System.Console.WriteLine(a || b);
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotMergedWithParentWithUnmatchingStatements1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -466,7 +552,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
             System.Console.WriteLine(a || b);
         }
         else [||]if (b)
-            System.Console.WriteLine(a || b);
+        {
+            System.Console.WriteLine(a || a);
+        }
     }
 }");
         }
@@ -482,9 +570,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         if (a)
             System.Console.WriteLine(a || b);
         else [||]if (b)
-        {
-            System.Console.WriteLine(a || b);
-        }
+            System.Console.WriteLine(a || a);
     }
 }");
         }
@@ -498,9 +584,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
     void M(bool a, bool b)
     {
         if (a)
+        {
             System.Console.WriteLine(a);
+        }
         else [||]if (b)
             System.Console.WriteLine(b);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedWithParentWithUnmatchingStatements4()
+        {
+            // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            System.Console.WriteLine(a);
+        }
+        else [||]if (b)
+            using (null)
+                System.Console.WriteLine(a);
     }
 }");
         }
@@ -852,6 +960,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
                 if (a || b)
                     break;
                 break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedWithPreviousStatementIfControlFlowQuitsWithDifferenceInBlocks()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            {
+                return;
+            }
+        }
+
+        [||]if (b)
+            return;
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+            {
+                return;
+            }
         }
     }
 }");

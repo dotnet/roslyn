@@ -341,6 +341,23 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotMergedWithParentWithUnmatchingStatements4() As Task
+            ' Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine(a)
+        [||]elseif b then
+            using nothing
+                System.Console.WriteLine(a)
+            end using
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function MergedWithParentWithElseStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class C

@@ -152,11 +152,21 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
             SyntaxNode ifStatement2,
             out IReadOnlyList<SyntaxNode> statements)
         {
-            var statements1 = syntaxFacts.GetStatementContainerStatements(ifStatement1);
-            var statements2 = syntaxFacts.GetStatementContainerStatements(ifStatement2);
+            var statements1 = WalkDownBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement1));
+            var statements2 = WalkDownBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(ifStatement2));
 
             statements = statements1;
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
+        }
+
+        private static IReadOnlyList<SyntaxNode> WalkDownBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+        {
+            while (statements.Count == 1 && syntaxFacts.IsPureBlock(statements[0]))
+            {
+                statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
+            }
+
+            return statements;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
