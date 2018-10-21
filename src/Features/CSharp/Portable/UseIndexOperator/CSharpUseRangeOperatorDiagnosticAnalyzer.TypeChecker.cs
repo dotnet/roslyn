@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 // hard-coded knowledge on how to use this type, even if there is no this[Range]
                 // indexer declared on it directly.
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                _typeToMemberInfo[stringType] = Initialize(stringType, requireIndexer: false);
+                _typeToMemberInfo[stringType] = ComputeMemberInfo(stringType, requireIndexer: false);
             }
 
             private IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             public bool TryGetMemberInfo(INamedTypeSymbol namedType, out MemberInfo memberInfo)
             {
-                memberInfo = _typeToMemberInfo.GetOrAdd(namedType, n => Initialize(n, requireIndexer: true));
+                memberInfo = _typeToMemberInfo.GetOrAdd(namedType, n => ComputeMemberInfo(n, requireIndexer: true));
                 return memberInfo.SliceLikeMethod != null;
             }
 
-            private MemberInfo Initialize(INamedTypeSymbol namedType, bool requireIndexer)
+            private MemberInfo ComputeMemberInfo(INamedTypeSymbol namedType, bool requireIndexer)
             {
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.

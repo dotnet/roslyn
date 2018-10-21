@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 // hard-coded knowledge on how to use this type, even if there is no this[Index]
                 // indexer declared on it directly.
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                _typeToLengthLikeProperty[stringType] = Initialize(stringType, requireIndexer: false);
+                _typeToLengthLikeProperty[stringType] = ComputeLengthLikeProperty(stringType, requireIndexer: false);
             }
 
             public IPropertySymbol GetLengthLikeProperty(INamedTypeSymbol namedType)
-                => _typeToLengthLikeProperty.GetOrAdd(namedType, n => Initialize(n, requireIndexer: true));
+                => _typeToLengthLikeProperty.GetOrAdd(namedType, n => ComputeLengthLikeProperty(n, requireIndexer: true));
 
-            private IPropertySymbol Initialize(INamedTypeSymbol namedType, bool requireIndexer)
+            private IPropertySymbol ComputeLengthLikeProperty(INamedTypeSymbol namedType, bool requireIndexer)
             {
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.
