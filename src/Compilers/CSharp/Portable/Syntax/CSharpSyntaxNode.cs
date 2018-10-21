@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region SyntaxNode members
 
-        internal override bool IsSimilarTo(SyntaxNode other)
+        private protected override bool IsSimilarToCore(SyntaxNode other)
         {
             int kindGroup(SyntaxNode node)
             {

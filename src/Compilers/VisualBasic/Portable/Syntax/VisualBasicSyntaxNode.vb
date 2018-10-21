@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxTree.GetDiagnostics(Me)
         End Function
 
-        Friend Overrides Function IsSimilarTo(other As SyntaxNode) As Boolean
+        Private Protected Overrides Function IsSimilarToCore(other As SyntaxNode) As Boolean
             Dim kindGroup =
                 Function(node As SyntaxNode) As Integer
                     Select Case node.Kind()
