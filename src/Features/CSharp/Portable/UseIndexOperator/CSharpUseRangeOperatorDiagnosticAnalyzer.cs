@@ -26,8 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        // Flags to indicate if we should generate 'val' or '^val' for the start or end range values
         public const string StartFromEnd = nameof(StartFromEnd);
         public const string EndFromEnd = nameof(EndFromEnd);
+
+        // Flags to indicate if we should just omit the start/end value of the range entirely.
         public const string OmitStart = nameof(OmitStart);
         public const string OmitEnd = nameof(OmitEnd);
 
