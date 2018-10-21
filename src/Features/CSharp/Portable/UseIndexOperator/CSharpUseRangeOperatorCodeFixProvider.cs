@@ -53,12 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             var start = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
             var end = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            var argList = invocation.ArgumentList;
-
             var rangeExpression = RangeExpression(
                 GetExpression(diagnostic.Properties, start, OmitStart, StartFromEnd),
                 GetExpression(diagnostic.Properties, end, OmitEnd, EndFromEnd));
 
+            var argList = invocation.ArgumentList;
             var elementAccess = ElementAccessExpression(
                 invocation.Expression,
                 BracketedArgumentList(
