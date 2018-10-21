@@ -14,18 +14,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 {
     internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<
-        TIfStatementSyntax, TExpressionSyntax> : CodeRefactoringProvider
-        where TIfStatementSyntax : SyntaxNode
+        TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract string IfKeywordText { get; }
 
         protected abstract int LogicalAndSyntaxKind { get; }
 
-        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out TIfStatementSyntax ifStatement);
+        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement);
 
-        protected abstract TIfStatementSyntax SplitIfStatement(
-            TIfStatementSyntax currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
+        protected abstract SyntaxNode SplitIfStatement(
+            SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

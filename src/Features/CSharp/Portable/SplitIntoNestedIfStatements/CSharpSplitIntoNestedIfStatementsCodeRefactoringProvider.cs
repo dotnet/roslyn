@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SplitIntoNestedIfStatements), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical, Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     internal sealed class CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider
-        : AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<IfStatementSyntax, ExpressionSyntax>
+        : AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
         protected override int LogicalAndSyntaxKind => (int)SyntaxKind.LogicalAndExpression;
 
-        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out IfStatementSyntax ifStatement)
+        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement)
         {
             if (expression.Parent is IfStatementSyntax s && s.Condition == expression)
             {
@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
             return false;
         }
 
-        protected override IfStatementSyntax SplitIfStatement(
-            IfStatementSyntax currentIfStatement, ExpressionSyntax condition1, ExpressionSyntax condition2)
+        protected override SyntaxNode SplitIfStatement(
+            SyntaxNode currentIfStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
+            var currentIfStatement = (IfStatementSyntax)currentIfStatementNode;
+
             var innerIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement, currentIfStatement.Else);
             var outerIfStatement = currentIfStatement
                 .WithCondition(condition1)
