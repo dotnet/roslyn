@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             {
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.
-                var lengthOrCountProp = GetLengthOrCountProperty(namedType);
-                if (lengthOrCountProp == null)
+                var lengthLikeProperty = GetLengthOrCountProperty(namedType);
+                if (lengthLikeProperty == null)
                 {
                     return default;
                 }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                     }
                 }
 
-                return new MemberInfo(lengthOrCountProp, sliceLikeMethod);
+                return new MemberInfo(lengthLikeProperty, sliceLikeMethod);
             }
         }
     }

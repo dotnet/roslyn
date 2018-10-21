@@ -6,12 +6,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
     {
         private struct MemberInfo
         {
-            public readonly IPropertySymbol LengthOrCountProperty;
+            public readonly IPropertySymbol LengthLikeProperty;
             public readonly IMethodSymbol SliceLikeMethod;
 
-            public MemberInfo(IPropertySymbol lengthOrCountPropertyOpt, IMethodSymbol sliceLikeMethod)
+            public MemberInfo(IPropertySymbol lengthLikeProperty, IMethodSymbol sliceLikeMethod)
             {
-                LengthOrCountProperty = lengthOrCountPropertyOpt;
+                LengthLikeProperty = lengthLikeProperty;
                 SliceLikeMethod = sliceLikeMethod;
             }
         } 

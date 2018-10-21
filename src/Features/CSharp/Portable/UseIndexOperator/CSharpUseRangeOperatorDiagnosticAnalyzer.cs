@@ -165,25 +165,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             var properties = ImmutableDictionary<string, string>.Empty;
 
-            var lengthOrCountProp = memberInfo.LengthOrCountProperty;
+            var lengthLikeProperty = memberInfo.LengthLikeProperty;
 
             // If our start-op is actually equivalent to `expr.Length - val`, then just change our
             // start-op to be `val` and record that we should emit it as `^val`.
-            if (IsFromEnd(lengthOrCountProp, invocation.Instance, ref startOperation))
+            if (IsFromEnd(lengthLikeProperty, invocation.Instance, ref startOperation))
             {
                 properties = properties.Add(StartFromEnd, StartFromEnd);
             }
 
             // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
             // change our end-op to be `val` and record that we should emit it as `^val`.
-            if (IsFromEnd(lengthOrCountProp, invocation.Instance, ref endOperation))
+            if (IsFromEnd(lengthLikeProperty, invocation.Instance, ref endOperation))
             {
                 properties = properties.Add(EndFromEnd, EndFromEnd);
             }
 
             // If the range operation goes to 'expr.Length' then we can just leave off the end part
             // of the range.  i.e. `start..`
-            if (IsInstanceLengthCheck(lengthOrCountProp, invocation.Instance, endOperation))
+            if (IsInstanceLengthCheck(lengthLikeProperty, invocation.Instance, endOperation))
             {
                 properties = properties.Add(OmitEnd, OmitEnd);
             }
@@ -224,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         /// point to 'value'.
         /// </summary>
         private bool IsFromEnd(
-            IPropertySymbol lengthOrCountProp, IOperation instance, ref IOperation rangeOperation)
+            IPropertySymbol lengthLikeProperty, IOperation instance, ref IOperation rangeOperation)
         {
             if (rangeOperation is IBinaryOperation binaryOperation &&
                 binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
-                IsInstanceLengthCheck(lengthOrCountProp, instance, binaryOperation.LeftOperand))
+                IsInstanceLengthCheck(lengthLikeProperty, instance, binaryOperation.LeftOperand))
             {
                 rangeOperation = binaryOperation.RightOperand;
                 return true;
@@ -242,12 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         /// the instance we were calling .Slice off of.
         /// </summary>
         private bool IsInstanceLengthCheck(
-            IPropertySymbol lengthOrCountProp, IOperation instance, IOperation operation)
+            IPropertySymbol lengthLikeProperty, IOperation instance, IOperation operation)
         {
             var syntaxFacts = CSharpSyntaxFactsService.Instance;
             return
                 operation is IPropertyReferenceOperation propertyRef &&
-                lengthOrCountProp.Equals(propertyRef.Property) &&
+                lengthLikeProperty.Equals(propertyRef.Property) &&
                 propertyRef.Instance != null &&
                 syntaxFacts.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
         }

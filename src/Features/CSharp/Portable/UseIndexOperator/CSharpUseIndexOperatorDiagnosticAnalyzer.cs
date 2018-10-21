@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             }
 
             // Make sure this is a type that has both a Length/Count property, as well
-            // as an indexer that takes a System.Index. 
-            var lengthOrCountProp = typeChecker.GetLengthOrCountProperty(indexer.ContainingType);
-            if (lengthOrCountProp == null)
+            // as an indexer that takes a System.Index.
+            var lengthLikeProperty = typeChecker.GetLengthLikeProperty(indexer.ContainingType);
+            if (lengthLikeProperty == null)
             {
                 return;
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Left side of the subtraction needs to be `s.Length`
             if (!(binaryOperation.LeftOperand is IPropertyReferenceOperation leftPropertyRef) ||
                 leftPropertyRef.Instance is null ||
-                !lengthOrCountProp.Equals(leftPropertyRef.Property))
+                !lengthLikeProperty.Equals(leftPropertyRef.Property))
             {
                 return;
             }
