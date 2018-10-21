@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
-    using System;
     using static Helpers;
 
     /// <summary>
