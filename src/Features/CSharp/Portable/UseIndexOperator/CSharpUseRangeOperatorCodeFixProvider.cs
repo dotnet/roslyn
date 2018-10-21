@@ -65,15 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
         private static RangeExpressionSyntax CreateRangeExpression(Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var start = !diagnostic.Properties.ContainsKey(OmitStart)
-                ? GetExpression(diagnostic, index: 1, StartFromEnd, cancellationToken)
-                : null;
+            var props = diagnostic.Properties;
 
-            var end = !diagnostic.Properties.ContainsKey(OmitEnd)
-                ? GetExpression(diagnostic, index: 2, EndFromEnd, cancellationToken)
-                : null;
-
-            return RangeExpression(start, end);
+            return RangeExpression(
+                !props.ContainsKey(OmitStart) ? GetExpression(diagnostic, index: 1, StartFromEnd, cancellationToken) : null,
+                !props.ContainsKey(OmitEnd) ? GetExpression(diagnostic, index: 2, EndFromEnd, cancellationToken) : null);
         }
 
         private static ExpressionSyntax GetExpression(
