@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
     using static CSharpUseRangeOperatorDiagnosticAnalyzer;
+    using static Helpers;
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             Diagnostic diagnostic, int index, string fromEndKey, CancellationToken cancellationToken)
         {
             var expr = (ExpressionSyntax)diagnostic.AdditionalLocations[index].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            return diagnostic.Properties.ContainsKey(fromEndKey)
-                ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.IndexExpression, expr.Parenthesize())
-                : expr;
+            return diagnostic.Properties.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

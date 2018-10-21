@@ -2,6 +2,8 @@
 
 using System.Collections;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
@@ -29,5 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                                     p.Parameters.Length == 1 &&
                                     p.Parameters[0].Type.Equals(parameterType))
                         .FirstOrDefault();
+
+        public static PrefixUnaryExpressionSyntax IndexExpression(ExpressionSyntax expr)
+            => SyntaxFactory.PrefixUnaryExpression(
+                SyntaxKind.IndexExpression,
+                expr.Parenthesize());
     }
 }
