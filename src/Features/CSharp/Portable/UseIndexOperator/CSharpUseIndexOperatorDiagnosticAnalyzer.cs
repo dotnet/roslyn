@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +13,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
@@ -23,52 +24,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(startContext =>
             {
-                var compilation = compilationContext.Compilation;
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
-
-                var stringIndexer =
-                    stringType.GetMembers()
-                              .OfType<IPropertySymbol>()
-                              .Where(p => IsStringIndexer(p))
-                              .FirstOrDefault();
-
-                var stringLength =
-                    stringType.GetMembers(nameof(string.Length))
-                              .OfType<IPropertySymbol>()
-                              .Where(p => p.Parameters.IsEmpty)
-                              .FirstOrDefault();
-
-                if (stringIndexer != null && stringLength != null)
-                {
-                    compilationContext.RegisterOperationAction(
-                        c => AnalyzePropertyReference(c, stringIndexer, stringLength),
-                        OperationKind.PropertyReference);
-                }
+                var typeChecker = new TypeChecker(startContext.Compilation);
+                context.RegisterOperationAction(
+                    c => AnalyzePropertyReference(c, typeChecker),
+                    OperationKind.PropertyReference);
             });
         }
 
         private void AnalyzePropertyReference(
-            OperationAnalysisContext context,
-            IPropertySymbol stringIndexer, IPropertySymbol stringLength)
+            OperationAnalysisContext context, TypeChecker typeChecker)
         {
             var cancellationToken = context.CancellationToken;
             var propertyReference = (IPropertyReferenceOperation)context.Operation;
+            var property = propertyReference.Property;
 
-            if (!stringIndexer.Equals(propertyReference.Property))
+            if (!property.IsIndexer)
             {
                 return;
             }
 
-            var syntax = propertyReference.Syntax;
-            if (syntax == null)
+            var elementAccess = propertyReference.Syntax as ElementAccessExpressionSyntax;
+            if (elementAccess == null)
             {
                 return;
             }
 
-            var syntaxTree = syntax.SyntaxTree;
+            var syntaxTree = elementAccess.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
+
             //if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
             //{
             //    return;
@@ -85,6 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             {
                 return;
             }
+
+            // Needs to be an indexer with a single int argument.
+            var indexer = property;
+            if (indexer.Parameters.Length != 1 ||
+                indexer.Parameters[0].Type.SpecialType != SpecialType.System_Int32)
+            {
+                return;
+            }
+
+            // Make sure this is a type that has both a Length/Count property, as well
+            // as an indexer that takes a System.Index. 
+            var lengthOrCountProp = typeChecker.GetLengthOrCountProperty(indexer.ContainingType);
+            if (lengthOrCountProp == null)
+            {
+                return;
+            }
+
 
             // look for `s[s.Length - index.Value]` and convert to `s[^index]`
 
@@ -103,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // Left side of the subtraction needs to be `s.Length`.  First make
+            // Left side of the subtraction needs to be `s.Length` or `s.Count`.  First make
             // sure we're referencing String.Length.
             if (!(binaryOperation.LeftOperand is IPropertyReferenceOperation leftPropertyRef) ||
                 leftPropertyRef.Instance is null ||
-                !stringLength.Equals(leftPropertyRef.Property))
+                !lengthOrCountProp.Equals(leftPropertyRef.Property))
             {
                 return;
             }
@@ -123,10 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            if (!(propertyReference.Syntax is ElementAccessExpressionSyntax elementAccess))
-            {
-                return;
-            }
 
             var additionalLocations = ImmutableArray.Create(
                 binaryOperation.RightOperand.Syntax.GetLocation());
@@ -139,8 +137,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                     additionalLocations,
                     ImmutableDictionary<string, string>.Empty));
         }
-
-        private static bool IsStringIndexer(IPropertySymbol property)
-            => property.IsIndexer && property.Parameters.Length == 1 && property.Parameters[0].Type.SpecialType == SpecialType.System_Int32;
     }
 }
