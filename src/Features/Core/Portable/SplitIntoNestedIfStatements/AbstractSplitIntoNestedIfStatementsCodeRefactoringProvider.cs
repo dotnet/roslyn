@@ -13,15 +13,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 {
-    internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<
-        TExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<TExpressionSyntax>
+        : BaseSplitIfStatementCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract string IfKeywordText { get; }
-
         protected abstract int LogicalAndSyntaxKind { get; }
-
-        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement);
 
         protected abstract SyntaxNode SplitIfStatement(
             SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
@@ -57,35 +53,10 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());
 
-            var newIfStatement = SplitIfStatement(currentIfStatement, left, right);
+            var newIfStatement = SplitIfStatement(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
 
             var newRoot = root.ReplaceNode(currentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)
-        {
-            SyntaxNodeOrToken current = token;
-
-            while (current.Parent?.RawKind == syntaxKind)
-            {
-                current = current.Parent;
-            }
-
-            rootExpression = current.AsNode();
-            return current.IsNode;
-        }
-
-        private static (TExpressionSyntax left, TExpressionSyntax right) SplitBinaryExpressionChain(
-            SyntaxToken token, SyntaxNode rootExpression, ISyntaxFactsService syntaxFacts)
-        {
-            syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var parentLeft, out _, out var parentRight);
-
-            // (((a && b) && c) && d) && e
-            var left = (TExpressionSyntax)parentLeft;
-            var right = (TExpressionSyntax)rootExpression.ReplaceNode(token.Parent, parentRight);
-
-            return (left, right);
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

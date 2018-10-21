@@ -11,17 +11,16 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SplitIntoNestedIfStatements;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 {
     internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider<
-        TExpressionSyntax> : CodeRefactoringProvider
+        TExpressionSyntax> : BaseMergeIfStatementsCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract string IfKeywordText { get; }
-
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatement);
 
         protected abstract bool IsElseClauseOfIfStatement(SyntaxNode statement, out SyntaxNode ifStatement);
@@ -151,16 +150,6 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 
             statements = statements1;
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
-        }
-
-        private static IReadOnlyList<SyntaxNode> WalkDownBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
-        {
-            while (statements.Count == 1 && syntaxFacts.IsPureBlock(statements[0]))
-            {
-                statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
-            }
-
-            return statements;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

@@ -10,20 +10,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SplitIntoNestedIfStatements;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 {
-    internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<
-        TExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<TExpressionSyntax>
+        : BaseSplitIfStatementCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract string IfKeywordText { get; }
-
         protected abstract int LogicalOrSyntaxKind { get; }
-
-        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement);
 
         protected abstract bool HasElseClauses(SyntaxNode ifStatement);
 
@@ -67,8 +64,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, syntaxFacts);
 
             var (firstIfStatement, secondIfStatement) = await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken)
-                ? SplitIfStatementIntoSeparateStatements(currentIfStatement, left, right)
-                : SplitIfStatementIntoElseClause(currentIfStatement, left, right);
+                ? SplitIfStatementIntoSeparateStatements(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right)
+                : SplitIfStatementIntoElseClause(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
 
             var newNodes = secondIfStatement != null
                 ? ImmutableArray.Create(
@@ -79,31 +76,6 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 
             var newRoot = root.ReplaceNode(currentIfStatement, newNodes);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)
-        {
-            SyntaxNodeOrToken current = token;
-
-            while (current.Parent?.RawKind == syntaxKind)
-            {
-                current = current.Parent;
-            }
-
-            rootExpression = current.AsNode();
-            return current.IsNode;
-        }
-
-        private static (TExpressionSyntax left, TExpressionSyntax right) SplitBinaryExpressionChain(
-            SyntaxToken token, SyntaxNode rootExpression, ISyntaxFactsService syntaxFacts)
-        {
-            syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var parentLeft, out _, out var parentRight);
-
-            // (((a || b) || c) || d) || e
-            var left = (TExpressionSyntax)parentLeft;
-            var right = (TExpressionSyntax)rootExpression.ReplaceNode(token.Parent, parentRight);
-
-            return (left, right);
         }
 
         private async Task<bool> CanBeSeparateStatementsAsync(
