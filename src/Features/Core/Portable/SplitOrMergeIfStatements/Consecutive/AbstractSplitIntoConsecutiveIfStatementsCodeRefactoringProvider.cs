@@ -38,14 +38,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 ? SplitIfStatementIntoSeparateStatements(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right)
                 : SplitIfStatementIntoElseClause(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
 
-            var newNodes = secondIfStatement != null
-                ? ImmutableArray.Create(
+            return secondIfStatement != null
+                ? root.ReplaceNode(currentIfStatement, ImmutableArray.Create(
                     firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation),
-                    secondIfStatement.WithAdditionalAnnotations(Formatter.Annotation))
-                : ImmutableArray.Create(
+                    secondIfStatement.WithAdditionalAnnotations(Formatter.Annotation)))
+                : root.ReplaceNode(currentIfStatement,
                     firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
-
-            return root.ReplaceNode(currentIfStatement, newNodes);
         }
 
         private async Task<bool> CanBeSeparateStatementsAsync(
