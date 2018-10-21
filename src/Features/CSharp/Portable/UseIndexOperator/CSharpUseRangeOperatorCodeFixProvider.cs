@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
     using static CSharpUseRangeOperatorDiagnosticAnalyzer;
     using static Helpers;
+    using static SyntaxFactory;
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -50,6 +51,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         {
             var invocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
+            var argList = invocation.ArgumentList;
+            var rangeExpression = CreateRangeExpression(diagnostic, cancellationToken);
+            var elementAccess = ElementAccessExpression(
+                invocation.Expression,
+                BracketedArgumentList(
+                    Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
+                    SingletonSeparatedList(Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation)),
+                    Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken)));
+
+            editor.ReplaceNode(invocation, elementAccess);
+        }
+
+        private static RangeExpressionSyntax CreateRangeExpression(Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
             var start = !diagnostic.Properties.ContainsKey(OmitStart)
                 ? GetExpression(diagnostic, index: 1, StartFromEnd, cancellationToken)
                 : null;
@@ -58,17 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 ? GetExpression(diagnostic, index: 2, EndFromEnd, cancellationToken)
                 : null;
 
-            var argList = invocation.ArgumentList;
-            var elementAccess = SyntaxFactory.ElementAccessExpression(
-                invocation.Expression,
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.RangeExpression(start, end)).WithAdditionalAnnotations(Formatter.Annotation)),
-                    SyntaxFactory.Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken)));
-
-            editor.ReplaceNode(invocation, elementAccess);
+            return RangeExpression(start, end);
         }
 
         private static ExpressionSyntax GetExpression(
