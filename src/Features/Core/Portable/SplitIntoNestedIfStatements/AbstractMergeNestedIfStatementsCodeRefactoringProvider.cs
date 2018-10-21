@@ -78,21 +78,18 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
         private bool IsFirstStatementOfIfStatement(
             ISyntaxFactsService syntaxFacts, SyntaxNode statement, out SyntaxNode ifStatement)
         {
-            if ((IsIfStatement(statement.Parent) || syntaxFacts.IsPureBlock(statement.Parent)) &&
-                syntaxFacts.GetStatementContainerStatements(statement.Parent).FirstOrDefault() == statement)
+            if (syntaxFacts.IsStatementContainer(statement.Parent))
             {
-                do
+                var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
+                if (statements.FirstOrDefault() == statement)
                 {
-                    if (IsIfStatement(statement.Parent))
+                    var rootStatements = WalkUpBlocks(syntaxFacts, statements);
+                    if (rootStatements.Count > 0 && IsIfStatement(rootStatements[0].Parent))
                     {
-                        ifStatement = statement.Parent;
+                        ifStatement = rootStatements[0].Parent;
                         return true;
                     }
-
-                    statement = statement.Parent;
                 }
-                while ((IsIfStatement(statement.Parent) || syntaxFacts.IsPureBlock(statement.Parent)) &&
-                       syntaxFacts.GetStatementContainerStatements(statement.Parent).TrySingleOrDefault() == statement);
             }
 
             ifStatement = null;
@@ -181,6 +178,17 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             while (statements.Count == 1 && syntaxFacts.IsPureBlock(statements[0]))
             {
                 statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
+            }
+
+            return statements;
+        }
+
+        private static IReadOnlyList<SyntaxNode> WalkUpBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+        {
+            while (statements.Count > 0 && syntaxFacts.IsPureBlock(statements[0].Parent) &&
+                   syntaxFacts.GetExecutableBlockStatements(statements[0].Parent).Count == statements.Count)
+            {
+                statements = ImmutableArray.Create(statements[0].Parent);
             }
 
             return statements;
