@@ -50,9 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var invocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var start = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var end = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             var argList = invocation.ArgumentList;
-            var rangeExpression = CreateRangeExpression(diagnostic, cancellationToken);
+            var rangeExpression = CreateRangeExpression(diagnostic, start, end, cancellationToken);
             var elementAccess = ElementAccessExpression(
                 invocation.Expression,
                 BracketedArgumentList(
@@ -63,21 +65,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             editor.ReplaceNode(invocation, elementAccess);
         }
 
-        private static RangeExpressionSyntax CreateRangeExpression(Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static RangeExpressionSyntax CreateRangeExpression(
+            Diagnostic diagnostic, ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
         {
             var props = diagnostic.Properties;
 
             return RangeExpression(
-                !props.ContainsKey(OmitStart) ? GetExpression(diagnostic, index: 1, StartFromEnd, cancellationToken) : null,
-                !props.ContainsKey(OmitEnd) ? GetExpression(diagnostic, index: 2, EndFromEnd, cancellationToken) : null);
+                props.ContainsKey(OmitStart) ? null : GetExpression(diagnostic, start, StartFromEnd),
+                props.ContainsKey(OmitEnd) ? null : GetExpression(diagnostic, end, EndFromEnd));
         }
 
-        private static ExpressionSyntax GetExpression(
-            Diagnostic diagnostic, int index, string fromEndKey, CancellationToken cancellationToken)
-        {
-            var expr = (ExpressionSyntax)diagnostic.AdditionalLocations[index].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            return diagnostic.Properties.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
-        }
+        private static ExpressionSyntax GetExpression(Diagnostic diagnostic, ExpressionSyntax expr, string fromEndKey)
+            => diagnostic.Properties.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
