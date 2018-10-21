@@ -113,14 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             }
 
             // Arg needs to be a subtraction for: `s.Length - value`
+            // And left side of the subtraction needs to be `s.Length`
             var arg = propertyReference.Arguments[0];
-            if (!IsSubtraction(arg, out var subtraction))
-            {
-                return;
-            }
-
-            // Left side of the subtraction needs to be `s.Length`
-            if (!IsInstanceLengthCheck(lengthLikeProperty, propertyReference.Instance, subtraction.LeftOperand))
+            if (!IsSubtraction(arg, out var subtraction) ||
+                !IsInstanceLengthCheck(lengthLikeProperty, propertyReference.Instance, subtraction.LeftOperand))
             {
                 return;
             }
