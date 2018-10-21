@@ -3,7 +3,9 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
 {
@@ -13,15 +15,40 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
-        protected override bool IsTokenOfIfStatement(SyntaxToken token, out SyntaxNode ifStatement)
+        protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode)
         {
-            if (token.Parent is IfStatementSyntax s)
+            if (node is IfStatementSyntax ifStatement)
             {
-                ifStatement = s;
-                return true;
+                // Cases:
+                // 1. Position is at a direct token child of an if statement with no selection (e.g. 'if' keyword, a parenthesis)
+                // 2. Selection around the 'if' keyword
+                // 3. Selection around the header - from 'if' keyword to the end of the condition
+                // 4. Selection around the whole if statement *excluding* its else clause - from 'if' keyword to the end of its statement
+                if (span.Length == 0 ||
+                    span.IsAround(ifStatement.IfKeyword) ||
+                    span.IsAround(ifStatement.IfKeyword, ifStatement.CloseParenToken) ||
+                    span.IsAround(ifStatement.IfKeyword, ifStatement.Statement))
+                {
+                    ifStatementNode = ifStatement;
+                    return true;
+                }
             }
 
-            ifStatement = null;
+            if (node is ElseClauseSyntax elseClause && elseClause.Statement is IfStatementSyntax elseIfStatement)
+            {
+                // 5. Position is at a direct token child of an else clause with no selection ('else' keyword)
+                // 6. Selection around the header including the 'else' keyword - from 'else' keyword to the end of the condition
+                // 7. Selection from the 'else' keyword to the end of the if statement's statement
+                if (span.Length == 0 ||
+                    span.IsAround(elseClause.ElseKeyword, elseIfStatement.CloseParenToken) ||
+                    span.IsAround(elseClause.ElseKeyword, elseIfStatement.Statement))
+                {
+                    ifStatementNode = elseIfStatement;
+                    return true;
+                }
+            }
+
+            ifStatementNode = null;
             return false;
         }
 

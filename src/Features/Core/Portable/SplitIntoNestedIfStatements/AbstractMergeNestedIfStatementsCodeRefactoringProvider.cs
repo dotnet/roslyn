@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
 
-            if (IsApplicableSpan(root.FindNode(context.Span), context.Span, out var ifStatement))
+            if (IsApplicableSpan(node, context.Span, out var ifStatement))
             {
                 var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
@@ -55,8 +56,9 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
         private async Task<Document> FixAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
 
-            Contract.ThrowIfFalse(IsApplicableSpan(root.FindNode(span), span, out var ifStatement));
+            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
             Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement));
 
             var newCondition = (TExpressionSyntax)document.GetLanguageService<SyntaxGenerator>().LogicalAndExpression(

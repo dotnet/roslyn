@@ -151,7 +151,61 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         }
 
         [Fact]
-        public async Task MergedOnElseIfSelection()
+        public async Task MergedOnElseIfCaret6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        [||]else if (b)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnElseIfCaret7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else[||] if (b)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnElseIfIfKeywordSelection()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -178,7 +232,250 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         }
 
         [Fact]
-        public async Task NotMergedOnElseIfPartialSelection()
+        public async Task MergedOnElseIfHeaderSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else [|if (b)|]
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnElseIfHeaderSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        [|else if (b)|]
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnElseIfHeaderSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+[|        else if (b)
+|]        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnElseIfFullSelection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else [|if (b)
+        {
+        }|]
+        else
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedOnElseIfFullSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+[|        else if (b)
+        {
+        }
+|]        else
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfFullSelectionWithElseClause1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else [|if (b)
+        {
+        }
+        else
+        {
+        }|]
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfFullSelectionWithElseClause2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+[|        else if (b)
+        {
+        }
+        else
+        {
+        }
+|]    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfParenthesisSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else if (b[|)|]
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfElseKeywordSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        [|else|] if (b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfElseIfKeywordsSelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        [|else if|] (b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfIfKeywordPartialSelection()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -196,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         }
 
         [Fact]
-        public async Task NotMergedOnElseIfOverreachingSelection()
+        public async Task NotMergedOnElseIfOverreachingSelection1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -206,9 +503,99 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         if (a)
         {
         }
-        else [|if |](b)
+        else [|if (|]b)
         {
         }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfOverreachingSelection2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else [|if (b)
+        |]{
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfOverreachingSelection3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        [|else if (b)
+        {|]
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfConditionSelection1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else if ([|b|])
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfConditionSelection2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else if [|(b)|]
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfBodySelection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else if (b)
+        [|{
+        }|]
     }
 }");
         }
@@ -227,6 +614,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         else if ([||]b)
         {
         }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfBodyCaret1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else if (b)
+        [||]{
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnElseIfBodyCaret2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+        else if (b)
+        {
+        }[||]
     }
 }");
         }

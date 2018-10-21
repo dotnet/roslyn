@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
     {
         protected abstract string IfKeywordText { get; }
 
-        protected abstract bool IsTokenOfIfStatement(SyntaxToken token, out SyntaxNode ifStatement);
+        protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatement);
 
         protected abstract bool IsElseClauseOfIfStatement(SyntaxNode statement, out SyntaxNode ifStatement);
 
@@ -36,33 +36,29 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
+            var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
 
-            if (context.Span.Length > 0 &&
-                context.Span != token.Span)
+            if (IsApplicableSpan(node, context.Span, out var ifStatement))
             {
-                return;
-            }
+                var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
-            var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
-
-            if (IsTokenOfIfStatement(token, out var ifStatement) &&
-                (CanBeMergedWithParent(syntaxFacts, ifStatement) ||
-                 await CanBeMergedWithPreviousStatementAsync(context.Document, syntaxFacts, ifStatement, context.CancellationToken)))
-            {
-                context.RegisterRefactoring(
-                    new MyCodeAction(
-                        c => FixAsync(context.Document, context.Span, syntaxFacts, c),
-                        IfKeywordText));
+                if (CanBeMergedWithParent(syntaxFacts, ifStatement) ||
+                    await CanBeMergedWithPreviousStatementAsync(context.Document, syntaxFacts, ifStatement, context.CancellationToken))
+                {
+                    context.RegisterRefactoring(
+                        new MyCodeAction(
+                            c => FixAsync(context.Document, context.Span, syntaxFacts, c),
+                            IfKeywordText));
+                }
             }
         }
 
         private async Task<Document> FixAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
 
-            Contract.ThrowIfFalse(IsTokenOfIfStatement(token, out var ifStatement));
+            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
 
             var previousIfStatement = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement)
                 ? parentIfStatement
