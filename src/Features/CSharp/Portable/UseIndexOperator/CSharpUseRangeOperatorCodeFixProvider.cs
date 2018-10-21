@@ -55,7 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             var argList = invocation.ArgumentList;
 
-            var rangeExpression = CreateRangeExpression(diagnostic, start, end, cancellationToken);
+            var rangeExpression = RangeExpression(
+                GetExpression(diagnostic.Properties, start, OmitStart, StartFromEnd),
+                GetExpression(diagnostic.Properties, end, OmitEnd, EndFromEnd));
+
             var elementAccess = ElementAccessExpression(
                 invocation.Expression,
                 BracketedArgumentList(
@@ -65,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             editor.ReplaceNode(invocation, elementAccess);
         }
-
-        private static RangeExpressionSyntax CreateRangeExpression(Diagnostic diagnostic, ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
-            => RangeExpression(
-                GetExpression(diagnostic.Properties, start, OmitStart, StartFromEnd),
-                GetExpression(diagnostic.Properties, end, OmitEnd, EndFromEnd));
 
         private static ExpressionSyntax GetExpression(ImmutableDictionary<string, string> props, ExpressionSyntax expr, string omitKey, string fromEndKey)
             => props.ContainsKey(omitKey)
