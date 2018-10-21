@@ -6,13 +6,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
     {
         public struct MemberInfo
         {
+            /// <summary>
+            /// The Length/Count property on the type.  Must be public, non-static, no-parameter,
+            /// int32 returning.
+            /// </summary>
             public readonly IPropertySymbol LengthLikeProperty;
-            public readonly IMethodSymbol SliceLikeMethod;
 
-            public MemberInfo(IPropertySymbol lengthLikeProperty, IMethodSymbol sliceLikeMethod)
+            /// <summary>
+            /// Optional paired Slice overload that takes a Range parameter instead.
+            /// </summary>
+            public readonly IMethodSymbol SliceRangeMethodOpt;
+
+            public MemberInfo(
+                IPropertySymbol lengthLikeProperty,
+                IMethodSymbol sliceRangeMethodOpt)
             {
                 LengthLikeProperty = lengthLikeProperty;
-                SliceLikeMethod = sliceLikeMethod;
+                SliceRangeMethodOpt = sliceRangeMethodOpt;
             }
         } 
     }

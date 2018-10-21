@@ -60,16 +60,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             var rangeExpression = CreateRangeExpression(
                 semanticModel, diagnostic, invocation, cancellationToken);
+            var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
+            var arguments = SingletonSeparatedList(argument);
 
-            var argList = invocation.ArgumentList;
-            var elementAccess = ElementAccessExpression(
-                expression,
-                BracketedArgumentList(
-                    Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
-                    SingletonSeparatedList(Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation)),
-                    Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken)));
+            if (diagnostic.Properties.ContainsKey(UseIndexer))
+            {
+                var argList = invocation.ArgumentList;
+                var elementAccess = ElementAccessExpression(
+                    expression,
+                    BracketedArgumentList(
+                        Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
+                        arguments,
+                        Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken)));
 
-            editor.ReplaceNode(invocation, elementAccess);
+                editor.ReplaceNode(invocation, elementAccess);
+            }
+            else
+            {
+                editor.ReplaceNode(
+                    invocation.ArgumentList,
+                    invocation.ArgumentList.WithArguments(arguments));
+            }
         }
 
         private RangeExpressionSyntax CreateRangeExpression(
@@ -107,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             var endFromEnd = false;
 
             if (semanticModel.GetOperation(invocation, cancellationToken) is IInvocationOperation invocationOp &&
+                IsSliceLikeMethod(invocationOp.TargetMethod) &&
                 invocationOp.Instance != null)
             {
                 var startOperation = semanticModel.GetOperation(startExpr, cancellationToken);
@@ -115,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
                 if (startOperation != null && 
                     endOperation != null &&
-                    checker.TryGetMemberInfo(invocationOp.TargetMethod.ContainingType, out var memberInfo))
+                    checker.TryGetMemberInfo(invocationOp.TargetMethod, out var memberInfo))
                 {
                     var lengthLikeProperty = memberInfo.LengthLikeProperty;
 

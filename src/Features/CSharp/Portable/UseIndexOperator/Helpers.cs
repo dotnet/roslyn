@@ -63,5 +63,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
+
+        /// <summary>
+        /// Look for methods like "SomeType MyType.Slice(int start, int length)".
+        /// </summary>
+        public static bool IsSliceLikeMethod(IMethodSymbol method)
+            => IsPublicInstance(method) &&
+               method.Parameters.Length == 2 &&
+               IsSliceFirstParameter(method.Parameters[0]) &&
+               IsSliceSecondParameter(method.Parameters[1]);
+
+        private static bool IsSliceFirstParameter(IParameterSymbol parameter)
+            => parameter.Type.SpecialType == SpecialType.System_Int32 &&
+               (parameter.Name == "start" || parameter.Name == "startIndex");
+
+        private static bool IsSliceSecondParameter(IParameterSymbol parameter)
+            => parameter.Type.SpecialType == SpecialType.System_Int32 &&
+               (parameter.Name == "count" || parameter.Name == "length");
     }
 }

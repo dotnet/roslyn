@@ -26,16 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        public const string UseIndexer = nameof(UseIndexer);
         public const string ComputedRange = nameof(ComputedRange);
         public const string ConstantRange = nameof(ConstantRange);
-
-        //// Flags to indicate if we should generate 'val' or '^val' for the start or end range values
-        //public const string StartFromEnd = nameof(StartFromEnd);
-        //public const string EndFromEnd = nameof(EndFromEnd);
-
-        //// Flags to indicate if we should just omit the start/end value of the range entirely.
-        //public const string OmitStart = nameof(OmitStart);
-        //public const string OmitEnd = nameof(OmitEnd);
 
         public CSharpUseRangeOperatorDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
@@ -43,24 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                    new LocalizableResourceString(nameof(FeaturesResources._0_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
-
-        /// <summary>
-        /// Look for methods like "SomeType SomeType.Slice(int start, int length)".
-        /// </summary>
-        private static bool IsSliceLikeMethod(IMethodSymbol method)
-            => IsPublicInstance(method) &&
-               method.Parameters.Length == 2 &&
-               IsSliceFirstParameter(method.Parameters[0]) &&
-               IsSliceSecondParameter(method.Parameters[1]) &&
-               method.ContainingType.Equals(method.ReturnType);
-
-        private static bool IsSliceFirstParameter(IParameterSymbol parameter)
-            => parameter.Type.SpecialType == SpecialType.System_Int32 &&
-               (parameter.Name == "start" || parameter.Name == "startIndex");
-
-        private static bool IsSliceSecondParameter(IParameterSymbol parameter)
-            => parameter.Type.SpecialType == SpecialType.System_Int32 &&
-               (parameter.Name == "count" || parameter.Name == "length");
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -115,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
+            var sliceLikeMethod = targetMethod;
             // See if this is a type we can use range-indexer for, and also if this is a call to the
             // Slice-Like method we've found for that type.  Use the InfoCache so that we can reuse
             // any previously computed values for this type.
-            if (!infoCache.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
-                !targetMethod.Equals(memberInfo.SliceLikeMethod))
+            if (!infoCache.TryGetMemberInfo(sliceLikeMethod, out var memberInfo))
             {
                 return;
             }
@@ -148,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 context.ReportDiagnostic(CreateDiagnostic(
-                    ComputedRange, option, invocationSyntax, 
+                    ComputedRange, option, invocationSyntax, sliceLikeMethod,
                     memberInfo, startOperation, subtraction.LeftOperand));
                 return;
             }
@@ -160,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
             {
                 context.ReportDiagnostic(CreateDiagnostic(
-                    ConstantRange, option, invocationSyntax,
+                    ConstantRange, option, invocationSyntax, sliceLikeMethod,
                     memberInfo, startOperation, subtraction.RightOperand));
                 return;
             }
@@ -168,9 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
         private Diagnostic CreateDiagnostic(
             string rangeKind, CodeStyleOption<bool> option, InvocationExpressionSyntax invocation, 
-            MemberInfo memberInfo, IOperation op1, IOperation op2)
+            IMethodSymbol sliceLikeMethod, MemberInfo memberInfo, IOperation op1, IOperation op2)
         {
             var properties = ImmutableDictionary<string, string>.Empty.Add(rangeKind, rangeKind);
+
+            if (memberInfo.SliceRangeMethodOpt == null)
+            {
+                properties = properties.Add(UseIndexer, UseIndexer);
+            }
 
             // Keep track of the syntax nodes from the start/end ops so that we can easily 
             // generate the range-expression in the fixer.
@@ -191,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 option.Notification.Severity,
                 additionalLocations,
                 properties,
-                memberInfo.SliceLikeMethod.Name);
+                sliceLikeMethod.Name);
         }
 
         private static bool IsConstantInt32(IOperation operation)
