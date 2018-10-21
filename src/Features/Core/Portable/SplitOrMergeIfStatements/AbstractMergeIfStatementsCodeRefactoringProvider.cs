@@ -1,12 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -18,8 +23,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         protected abstract bool IsIfStatement(SyntaxNode statement);
 
-        protected abstract Task ComputeRefactoringsAsync(
-            CodeRefactoringContext context, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts);
+        protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument);
+
+        protected abstract Task<bool> CanBeMergedAsync(
+            Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+
+        protected abstract SyntaxNode GetChangedRoot(
+            SyntaxNode root, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, SyntaxGenerator generator);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -28,8 +38,26 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             if (IsApplicableSpan(node, context.Span, out var ifStatement))
             {
-                await ComputeRefactoringsAsync(context, ifStatement, context.Document.GetLanguageService<ISyntaxFactsService>());
+                var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+
+                if (await CanBeMergedAsync(context.Document, ifStatement, syntaxFacts, context.CancellationToken).ConfigureAwait(false))
+                {
+                    context.RegisterRefactoring(
+                        CreateCodeAction(
+                            c => RefactorAsync(context.Document, context.Span, syntaxFacts, c)));
+                }
             }
+        }
+
+        private async Task<Document> RefactorAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
+
+            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
+
+            var newRoot = GetChangedRoot(root, ifStatement, syntaxFacts, document.GetLanguageService<SyntaxGenerator>());
+            return document.WithSyntaxRoot(newRoot);
         }
 
         protected static IReadOnlyList<SyntaxNode> WalkDownBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)

@@ -5,10 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -19,23 +15,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract SyntaxNode SplitIfStatement(
             SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
-        protected sealed override CodeAction CreateCodeAction(Document document, TextSpan span)
-            => new MyCodeAction(c => FixAsync(document, span, c), IfKeywordText);
+        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            => new MyCodeAction(createChangedDocument, IfKeywordText);
 
-        private async Task<Document> FixAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected sealed override Task<SyntaxNode> GetChangedRootAsync(
+            Document document, SyntaxNode root, SyntaxNode currentIfStatement, SyntaxNode left, SyntaxNode right, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-
-            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, LogicalExpressionSyntaxKind, out var rootExpression));
-            Contract.ThrowIfFalse(IsConditionOfIfStatement(rootExpression, out var currentIfStatement));
-
-            var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());
-
             var newIfStatement = SplitIfStatement(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
 
-            var newRoot = root.ReplaceNode(currentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
-            return document.WithSyntaxRoot(newRoot);
+            return Task.FromResult(
+                root.ReplaceNode(currentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

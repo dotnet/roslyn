@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
@@ -26,22 +25,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
             SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
-        protected sealed override CodeAction CreateCodeAction(Document document, TextSpan span)
-            => new MyCodeAction(c => FixAsync(document, span, c), IfKeywordText);
+        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            => new MyCodeAction(createChangedDocument, IfKeywordText);
 
-        private async Task<Document> FixAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
+            Document document, SyntaxNode root, SyntaxNode currentIfStatement, SyntaxNode left, SyntaxNode right, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-
-            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, LogicalExpressionSyntaxKind, out var rootExpression));
-            Contract.ThrowIfFalse(IsConditionOfIfStatement(rootExpression, out var currentIfStatement));
-
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var (left, right) = SplitBinaryExpressionChain(token, rootExpression, syntaxFacts);
-
-            var (firstIfStatement, secondIfStatement) = await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken)
+            var (firstIfStatement, secondIfStatement) =
+                await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken).ConfigureAwait(false)
                 ? SplitIfStatementIntoSeparateStatements(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right)
                 : SplitIfStatementIntoElseClause(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
 
@@ -52,8 +45,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : ImmutableArray.Create(
                     firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
 
-            var newRoot = root.ReplaceNode(currentIfStatement, newNodes);
-            return document.WithSyntaxRoot(newRoot);
+            return root.ReplaceNode(currentIfStatement, newNodes);
         }
 
         private async Task<bool> CanBeSeparateStatementsAsync(

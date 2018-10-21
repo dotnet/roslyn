@@ -6,12 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -26,35 +24,28 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract SyntaxNode MergeIfStatements(
             SyntaxNode outerIfStatement, SyntaxNode innerIfStatement, TExpressionSyntax condition);
 
-        protected sealed override async Task ComputeRefactoringsAsync(
-            CodeRefactoringContext context, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts)
+        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            => new MyCodeAction(createChangedDocument, IfKeywordText);
+
+        protected sealed override async Task<bool> CanBeMergedAsync(
+            Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            if (IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement) &&
-                await CanBeMergedAsync(context.Document, syntaxFacts, parentIfStatement, ifStatement, context.CancellationToken))
-            {
-                context.RegisterRefactoring(
-                    new MyCodeAction(
-                        c => FixAsync(context.Document, context.Span, syntaxFacts, c),
-                        IfKeywordText));
-            }
+            return IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement) &&
+                   await CanBeMergedWithOuterAsync(document, syntaxFacts, parentIfStatement, ifStatement, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> FixAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        protected sealed override SyntaxNode GetChangedRoot(
+            SyntaxNode root, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, SyntaxGenerator generator)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span, getInnermostNodeForTie: true);
-
-            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
             Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement));
 
-            var newCondition = (TExpressionSyntax)document.GetLanguageService<SyntaxGenerator>().LogicalAndExpression(
+            var newCondition = (TExpressionSyntax)generator.LogicalAndExpression(
                 syntaxFacts.GetIfStatementCondition(parentIfStatement),
                 syntaxFacts.GetIfStatementCondition(ifStatement));
 
             var newIfStatement = MergeIfStatements(parentIfStatement, ifStatement, newCondition);
 
-            var newRoot = root.ReplaceNode(parentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
-            return document.WithSyntaxRoot(newRoot);
+            return root.ReplaceNode(parentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private bool IsFirstStatementOfIfStatement(
@@ -78,7 +69,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return false;
         }
 
-        private async Task<bool> CanBeMergedAsync(
+        private async Task<bool> CanBeMergedWithOuterAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode outerIfStatement,

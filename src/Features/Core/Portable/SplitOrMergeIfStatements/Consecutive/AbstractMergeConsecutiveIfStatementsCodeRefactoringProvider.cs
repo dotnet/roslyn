@@ -6,12 +6,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
@@ -27,31 +24,22 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract SyntaxNode MergeIfStatements(
             SyntaxNode parentIfStatement, SyntaxNode ifStatement, TExpressionSyntax condition);
 
-        protected sealed override async Task ComputeRefactoringsAsync(
-            CodeRefactoringContext context, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts)
+        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+            => new MyCodeAction(createChangedDocument, IfKeywordText);
+
+        protected sealed override async Task<bool> CanBeMergedAsync(
+            Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            if (CanBeMergedWithParent(syntaxFacts, ifStatement) ||
-                await CanBeMergedWithPreviousStatementAsync(context.Document, syntaxFacts, ifStatement, context.CancellationToken))
-            {
-                context.RegisterRefactoring(
-                    new MyCodeAction(
-                        c => FixAsync(context.Document, context.Span, syntaxFacts, c),
-                        IfKeywordText));
-            }
+            return CanBeMergedWithParent(syntaxFacts, ifStatement) ||
+                   await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> FixAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        protected sealed override SyntaxNode GetChangedRoot(
+            SyntaxNode root, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, SyntaxGenerator generator)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span, getInnermostNodeForTie: true);
-
-            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
-
             var previousIfStatement = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement)
                 ? parentIfStatement
                 : GetPreviousStatement(syntaxFacts, ifStatement);
-
-            var generator = document.GetLanguageService<SyntaxGenerator>();
 
             var newCondition = (TExpressionSyntax)generator.LogicalOrExpression(
                 syntaxFacts.GetIfStatementCondition(previousIfStatement),
@@ -68,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 newRoot = newRoot.RemoveNode(currentIfStatement, SyntaxGenerator.DefaultRemoveOptions);
             }
 
-            return document.WithSyntaxRoot(newRoot);
+            return newRoot;
         }
 
         private bool CanBeMergedWithParent(ISyntaxFactsService syntaxFacts, SyntaxNode ifStatement)
