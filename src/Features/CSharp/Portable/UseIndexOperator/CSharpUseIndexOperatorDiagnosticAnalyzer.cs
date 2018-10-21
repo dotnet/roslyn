@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-
             // look for `s[s.Length - index.Value]` and convert to `s[^index]`
 
             // Needs to have the one arg for `[s.Length - index.Value]`
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // make sure that we're indexing and getting the length off hte same value:
+            // make sure that we're indexing and getting the length off the same value:
             // `s[s.Length`
             var indexInstanceSyntax = propertyReference.Instance.Syntax;
             var lengthInstanceSyntax = leftPropertyRef.Instance.Syntax;
@@ -124,7 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             {
                 return;
             }
-
 
             var additionalLocations = ImmutableArray.Create(
                 binaryOperation.RightOperand.Syntax.GetLocation());
