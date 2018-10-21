@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             //}
 
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
+            if (optionSet is null)
             {
                 return;
             }
@@ -233,15 +233,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             
             return false;
         }
-
-        /// <summary>
-        /// Checks if this is an expression `expr.Length` where `expr` is equivalent to
-        /// the instance we were calling .Slice off of.
-        /// </summary>
-        private bool IsInstanceLengthCheck(IPropertySymbol lengthLikeProperty, IOperation instance, IOperation operation)
-            => operation is IPropertyReferenceOperation propertyRef &&
-               lengthLikeProperty.Equals(propertyRef.Property) &&
-               propertyRef.Instance != null &&
-               CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
     }
 }

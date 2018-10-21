@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    using static Helpers;
+
     /// <summary>
     /// Analyzer that looks for code like `s[s.Length - n]` and offers to change that to `s[^n]`. In
     /// order to do this, the type must look 'indexable'.  Meaning, it must have an int-returning
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             // Make sure we're actually on something like `s[...]`.
             var elementAccess = propertyReference.Syntax as ElementAccessExpressionSyntax;
-            if (elementAccess == null)
+            if (elementAccess is null)
             {
                 return;
             }
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Make sure this is a type that has both a Length/Count property, as well
             // as an indexer that takes a System.Index.
             var lengthLikeProperty = infoCache.GetLengthLikeProperty(indexer.ContainingType);
-            if (lengthLikeProperty == null)
+            if (lengthLikeProperty is null)
             {
                 return;
             }
@@ -119,19 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             }
 
             // Left side of the subtraction needs to be `s.Length`
-            if (!(binaryOperation.LeftOperand is IPropertyReferenceOperation leftPropertyRef) ||
-                leftPropertyRef.Instance is null ||
-                !lengthLikeProperty.Equals(leftPropertyRef.Property))
-            {
-                return;
-            }
-
-            // make sure that we're indexing and getting the length off the same value:
-            // `s[s.Length`
-            var indexInstanceSyntax = propertyReference.Instance.Syntax;
-            var lengthInstanceSyntax = leftPropertyRef.Instance.Syntax;
-
-            if (!CSharpSyntaxFactsService.Instance.AreEquivalent(indexInstanceSyntax, lengthInstanceSyntax))
+            if (!IsInstanceLengthCheck(lengthLikeProperty, propertyReference.Instance, binaryOperation.LeftOperand))
             {
                 return;
             }

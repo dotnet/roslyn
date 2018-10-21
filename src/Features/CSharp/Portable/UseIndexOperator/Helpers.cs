@@ -4,6 +4,7 @@ using System.Collections;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
@@ -36,5 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             => SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.IndexExpression,
                 expr.Parenthesize());
+
+        /// <summary>
+        /// Checks if this is an expression `expr.Length` where `expr` is equivalent to
+        /// the instance we were originally invoking an accessor/method off of.
+        /// </summary>
+        public static bool IsInstanceLengthCheck(IPropertySymbol lengthLikeProperty, IOperation instance, IOperation operation)
+            => operation is IPropertyReferenceOperation propertyRef &&
+               propertyRef.Instance != null &&
+               lengthLikeProperty.Equals(propertyRef.Property) &&
+               CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
     }
 }
