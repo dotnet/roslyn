@@ -9,8 +9,20 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.Text;
     using static Helpers;
 
+    /// <summary>
+    /// Analyzer that looks for several variants of code like `s.Slice(start, end - start)` and
+    /// offers to update to `s[start..end]`.  In order to convert, the type being called on needs a
+    /// slice-like method that takes two ints, and returns an instance of the same type. It also
+    /// needs a Length/Count property, as well as an indexer that takes a System.Range instance.
+    ///
+    /// It is assumed that if the type follows this shape that it is well behaved and that this
+    /// transformation will preserve semantics.  If this assumption is not good in practice, we
+    /// could always limit the feature to only work on a whitelist of known safe types.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
@@ -27,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         }
 
         /// <summary>
-        /// Look for methods like "ContainingType Slice(int start, int length)"
+        /// Look for methods like "ContainingType Slice(int start, int length)".
         /// </summary>
         private static bool IsSliceLikeMethod(IMethodSymbol method)
             => IsPublicInstance(method) &&
@@ -53,24 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             var cancellationToken = context.CancellationToken;
             var invocation = (IInvocationOperation)context.Operation;
 
-            var invocationSyntax = invocation.Syntax;
-            if (invocationSyntax is null || invocationSyntax.Kind() != SyntaxKind.InvocationExpression)
+            var invocationSyntax = invocation.Syntax as InvocationExpressionSyntax;
+            if (invocationSyntax is null ||
+                invocationSyntax.ArgumentList is null)
             {
                 return;
             }
 
-            var targetMethod = invocation.TargetMethod;
-            if (!IsSliceLikeMethod(invocation.TargetMethod))
-            {
-                return;
-            }
-
-            if (!typeChecker.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
-                !targetMethod.Equals(memberInfo.SliceLikeMethod))
-            {
-                return;
-            }
-
+            // Check if we're at least on C# 8, and that the user wants these operators.
             var syntaxTree = invocationSyntax.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             //if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
@@ -90,7 +92,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // look for `s.SliceMethod(start, end - start)` and convert to `s[Range]`
+            // See if the call is to something slice-like.
+            var targetMethod = invocation.TargetMethod;
+            if (!IsSliceLikeMethod(invocation.TargetMethod))
+            {
+                return;
+            }
+
+            // Use the type checker to see if this is a type we can use range-indexer for, and also
+            // if this is a call to the Slice-Like method we've found for that type.
+            if (!typeChecker.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
+                !targetMethod.Equals(memberInfo.SliceLikeMethod))
+            {
+                return;
+            }
+
+            // look for `s.Slice(start, end - start)` and convert to `s[Range]`
 
             // Needs to have the two args for `start` and `end - start`
             if (invocation.Instance is null ||
@@ -108,38 +125,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            var arg1 = invocation.Arguments[0];
-            var arg1Syntax = arg1.Value.Syntax;
+            var startOperation = invocation.Arguments[0].Value;
+            var startSyntax = startOperation.Syntax;
 
-            var subtractRightSyntax = binaryOperation.RightOperand.Syntax;
-
+            // Make sure we have: (start, end - start).  The start operation has to be
+            // the same as the right side of the subtraction.
             var syntaxFacts = CSharpSyntaxFactsService.Instance;
-            if (!syntaxFacts.AreEquivalent(arg1Syntax, subtractRightSyntax))
+            if (!syntaxFacts.AreEquivalent(startSyntax, binaryOperation.RightOperand.Syntax))
             {
                 return;
             }
 
-            var startOperation = arg1.Value;
+            // The end operation is the left side of `end - start`
             var endOperation = binaryOperation.LeftOperand;
 
-            // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
-            // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
+            // We have enough information now to generate `start..end`.  However, this will often
+            // not be what the user wants.  For example, generating `start..expr.Length` is not as
+            // desirable as `start..`.  Similarly, `start..(expr.Length - 1)` is not as desirable as
+            // `start..^1`.  Look for these patterns and record what we have so we can produce more
+            // idiomatic results in the fixer.
+            //
+            // Note: we could also compute this in the fixer.  But it's nice and easy to do here
+            // given that we already have the options, and it's cheap to do now.
 
             var properties = ImmutableDictionary<string, string>.Empty;
 
             var lengthOrCountProp = memberInfo.LengthOrCountProperty;
+
+            // If our start-op is actually equivalent to `expr.Length - val`, then just change our
+            // start-op to be `val` and record that we should emit it as `^val`.
             if (IsFromEnd(lengthOrCountProp, invocation.Instance, ref startOperation))
             {
                 properties = properties.Add(StartFromEnd, StartFromEnd);
             }
 
+            // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
+            // change our end-op to be `val` and record that we should emit it as `^val`.
             if (IsFromEnd(lengthOrCountProp, invocation.Instance, ref endOperation))
             {
                 properties = properties.Add(EndFromEnd, EndFromEnd);
             }
 
-            // If the range operation goes to 'instance.Length' then we can just leave off the end
-            // part of the range.  i.e. `start..`
+            // If the range operation goes to 'expr.Length' then we can just leave off the end part
+            // of the range.  i.e. `start..`
             if (IsInstanceLengthCheck(lengthOrCountProp, invocation.Instance, endOperation))
             {
                 properties = properties.Add(OmitEnd, OmitEnd);
@@ -153,24 +181,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 properties = properties.Add(OmitStart, OmitStart);
             }
 
+            // Keep track of the syntax nodes from the start/end ops so that we can easily 
+            // generate the range-expression in the fixer.
             var additionalLocations = ImmutableArray.Create(
                 startOperation.Syntax.GetLocation(),
                 endOperation.Syntax.GetLocation());
 
+            // Mark the span under the two arguments to .Slice(..., ...) as what we will be
+            // updating.
+            var arguments = invocationSyntax.ArgumentList.Arguments;
+            var location = Location.Create(syntaxTree,
+                TextSpan.FromBounds(arguments.First().SpanStart, arguments.Last().Span.End));
+
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
-                    invocationSyntax.GetLocation(),
+                    location,
                     option.Notification.Severity,
                     additionalLocations,
                     properties,
                     memberInfo.SliceLikeMethod.Name));
         }
 
+        /// <summary>
+        /// check if its the form: `expr.Length - value`.  If so, update rangeOperation to then
+        /// point to 'value'.
+        /// </summary>
         private bool IsFromEnd(
             IPropertySymbol lengthOrCountProp, IOperation instance, ref IOperation rangeOperation)
         {
-            // check if its the form: `stringExpr.Length - value`
             if (rangeOperation is IBinaryOperation binaryOperation &&
                 binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
                 IsInstanceLengthCheck(lengthOrCountProp, instance, binaryOperation.LeftOperand))
@@ -184,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
         /// <summary>
         /// Checks if this is an expression `expr.Length` where `expr` is equivalent to
-        /// the instance we were calling .Substring off of.
+        /// the instance we were calling .Slice off of.
         /// </summary>
         private bool IsInstanceLengthCheck(
             IPropertySymbol lengthOrCountProp, IOperation instance, IOperation operation)

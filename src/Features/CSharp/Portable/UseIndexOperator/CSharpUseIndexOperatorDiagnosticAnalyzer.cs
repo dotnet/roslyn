@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -12,6 +10,16 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    /// <summary>
+    /// Analyzer that looks for code like `s[s.Length - n]` and offers to change that to `s[^n]`. In
+    /// order to do this, the type must look 'indexable'.  Meaning, it must have an int-returning
+    /// property called 'Length' or 'Count', and it must have both an int-indexer, and a
+    /// System.Index indexer.
+    ///
+    /// It is assumed that if the type follows this shape that it is well behaved and that this
+    /// transformation will preserve semantics.  If this assumption is not good in practice, we
+    /// could always limit the feature to only work on a whitelist of known safe types.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
@@ -26,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         {
             context.RegisterCompilationStartAction(startContext =>
             {
+                // We're going to be checking every property-reference in the compilation. Cache
+                // information we compute in this TypeChecker object so we don't have to continually
+                // recompute it.
                 var typeChecker = new TypeChecker(startContext.Compilation);
                 context.RegisterOperationAction(
                     c => AnalyzePropertyReference(c, typeChecker),
@@ -40,25 +51,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             var propertyReference = (IPropertyReferenceOperation)context.Operation;
             var property = propertyReference.Property;
 
+            // Only analyze indexer calls.
             if (!property.IsIndexer)
             {
                 return;
             }
 
+            // Make sure we're actually on something like `s[...]`.
             var elementAccess = propertyReference.Syntax as ElementAccessExpressionSyntax;
             if (elementAccess == null)
             {
                 return;
             }
 
+            // Only supported on C# 8 and above.
             var syntaxTree = elementAccess.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-
             //if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
             //{
             //    return;
             //}
 
+            // Don't bother analyzing if the user doesn't like using Index/Range operators.
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
@@ -87,16 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // look for `s[s.Length - index.Value]` and convert to `s[^index]`
+            // look for `s[s.Length - value]` and convert to `s[^val]`
 
-            // Needs to have the one arg for `[s.Length - index.Value]`
+            // Needs to have the one arg for `[s.Length - value]`
             if (propertyReference.Instance is null ||
                 propertyReference.Arguments.Length != 1)
             {
                 return;
             }
 
-            // Arg needs to be a subtraction for: `s.Length - index.Value`
+            // Arg needs to be a subtraction for: `s.Length - value`
             var arg = propertyReference.Arguments[0];
             if (!(arg.Value is IBinaryOperation binaryOperation) ||
                 binaryOperation.OperatorKind != BinaryOperatorKind.Subtract)
@@ -104,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // Left side of the subtraction needs to be `s.Length` or `s.Count`.  First make
-            // sure we're referencing String.Length.
+            // Left side of the subtraction needs to be `s.Length`
             if (!(binaryOperation.LeftOperand is IPropertyReferenceOperation leftPropertyRef) ||
                 leftPropertyRef.Instance is null ||
                 !lengthOrCountProp.Equals(leftPropertyRef.Property))
@@ -124,6 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
+            // Found a match.  Report a diagnostic on the element-access, and also record the
+            // location of 'val'.  That will make it easy to convert things to be `s[^val]` easily.
             var additionalLocations = ImmutableArray.Create(
                 binaryOperation.RightOperand.Syntax.GetLocation());
 

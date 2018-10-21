@@ -1,15 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    using static Helpers;
+
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer
     {
+        /// <summary>
+        /// Helper type to cache information about types while analyzing the compilation.
+        /// </summary>
         private class TypeChecker
         {
+            /// <summary>
+            /// The System.Index type.  Needed so that we only fixup code if we see the type
+            /// we're using has an indexer that takes an Index.
+            /// </summary>
             private readonly INamedTypeSymbol _indexType;
             private readonly ConcurrentDictionary<INamedTypeSymbol, IPropertySymbol> _typeToLengthOrCountProperty;
 
@@ -19,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
                 _typeToLengthOrCountProperty = new ConcurrentDictionary<INamedTypeSymbol, IPropertySymbol>();
 
+                // Always allow using System.Index indexers with System.String.  The compiler has
+                // hard-coded knowledge on how to use this type, even if there is no this[Index]
+                // indexer declared on it directly.
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
                 _typeToLengthOrCountProperty[stringType] = Initialize(stringType, requireIndexer: false);
             }
@@ -28,15 +38,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             private IPropertySymbol Initialize(INamedTypeSymbol namedType, bool requireIndexer)
             {
-                var lengthOrCountProperty = Helpers.GetLengthOrCountProperty(namedType);
+                // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
+                // consider it something indexable.
+                var lengthOrCountProperty = GetLengthOrCountProperty(namedType);
                 if (lengthOrCountProperty == null)
                 {
                     return null;
                 }
 
+                // if we require an indexer, make sure this type has a this[Index] indexer. If not,
+                // return 'null' so we'll consider this named-type non-viable. Otherwise, return the
+                // lengthOrCount property, marking this type as viable.
                 if (requireIndexer)
                 {
-                    var indexer = Helpers.GetIndexer(namedType, _indexType);
+                    var indexer = GetIndexer(namedType, _indexType);
                     if (indexer == null)
                     {
                         return null;
