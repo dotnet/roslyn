@@ -65,18 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             editor.ReplaceNode(invocation, elementAccess);
         }
 
-        private static RangeExpressionSyntax CreateRangeExpression(
-            Diagnostic diagnostic, ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
-        {
-            var props = diagnostic.Properties;
+        private static RangeExpressionSyntax CreateRangeExpression(Diagnostic diagnostic, ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
+            => RangeExpression(
+                GetExpression(diagnostic.Properties, start, OmitStart, StartFromEnd),
+                GetExpression(diagnostic.Properties, end, OmitEnd, EndFromEnd));
 
-            return RangeExpression(
-                props.ContainsKey(OmitStart) ? null : GetExpression(diagnostic, start, StartFromEnd),
-                props.ContainsKey(OmitEnd) ? null : GetExpression(diagnostic, end, EndFromEnd));
-        }
-
-        private static ExpressionSyntax GetExpression(Diagnostic diagnostic, ExpressionSyntax expr, string fromEndKey)
-            => diagnostic.Properties.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
+        private static ExpressionSyntax GetExpression(ImmutableDictionary<string, string> props, ExpressionSyntax expr, string omitKey, string fromEndKey)
+            => props.ContainsKey(omitKey)
+                ? null
+                : props.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
