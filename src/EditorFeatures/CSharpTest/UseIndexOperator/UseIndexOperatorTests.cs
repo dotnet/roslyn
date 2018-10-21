@@ -37,7 +37,7 @@ class C
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestSimple()
         {
             await TestAsync(
@@ -59,7 +59,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestComplexSubtaction()
         {
             await TestAsync(
@@ -81,7 +81,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestComplexInstance()
         {
             await TestAsync(
@@ -107,7 +107,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestNotWithoutSubtraction1()
         {
             await TestMissingAsync(
@@ -121,7 +121,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestNotWithoutSubtraction2()
         {
             await TestMissingAsync(
@@ -135,7 +135,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestNotWithoutMultipleArgs()
         {
             await TestMissingAsync(
@@ -149,7 +149,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestUserDefinedTypeWithLength()
         {
             await TestAsync(
@@ -175,7 +175,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestUserDefinedTypeWithCount()
         {
             await TestAsync(
@@ -201,7 +201,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestUserDefinedTypeWithNoLengthOrCount()
         {
             await TestMissingAsync(
@@ -217,7 +217,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestUserDefinedTypeWithNoInt32Indexer()
         {
             await TestMissingAsync(
@@ -233,7 +233,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
         public async Task TestUserDefinedTypeWithNoIndexIndexer()
         {
             await TestMissingAsync(

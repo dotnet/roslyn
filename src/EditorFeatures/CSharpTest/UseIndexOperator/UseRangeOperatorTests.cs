@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOperator
         private static readonly TestParameters s_testParameters =
             new TestParameters(parseOptions: s_parseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestNotInCSharp7()
         {
             await TestMissingAsync(
@@ -37,7 +37,7 @@ class C
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestSimple()
         {
             await TestAsync(
@@ -59,14 +59,14 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestComplexSubstraction()
         {
             await TestAsync(
 @"
 class C
 {
-    void Goo(string s)
+    void Goo(string s, int bar, int baz)
     {
         var v = s.Substring([||]bar, s.Length - baz - bar);
     }
@@ -74,14 +74,14 @@ class C
 @"
 class C
 {
-    void Goo(string s)
+    void Goo(string s, int bar, int baz)
     {
         var v = s[bar..^baz];
     }
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestConstantSubtraction1()
         {
             await TestAsync(

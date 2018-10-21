@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         /// <summary>
         /// Helper type to cache information about types while analyzing the compilation.
         /// </summary>
-        private class InfoCache
+        public class InfoCache
         {
             /// <summary>
             /// The System.Range type.  Needed so that we only fixup code if we see the type

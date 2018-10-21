@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer
     {
-        private struct MemberInfo
+        public struct MemberInfo
         {
             public readonly IPropertySymbol LengthLikeProperty;
             public readonly IMethodSymbol SliceLikeMethod;

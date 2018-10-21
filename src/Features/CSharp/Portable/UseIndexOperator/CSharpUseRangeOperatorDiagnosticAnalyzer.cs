@@ -26,13 +26,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        // Flags to indicate if we should generate 'val' or '^val' for the start or end range values
-        public const string StartFromEnd = nameof(StartFromEnd);
-        public const string EndFromEnd = nameof(EndFromEnd);
+        public const string ComputedRange = nameof(ComputedRange);
+        public const string ConstantRange = nameof(ConstantRange);
 
-        // Flags to indicate if we should just omit the start/end value of the range entirely.
-        public const string OmitStart = nameof(OmitStart);
-        public const string OmitEnd = nameof(OmitEnd);
+        //// Flags to indicate if we should generate 'val' or '^val' for the start or end range values
+        //public const string StartFromEnd = nameof(StartFromEnd);
+        //public const string EndFromEnd = nameof(EndFromEnd);
+
+        //// Flags to indicate if we should just omit the start/end value of the range entirely.
+        //public const string OmitStart = nameof(OmitStart);
+        //public const string OmitEnd = nameof(OmitEnd);
 
         public CSharpUseRangeOperatorDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
@@ -138,97 +141,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // Make sure we have: (start, end - start).  The start operation has to be
-            // the same as the right side of the subtraction.
+            // See if we have: (start, end - start).  The start operation has to be the same as the
+            // right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
-            var endOperation = subtraction.LeftOperand;
 
-            if (!CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
+            if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
+                context.ReportDiagnostic(CreateDiagnostic(
+                    ComputedRange, option, invocationSyntax, 
+                    memberInfo, startOperation, subtraction.LeftOperand));
                 return;
             }
 
-            // We have enough information now to generate `start..end`.  However, this will often
-            // not be what the user wants.  For example, generating `start..expr.Length` is not as
-            // desirable as `start..`.  Similarly, `start..(expr.Length - 1)` is not as desirable as
-            // `start..^1`.  Look for these patterns and record what we have so we can produce more
-            // idiomatic results in the fixer.
-            //
-            // Note: we could also compute this in the fixer.  But it's nice and easy to do here
-            // given that we already have the options, and it's cheap to do now.
-
-            var properties = ImmutableDictionary.CreateBuilder<string, string>();
-
-            var lengthLikeProperty = memberInfo.LengthLikeProperty;
-
-            // If our start-op is actually equivalent to `expr.Length - val`, then just change our
-            // start-op to be `val` and record that we should emit it as `^val`.
-            if (IsFromEnd(lengthLikeProperty, invocation.Instance, ref startOperation))
+            // See if we have: (constant1, s.Length - constant2).  The constants don't have to be
+            // the same value.  This will convert over to s[constant1..(constant - constant1)]
+            if (IsConstantInt32(startOperation) &&
+                IsConstantInt32(subtraction.RightOperand) &&
+                IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
             {
-                properties.Add(StartFromEnd, StartFromEnd);
+                context.ReportDiagnostic(CreateDiagnostic(
+                    ConstantRange, option, invocationSyntax,
+                    memberInfo, startOperation, subtraction.RightOperand));
+                return;
             }
+        }
 
-            // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
-            // change our end-op to be `val` and record that we should emit it as `^val`.
-            if (IsFromEnd(lengthLikeProperty, invocation.Instance, ref endOperation))
-            {
-                properties.Add(EndFromEnd, EndFromEnd);
-            }
-
-            // If the range operation goes to 'expr.Length' then we can just leave off the end part
-            // of the range.  i.e. `start..`
-            if (IsInstanceLengthCheck(lengthLikeProperty, invocation.Instance, endOperation))
-            {
-                properties.Add(OmitEnd, OmitEnd);
-            }
-
-            // If we're starting the range operation from 0, then we can just leave off the start of
-            // the range. i.e. `..end`
-            if (startOperation.ConstantValue.HasValue &&
-                startOperation.ConstantValue.Value is 0)
-            {
-                properties.Add(OmitStart, OmitStart);
-            }
+        private Diagnostic CreateDiagnostic(
+            string rangeKind, CodeStyleOption<bool> option, InvocationExpressionSyntax invocation, 
+            MemberInfo memberInfo, IOperation op1, IOperation op2)
+        {
+            var properties = ImmutableDictionary<string, string>.Empty.Add(rangeKind, rangeKind);
 
             // Keep track of the syntax nodes from the start/end ops so that we can easily 
             // generate the range-expression in the fixer.
             var additionalLocations = ImmutableArray.Create(
-                invocationSyntax.GetLocation(),
-                startOperation.Syntax.GetLocation(),
-                endOperation.Syntax.GetLocation());
+                invocation.GetLocation(),
+                op1.Syntax.GetLocation(),
+                op2.Syntax.GetLocation());
 
             // Mark the span under the two arguments to .Slice(..., ...) as what we will be
             // updating.
-            var arguments = invocationSyntax.ArgumentList.Arguments;
-            var location = Location.Create(syntaxTree,
+            var arguments = invocation.ArgumentList.Arguments;
+            var location = Location.Create(invocation.SyntaxTree,
                 TextSpan.FromBounds(arguments.First().SpanStart, arguments.Last().Span.End));
 
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor,
-                    location,
-                    option.Notification.Severity,
-                    additionalLocations,
-                    properties.ToImmutable(),
-                    memberInfo.SliceLikeMethod.Name));
+            return DiagnosticHelper.Create(
+                Descriptor,
+                location,
+                option.Notification.Severity,
+                additionalLocations,
+                properties,
+                memberInfo.SliceLikeMethod.Name);
         }
 
-        /// <summary>
-        /// check if its the form: `expr.Length - value`.  If so, update rangeOperation to then
-        /// point to 'value' so that we can generate '^value'.
-        /// </summary>
-        private bool IsFromEnd(
-            IPropertySymbol lengthLikeProperty, IOperation instance, ref IOperation rangeOperation)
-        {
-            if (rangeOperation is IBinaryOperation binaryOperation &&
-                binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
-                IsInstanceLengthCheck(lengthLikeProperty, instance, binaryOperation.LeftOperand))
-            {
-                rangeOperation = binaryOperation.RightOperand;
-                return true;
-            }
-            
-            return false;
-        }
+        private static bool IsConstantInt32(IOperation operation)
+            => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
     }
 }

@@ -60,5 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             subtraction = null;
             return false;
         }
+
+        private static bool IsConstantInt32(IOperation operation)
+            => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
     }
 }
