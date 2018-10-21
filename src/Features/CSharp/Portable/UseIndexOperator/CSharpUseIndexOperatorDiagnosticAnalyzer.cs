@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             var indexInstanceSyntax = propertyReference.Instance.Syntax;
             var lengthInstanceSyntax = leftPropertyRef.Instance.Syntax;
 
-            var syntaxFacts = CSharpSyntaxFactsService.Instance;
-            if (!syntaxFacts.AreEquivalent(indexInstanceSyntax, lengthInstanceSyntax))
+            if (!CSharpSyntaxFactsService.Instance.AreEquivalent(indexInstanceSyntax, lengthInstanceSyntax))
             {
                 return;
             }

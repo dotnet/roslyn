@@ -241,15 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         /// Checks if this is an expression `expr.Length` where `expr` is equivalent to
         /// the instance we were calling .Slice off of.
         /// </summary>
-        private bool IsInstanceLengthCheck(
-            IPropertySymbol lengthLikeProperty, IOperation instance, IOperation operation)
-        {
-            var syntaxFacts = CSharpSyntaxFactsService.Instance;
-            return
-                operation is IPropertyReferenceOperation propertyRef &&
-                lengthLikeProperty.Equals(propertyRef.Property) &&
-                propertyRef.Instance != null &&
-                syntaxFacts.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
-        }
+        private bool IsInstanceLengthCheck(IPropertySymbol lengthLikeProperty, IOperation instance, IOperation operation)
+            => operation is IPropertyReferenceOperation propertyRef &&
+               lengthLikeProperty.Equals(propertyRef.Property) &&
+               propertyRef.Instance != null &&
+               CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
     }
 }
