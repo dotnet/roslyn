@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    using static CSharpUseRangeOperatorDiagnosticAnalyzer;
+
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
@@ -47,21 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var invocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            ExpressionSyntax start = null, end = null;
 
-            if (!diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.OmitStart))
-            {
-                start =(ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                start = MakeIndexExpression(start,
-                    diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.StartFromEnd));
-            }
+            var start = !diagnostic.Properties.ContainsKey(OmitStart)
+                ? GetExpression(diagnostic, index: 1, StartFromEnd, cancellationToken)
+                : null;
 
-            if (!diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.OmitEnd))
-            {
-                end = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                end = MakeIndexExpression(end,
-                    diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.EndFromEnd));
-            }
+            var end = !diagnostic.Properties.ContainsKey(OmitEnd)
+                ? GetExpression(diagnostic, index: 2, EndFromEnd, cancellationToken)
+                : null;
 
             var argList = invocation.ArgumentList;
             var elementAccess = SyntaxFactory.ElementAccessExpression(
@@ -76,10 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             editor.ReplaceNode(invocation, elementAccess);
         }
 
-        private static ExpressionSyntax MakeIndexExpression(ExpressionSyntax value, bool fromEnd)
-            => fromEnd
-                ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.IndexExpression, value.Parenthesize())
-                : value;
+        private static ExpressionSyntax GetExpression(
+            Diagnostic diagnostic, int index, string fromEndKey, CancellationToken cancellationToken)
+        {
+            var expr = (ExpressionSyntax)diagnostic.AdditionalLocations[index].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            return diagnostic.Properties.ContainsKey(fromEndKey)
+                ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.IndexExpression, expr.Parenthesize())
+                : expr;
+        }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
