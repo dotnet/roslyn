@@ -21,32 +21,21 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         TExpressionSyntax> : AbstractMergeIfStatementsCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatement);
-
-        protected abstract bool IsIfStatement(SyntaxNode statement);
-
         protected abstract ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatement);
 
         protected abstract SyntaxNode MergeIfStatements(
             SyntaxNode outerIfStatement, SyntaxNode innerIfStatement, TExpressionSyntax condition);
 
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        protected sealed override async Task ComputeRefactoringsAsync(
+            CodeRefactoringContext context, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
-
-            if (IsApplicableSpan(node, context.Span, out var ifStatement))
+            if (IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement) &&
+                await CanBeMergedAsync(context.Document, syntaxFacts, parentIfStatement, ifStatement, context.CancellationToken))
             {
-                var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
-
-                if (IsFirstStatementOfIfStatement(syntaxFacts, ifStatement, out var parentIfStatement) &&
-                    await CanBeMergedAsync(context.Document, syntaxFacts, parentIfStatement, ifStatement, context.CancellationToken))
-                {
-                    context.RegisterRefactoring(
-                        new MyCodeAction(
-                            c => FixAsync(context.Document, context.Span, syntaxFacts, c),
-                            IfKeywordText));
-                }
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        c => FixAsync(context.Document, context.Span, syntaxFacts, c),
+                        IfKeywordText));
             }
         }
 

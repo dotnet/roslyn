@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -9,7 +12,29 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     {
         protected abstract string IfKeywordText { get; }
 
+        protected abstract int LogicalExpressionSyntaxKind { get; }
+
         protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement);
+
+        protected abstract CodeAction CreateCodeAction(Document document, TextSpan span);
+
+        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        {
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(context.Span.Start);
+
+            if (context.Span.Length > 0 &&
+                context.Span != token.Span)
+            {
+                return;
+            }
+
+            if (IsPartOfBinaryExpressionChain(token, LogicalExpressionSyntaxKind, out var rootExpression) &&
+                IsConditionOfIfStatement(rootExpression, out _))
+            {
+                context.RegisterRefactoring(CreateCodeAction(context.Document, context.Span));
+            }
+        }
 
         protected static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)
         {

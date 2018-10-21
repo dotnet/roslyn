@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,8 +18,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractSplitIfStatementCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract int LogicalOrSyntaxKind { get; }
-
         protected abstract bool HasElseClauses(SyntaxNode ifStatement);
 
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
@@ -29,33 +26,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
             SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
-        public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
-
-            if (context.Span.Length > 0 &&
-                context.Span != token.Span)
-            {
-                return;
-            }
-
-            if (IsPartOfBinaryExpressionChain(token, LogicalOrSyntaxKind, out var rootExpression) &&
-                IsConditionOfIfStatement(rootExpression, out _))
-            {
-                context.RegisterRefactoring(
-                    new MyCodeAction(
-                        c => FixAsync(context.Document, context.Span, c),
-                        IfKeywordText));
-            }
-        }
+        protected sealed override CodeAction CreateCodeAction(Document document, TextSpan span)
+            => new MyCodeAction(c => FixAsync(document, span, c), IfKeywordText);
 
         private async Task<Document> FixAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
 
-            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, LogicalOrSyntaxKind, out var rootExpression));
+            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, LogicalExpressionSyntaxKind, out var rootExpression));
             Contract.ThrowIfFalse(IsConditionOfIfStatement(rootExpression, out var currentIfStatement));
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
