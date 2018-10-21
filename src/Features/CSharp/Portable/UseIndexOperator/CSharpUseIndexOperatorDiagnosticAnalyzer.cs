@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Only supported on C# 8 and above.
             var syntaxTree = elementAccess.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            //if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-            //{
-            //    return;
-            //}
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
+            {
+                return;
+            }
 
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
