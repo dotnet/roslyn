@@ -1469,4 +1469,10 @@ This version used in: {2}</value>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
+  <data name="Indexing_can_be_simplified" xml:space="preserve">
+    <value>Indexing can be simplified</value>
+  </data>
+  <data name="Use_index_operator" xml:space="preserve">
+    <value>Use index operator</value>
+  </data>
 </root>

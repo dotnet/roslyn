@@ -61,6 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_matching_over_is_with_cast_check"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferIndexOperator = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIndexOperator),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_index_operator"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferIndexOperator")});
+
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithSilentEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Silent);
 
@@ -205,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
+            yield return PreferIndexOperator;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()
