@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    using System;
     using static Helpers;
 
     /// <summary>
@@ -47,11 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         private static bool IsSliceLikeMethod(IMethodSymbol method)
             => IsPublicInstance(method) &&
                method.Parameters.Length == 2 &&
-               method.Parameters[0].Type.SpecialType == SpecialType.System_Int32 &&
-               method.Parameters[1].Type.SpecialType == SpecialType.System_Int32 &&
-               (method.Parameters[0].Name == "start" || method.Parameters[0].Name == "startIndex") &&
-               (method.Parameters[1].Name == "count" || method.Parameters[1].Name == "length") &&
+               IsSliceFirstParameter(method.Parameters[0]) &&
+               IsSliceSecondParameter(method.Parameters[1]) &&
                method.ContainingType.Equals(method.ReturnType);
+
+        private static bool IsSliceFirstParameter(IParameterSymbol parameter)
+            => parameter.Type.SpecialType == SpecialType.System_Int32 &&
+               (parameter.Name == "start" || parameter.Name == "startIndex");
+
+        private static bool IsSliceSecondParameter(IParameterSymbol parameter)
+            => parameter.Type.SpecialType == SpecialType.System_Int32 &&
+               (parameter.Name == "count" || parameter.Name == "length");
 
         protected override void InitializeWorker(AnalysisContext context)
         {
