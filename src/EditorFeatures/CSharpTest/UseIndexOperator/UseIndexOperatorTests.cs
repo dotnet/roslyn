@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOperatorTests
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOperator
 {
     public class UseIndexOperatorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {

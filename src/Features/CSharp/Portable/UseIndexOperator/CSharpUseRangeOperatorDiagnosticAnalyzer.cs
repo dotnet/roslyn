@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Check if we're at least on C# 8, and that the user wants these operators.
             var syntaxTree = invocationSyntax.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            //if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-            //{
-            //    return;
-            //}
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
+            {
+                return;
+            }
 
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet is null)

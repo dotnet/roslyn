@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var invocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                ? memberAccess.Expression
+                : invocation.Expression;
             var start = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
             var end = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             var argList = invocation.ArgumentList;
             var elementAccess = ElementAccessExpression(
-                invocation.Expression,
+                expression,
                 BracketedArgumentList(
                     Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
                     SingletonSeparatedList(Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation)),
