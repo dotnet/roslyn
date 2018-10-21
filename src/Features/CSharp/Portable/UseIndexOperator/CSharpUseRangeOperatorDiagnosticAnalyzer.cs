@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
     {
         public const string StartFromEnd = nameof(StartFromEnd);
         public const string EndFromEnd = nameof(EndFromEnd);
+        public const string OmitStart = nameof(OmitStart);
+        public const string OmitEnd = nameof(OmitEnd);
 
         public CSharpUseRangeOperatorDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
@@ -124,14 +126,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
 
             var properties = ImmutableDictionary<string, string>.Empty;
-            if (IsFromEnd(invocation.Instance, startOperation, stringLength))
+
+            if (IsFromEnd(stringLength, invocation.Instance, ref startOperation))
             {
                 properties = properties.Add(StartFromEnd, StartFromEnd);
             }
 
-            if (IsFromEnd(invocation.Instance, endOperation, stringLength))
+            if (IsFromEnd(stringLength, invocation.Instance, ref endOperation))
             {
                 properties = properties.Add(EndFromEnd, EndFromEnd);
+            }
+
+            if (IsInstanceLengthCheck(stringLength, invocation.Instance, endOperation))
+            {
+                properties = properties.Add(OmitEnd, OmitEnd);
+            }
+
+            if (startOperation.ConstantValue.HasValue &&
+                startOperation.ConstantValue.Value is 0)
+            {
+                properties = properties.Add(OmitStart, OmitStart);
             }
 
             var additionalLocations = ImmutableArray.Create(
@@ -147,18 +161,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                     properties));
         }
 
-        private bool IsFromEnd(IOperation instance, IOperation rangeOperation, IPropertySymbol stringLength)
+        private bool IsFromEnd(
+            IPropertySymbol stringLength, IOperation stringInstance, ref IOperation rangeOperation)
+        {
+            // check if its the form: `stringExpr.Length - value`
+            if (rangeOperation is IBinaryOperation binaryOperation &&
+                binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
+                IsInstanceLengthCheck(stringLength, stringInstance, binaryOperation.LeftOperand))
+            {
+                rangeOperation = binaryOperation.RightOperand;
+                return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if this is an expression `expr.Length` where `expr` is equivalent to
+        /// the instance we were calling .Substring off of.
+        /// </summary>
+        private bool IsInstanceLengthCheck(IPropertySymbol stringLength, IOperation stringInstance, IOperation operation)
         {
             var syntaxFacts = CSharpSyntaxFactsService.Instance;
-
-            // check if its the form: `stringExpr.Length - value`
             return
-                rangeOperation is IBinaryOperation binaryOperation &&
-                binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
-                binaryOperation.LeftOperand is IPropertyReferenceOperation leftPropertyRef &&
-                stringLength.Equals(leftPropertyRef.Property) &&
-                leftPropertyRef.Instance != null &&
-                syntaxFacts.AreEquivalent(instance.Syntax, leftPropertyRef.Instance.Syntax);
+                operation is IPropertyReferenceOperation propertyRef &&
+                stringLength.Equals(propertyRef.Property) &&
+                propertyRef.Instance != null &&
+                syntaxFacts.AreEquivalent(stringInstance.Syntax, propertyRef.Instance.Syntax);
         }
 
         private static bool IsStringIndexer(IPropertySymbol property)

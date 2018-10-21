@@ -47,14 +47,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var invocation = (InvocationExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var start = (ExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var end = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            ExpressionSyntax start = null, end = null;
 
-            var startFromEnd = diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.StartFromEnd);
-            var endFromEnd = diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.EndFromEnd);
+            if (!diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.OmitStart))
+            {
+                start =(ExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+                start = MakeIndexExpression(start,
+                    diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.StartFromEnd));
+            }
 
-            start = MakeIndexExpression(start, startFromEnd);
-            end = MakeIndexExpression(end, endFromEnd);
+            if (!diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.OmitEnd))
+            {
+                end = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+                end = MakeIndexExpression(end,
+                    diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.EndFromEnd));
+            }
 
             var argList = invocation.ArgumentList;
             var elementAccess = SyntaxFactory.ElementAccessExpression(
