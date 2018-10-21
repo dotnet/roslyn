@@ -42,11 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         }
 
         /// <summary>
-        /// Look for methods like "ContainingType Slice(int start, int length)".
+        /// Look for methods like "SomeType SomeType.Slice(int start, int length)".
         /// </summary>
         private static bool IsSliceLikeMethod(IMethodSymbol method)
             => IsPublicInstance(method) &&
                method.Parameters.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Int32 &&
+               method.Parameters[1].Type.SpecialType == SpecialType.System_Int32 &&
                (method.Parameters[0].Name == "start" || method.Parameters[0].Name == "startIndex") &&
                (method.Parameters[1].Name == "count" || method.Parameters[1].Name == "length") &&
                method.ContainingType.Equals(method.ReturnType);
