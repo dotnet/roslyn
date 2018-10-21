@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
             yield return PreferIndexOperator;
+            yield return PreferRangeOperator;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()
