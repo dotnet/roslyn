@@ -113,8 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // Use the type checker to see if this is a type we can use range-indexer for, and also
-            // if this is a call to the Slice-Like method we've found for that type.
+            // See if this is a type we can use range-indexer for, and also if this is a call to the
+            // Slice-Like method we've found for that type.  Use the InfoCache so that we can reuse
+            // any previously computed values for this type.
             if (!infoCache.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
                 !targetMethod.Equals(memberInfo.SliceLikeMethod))
             {
