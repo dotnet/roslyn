@@ -2,9 +2,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.SplitIntoConsecutiveIfStatements
+Imports Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitIntoConsecutiveIfStatements
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitOrMergeIfStatements
     <Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)>
     Public NotInheritable Class SplitIntoConsecutiveIfStatementsTests
         Inherits AbstractVisualBasicCodeActionTest

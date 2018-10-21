@@ -2,10 +2,10 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
+Imports Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
+Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.SplitIntoNestedIfStatements), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InvertLogical, Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     Friend NotInheritable Class VisualBasicSplitIntoNestedIfStatementsCodeRefactoringProvider

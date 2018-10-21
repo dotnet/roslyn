@@ -5,10 +5,10 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SplitIntoNestedIfStatements;
+using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
+namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), Shared]
     internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider

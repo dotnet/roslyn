@@ -15,10 +15,10 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
+namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider<
-        TExpressionSyntax> : BaseMergeIfStatementsCodeRefactoringProvider
+        TExpressionSyntax> : AbstractMergeIfStatementsCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatement);

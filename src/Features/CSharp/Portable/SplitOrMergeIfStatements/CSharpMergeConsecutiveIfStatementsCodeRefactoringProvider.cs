@@ -4,10 +4,10 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements;
+using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
+namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeConsecutiveIfStatements), Shared]
     internal sealed class CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider

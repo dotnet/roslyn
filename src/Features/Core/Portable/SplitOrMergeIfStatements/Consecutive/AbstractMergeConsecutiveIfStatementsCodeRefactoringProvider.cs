@@ -11,14 +11,13 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SplitIntoNestedIfStatements;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
+namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider<
-        TExpressionSyntax> : BaseMergeIfStatementsCodeRefactoringProvider
+        TExpressionSyntax> : AbstractMergeIfStatementsCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatement);

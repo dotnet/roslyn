@@ -4,9 +4,9 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements;
+using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 
-namespace Microsoft.CodeAnalysis.CSharp.SplitIntoConsecutiveIfStatements
+namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SplitIntoConsecutiveIfStatements), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical, Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]

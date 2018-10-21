@@ -5,9 +5,9 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
+namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class BaseMergeIfStatementsCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected abstract string IfKeywordText { get; }
 

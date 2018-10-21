@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
+namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : BaseSplitIfStatementCodeRefactoringProvider
+        : AbstractSplitIfStatementCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract int LogicalAndSyntaxKind { get; }

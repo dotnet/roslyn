@@ -10,14 +10,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SplitIntoNestedIfStatements;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
+namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : BaseSplitIfStatementCodeRefactoringProvider
+        : AbstractSplitIfStatementCodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract int LogicalOrSyntaxKind { get; }

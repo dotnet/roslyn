@@ -2,11 +2,11 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
+Imports Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.SplitIntoConsecutiveIfStatements
+Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.MergeConsecutiveIfStatements), [Shared]>
     Friend NotInheritable Class VisualBasicMergeConsecutiveIfStatementsCodeRefactoringProvider
         Inherits AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider(Of ExpressionSyntax)

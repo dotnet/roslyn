@@ -3,9 +3,9 @@
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
+namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class BaseSplitIfStatementCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractSplitIfStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected abstract string IfKeywordText { get; }
 

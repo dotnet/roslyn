@@ -2,9 +2,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.SplitIntoNestedIfStatements
+Imports Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitIntoNestedIfStatements
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitOrMergeIfStatements
     <Trait(Traits.Feature, Traits.Features.CodeActionsMergeNestedIfStatements)>
     Public NotInheritable Class MergeNestedIfStatementsTests
         Inherits AbstractVisualBasicCodeActionTest
