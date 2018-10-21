@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             var end = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             var argList = invocation.ArgumentList;
+
             var rangeExpression = CreateRangeExpression(diagnostic, start, end, cancellationToken);
             var elementAccess = ElementAccessExpression(
                 invocation.Expression,

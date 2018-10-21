@@ -37,20 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         {
             foreach (var diagnostic in diagnostics)
             {
-                FixOne(diagnostic, editor, cancellationToken);
+                var binaryExpr = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+                editor.ReplaceNode(
+                    binaryExpr,
+                    IndexExpression(binaryExpr.Right));
             }
 
             return Task.CompletedTask;
-        }
-
-        private void FixOne(
-            Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var binaryExpr = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-
-            editor.ReplaceNode(
-                binaryExpr,
-                IndexExpression(binaryExpr.Right));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
