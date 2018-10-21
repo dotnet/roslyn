@@ -102,5 +102,31 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNonStringType()
+        {
+            await TestAsync(
+@"
+namespace System { public struct Range { } }
+struct S { public S Slice(int start, int length); public int Length { get; } public S this[System.Range] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s.Slice([||]1, s.Length - 2);
+    }
+}",
+@"
+namespace System { public struct Range { } }
+struct S { public S Slice(int start, int length); public int Length { get; } public S this[System.Range] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s[1..^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }
