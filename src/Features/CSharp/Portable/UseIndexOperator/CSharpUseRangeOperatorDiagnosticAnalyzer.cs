@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,8 +9,10 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 {
+    using static Helpers;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public const string StartFromEnd = nameof(StartFromEnd);
         public const string EndFromEnd = nameof(EndFromEnd);
@@ -21,52 +22,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         public CSharpUseRangeOperatorDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_range_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Substring_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources._0_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
+
+        /// <summary>
+        /// Look for methods like "ContainingType Slice(int start, int length)"
+        /// </summary>
+        private static bool IsSliceLikeMethod(IMethodSymbol method)
+            => IsPublicInstance(method) &&
+               method.Parameters.Length == 2 &&
+               (method.Parameters[0].Name == "start" || method.Parameters[0].Name == "startIndex") &&
+               (method.Parameters[1].Name == "count" || method.Parameters[1].Name == "length") &&
+               method.ContainingType.Equals(method.ReturnType);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var compilation = compilationContext.Compilation;
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
-
-                var substringMethod =
-                    stringType.GetMembers(nameof(string.Substring))
-                              .OfType<IMethodSymbol>()
-                              .Where(m => m.Parameters.Length == 2 && m.Parameters.All(p => p.Type.SpecialType == SpecialType.System_Int32))
-                              .FirstOrDefault();
-
-                var stringLength =
-                    stringType.GetMembers(nameof(string.Length))
-                              .OfType<IPropertySymbol>()
-                              .Where(p => p.Parameters.IsEmpty)
-                              .FirstOrDefault();
-
-                if (substringMethod != null && stringLength != null)
-                {
-                    compilationContext.RegisterOperationAction(
-                        c => AnalyzeInvocation(c, substringMethod, stringLength),
-                        OperationKind.Invocation);
-                }
+                var typeChecker = new TypeChecker(compilationContext.Compilation);
+                compilationContext.RegisterOperationAction(
+                    c => AnalyzeInvocation(c, typeChecker),
+                    OperationKind.Invocation);
             });
         }
 
         private void AnalyzeInvocation(
-            OperationAnalysisContext context,
-            IMethodSymbol substringMethod, IPropertySymbol stringLength)
+            OperationAnalysisContext context, TypeChecker typeChecker)
         {
             var cancellationToken = context.CancellationToken;
             var invocation = (IInvocationOperation)context.Operation;
 
-            if (!substringMethod.Equals(invocation.TargetMethod))
+            var invocationSyntax = invocation.Syntax;
+            if (invocationSyntax is null || invocationSyntax.Kind() != SyntaxKind.InvocationExpression)
             {
                 return;
             }
 
-            var invocationSyntax = invocation.Syntax;
-            if (invocationSyntax is null || invocationSyntax.Kind() != SyntaxKind.InvocationExpression)
+            var targetMethod = invocation.TargetMethod;
+            if (!IsSliceLikeMethod(invocation.TargetMethod))
+            {
+                return;
+            }
+
+            if (!typeChecker.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
+                !targetMethod.Equals(memberInfo.SliceLikeMethod))
             {
                 return;
             }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // look for `s.Substring(start, end - start)` and convert to `s[Range]`
+            // look for `s.SliceMethod(start, end - start)` and convert to `s[Range]`
 
             // Needs to have the two args for `start` and `end - start`
             if (invocation.Instance is null ||
@@ -127,21 +127,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             var properties = ImmutableDictionary<string, string>.Empty;
 
-            if (IsFromEnd(stringLength, invocation.Instance, ref startOperation))
+            var lengthOrCountProp = memberInfo.LengthOrCountProperty;
+            if (IsFromEnd(lengthOrCountProp, invocation.Instance, ref startOperation))
             {
                 properties = properties.Add(StartFromEnd, StartFromEnd);
             }
 
-            if (IsFromEnd(stringLength, invocation.Instance, ref endOperation))
+            if (IsFromEnd(lengthOrCountProp, invocation.Instance, ref endOperation))
             {
                 properties = properties.Add(EndFromEnd, EndFromEnd);
             }
 
-            if (IsInstanceLengthCheck(stringLength, invocation.Instance, endOperation))
+            // If the range operation goes to 'instance.Length' then we can just leave off the end
+            // part of the range.  i.e. `start..`
+            if (IsInstanceLengthCheck(lengthOrCountProp, invocation.Instance, endOperation))
             {
                 properties = properties.Add(OmitEnd, OmitEnd);
             }
 
+            // If we're starting the range operation from 0, then we can just leave off the start of
+            // the range. i.e. `..end`
             if (startOperation.ConstantValue.HasValue &&
                 startOperation.ConstantValue.Value is 0)
             {
@@ -158,16 +163,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                     invocationSyntax.GetLocation(),
                     option.Notification.Severity,
                     additionalLocations,
-                    properties));
+                    properties,
+                    memberInfo.SliceLikeMethod.Name));
         }
 
         private bool IsFromEnd(
-            IPropertySymbol stringLength, IOperation stringInstance, ref IOperation rangeOperation)
+            IPropertySymbol lengthOrCountProp, IOperation instance, ref IOperation rangeOperation)
         {
             // check if its the form: `stringExpr.Length - value`
             if (rangeOperation is IBinaryOperation binaryOperation &&
                 binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
-                IsInstanceLengthCheck(stringLength, stringInstance, binaryOperation.LeftOperand))
+                IsInstanceLengthCheck(lengthOrCountProp, instance, binaryOperation.LeftOperand))
             {
                 rangeOperation = binaryOperation.RightOperand;
                 return true;
@@ -180,17 +186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         /// Checks if this is an expression `expr.Length` where `expr` is equivalent to
         /// the instance we were calling .Substring off of.
         /// </summary>
-        private bool IsInstanceLengthCheck(IPropertySymbol stringLength, IOperation stringInstance, IOperation operation)
+        private bool IsInstanceLengthCheck(
+            IPropertySymbol lengthOrCountProp, IOperation instance, IOperation operation)
         {
             var syntaxFacts = CSharpSyntaxFactsService.Instance;
             return
                 operation is IPropertyReferenceOperation propertyRef &&
-                stringLength.Equals(propertyRef.Property) &&
+                lengthOrCountProp.Equals(propertyRef.Property) &&
                 propertyRef.Instance != null &&
-                syntaxFacts.AreEquivalent(stringInstance.Syntax, propertyRef.Instance.Syntax);
+                syntaxFacts.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
         }
-
-        private static bool IsStringIndexer(IPropertySymbol property)
-            => property.IsIndexer && property.Parameters.Length == 1 && property.Parameters[0].Type.SpecialType == SpecialType.System_Int32;
     }
 }

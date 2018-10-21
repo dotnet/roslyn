@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} can be simplified.
+        /// </summary>
+        internal static string _0_can_be_simplified {
+            get {
+                return ResourceManager.GetString("_0_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} Keyword.
         /// </summary>
         internal static string _0_Keyword {
@@ -3259,15 +3268,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Style {
             get {
                 return ResourceManager.GetString("Style", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Substring can be simplified.
-        /// </summary>
-        internal static string Substring_can_be_simplified {
-            get {
-                return ResourceManager.GetString("Substring_can_be_simplified", resourceCulture);
             }
         }
         
