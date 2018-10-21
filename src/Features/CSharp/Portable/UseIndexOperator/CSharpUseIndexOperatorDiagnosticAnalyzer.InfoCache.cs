@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         /// <summary>
         /// Helper type to cache information about types while analyzing the compilation.
         /// </summary>
-        private class TypeChecker
+        private class InfoCache
         {
             /// <summary>
             /// The System.Index type.  Needed so that we only fixup code if we see the type
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             private readonly INamedTypeSymbol _indexType;
             private readonly ConcurrentDictionary<INamedTypeSymbol, IPropertySymbol> _typeToLengthLikeProperty;
 
-            public TypeChecker(Compilation compilation)
+            public InfoCache(Compilation compilation)
             {
                 _indexType = compilation.GetTypeByMetadataName("System.Index");
 

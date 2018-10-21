@@ -65,17 +65,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 // We're going to be checking every invocation in the compilation. Cache information
-                // we compute in this TypeChecker object so we don't have to continually recompute
-                // it.
-                var typeChecker = new TypeChecker(compilationContext.Compilation);
+                // we compute in this object so we don't have to continually recompute it.
+                var infoCache = new InfoCache(compilationContext.Compilation);
                 compilationContext.RegisterOperationAction(
-                    c => AnalyzeInvocation(c, typeChecker),
+                    c => AnalyzeInvocation(c, infoCache),
                     OperationKind.Invocation);
             });
         }
 
         private void AnalyzeInvocation(
-            OperationAnalysisContext context, TypeChecker typeChecker)
+            OperationAnalysisContext context, InfoCache infoCache)
         {
             var cancellationToken = context.CancellationToken;
             var invocation = (IInvocationOperation)context.Operation;
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             // Use the type checker to see if this is a type we can use range-indexer for, and also
             // if this is a call to the Slice-Like method we've found for that type.
-            if (!typeChecker.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
+            if (!infoCache.TryGetMemberInfo(targetMethod.ContainingType, out var memberInfo) ||
                 !targetMethod.Equals(memberInfo.SliceLikeMethod))
             {
                 return;

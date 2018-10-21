@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             context.RegisterCompilationStartAction(startContext =>
             {
                 // We're going to be checking every property-reference in the compilation. Cache
-                // information we compute in this TypeChecker object so we don't have to continually
-                // recompute it.
-                var typeChecker = new TypeChecker(startContext.Compilation);
+                // information we compute in this object so we don't have to continually recompute
+                // it.
+                var infoCache = new InfoCache(startContext.Compilation);
                 context.RegisterOperationAction(
-                    c => AnalyzePropertyReference(c, typeChecker),
+                    c => AnalyzePropertyReference(c, infoCache),
                     OperationKind.PropertyReference);
             });
         }
 
         private void AnalyzePropertyReference(
-            OperationAnalysisContext context, TypeChecker typeChecker)
+            OperationAnalysisContext context, InfoCache infoCache)
         {
             var cancellationToken = context.CancellationToken;
             var propertyReference = (IPropertyReferenceOperation)context.Operation;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             // Make sure this is a type that has both a Length/Count property, as well
             // as an indexer that takes a System.Index.
-            var lengthLikeProperty = typeChecker.GetLengthLikeProperty(indexer.ContainingType);
+            var lengthLikeProperty = infoCache.GetLengthLikeProperty(indexer.ContainingType);
             if (lengthLikeProperty == null)
             {
                 return;
