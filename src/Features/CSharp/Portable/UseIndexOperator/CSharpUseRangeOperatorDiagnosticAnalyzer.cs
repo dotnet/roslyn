@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
         /// <summary>
         /// check if its the form: `expr.Length - value`.  If so, update rangeOperation to then
-        /// point to 'value'.
+        /// point to 'value' so that we can generate '^value'.
         /// </summary>
         private bool IsFromEnd(
             IPropertySymbol lengthLikeProperty, IOperation instance, ref IOperation rangeOperation)
