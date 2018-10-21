@@ -119,10 +119,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoConsecutiveIfStatements
 
             if (insideStatements.Count == 0)
             {
-                // This really only happens in VB - C# always has an embedded statement, even if it's a block.
-                // Since there is no code to run, we could in theory merge these, but we will return false
-                // for consistency with C#.
-                return false;
+                // There is no code to run, so we can safely merge.
+                return true;
             }
             else
             {

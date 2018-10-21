@@ -470,6 +470,26 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function MergedWithPreviousStatementIfContainsNoStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+        end if
+
+        [||]if b then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function MergedWithPreviousStatementIfControlFlowQuits1() As Task
             Await TestInRegularAndScriptAsync(
 "class C

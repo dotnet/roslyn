@@ -764,6 +764,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoConsecutiveIfS
         }
 
         [Fact]
+        public async Task MergedWithPreviousStatementIfContainsNoStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+        }
+
+        [||]if (b)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task MergedWithPreviousStatementIfControlFlowQuits1()
         {
             await TestInRegularAndScriptAsync(
