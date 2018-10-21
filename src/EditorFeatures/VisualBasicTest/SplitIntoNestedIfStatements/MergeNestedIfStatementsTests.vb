@@ -513,7 +513,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithUnmatchingElseClauses() As Task
+        Public Async Function NotMergedWithUnmatchingElseClauses1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -525,6 +525,27 @@ end class")
             end if
         else
             System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithUnmatchingElseClauses2() As Task
+            ' Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            else
+                System.Console.WriteLine(a)
+            end if
+        else
+            using nothing
+                System.Console.WriteLine(a)
+            end using
         end if
     end sub
 end class")
@@ -571,7 +592,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedIntoElseIfWithUnmatchingElseClauses() As Task
+        Public Async Function NotMergedIntoElseIfWithUnmatchingElseClauses1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -585,6 +606,29 @@ end class")
             end if
         else
             System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoElseIfWithUnmatchingElseClauses2() As Task
+            ' Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            else
+                System.Console.WriteLine(a)
+            end if
+        else
+            using nothing
+                System.Console.WriteLine(a)
+            end using
         end if
     end sub
 end class")

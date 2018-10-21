@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -105,7 +106,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             SyntaxNode innerIfStatement,
             CancellationToken cancellationToken)
         {
-            if (!GetElseClauses(outerIfStatement).SequenceEqual(GetElseClauses(innerIfStatement), syntaxFacts.AreEquivalent))
+            if (!GetElseClauses(outerIfStatement).SequenceEqual(
+                    GetElseClauses(innerIfStatement), (a, b) => IsElseClauseEquivalent(syntaxFacts, a, b)))
             {
                 return false;
             }
@@ -145,6 +147,43 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 
                 return !controlFlow.EndPointIsReachable;
             }
+        }
+
+        private bool IsElseClauseEquivalent(ISyntaxFactsService syntaxFacts, SyntaxNode elseClause1, SyntaxNode elseClause2)
+        {
+            var isIfStatement = IsIfStatement(elseClause1);
+            if (isIfStatement != IsIfStatement(elseClause2))
+            {
+                // If we have one ElseIf and one If, they're not equal.
+                return false;
+            }
+
+            if (isIfStatement)
+            {
+                // If we have two ElseIf blocks, their conditions have to match.
+                var condition1 = syntaxFacts.GetIfStatementCondition(elseClause1);
+                var condition2 = syntaxFacts.GetIfStatementCondition(elseClause2);
+
+                if (!syntaxFacts.AreEquivalent(condition1, condition2))
+                {
+                    return false;
+                }
+            }
+
+            var statements1 = WalkDownBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseClause1));
+            var statements2 = WalkDownBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseClause2));
+
+            return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
+        }
+
+        private static IReadOnlyList<SyntaxNode> WalkDownBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+        {
+            while (statements.Count == 1 && syntaxFacts.IsPureBlock(statements[0]))
+            {
+                statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
+            }
+
+            return statements;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
