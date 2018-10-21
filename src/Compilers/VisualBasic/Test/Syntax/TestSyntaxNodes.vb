@@ -2811,11 +2811,13 @@ End Module")
 
             Dim changes = newTree.GetChanges(oldTree)
             Assert.NotNull(changes)
-            Assert.Equal(2, changes.Count)
-            Assert.Equal(new TextSpan(12, 7), changes(0).Span)
-            Assert.Equal("Async Function M() of Task", changes(0).NewText)
-            Assert.Equal(new TextSpan(54, 3), changes(1).Span)
-            Assert.Equal("Function", changes(1).NewText)
+            Assert.Equal(3, changes.Count)
+            Assert.Equal(new TextSpan(12, 3), changes(0).Span)
+            Assert.Equal("Async Function", changes(0).NewText)
+            Assert.Equal(new TextSpan(19, 0), changes(1).Span)
+            Assert.Equal(" of Task", changes(1).NewText)
+            Assert.Equal(new TextSpan(54, 3), changes(2).Span)
+            Assert.Equal("Function", changes(2).NewText)
         End Sub
 
         <Fact>

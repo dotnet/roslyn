@@ -270,6 +270,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(" ", changes[1].NewText);
         }
 
+        [Fact]
+        public void TestDiffMinusChangedToPlus()
+        {
+            var options = new CSharpParseOptions(kind: SourceCodeKind.Script);
+            // note: PostIncrementExpression and PostDecrementExpression are both PostfixUnaryExpressionSyntax
+            var oldTree = SyntaxFactory.ParseSyntaxTree("a.b++", options);
+            var newTree = SyntaxFactory.ParseSyntaxTree("c.b--", options);
+
+            var changes = newTree.GetChanges(oldTree);
+            Assert.NotNull(changes);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(0, 1), changes[0].Span);
+            Assert.Equal("c", changes[0].NewText);
+            Assert.Equal(new TextSpan(3, 2), changes[1].Span);
+            Assert.Equal("--", changes[1].NewText);
+        }
+
         [Fact, WorkItem(463, "https://github.com/dotnet/roslyn/issues/463")]
         public void TestQualifyWithThis()
         {
