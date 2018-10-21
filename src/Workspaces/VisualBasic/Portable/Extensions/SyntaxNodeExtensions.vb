@@ -138,6 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return ifBlock.Statements
             End If
 
+            Dim elseIfBlock = TryCast(node, ElseIfBlockSyntax)
+            If elseIfBlock IsNot Nothing Then
+                Return elseIfBlock.Statements
+            End If
+
             Dim elseBlock = TryCast(node, ElseBlockSyntax)
             If elseBlock IsNot Nothing Then
                 Return elseBlock.Statements

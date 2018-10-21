@@ -742,6 +742,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
         }
 
         [Fact]
+        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+            {
+                System.Console.WriteLine();
+            }
+        }
+        else
+            System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine();
+        }
+        else
+        {
+            System.Console.WriteLine();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoElseIfWithUnmatchingElseClauses3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine(a);
+        }
+        else
+            System.Console.WriteLine(b);
+    }
+}");
+        }
+
+        [Fact]
         public async Task MergedWithMatchingElseClauses1()
         {
             await TestInRegularAndScriptAsync(
@@ -800,6 +873,82 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
     void M(bool a, bool b)
     {
         if (a && b)
+            System.Console.WriteLine(a && b);
+        else
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoElseIfWithMatchingElseClauses1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine(a);
+        }
+        else
+            System.Console.WriteLine(a);
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a && b)
+            System.Console.WriteLine(a && b);
+        else
+            System.Console.WriteLine(a);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoElseIfWithMatchingElseClauses2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+            {
+                System.Console.WriteLine(a);
+            }
+        }
+        else
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine();
+        else if (a && b)
             System.Console.WriteLine(a && b);
         else
         {
@@ -1413,6 +1562,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitIntoNestedIfStatem
     {
         if (a && b)
             System.Console.WriteLine(a && b);
+
+        return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            System.Console.WriteLine(a);
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+
+            return;
+        }
 
         return;
     }

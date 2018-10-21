@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), Shared]
     internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider
-        : AbstractMergeNestedIfStatementsCodeRefactoringProvider<IfStatementSyntax, ExpressionSyntax>
+        : AbstractMergeNestedIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
-        protected override bool IsTokenOfIfStatement(SyntaxToken token, out IfStatementSyntax ifStatement)
+        protected override bool IsTokenOfIfStatement(SyntaxToken token, out SyntaxNode ifStatement)
         {
             if (token.Parent is IfStatementSyntax s)
             {
@@ -26,14 +26,22 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitIntoNestedIfStatements
             return false;
         }
 
-        protected override ImmutableArray<SyntaxNode> GetElseClauses(IfStatementSyntax ifStatement)
+        protected override bool IsIfStatement(SyntaxNode statement)
         {
-            return ImmutableArray.Create<SyntaxNode>(ifStatement.Else);
+            return statement is IfStatementSyntax;
         }
 
-        protected override IfStatementSyntax MergeIfStatements(
-            IfStatementSyntax outerIfStatement, IfStatementSyntax innerIfStatement, ExpressionSyntax condition)
+        protected override ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatement)
         {
+            return ImmutableArray.Create<SyntaxNode>(((IfStatementSyntax)ifStatement).Else);
+        }
+
+        protected override SyntaxNode MergeIfStatements(
+            SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, ExpressionSyntax condition)
+        {
+            var outerIfStatement = (IfStatementSyntax)outerIfStatementNode;
+            var innerIfStatement = (IfStatementSyntax)innerIfStatementNode;
+
             return outerIfStatement.WithCondition(condition).WithStatement(innerIfStatement.Statement);
         }
     }

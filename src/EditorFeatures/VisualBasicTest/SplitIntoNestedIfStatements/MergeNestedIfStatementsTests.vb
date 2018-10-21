@@ -531,6 +531,66 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotMergedIntoElseIfWithUnmatchingElseIfClauses1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            elseif a then
+                System.Console.WriteLine()
+            end if
+        elseif b then
+            System.Console.WriteLine()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoElseIfWithUnmatchingElseIfClauses2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            elseif a then
+                System.Console.WriteLine(a)
+            end if
+        elseif a then
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoElseIfWithUnmatchingElseClauses() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            else
+                System.Console.WriteLine(a)
+            end if
+        else
+            System.Console.WriteLine(b)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function MergedWithMatchingElseClauses() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -565,10 +625,10 @@ end class")
         if a then
             [||]if b then
                 System.Console.WriteLine(a andalso b)
-            else if a then
+            elseif a then
                 System.Console.WriteLine(a)
             end if
-        else if a then
+        elseif a then
             System.Console.WriteLine(a)
         end if
     end sub
@@ -577,7 +637,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a AndAlso b then
             System.Console.WriteLine(a andalso b)
-        else if a then
+        elseif a then
             System.Console.WriteLine(a)
         end if
     end sub
@@ -592,12 +652,12 @@ end class")
         if a then
             [||]if b then
                 System.Console.WriteLine(a andalso b)
-            else if a then
+            elseif a then
                 System.Console.WriteLine(a)
             else
                 System.Console.WriteLine()
             end if
-        else if a then
+        elseif a then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine()
@@ -608,7 +668,106 @@ end class",
     sub M(a as boolean, b as boolean)
         if a AndAlso b then
             System.Console.WriteLine(a andalso b)
-        else if a then
+        elseif a then
+            System.Console.WriteLine(a)
+        else
+            System.Console.WriteLine()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoElseIfWithMatchingElseClauses() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            else
+                System.Console.WriteLine(a)
+            end if
+        else
+            System.Console.WriteLine(a)
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a AndAlso b then
+            System.Console.WriteLine(a andalso b)
+        else
+            System.Console.WriteLine(a)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoElseIfWithMatchingElseIfClauses() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            elseif a then
+                System.Console.WriteLine(a)
+            end if
+        elseif a then
+            System.Console.WriteLine(a)
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a AndAlso b then
+            System.Console.WriteLine(a andalso b)
+        elseif a then
+            System.Console.WriteLine(a)
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoElseIfWithMatchingElseIfElseClauses() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            elseif a then
+                System.Console.WriteLine(a)
+            else
+                System.Console.WriteLine()
+            end if
+        elseif a then
+            System.Console.WriteLine(a)
+        else
+            System.Console.WriteLine()
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a AndAlso b then
+            System.Console.WriteLine(a andalso b)
+        elseif a then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine()
@@ -1008,6 +1167,26 @@ end class",
 
                 exit select
         end select
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a orelse b then
+            System.Console.WriteLine()
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            end if
+
+            return
+        end if
+
+        return
     end sub
 end class")
         End Function

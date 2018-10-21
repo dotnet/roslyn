@@ -18,18 +18,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
 {
     internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider<
-        TIfStatementSyntax, TExpressionSyntax> : CodeRefactoringProvider
-        where TIfStatementSyntax : SyntaxNode
+        TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract string IfKeywordText { get; }
 
-        protected abstract bool IsTokenOfIfStatement(SyntaxToken token, out TIfStatementSyntax ifStatement);
+        protected abstract bool IsTokenOfIfStatement(SyntaxToken token, out SyntaxNode ifStatement);
 
-        protected abstract ImmutableArray<SyntaxNode> GetElseClauses(TIfStatementSyntax ifStatement);
+        protected abstract bool IsIfStatement(SyntaxNode statement);
 
-        protected abstract TIfStatementSyntax MergeIfStatements(
-            TIfStatementSyntax outerIfStatement, TIfStatementSyntax innerIfStatement, TExpressionSyntax condition);
+        protected abstract ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatement);
+
+        protected abstract SyntaxNode MergeIfStatements(
+            SyntaxNode outerIfStatement, SyntaxNode innerIfStatement, TExpressionSyntax condition);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -73,23 +74,23 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private static bool IsFirstStatementOfIfStatement(
-            ISyntaxFactsService syntaxFacts, SyntaxNode statement, out TIfStatementSyntax ifStatement)
+        private bool IsFirstStatementOfIfStatement(
+            ISyntaxFactsService syntaxFacts, SyntaxNode statement, out SyntaxNode ifStatement)
         {
-            if ((statement.Parent is TIfStatementSyntax || syntaxFacts.IsPureBlock(statement.Parent)) &&
+            if ((IsIfStatement(statement.Parent) || syntaxFacts.IsPureBlock(statement.Parent)) &&
                 syntaxFacts.GetStatementContainerStatements(statement.Parent).FirstOrDefault() == statement)
             {
                 do
                 {
-                    if (statement.Parent is TIfStatementSyntax s)
+                    if (IsIfStatement(statement.Parent))
                     {
-                        ifStatement = s;
+                        ifStatement = statement.Parent;
                         return true;
                     }
 
                     statement = statement.Parent;
                 }
-                while ((statement.Parent is TIfStatementSyntax || syntaxFacts.IsPureBlock(statement.Parent)) &&
+                while ((IsIfStatement(statement.Parent) || syntaxFacts.IsPureBlock(statement.Parent)) &&
                        syntaxFacts.GetStatementContainerStatements(statement.Parent).TrySingleOrDefault() == statement);
             }
 
@@ -100,8 +101,8 @@ namespace Microsoft.CodeAnalysis.SplitIntoNestedIfStatements
         private async Task<bool> CanBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
-            TIfStatementSyntax outerIfStatement,
-            TIfStatementSyntax innerIfStatement,
+            SyntaxNode outerIfStatement,
+            SyntaxNode innerIfStatement,
             CancellationToken cancellationToken)
         {
             if (!GetElseClauses(outerIfStatement).SequenceEqual(GetElseClauses(innerIfStatement), syntaxFacts.AreEquivalent))
