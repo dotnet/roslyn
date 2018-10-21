@@ -2798,16 +2798,11 @@ End Module
 
         <Fact>
         Public Sub TestSyntaxTree_GetChangesWhenSubChangedToFunction()
-            Dim oldTree = SyntaxFactory.ParseSyntaxTree("Module M
-  Sub M()
-    Console.WriteLine(42)
-  End Sub
-End Module")
-            Dim newTree = SyntaxFactory.ParseSyntaxTree("Module M
-  Async Function M() of Task
-    Console.WriteLine(42)
-  End Function
-End Module")
+            Dim parseLines = 
+                Function(lines As String()) SyntaxFactory.ParseSyntaxTree(String.Join(vbCrLf, lines))
+
+            Dim oldTree = parseLines({ "Module M", "  Sub M()", "    Console.WriteLine(42)", "  End Sub", "End Module"})
+            Dim newTree = parseLines({ "Module M", "  Async Function M() of Task", "    Console.WriteLine(42)", "  End Function", "End Module"})
 
             Dim changes = newTree.GetChanges(oldTree)
             Assert.NotNull(changes)
