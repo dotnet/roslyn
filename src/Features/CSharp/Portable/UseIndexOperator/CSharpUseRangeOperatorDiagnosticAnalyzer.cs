@@ -140,19 +140,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            var startOperation = invocation.Arguments[0].Value;
-            var startSyntax = startOperation.Syntax;
-
             // Make sure we have: (start, end - start).  The start operation has to be
             // the same as the right side of the subtraction.
-            var syntaxFacts = CSharpSyntaxFactsService.Instance;
-            if (!syntaxFacts.AreEquivalent(startSyntax, binaryOperation.RightOperand.Syntax))
+            var startOperation = invocation.Arguments[0].Value;
+            var endOperation = binaryOperation.LeftOperand;
+
+            if (!CSharpSyntaxFactsService.Instance.AreEquivalent(
+                    startOperation.Syntax, binaryOperation.RightOperand.Syntax))
             {
                 return;
             }
-
-            // The end operation is the left side of `end - start`
-            var endOperation = binaryOperation.LeftOperand;
 
             // We have enough information now to generate `start..end`.  However, this will often
             // not be what the user wants.  For example, generating `start..expr.Length` is not as
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Note: we could also compute this in the fixer.  But it's nice and easy to do here
             // given that we already have the options, and it's cheap to do now.
 
-            var properties = ImmutableDictionary<string, string>.Empty;
+            var properties = ImmutableDictionary.CreateBuilder<string, string>();
 
             var lengthLikeProperty = memberInfo.LengthLikeProperty;
 
@@ -171,21 +168,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // start-op to be `val` and record that we should emit it as `^val`.
             if (IsFromEnd(lengthLikeProperty, invocation.Instance, ref startOperation))
             {
-                properties = properties.Add(StartFromEnd, StartFromEnd);
+                properties.Add(StartFromEnd, StartFromEnd);
             }
 
             // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
             // change our end-op to be `val` and record that we should emit it as `^val`.
             if (IsFromEnd(lengthLikeProperty, invocation.Instance, ref endOperation))
             {
-                properties = properties.Add(EndFromEnd, EndFromEnd);
+                properties.Add(EndFromEnd, EndFromEnd);
             }
 
             // If the range operation goes to 'expr.Length' then we can just leave off the end part
             // of the range.  i.e. `start..`
             if (IsInstanceLengthCheck(lengthLikeProperty, invocation.Instance, endOperation))
             {
-                properties = properties.Add(OmitEnd, OmitEnd);
+                properties.Add(OmitEnd, OmitEnd);
             }
 
             // If we're starting the range operation from 0, then we can just leave off the start of
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             if (startOperation.ConstantValue.HasValue &&
                 startOperation.ConstantValue.Value is 0)
             {
-                properties = properties.Add(OmitStart, OmitStart);
+                properties.Add(OmitStart, OmitStart);
             }
 
             // Keep track of the syntax nodes from the start/end ops so that we can easily 
@@ -215,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                     location,
                     option.Notification.Severity,
                     additionalLocations,
-                    properties,
+                    properties.ToImmutable(),
                     memberInfo.SliceLikeMethod.Name));
         }
 
