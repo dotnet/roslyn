@@ -35,11 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                               .FirstOrDefault();
 
                 var stringLength =
-                    stringType.GetMembers()
+                    stringType.GetMembers(nameof(string.Length))
                               .OfType<IPropertySymbol>()
-                              .Where(p => p.Name == nameof(string.Length))
+                              .Where(p => p.Parameters.IsEmpty)
                               .FirstOrDefault();
-
 
                 if (stringIndexer != null && stringLength != null)
                 {

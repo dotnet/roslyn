@@ -3263,6 +3263,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Substring can be simplified.
+        /// </summary>
+        internal static string Substring_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Substring_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Summary:.
         /// </summary>
         internal static string Summary_colon {
@@ -4012,6 +4021,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_pattern_matching {
             get {
                 return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use range operator.
+        /// </summary>
+        internal static string Use_range_operator {
+            get {
+                return ResourceManager.GetString("Use_range_operator", resourceCulture);
             }
         }
         

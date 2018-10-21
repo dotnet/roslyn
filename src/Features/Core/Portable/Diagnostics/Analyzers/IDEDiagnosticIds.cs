@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string FormattingDiagnosticId = "IDE0055";
 
         public const string UseIndexOperatorDiagnosticId = "IDE0055";
+        public const string UseRangeOperatorDiagnosticId = "IDE0056";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

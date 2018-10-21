@@ -68,6 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_index_operator"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferIndexOperator")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferRangeOperator = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferRangeOperator),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_range_operator"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.PreferRangeOperator")});
+
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithSilentEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Silent);
 
