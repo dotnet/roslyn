@@ -133,8 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             // Arg2 needs to be a subtraction for: `end - start`
             var arg2 = invocation.Arguments[1];
-            if (!(arg2.Value is IBinaryOperation binaryOperation) ||
-                binaryOperation.OperatorKind != BinaryOperatorKind.Subtract)
+            if (!IsSubtraction(arg2, out var subtraction))
             {
                 return;
             }
@@ -142,10 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Make sure we have: (start, end - start).  The start operation has to be
             // the same as the right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
-            var endOperation = binaryOperation.LeftOperand;
+            var endOperation = subtraction.LeftOperand;
 
-            if (!CSharpSyntaxFactsService.Instance.AreEquivalent(
-                    startOperation.Syntax, binaryOperation.RightOperand.Syntax))
+            if (!CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 return;
             }

@@ -47,5 +47,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                propertyRef.Instance != null &&
                lengthLikeProperty.Equals(propertyRef.Property) &&
                CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
+
+        public static bool IsSubtraction(IArgumentOperation arg, out IBinaryOperation subtraction)
+        {
+            if (arg.Value is IBinaryOperation binaryOperation &&
+                binaryOperation.OperatorKind == BinaryOperatorKind.Subtract)
+            {
+                subtraction = binaryOperation;
+                return true;
+            }
+
+            subtraction = null;
+            return false;
+        }
     }
 }

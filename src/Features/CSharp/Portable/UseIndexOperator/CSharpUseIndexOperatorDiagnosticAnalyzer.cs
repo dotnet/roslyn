@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
+            if (optionSet is null)
             {
                 return;
             }
@@ -114,14 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             // Arg needs to be a subtraction for: `s.Length - value`
             var arg = propertyReference.Arguments[0];
-            if (!(arg.Value is IBinaryOperation binaryOperation) ||
-                binaryOperation.OperatorKind != BinaryOperatorKind.Subtract)
+            if (!IsSubtraction(arg, out var subtraction))
             {
                 return;
             }
 
             // Left side of the subtraction needs to be `s.Length`
-            if (!IsInstanceLengthCheck(lengthLikeProperty, propertyReference.Instance, binaryOperation.LeftOperand))
+            if (!IsInstanceLengthCheck(lengthLikeProperty, propertyReference.Instance, subtraction.LeftOperand))
             {
                 return;
             }
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
-                    binaryOperation.Syntax.GetLocation(),
+                    subtraction.Syntax.GetLocation(),
                     option.Notification.Severity,
                     ImmutableArray<Location>.Empty,
                     ImmutableDictionary<string, string>.Empty));
