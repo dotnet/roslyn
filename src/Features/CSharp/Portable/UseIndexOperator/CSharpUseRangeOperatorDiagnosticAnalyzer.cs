@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
+                // We're going to be checking every invocation in the compilation. Cache information
+                // we compute in this TypeChecker object so we don't have to continually recompute
+                // it.
                 var typeChecker = new TypeChecker(compilationContext.Compilation);
                 compilationContext.RegisterOperationAction(
                     c => AnalyzeInvocation(c, typeChecker),
