@@ -45,14 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         private void FixOne(
             Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var elementAccess = (ElementAccessExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var value = (ExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var binaryExpr = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             editor.ReplaceNode(
-                elementAccess.ArgumentList.Arguments[0].Expression,
+                binaryExpr,
                 SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.IndexExpression,
-                    value.Parenthesize()));
+                    binaryExpr.Right.Parenthesize()));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

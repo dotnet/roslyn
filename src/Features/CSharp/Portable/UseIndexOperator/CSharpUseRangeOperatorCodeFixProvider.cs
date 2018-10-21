@@ -46,19 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         private void FixOne(
             Diagnostic diagnostic, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var invocation = (InvocationExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var invocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
             ExpressionSyntax start = null, end = null;
 
             if (!diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.OmitStart))
             {
-                start =(ExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+                start =(ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
                 start = MakeIndexExpression(start,
                     diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.StartFromEnd));
             }
 
             if (!diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.OmitEnd))
             {
-                end = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+                end = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
                 end = MakeIndexExpression(end,
                     diagnostic.Properties.ContainsKey(CSharpUseRangeOperatorDiagnosticAnalyzer.EndFromEnd));
             }

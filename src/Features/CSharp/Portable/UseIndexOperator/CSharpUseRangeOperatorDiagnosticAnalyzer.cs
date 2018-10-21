@@ -184,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             // Keep track of the syntax nodes from the start/end ops so that we can easily 
             // generate the range-expression in the fixer.
             var additionalLocations = ImmutableArray.Create(
+                invocationSyntax.GetLocation(),
                 startOperation.Syntax.GetLocation(),
                 endOperation.Syntax.GetLocation());
 

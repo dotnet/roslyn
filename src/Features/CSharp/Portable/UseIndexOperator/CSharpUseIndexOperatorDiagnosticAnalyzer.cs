@@ -137,17 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // Found a match.  Report a diagnostic on the element-access, and also record the
-            // location of 'val'.  That will make it easy to convert things to be `s[^val]` easily.
-            var additionalLocations = ImmutableArray.Create(
-                binaryOperation.RightOperand.Syntax.GetLocation());
-
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
-                    elementAccess.GetLocation(),
+                    binaryOperation.Syntax.GetLocation(),
                     option.Notification.Severity,
-                    additionalLocations,
+                    ImmutableArray<Location>.Empty,
                     ImmutableDictionary<string, string>.Empty));
         }
     }

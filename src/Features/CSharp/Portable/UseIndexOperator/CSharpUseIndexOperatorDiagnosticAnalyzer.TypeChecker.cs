@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             {
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.
-                var lengthOrCountProperty = GetLengthOrCountProperty(namedType);
+                var lengthOrCountProperty = Helpers.GetLengthOrCountProperty(namedType);
                 if (lengthOrCountProperty == null)
                 {
                     return null;
