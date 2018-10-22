@@ -136,7 +136,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
-        public async Task TestNotWithoutMultipleArgs()
+        public async Task TestNotWithMultipleArgs()
         {
             await TestMissingAsync(
 @"
