@@ -1070,6 +1070,9 @@ else if (b)    }
         [Fact]
         public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues1()
         {
+            // Even though there are no statements inside, we still can't split this into separate statements
+            // because it would change the semantics from short-circuiting to always evaluating the second condition,
+            // breaking code like 'if (a == null || a.InstanceMethod())'.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -1077,8 +1080,6 @@ else if (b)    }
     {
         if (a [||]|| b)
         {
-            if (a)
-                return;
         }
     }
 }",
@@ -1088,13 +1089,9 @@ else if (b)    }
     {
         if (a)
         {
-            if (a)
-                return;
         }
         else if (b)
         {
-            if (a)
-                return;
         }
     }
 }");
@@ -1109,6 +1106,39 @@ else if (b)    }
     void M(bool a, bool b)
     {
         if (a [||]|| b)
+        {
+            if (a)
+                return;
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if (a)
+                return;
+        }
+        else if (b)
+        {
+            if (a)
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a [||]|| b)
             while (a)
             {
                 break;
@@ -1134,7 +1164,7 @@ else if (b)    }
         }
 
         [Fact]
-        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
+        public async Task SplitNotIntoSeparateStatementsIfControlFlowContinues4()
         {
             await TestInRegularAndScriptAsync(
 @"class C

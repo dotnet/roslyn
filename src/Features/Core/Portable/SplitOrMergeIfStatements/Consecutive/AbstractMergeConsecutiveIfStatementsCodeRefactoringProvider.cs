@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             {
                 // Even though there are no statements inside, we still can't merge these into one statement
                 // because it would change the semantics from always evaluating the second condition to short-circuiting.
-                return true;
+                return false;
             }
             else
             {

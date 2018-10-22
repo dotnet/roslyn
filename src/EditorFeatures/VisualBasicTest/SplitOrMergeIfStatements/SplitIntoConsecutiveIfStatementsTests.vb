@@ -625,27 +625,20 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues1() As Task
+            ' Even though there are no statements inside, we still can't split this into separate statements
+            ' because it would change the semantics from short-circuiting to always evaluating the second condition,
+            ' breaking code like 'If a Is Nothing OrElse a.InstanceMethod()'.
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
-            if a then
-                return
-            end if
         end if
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            if a then
-                return
-            end if
         ElseIf b Then
-
-            if a then
-                return
-            end if
         end if
     end sub
 end class")
@@ -657,6 +650,34 @@ end class")
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
+            if a then
+                return
+            end if
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            if a then
+                return
+            end if
+        ElseIf b Then
+
+            if a then
+                return
+            end if
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a [||]orelse b then
             while a
                 exit while
             end while
@@ -680,7 +701,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues3() As Task
+        Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)

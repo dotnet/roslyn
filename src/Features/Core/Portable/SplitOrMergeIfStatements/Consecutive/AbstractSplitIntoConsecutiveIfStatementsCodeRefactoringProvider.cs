@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             if (insideStatements.Count == 0)
             {
                 // Even though there are no statements inside, we still can't split this into separate statements
-                // because it would change the semantics from short-circuiting a to always evaluating the second condition,
+                // because it would change the semantics from short-circuiting to always evaluating the second condition,
                 // breaking code like 'if (a == null || a.InstanceMethod())'.
                 return false;
             }
