@@ -106,6 +106,18 @@
                 </StackPanel>
             </GroupBox>
 
+            <GroupBox x:Uid="RegularExpressionsGroupBox"
+                    Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
+                <StackPanel>
+                    <CheckBox x:Name="Colorize_regular_expressions"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
+                    <CheckBox x:Name="Report_invalid_regular_expressions"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
+                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
                 <StackPanel>
@@ -142,7 +154,7 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            
+
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

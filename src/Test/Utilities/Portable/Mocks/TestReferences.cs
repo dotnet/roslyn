@@ -267,6 +267,16 @@ public static class TestReferences
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference MicrosoftCSharpRef => s_microsoftCSharp.Value;
 
+        private static readonly Lazy<PortableExecutableReference> s_system_Threading_Tasks_Extensions = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Threading_Tasks_Extensions).GetReference(display: "System.Threading.Tasks.Extensions.dll (netstandard 2.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference TasksExtensionsRef => s_system_Threading_Tasks_Extensions.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_system_Runtime_CompilerServices_Unsafe = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Runtime_CompilerServices_Unsafe).GetReference(display: "System.Runtime.CompilerServices.Unsafe.dll (netstandard 2.0)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference UnsafeRef => s_system_Runtime_CompilerServices_Unsafe.Value;
+
         private static readonly Lazy<PortableExecutableReference> s_microsoftVisualBasic = new Lazy<PortableExecutableReference>(
         () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (netstandard 2.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);

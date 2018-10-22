@@ -293,6 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
 
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)

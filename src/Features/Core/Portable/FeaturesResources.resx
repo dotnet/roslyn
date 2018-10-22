@@ -1052,6 +1052,9 @@ This version used in: {2}</value>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
   </data>
@@ -1403,7 +1406,40 @@ This version used in: {2}</value>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
   </data>
+  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use block body for lambda expressions</value>
+  </data>
+  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
+    <value>Use expression body for lambda expressions</value>
+  </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
+  </data>
+  <data name="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Remove_unused_member" xml:space="preserve">
+    <value>Remove unused member</value>
+  </data>
+  <data name="Private_member_0_is_unused" xml:space="preserve">
+    <value>Private member '{0}' is unused.</value>
+  </data>
+  <data name="Remove_unused_private_members" xml:space="preserve">
+    <value>Remove unused private members</value>
+  </data>
+  <data name="Remove_unread_private_members" xml:space="preserve">
+    <value>Remove unread private members</value>
+  </data>
+  <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
+    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
+  </data>
+  <data name="Code_Quality" xml:space="preserve">
+    <value>Code Quality</value>
+  </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+  </data>
+  <data name="Fix_formatting" xml:space="preserve">
+    <value>Fix formatting</value>
   </data>
 </root>

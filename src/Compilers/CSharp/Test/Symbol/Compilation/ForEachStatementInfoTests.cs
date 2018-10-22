@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using System;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,7 +19,7 @@ class E1
     public E GetEnumerator() { return null; }
     public bool MoveNext() { return false; }
     public object Current { get; }
-    public void Dispose() { } 
+    public void Dispose() { }
 }
 
 class E2
@@ -28,7 +27,7 @@ class E2
     public E GetEnumerator() { return null; }
     public bool MoveNext() { return false; }
     public object Current { get; }
-    public void Dispose() { } 
+    public void Dispose() { }
 }
 ");
             var e1 = (TypeSymbol)c.GlobalNamespace.GetMembers("E1").Single();

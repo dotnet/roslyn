@@ -12,7 +12,7 @@ try {
   $vsDir = $vsInstalls[0].Trim("\")
   $vsId = $vsInstalls[1]
   # Uninstall VSIX
-  Write-Host "Uninstallting Preview Everywhere..." -ForegroundColor Green
+  Write-Host "Uninstalling Preview Everywhere..." -ForegroundColor Green
   for ($i = 0; $i -lt $vsInstalls.Count;  $i+=2) {
       $vsDir = $vsInstalls[$i].Trim("\")
       $vsId = $vsInstalls[$i+1]

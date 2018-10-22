@@ -49,22 +49,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
             SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
 
+        internal CompilationUnitSyntax ParseFileExperimental(string text, MessageID feature) =>
+            ParseFile(text, parseOptions: TestOptions.Regular.WithExperimental(feature));
+
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
 
         internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseStatement(text);
-            // we validate the text roundtrips
-            Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-            UsingNode(node);
+            UsingNode(text, SyntaxFactory.ParseStatement(text), expectedErrors);
         }
 
         internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text, options: options);
+            // https://github.com/dotnet/roslyn/issues/29819 Revert options coalesce
+            UsingNode(text, SyntaxFactory.ParseExpression(text, options: options ?? TestOptions.Regular8), expectedErrors);
+        }
+
+        private void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        {
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
@@ -95,11 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.
         /// </summary>
-        protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options = null)
+        protected CSharpSyntaxNode UsingNode(string text)
         {
-            var root = ParseNode(text, options);
+            var root = ParseNode(text, options: null);
             UsingNode(root);
             return root;
+        }
+
+        protected CSharpSyntaxNode UsingNode(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = ParseNode(text, options);
+            UsingNode(text, node, expectedErrors);
+            return node;
         }
 
         /// <summary>
@@ -152,7 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected void EOF()
         {
-            Assert.False(_treeEnumerator.MoveNext());
+            if (_treeEnumerator.MoveNext())
+            {
+                Assert.False(true, "Found unexpected node or token of kind: " + _treeEnumerator.Current.Kind());
+            }
         }
 
         private IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node)

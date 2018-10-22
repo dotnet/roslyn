@@ -15,7 +15,10 @@
 
     <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
          but gets included in lots of output items like VSIX. -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0' AND '$(TargetFramework)' != 'netcoreapp2.1'">false</GenerateRuntimeConfigurationFiles>
+
+    <!-- Place VS insertion (CoreXT) packages to a separate directory -->
+    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetNetFX20)' == 'true'">
@@ -93,24 +96,6 @@
     <Copy Condition="'$(IsWpfTempProject)' != 'true' and Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
           SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
           DestinationFolder="$(OutDir)" />
-  </Target>
-
-  <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
-       since a rebuild may overwrite signed binaries in the output directory with unsigned binaries
-       from the intermediate output directory. -->
-  <Target Name="PublishWithoutBuilding"
-        DependsOnTargets="BuildOnlySettings;
-                          PreventProjectReferencesFromBuilding;
-                          ResolveReferences;
-                          PrepareForPublish;
-                          ComputeAndCopyFilesToPublishDirectory;
-                          GeneratePublishDependencyFile;
-                          GeneratePublishRuntimeConfigurationFile" />
-
-  <Target Name="PreventProjectReferencesFromBuilding">
-    <PropertyGroup>
-      <BuildProjectReferences>false</BuildProjectReferences>
-    </PropertyGroup>
   </Target>
 
   <!-- Guard against MSBuild picking the wrong SDK version. Its resolver does not always properly enforce
@@ -203,4 +188,53 @@
   <Target Name="CheckLocStatus"
           DependsOnTargets="EnsureAllResourcesTranslated"
           Condition="'$(IsShipping)' == 'true'" />
+
+  <!-- 
+    Add ThirdPartyNotices.rtf to all shipping NuGet packages.
+  -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
+    <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="ThirdPartyNotices.rtf" Visible="false" Pack="true"/>
+  </ItemGroup>
+
+  <!--
+    Append common text to package specific PackageDescription.
+  -->
+  <Target Name="_AppendCommonPackageDescription" 
+          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
+          DependsOnTargets="InitializeSourceControlInformation"
+          Condition="'$(IsPackable)' == 'true'">
+    <PropertyGroup>
+      <PackageDescription>
+      $(PackageDescription)
+      More details at https://aka.ms/roslyn-packages
+      This package was built from the source at $(PrivateRepositoryUrl)/commit/$(SourceRevisionId).
+      </PackageDescription>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Exclude private Visual Studio packages from dependencies of Roslyn packages.
+  -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <PackageReference Update="@(PrivateVisualStudioPackage)" PrivateAssets="all"/>
+  </ItemGroup>
+
+  <!--
+    Default settings for analyzer packages.    
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeContentInPack>false</IncludeContentInPack>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
+    <!-- Analyzer packages should not have any dependencies. -->
+    <PackageReference Update="@(PackageReference)" PrivateAssets="all"/>
+    <ProjectReference Update="@(ProjectReference)" PrivateAssets="all"/>
+
+    <!-- Analyzer packages should contain install scripts. -->
+    <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\install.ps1" PackagePath="tools\install.ps1" Visible="false" Pack="true"/>
+    <None Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\PowerShell\uninstall.ps1" PackagePath="tools\uninstall.ps1" Visible="false" Pack="true"/>
+  </ItemGroup>
 </Project>

@@ -10,6 +10,20 @@
     <IsShipping Condition="'$(IsShipping)' == ''">true</IsShipping>
   </PropertyGroup>
 
+  <!--
+    Set PackageOutputPath based on the IsShipping flag set by projects.
+    This distinction allows signing and publishing tools to determine which assets to sign/publish and which to ignore.
+
+    Unless specified owtherwise project is assumed to produce binaries/package that ship.
+    Test projects automatically set IsShipping to false.
+  -->
+  <PropertyGroup>
+    <IsShipping Condition="'$(IsShipping)' == ''">true</IsShipping>
+
+    <PackageOutputPath Condition="'$(IsShipping)' == 'true'">$(ArtifactsShippingPackagesDir)</PackageOutputPath>
+    <PackageOutputPath Condition="'$(IsShipping)' != 'true'">$(ArtifactsNonShippingPackagesDir)</PackageOutputPath>
+  </PropertyGroup>
+
   <Import Project="StrongName.targets"/>
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="Workarounds.targets"/>
@@ -17,6 +31,7 @@
   <Import Project="Version.targets"/>
 
   <Import Project="Localization.targets" />
+  <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true' and '$(MSBuildRuntimeType)' != 'Core'"/>
   <Import Project="OptimizationData.targets"/>
   <Import Project="SymStore.targets"/>
 

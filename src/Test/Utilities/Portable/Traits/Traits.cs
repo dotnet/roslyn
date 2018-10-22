@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
+            public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
             public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
+            public const string CodeActionsRemoveUnusedMembers = "CodeActions.RemoveUnusedMembers";
             public const string CodeActionsRemoveUnusedVariable = "CodeActions.RemoveUnusedVariable";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
+            public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
@@ -161,6 +164,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ErrorSquiggles = nameof(ErrorSquiggles);
             public const string EventHookup = nameof(EventHookup);
             public const string Expansion = nameof(Expansion);
+            public const string AddAwait = "Refactoring.AddAwait";
+            public const string AddMissingImports = "Refactoring.AddMissingImports";
             public const string ExtractInterface = "Refactoring.ExtractInterface";
             public const string ExtractMethod = "Refactoring.ExtractMethod";
             public const string F1Help = nameof(F1Help);
@@ -190,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);
             public const string Packaging = nameof(Packaging);
+            public const string PasteTracking = nameof(PasteTracking);
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
@@ -213,6 +219,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string Venus = nameof(Venus);
             public const string ValidateFormatString = nameof(ValidateFormatString);
+            public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
             public const string WinForms = nameof(WinForms);

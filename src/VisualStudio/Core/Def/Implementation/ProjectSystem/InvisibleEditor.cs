@@ -35,14 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
         /// projects in the solution.</para>
         /// </remarks>
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, AbstractProject projectOpt, bool needsSave, bool needsUndoDisabled)
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVsHierarchy hierarchyOpt, bool needsSave, bool needsUndoDisabled)
         {
             _serviceProvider = serviceProvider;
             _filePath = filePath;
             _needsSave = needsSave;
 
             var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
-            var vsProject = TryGetProjectOfHierarchy(projectOpt?.Hierarchy);
+            var vsProject = TryGetProjectOfHierarchy(hierarchyOpt);
             var invisibleEditorPtr = IntPtr.Zero;
             Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out invisibleEditorPtr));
 

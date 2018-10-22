@@ -814,7 +814,7 @@ Class P
         Report(C.F6())
     End Sub
     Shared Sub Report(o As Object)
-        Dim value As Object = If (TypeOf o is Date, DirectCast(o, Date).ToString("MM'/'dd'/'yyyy HH':'mm':'ss"), o)
+        Dim value As Object = If (TypeOf o is Date, DirectCast(o, Date).ToString("yyyy-MM-dd HH:mm:ss"), o)
         System.Console.WriteLine("{0}: {1}", o.GetType(), value)
     End Sub
 End Class
@@ -825,9 +825,9 @@ End Class
             comp.AssertTheseDiagnostics(<errors/>)
             CompileAndVerify(comp, expectedOutput:=<![CDATA[
 System.Reflection.Missing: System.Reflection.Missing
-System.DateTime: 01/01/0001 00:00:00
-System.DateTime: 01/01/0001 00:00:00
-System.DateTime: 01/01/0001 00:00:00
+System.DateTime: 0001-01-01 00:00:00
+System.DateTime: 0001-01-01 00:00:00
+System.DateTime: 0001-01-01 00:00:00
 System.Int32: 0
 System.Int64: 3
 System.Decimal: 3

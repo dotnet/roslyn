@@ -3140,7 +3140,7 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
         }
 
         [Fact]
@@ -3196,7 +3196,7 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
         }
 
         [Fact]

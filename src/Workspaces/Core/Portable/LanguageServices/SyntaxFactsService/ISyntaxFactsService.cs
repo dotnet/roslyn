@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
+        bool IsQualifiedName(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
         bool IsAttributeName(SyntaxNode node);

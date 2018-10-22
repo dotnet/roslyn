@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
                     if (mapping.Symbol != null)
                     {
-                        var node = _provider.CreateItem(mapping.Symbol, mapping.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).WaitAndGetResult(cancellationToken);
+                        var node = _provider.CreateItemAsync(mapping.Symbol, mapping.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).WaitAndGetResult(cancellationToken);
                         if (node != null)
                         {
                             _presenter.PresentRoot((CallHierarchyItem)node);

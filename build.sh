@@ -15,8 +15,7 @@ usage()
     echo "  --release             Build Release"
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
-    echo "  --pack                Build prerelease nuget packages"
-    echo "  --packall             Build all nuget packages"
+    echo "  --pack                Build nuget packages"
     echo "  --test                Run unit tests"
     echo "  --mono                Run unit tests with mono"
     echo "  --build-bootstrap     Build the bootstrap compilers"
@@ -35,7 +34,6 @@ restore=false
 build=false
 test_=false
 pack=false
-pack_all=false
 use_mono=false
 build_bootstrap=false
 use_bootstrap=false
@@ -100,10 +98,6 @@ do
         --pack)
             pack=true
             ;;
-        --packall)
-            pack_all=true
-            pack=true
-            ;;
         *)
             echo "$1"
             usage
@@ -119,32 +113,6 @@ logs_path=${config_path}/Logs
 mkdir -p ${binaries_path}
 mkdir -p ${config_path}
 mkdir -p ${logs_path}
-
-function pack_all_kind() {
-    pushd "${root_path}/src/NuGet"
-
-    echo Packing $1
-
-    local nupkg_path="${config_path}/NuGet/PreRelease"
-    local nuspec_files=("Microsoft.CodeAnalysis.CSharp.nuspec" "Microsoft.CodeAnalysis.Compilers.nuspec" "Microsoft.CodeAnalysis.VisualBasic.nuspec" "Microsoft.CodeAnalysis.Common.nuspec" "Microsoft.NETCore.Compilers.nuspec")
-    mkdir -p ${nupkg_path}
-    for i in "${nuspec_files[@]}" 
-    do
-        dotnet pack -nologo --no-build NuGetProjectPackUtil.csproj -p:NuSpecFile=$i -p:NuGetPackageKind=$1 -p:NuspecBasePath=${binaries_path}/Debug -o ${nupkg_path}
-    done
-
-    popd
-}
-
-function pack_all() {
-    pack_all_kind PreRelease
-
-    if [[ "$pack_all" = true ]]
-    then
-        pack_all_kind Release
-        pack_all_kind PerBuildPreRelease
-    fi
-}
 
 function stop_processes {
     echo "Killing running build processes..."
@@ -164,32 +132,29 @@ source "${root_path}"/build/scripts/obtain_dotnet.sh
 if [[ "$restore" == true ]]
 then
     echo "Restoring RoslynToolset.csproj"
-    dotnet restore "${root_path}/build/ToolsetPackages/RoslynToolset.csproj" /bl:${logs_path}/Restore-RoslynToolset.binlog
+    dotnet restore "${root_path}/build/ToolsetPackages/RoslynToolset.csproj" "/bl:${logs_path}/Restore-RoslynToolset.binlog"
     echo "Restoring Compilers.sln"
-    dotnet restore "${root_path}/Compilers.sln" /bl:${logs_path}/Restore-Compilers.binlog
+    dotnet restore "${root_path}/Compilers.sln" "/bl:${logs_path}/Restore-Compilers.binlog"
 fi
 
 build_args="--no-restore -c ${build_configuration} /nologo"
 
 if [[ "$build_bootstrap" == true ]]
 then
-    echo "Building bootstrap toolset"
-    bootstrap_build_args="${build_args} /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
-    bootstrap_files=( 'src/Compilers/CSharp/csc/csc.csproj' 'src/Compilers/VisualBasic/vbc/vbc.csproj' 'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj' 'src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj')
-    for bootstrap_file in "${bootstrap_files[@]}"
-    do
-        bootstrap_name=$(basename $bootstrap_file)
-        dotnet publish "${bootstrap_file}" --framework netcoreapp2.0 ${bootstrap_build_args} "/bl:${binaries_path}/${bootstrap_name}.binlog"
-    done
+    echo "Building bootstrap compiler"
 
     rm -rf ${bootstrap_path}
     mkdir -p ${bootstrap_path} 
-    dotnet pack -nologo src/NuGet/NuGetProjectPackUtil.csproj -p:NuSpecFile=Microsoft.NETCore.Compilers.nuspec -p:NuGetPackageKind=Bootstrap -p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
-    mkdir -p ${bootstrap_path}/microsoft.netcore.compilers
-    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg -d ${bootstrap_path}/microsoft.netcore.compilers/42.42.42.42
-    chmod -R 755 ${bootstrap_path}/microsoft.netcore.compilers
 
-    dotnet clean Compilers.sln 
+    project_path=src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
+
+    dotnet pack -nologo ${project_path} /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=${bootstrap_path}
+    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.*.nupkg -d ${bootstrap_path}
+    chmod -R 755 ${bootstrap_path}
+
+    echo "Cleaning Bootstrap compiler artifacts"
+    dotnet clean ${project_path}
+
     stop_processes
 fi
 
@@ -208,20 +173,20 @@ fi
 if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"
-    dotnet build "${root_path}"/Compilers.sln ${build_args} "/bl:${binaries_path}/Build.binlog"
-fi
 
-if [[ "${pack}" == true ]]
-then
-    pack_all
+    if [[ "${pack}" == true ]]
+    then
+        build_args+=" /t:Pack"
+    fi
+
+    dotnet build "${root_path}/Compilers.sln" ${build_args} "/bl:${binaries_path}/Build.binlog"
 fi
 
 if [[ "${stop_vbcscompiler}" == true ]]
 then
     if [[ "${use_bootstrap}" == true ]]
     then
-        echo "Stopping VBCSCompiler"
-        dotnet "${bootstrap_path}"/microsoft.netcore.compilers/42.42.42.42/tools/bincore/VBCSCompiler.dll -shutdown
+        dotnet build-server shutdown
     else
         echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
         exit 1
