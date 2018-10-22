@@ -14477,6 +14477,46 @@ Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArgumen
                 );
         }
 
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionReturnCantBeRefAny()
+        {
+            var text = @"
+class C
+{
+    public void Goo()
+    {
+        System.TypedReference local1() // 1599
+        {
+            return default;
+        }
+        local1();
+
+        System.RuntimeArgumentHandle local2() // 1599
+        {
+            return default;
+        }
+        local2();
+
+        System.ArgIterator local3() // 1599
+        {
+            return default;
+        }
+        local3();
+    }
+}
+";
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
+                // (6,9): error CS1599: Method or delegate cannot return type 'TypedReference'
+                //         System.TypedReference local1() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
+                // (12,9): error CS1599: Method or delegate cannot return type 'RuntimeArgumentHandle'
+                //         System.RuntimeArgumentHandle local2() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
+                // (18,9): error CS1599: Method or delegate cannot return type 'ArgIterator'
+                //         System.ArgIterator local3() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
+        }
+
         [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
         public void CS1601ERR_MethodArgCantBeRefAny()
         {
