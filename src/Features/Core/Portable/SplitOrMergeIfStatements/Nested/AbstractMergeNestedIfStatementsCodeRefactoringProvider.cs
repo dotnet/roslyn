@@ -51,6 +51,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private bool IsFirstStatementOfIfStatement(
             ISyntaxFactsService syntaxFacts, SyntaxNode statement, out SyntaxNode ifStatement)
         {
+            // Check whether the statement is a first statement inside an if statement.
+            // If it's inside a block, it has to be the first statement of the block.
+
+            // This is a defensive check that should always succeed.
             if (syntaxFacts.IsStatementContainer(statement.Parent))
             {
                 var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
@@ -91,13 +95,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             else
             {
                 // There are statements below the inner if statement. We can merge if
-                // 1. these statements exist below the outer if as well, and
-                // 2. control flow can't reach after the end of these statements (otherwise, they would get executed twice).
+                // 1. there are equivalent statements below the outer 'if', and
+                // 2. control flow can't reach the end of these statements (otherwise, it would continue
+                //    below the outer 'if' and run the same statements twice).
                 // This will typically look like a single return, break, continue or a throw statement.
 
+                // This is a defensive check that should always succeed.
                 if (!syntaxFacts.IsStatementContainer(outerIfStatement.Parent))
                 {
-                    // This shouldn't happen, but let's be cautious.
                     return false;
                 }
 
@@ -121,10 +126,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private bool IsElseClauseEquivalent(ISyntaxFactsService syntaxFacts, SyntaxNode elseClause1, SyntaxNode elseClause2)
         {
+            // Compare Else/ElseIf clauses for equality.
+
             var isIfStatement = IsIfStatement(elseClause1);
             if (isIfStatement != IsIfStatement(elseClause2))
             {
-                // If we have one ElseIf and one If, they're not equal.
+                // If we have one Else and one ElseIf, they're not equal.
                 return false;
             }
 

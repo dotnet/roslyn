@@ -74,13 +74,23 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var insideStatements = syntaxFacts.GetStatementContainerStatements(ifStatement);
             if (insideStatements.Count == 0)
             {
+                // Even though there are no statements inside, we still can't split this into separate statements
+                // because it would change the semantics from short-circuiting a to always evaluating the second condition,
+                // breaking code like 'if (a == null || a.InstanceMethod())'.
                 return false;
             }
+            else
+            {
+                // There are statements inside. We can split this into separate statements and leave out the 'else' if
+                // control flow can't reach the end of these statements (otherwise, it would continue to the second 'if'
+                // and in the case that both conditions are true, run the same statements twice).
+                // This will typically look like a single return, break, continue or a throw statement.
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var controlFlow = semanticModel.AnalyzeControlFlow(insideStatements.First(), insideStatements.Last());
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var controlFlow = semanticModel.AnalyzeControlFlow(insideStatements.First(), insideStatements.Last());
 
-            return !controlFlow.EndPointIsReachable;
+                return !controlFlow.EndPointIsReachable;
+            }
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

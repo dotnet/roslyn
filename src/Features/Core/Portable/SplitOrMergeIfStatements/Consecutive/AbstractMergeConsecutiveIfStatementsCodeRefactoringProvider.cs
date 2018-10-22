@@ -90,11 +90,17 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             if (insideStatements.Count == 0)
             {
-                // There is no code to run, so we can safely merge.
+                // Even though there are no statements inside, we still can't merge these into one statement
+                // because it would change the semantics from always evaluating the second condition to short-circuiting.
                 return true;
             }
             else
             {
+                // There are statements inside. We can merge these into one statement if
+                // control flow can't reach the end of these statements (otherwise, it would change from running
+                // the second 'if' in the case that both conditions are true to only running the statements once).
+                // This will typically look like a single return, break, continue or a throw statement.
+
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var controlFlow = semanticModel.AnalyzeControlFlow(insideStatements.First(), insideStatements.Last());
 
