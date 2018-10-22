@@ -36,11 +36,13 @@
   </ItemGroup>
 
   <!--
-     Add CoreXT packages to the set of packages to sign.
-     The toolset already includes NuGet and VSIX packages built to standard output directories.
+    Add CoreXT packages to the set of packages to sign.
+    The toolset already includes NuGet and VSIX packages built to standard output directories.
+    We also need to re-sign packages in ManagedDependencies that we updated with optimization data.
   -->
   <ItemGroup>
     <ItemsToSign Include="$(ArtifactsConfigurationDir)DevDivPackages\Roslyn\*.nupkg" />
+    <ItemsToSign Include="$(ArtifactsConfigurationDir)DevDivPackages\ManagedDependencies\*-vs-*.nupkg" />
   </ItemGroup>
 
 </Project>
