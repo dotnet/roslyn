@@ -822,17 +822,123 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!haveChanges)
+            TypeSymbol result = this;
+            if (haveChanges)
             {
-                allTypeArguments.Free();
+                var definition = this.OriginalDefinition;
+                TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments.ToImmutable());
+                result = substitution.SubstituteNamedType(definition);
+            }
+
+            allTypeArguments.Free();
+            return result;
+        }
+
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+
+            if (!IsGenericType)
+            {
+                hadNullabilityMismatch = false;
                 return this;
+            }
+
+            var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            bool haveChanges = MergeTypeArgumentNullability(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments, out hadNullabilityMismatch);
+
+            NamedTypeSymbol result;
+            if (haveChanges)
+            {
+                TypeMap substitution = new TypeMap(allTypeParameters.ToImmutable(), allTypeArguments.ToImmutable());
+                result = substitution.SubstituteNamedType(this.OriginalDefinition);
             }
             else
             {
-                TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
-                                                   allTypeArguments.ToImmutableAndFree());
+                result = this;
+            }
 
-                return substitution.SubstituteNamedType(this.OriginalDefinition);
+            allTypeArguments.Free();
+            allTypeParameters.Free();
+            return result;
+        }
+
+        /// <summary>
+        /// Merges nullability of all type arguments from the `typeA` and `typeB`.
+        /// The type parameters are added to `allTypeParameters`; the merged
+        /// type arguments are added to `allTypeArguments`; and the method
+        /// returns true if there were changes from the original `typeA`.
+        /// </summary>
+        private static bool MergeTypeArgumentNullability(
+            NamedTypeSymbol typeA,
+            NamedTypeSymbol typeB,
+            VarianceKind variance,
+            ArrayBuilder<TypeParameterSymbol> allTypeParameters,
+            ArrayBuilder<TypeSymbolWithAnnotations> allTypeArguments,
+            out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(typeA.IsGenericType);
+            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames));
+
+            hadNullabilityMismatch = false;
+
+            var definition = typeA.OriginalDefinition;
+            bool haveChanges = false;
+
+            while (true)
+            {
+                var typeParameters = definition.TypeParameters;
+                if (typeParameters.Length > 0)
+                {
+                    var typeArgumentsA = typeA.TypeArgumentsNoUseSiteDiagnostics;
+                    var typeArgumentsB = typeB.TypeArgumentsNoUseSiteDiagnostics;
+                    allTypeParameters.AddRange(definition.TypeParameters);
+                    for (int i = 0; i < typeArgumentsA.Length; i++)
+                    {
+                        TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
+                        TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
+                        VarianceKind typeArgumentVariance = GetTypeArgumentVariance(variance, typeParameters[i].Variance);
+                        TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, typeArgumentVariance, out bool hadMismatch);
+                        hadNullabilityMismatch |= hadMismatch;
+                        allTypeArguments.Add(merged);
+                        if (!typeArgumentA.IsSameAs(merged))
+                        {
+                            haveChanges = true;
+                        }
+                    }
+                }
+                definition = definition.ContainingType;
+                if (definition is null)
+                {
+                    break;
+                }
+                typeA = typeA.ContainingType;
+                typeB = typeB.ContainingType;
+                variance = VarianceKind.None;
+            }
+
+            return haveChanges;
+        }
+
+        private static VarianceKind GetTypeArgumentVariance(VarianceKind typeVariance, VarianceKind typeParameterVariance)
+        {
+            switch (typeVariance)
+            {
+                case VarianceKind.In:
+                    switch (typeParameterVariance)
+                    {
+                        case VarianceKind.In:
+                            return VarianceKind.Out;
+                        case VarianceKind.Out:
+                            return VarianceKind.In;
+                        default:
+                            return VarianceKind.None;
+                    }
+                case VarianceKind.Out:
+                    return typeParameterVariance;
+                default:
+                    return VarianceKind.None;
             }
         }
 

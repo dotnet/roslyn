@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
@@ -140,10 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             foreach (var documentId in vsWorkspace.GetRelatedDocumentIds(container))
             {
-                var hostProject = vsWorkspace.GetHostProject(documentId.ProjectId) as AbstractProject;
-                if (hostProject?.EditAndContinueImplOpt != null)
+                var project = VsENCRebuildableProjectImpl.TryGetRebuildableProject(documentId.ProjectId);
+
+                if (project != null)
                 {
-                    if (hostProject.EditAndContinueImplOpt.OnEdit(documentId))
+                    if (project.OnEdit(documentId))
                     {
                         break;
                     }

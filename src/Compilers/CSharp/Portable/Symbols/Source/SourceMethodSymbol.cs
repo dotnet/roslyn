@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -19,5 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// checking where the constraint types may still contain invalid or duplicate types.
         /// </summary>
         public abstract ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early);
+
+        protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
+        {
+            if (!returnTypeSyntax.HasErrors)
+            {
+                var refKeyword = returnTypeSyntax.GetFirstToken();
+                diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
+            }
+        }
     }
 }

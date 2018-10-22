@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.PreferFrameworkType
 {
     internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<TSyntaxKind, TExpressionSyntax, TPredefinedTypeSyntax> :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TPredefinedTypeSyntax : TExpressionSyntax

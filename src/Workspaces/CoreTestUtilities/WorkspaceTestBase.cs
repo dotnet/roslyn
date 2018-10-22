@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CreateFiles(GetSimpleCSharpSolutionFiles());
         }
 
+        protected FileSet GetBaseFiles()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets));
+        }
+
         protected FileSet GetSimpleCSharpSolutionFiles()
         {
             return new FileSet(

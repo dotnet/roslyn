@@ -2148,6 +2148,9 @@
 
   <!-- Because there are two forms of the foreach loop, we make an abstract base. -->
   <AbstractNode Name="CommonForEachStatementSyntax" Base="StatementSyntax">
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2167,6 +2170,9 @@
   <Node Name="ForEachStatementSyntax" Base="CommonForEachStatementSyntax">
     <!-- This is the existing C# 6 node. -->
     <Kind Name="ForEachStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2194,6 +2200,9 @@
        into) the old one. -->
   <Node Name="ForEachVariableStatementSyntax" Base="CommonForEachStatementSyntax">
     <Kind Name="ForEachVariableStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2220,8 +2229,15 @@
     <Field Name="Statement" Type="StatementSyntax" Override="true"/>
   </Node>
 
+  <!--
+  - using (...) { ... }
+  - await using (...) { ... }
+  -->
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
     <Kind Name="UsingStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
@@ -2235,6 +2251,7 @@
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
+
   <Node Name="FixedStatementSyntax" Base="StatementSyntax">
     <Kind Name="FixedStatement"/>
     <Field Name="FixedKeyword" Type="SyntaxToken">
@@ -4377,6 +4394,23 @@
     </Field>
     <Field Name="ExclamationToken" Type="SyntaxToken">
       <Kind Name="ExclamationToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="NullableDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="NullableDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="NullableKeyword" Type="SyntaxToken">
+      <Kind Name="NullableKeyword"/>
+    </Field>
+    <Field Name="SettingToken" Type="SyntaxToken">
+      <Kind Name="EnableKeyword"/>
+      <Kind Name="DisableKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

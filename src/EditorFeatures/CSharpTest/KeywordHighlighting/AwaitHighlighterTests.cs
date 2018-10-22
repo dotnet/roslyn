@@ -200,5 +200,95 @@ class AsyncExample
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestUsingAwait_OnAsync()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    {|Cursor:[|async|]|} Task M()
+    {
+        using [|await|] (var x = new object());
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestUsingAwait_OnAwait()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    [|async|] Task M()
+    {
+        using {|Cursor:[|await|]|} (var x = new object());
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestAwaitForEach_OnAsync()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    {|Cursor:[|async|]|} Task M()
+    {
+        foreach [|await|] (var n in new int[] { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestAwaitForEach_OnAwait()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    [|async|] Task M()
+    {
+        foreach {|Cursor:[|await|]|} (var n in new int[] { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestForEachVariableAwait_OnAsync()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    {|Cursor:[|async|]|} Task M()
+    {
+        foreach [|await|] (var (a, b) in new (int, int)[] { });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestForEachVariableAwait_OnAwait()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    [|async|] Task M()
+    {
+        foreach {|Cursor:[|await|]|} (var (a, b) in new (int, int)[] { });
+    }
+}");
+        }
     }
 }

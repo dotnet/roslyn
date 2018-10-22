@@ -1430,6 +1430,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return namedType.IsCustomTaskType(out builderArgument);
         }
 
+        internal static bool IsIAsyncEnumerableType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if ((object)namedType == null || namedType.Arity != 1)
+            {
+                return false;
+            }
+
+            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+        }
+
         /// <summary>
         /// Returns true if the type is generic or non-generic custom task-like type due to the
         /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
@@ -1669,6 +1680,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var globalNamespace = systemNamespace.ContainingNamespace;
 
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
+        }
+
+        public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
+        {
+            // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
+            return returnType.SpecialType != SpecialType.System_Void &&
+                !returnType.IsNonGenericTaskType(declaringCompilation) &&
+                !returnType.IsGenericTaskType(declaringCompilation) &&
+                !returnType.IsIAsyncEnumerableType(declaringCompilation);
         }
     }
 }

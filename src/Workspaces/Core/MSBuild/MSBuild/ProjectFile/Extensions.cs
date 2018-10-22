@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IEnumerable<ProjectFileReference> GetProjectReferences(this MSB.Execution.ProjectInstance executedProject)
             => executedProject
                 .GetItems(ItemNames.ProjectReference)
-                .Where(i => !i.HasReferenceOutputAssemblyMetadataEqualToTrue())
+                .Where(i => i.ReferenceOutputAssemblyIsTrue())
                 .Select(CreateProjectFileReference);
 
         /// <summary>
@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
             => new ProjectFileReference(reference.EvaluatedInclude, reference.GetAliases());
 
-        public static bool HasReferenceOutputAssemblyMetadataEqualToTrue(this MSB.Framework.ITaskItem item)
-            => string.Equals(item.GetMetadata(MetadataNames.ReferenceOutputAssembly), bool.TrueString, StringComparison.OrdinalIgnoreCase);
-
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
         {
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
@@ -45,6 +42,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return !string.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
                 : ImmutableArray<string>.Empty;
+        }
+
+        public static bool ReferenceOutputAssemblyIsTrue(this MSB.Framework.ITaskItem item)
+        {
+            var referenceOutputAssemblyText = item.GetMetadata(MetadataNames.ReferenceOutputAssembly);
+
+            return !string.IsNullOrWhiteSpace(referenceOutputAssemblyText)
+                ? !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase)
+                : true;
         }
 
         public static string ReadPropertyString(this MSB.Execution.ProjectInstance executedProject, string propertyName)

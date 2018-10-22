@@ -143,6 +143,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(WarningsNotAsErrors)]; }
         }
 
+        public bool NullableReferenceTypes
+        {
+            set { _store[nameof(NullableReferenceTypes)] = value; }
+            get { return (bool)_store[nameof(NullableReferenceTypes)]; }
+        }
+
         #endregion
 
         #region Tool Members
@@ -198,6 +204,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/errorendlocation", _store, nameof(ErrorEndLocation));
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
+            commandLine.AppendPlusOrMinusSwitch("/nullable", _store, nameof(NullableReferenceTypes));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;

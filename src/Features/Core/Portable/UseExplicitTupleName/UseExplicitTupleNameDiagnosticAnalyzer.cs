@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string ElementName = nameof(ElementName);
 

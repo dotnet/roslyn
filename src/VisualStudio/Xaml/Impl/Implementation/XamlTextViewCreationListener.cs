@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -27,21 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     internal sealed partial class XamlTextViewCreationListener : IVsTextViewCreationListener
     {
         private readonly System.IServiceProvider _serviceProvider;
+        private readonly VisualStudioProjectFactory _visualStudioProjectFactory;
         private readonly VisualStudioWorkspaceImpl _vsWorkspace;
-        private readonly ICommandHandlerServiceFactory _commandHandlerService;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly Lazy<RunningDocumentTable> _rdt;
         private readonly IVsSolution _vsSolution;
         private uint? _solutionEventsCookie;
         private uint? _rdtEventsCookie;
+        private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
-        internal ICommandHandlerServiceFactory CommandHandlerServiceFactory
-        {
-            get
-            {
-                return _commandHandlerService;
-            }
-        }
+        internal ICommandHandlerServiceFactory CommandHandlerServiceFactory { get; }
 
         [ImportingConstructor]
         public XamlTextViewCreationListener(
@@ -49,12 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IXamlDocumentAnalyzerService analyzerService,
-            VisualStudioWorkspaceImpl vsWorkspace)
+            VisualStudioWorkspaceImpl vsWorkspace,
+            VisualStudioProjectFactory visualStudioProjectFactory)
         {
             _serviceProvider = services;
-            _commandHandlerService = commandHandlerServiceFactory;
+            CommandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorAdaptersFactory = editorAdaptersFactoryService;
             _vsWorkspace = vsWorkspace;
+            _visualStudioProjectFactory = visualStudioProjectFactory;
             _rdt = new Lazy<RunningDocumentTable>(() => new RunningDocumentTable(_serviceProvider));
             _vsSolution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
 
@@ -100,25 +98,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 return;
             }
 
-            AbstractProject project = GetXamlProject(hierarchy);
-            if (project == null)
+            VisualStudioProject project;
+
+            if (!_xamlProjects.TryGetValue(hierarchy, out project))
             {
-                project = new XamlProject(
-                    _vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(_serviceProvider),
-                    hierarchy,
-                    _serviceProvider,
-                    _vsWorkspace);
+                string name;
+                hierarchy.TryGetName(out name);
+                project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name + "-XamlProject", StringConstants.XamlLanguageName);
+                _xamlProjects.Add(hierarchy, project);
             }
 
-            IVisualStudioHostDocument vsDocument = project.GetCurrentDocumentFromPath(filePath);
-            if (vsDocument == null)
+            if (!project.ContainsSourceFile(filePath))
             {
-                if (!TryCreateXamlDocument(project, filePath, out vsDocument))
-                {
-                    return;
-                }
-
-                project.AddDocument(vsDocument, isCurrentContext: true, hookupHandlers: true);
+                project.AddSourceFile(filePath);
             }
 
             AttachRunningDocTableEvents();
@@ -136,28 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
         }
 
-        private AbstractProject GetXamlProject(IVsHierarchy hierarchy)
-        {
-            var projects = _vsWorkspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty;
-
-            return projects.FirstOrDefault(p => p.Language == StringConstants.XamlLanguageName && p.Hierarchy == hierarchy);
-        }
-
-        private bool TryCreateXamlDocument(AbstractProject project, string filePath, out IVisualStudioHostDocument vsDocument)
-        {
-            // We already have an AbstractProject, so the workspace has been created
-            vsDocument = _vsWorkspace.DeferredState.ProjectTracker.DocumentProvider.TryGetDocumentForFile(
-                project, filePath, SourceCodeKind.Regular,
-                tb => tb.ContentType.IsOfType(ContentTypeNames.XamlContentType),
-                ImmutableArray<string>.Empty);
-
-            return vsDocument != null;
-        }
-
         private void OnProjectClosing(IVsHierarchy hierarchy)
         {
-            AbstractProject project = GetXamlProject(hierarchy);
-            project?.Disconnect();
+            if (_xamlProjects.TryGetValue(hierarchy, out VisualStudioProject project))
+            {
+                project.RemoveFromWorkspace();
+                _xamlProjects.Remove(hierarchy);
+            }
         }
 
         private void OnDocumentMonikerChanged(IVsHierarchy hierarchy, string oldMoniker, string newMoniker)
@@ -172,47 +149,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
 
             // If the moniker change only involves a non-XAML project then ignore it.
-            AbstractProject project = GetXamlProject(hierarchy);
-            if (project == null)
+            if (!_xamlProjects.TryGetValue(hierarchy, out VisualStudioProject project))
             {
                 return;
             }
 
             // Managed languages rely on the msbuild host object to add and remove documents during rename.
             // For XAML we have to do that ourselves.
-            IVisualStudioHostDocument oldDocument = project.GetCurrentDocumentFromPath(oldMoniker);
-            if (oldDocument != null)
+            if (project.ContainsSourceFile(oldMoniker))
             {
-                project.RemoveDocument(oldDocument);
+                project.RemoveSourceFile(oldMoniker);
             }
 
-            IVisualStudioHostDocument newDocument = project.GetCurrentDocumentFromPath(newMoniker);
-            Debug.Assert(newDocument == null, "Why does the renamed document already exist in the project?");
-            if (newDocument == null)
-            {
-                if (TryCreateXamlDocument(project, newMoniker, out newDocument))
-                {
-                    project.AddDocument(newDocument, isCurrentContext: true, hookupHandlers: true);
-                }
-            }
+            project.AddSourceFile(newMoniker);
         }
 
         private void OnDocumentClosed(uint docCookie)
         {
             RunningDocumentInfo info = _rdt.Value.GetDocumentInfo(docCookie);
-            AbstractProject project = GetXamlProject(info.Hierarchy);
-            if (project == null)
+            if (info.Hierarchy != null && _xamlProjects.TryGetValue(info.Hierarchy, out VisualStudioProject project))
             {
-                return;
+                if (project.ContainsSourceFile(info.Moniker))
+                {
+                    project.RemoveSourceFile(info.Moniker);
+                }
             }
-
-            IVisualStudioHostDocument document = project.GetCurrentDocumentFromPath(info.Moniker);
-            if (document == null)
-            {
-                return;
-            }
-
-            project.RemoveDocument(document);
         }
     }
 }
