@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.
                 var containingType = sliceLikeMethod.ContainingType;
-                var lengthLikeProperty = GetLengthOrCountProperty(containingType);
+                var lengthLikeProperty = TryGetLengthOrCountProperty(containingType);
                 if (lengthLikeProperty == null)
                 {
                     return default;

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     OperationKind.Invocation);
 
                 var arrayType = compilation.GetSpecialType(SpecialType.System_Array);
-                var arrayLengthProperty = GetNoArgInt32Property(arrayType, nameof(Array.Length));
+                var arrayLengthProperty = TryGetNoArgInt32Property(arrayType, nameof(Array.Length));
 
                 if (arrayLengthProperty != null)
                 {
