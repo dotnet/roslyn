@@ -306,5 +306,27 @@ class C
     }
 }", parameters: s_testParameters);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestArray()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v = s[[||]s.Length - 1];
+    }
+}",
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v = s[^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }

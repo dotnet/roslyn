@@ -51,10 +51,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // compilation. Cache information we compute in this object so we don't have to
                 // continually recompute it.
                 var infoCache = new InfoCache(startContext.Compilation);
+
+                // Register to hear property references, so we can hear about calls to indexers
+                // like: s[s.Length - n]
                 context.RegisterOperationAction(
                     c => AnalyzePropertyReference(c, infoCache),
                     OperationKind.PropertyReference);
 
+                // Array indexing is represented with a different operation kind.  Register
+                // specifically for that.
+                context.RegisterOperationAction(
+                    c => AnalyzeArrayElementReference(c, infoCache),
+                    OperationKind.ArrayElementReference);
+
+                // Register to hear about methods for: s.Get(s.Length - n)
                 context.RegisterOperationAction(
                     c => AnalyzeInvocation(c, infoCache),
                     OperationKind.Invocation);
@@ -66,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             var cancellationToken = context.CancellationToken;
             var invocationOperation = (IInvocationOperation)context.Operation;
 
+            if (invocationOperation.Arguments.Length != 1)
+            {
+                return;
+            }
+
             // Make sure we're actually on an invocation something like `s.Get(...)`.
             var invocationSyntax = invocationOperation.Syntax as InvocationExpressionSyntax;
             if (invocationSyntax is null)
@@ -73,13 +88,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            var instance = invocationOperation.Instance;
-            var targetMethod = invocationOperation.TargetMethod;
-            var arguments = invocationOperation.Arguments;
-
             AnalyzeInvokedMember(
-                context, infoCache, invocationOperation,
-                instance, targetMethod, arguments, cancellationToken);
+                context, infoCache,
+                invocationSyntax,
+                invocationOperation.Instance,
+                invocationOperation.TargetMethod,
+                invocationOperation.Arguments[0].Value,
+                cancellationToken);
         }
 
         private void AnalyzePropertyReference(
@@ -87,10 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         {
             var cancellationToken = context.CancellationToken;
             var propertyReference = (IPropertyReferenceOperation)context.Operation;
-            var property = propertyReference.Property;
 
             // Only analyze indexer calls.
-            if (!property.IsIndexer)
+            if (!propertyReference.Property.IsIndexer)
+            {
+                return;
+            }
+
+            if (propertyReference.Arguments.Length != 1)
             {
                 return;
             }
@@ -102,22 +121,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            var instance = propertyReference.Instance;
-            var targetMethod = property.GetMethod;
-            var arguments = propertyReference.Arguments;
+            AnalyzeInvokedMember(
+                context, infoCache,
+                elementAccess,
+                propertyReference.Instance,
+                propertyReference.Property.GetMethod,
+                propertyReference.Arguments[0].Value,
+                cancellationToken);
+        }
+
+        private void AnalyzeArrayElementReference(
+            OperationAnalysisContext context, InfoCache infoCache)
+        {
+            var cancellationToken = context.CancellationToken;
+            var arrayElementReference = (IArrayElementReferenceOperation)context.Operation;
+
+            // Has to be a single-dimensional element access.
+            if (arrayElementReference.Indices.Length != 1)
+            {
+                return;
+            }
+
+            // Make sure we're actually on something like `s[...]`.
+            var elementAccess = arrayElementReference.Syntax as ElementAccessExpressionSyntax;
+            if (elementAccess is null)
+            {
+                return;
+            }
 
             AnalyzeInvokedMember(
-                context, infoCache, propertyReference, 
-                instance, targetMethod, arguments, cancellationToken);
+                context, infoCache,
+                elementAccess,
+                arrayElementReference.ArrayReference,
+                targetMethodOpt: null,
+                arrayElementReference.Indices[0],
+                cancellationToken);
         }
 
         private void AnalyzeInvokedMember(
-            OperationAnalysisContext context, InfoCache infoCache, IOperation invocation,
-            IOperation instance, IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, 
+            OperationAnalysisContext context, InfoCache infoCache, SyntaxNode syntax,
+            IOperation instance, IMethodSymbol targetMethodOpt, IOperation argumentValue, 
             CancellationToken cancellationToken)
         {
             // Only supported on C# 8 and above.
-            var syntaxTree = invocation.Syntax.SyntaxTree;
+            var syntaxTree = syntax.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
             {
@@ -142,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Needs to have the one arg for `s.Length - value`, and that arg needs to be
             // a subtraction.
             if (instance is null ||
-                arguments.Length != 1 ||
-                !IsSubtraction(arguments[0].Value, out var subtraction))
+                !IsSubtraction(argumentValue, out var subtraction))
             {
                 return;
             }
@@ -154,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             //
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
-            if (!infoCache.TryGetMemberInfo(targetMethod, out var memberInfo) ||
+
+            if (!infoCache.TryGetMemberInfo(targetMethodOpt, instance.Type, out var memberInfo) ||
                 !IsInstanceLengthCheck(memberInfo.LengthLikeProperty, instance, subtraction.LeftOperand))
             {
                 return;

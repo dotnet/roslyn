@@ -5,6 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
+    using System;
     using static Helpers;
 
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer
@@ -19,13 +20,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// we're using has an indexer that takes an Index.
             /// </summary>
             private readonly INamedTypeSymbol _indexType;
+
+            /// <summary>
+            /// Mapping from a method like 'MyType.Get(int)' to the Length/Count property for
+            /// 'MyType' as well as the optional 'MyType.Get(System.Index)' member if it exists.
+            /// </summary>
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
+
+            /// <summary>
+            /// Mapping from an array symbol (like 'int[]') to the Length property for it.
+            /// </summary>
+            private readonly ConcurrentDictionary<ITypeSymbol, MemberInfo> _arrayTypeToMemberInfo;
 
             public InfoCache(Compilation compilation)
             {
                 _indexType = compilation.GetTypeByMetadataName("System.Index");
 
                 _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
+                _arrayTypeToMemberInfo = new ConcurrentDictionary<ITypeSymbol, MemberInfo>();
 
                 // Always allow using System.Index indexers with System.String.  The compiler has
                 // hard-coded knowledge on how to use this type, even if there is no this[Index]
@@ -38,16 +50,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
             }
 
-            public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
+            public bool TryGetMemberInfo(
+                IMethodSymbol methodSymbolOpt, ITypeSymbol typeSymbol, out MemberInfo memberInfo)
             {
-                if (!IsIntIndexingMethod(methodSymbol))
+                memberInfo = default;
+
+                if (methodSymbolOpt != null)
                 {
-                    memberInfo = default;
-                    return false;
+                    if (IsIntIndexingMethod(methodSymbolOpt))
+                    {
+                        memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbolOpt, m => ComputeMemberInfo(m, requireIndexMember: true));
+                    }
+                }
+                else if (typeSymbol != null)
+                {
+                    memberInfo = _arrayTypeToMemberInfo.GetOrAdd(typeSymbol, t => ComputeMemberInfo(t));
                 }
 
-                memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m, requireIndexMember: true));
                 return memberInfo.LengthLikeProperty != null;
+            }
+
+            private MemberInfo ComputeMemberInfo(ITypeSymbol type)
+            {
+                if (type is IArrayTypeSymbol)
+                {
+                    var lengthProperty = GetNoArgInt32Property(type.BaseType, nameof(Array.Length));
+                    return new MemberInfo(lengthProperty, overloadedMethodOpt: null);
+                }
+
+                return default;
             }
 
             private MemberInfo ComputeMemberInfo(IMethodSymbol method, bool requireIndexMember)

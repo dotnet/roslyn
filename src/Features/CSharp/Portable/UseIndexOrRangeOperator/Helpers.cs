@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             => GetNoArgInt32Property(namedType, nameof(string.Length)) ??
                GetNoArgInt32Property(namedType, nameof(ICollection.Count));
 
-        private static IPropertySymbol GetNoArgInt32Property(INamedTypeSymbol type, string name)
+        public static IPropertySymbol GetNoArgInt32Property(ITypeSymbol type, string name)
             => type.GetMembers(name)
                    .OfType<IPropertySymbol>()
                    .Where(p => IsPublicInstance(p) &&
