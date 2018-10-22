@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
+    using System;
     using static Helpers;
 
     /// <summary>
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // We're going to be checking every property-reference and invocation in the
                 // compilation. Cache information we compute in this object so we don't have to
                 // continually recompute it.
-                var infoCache = new InfoCache(startContext.Compilation);
+                var compilation = startContext.Compilation;
+                var infoCache = new InfoCache(compilation);
 
                 // Register to hear property references, so we can hear about calls to indexers
                 // like: s[s.Length - n]
@@ -58,20 +60,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     c => AnalyzePropertyReference(c, infoCache),
                     OperationKind.PropertyReference);
 
-                // Array indexing is represented with a different operation kind.  Register
-                // specifically for that.
-                context.RegisterOperationAction(
-                    c => AnalyzeArrayElementReference(c, infoCache),
-                    OperationKind.ArrayElementReference);
-
                 // Register to hear about methods for: s.Get(s.Length - n)
                 context.RegisterOperationAction(
                     c => AnalyzeInvocation(c, infoCache),
                     OperationKind.Invocation);
+
+                var arrayType = compilation.GetSpecialType(SpecialType.System_Array);
+                var arrayLengthProperty = GetNoArgInt32Property(arrayType, nameof(Array.Length));
+
+                if (arrayLengthProperty != null)
+                {
+                    // Array indexing is represented with a different operation kind.  Register
+                    // specifically for that.
+                    context.RegisterOperationAction(
+                        c => AnalyzeArrayElementReference(c, infoCache, arrayLengthProperty),
+                        OperationKind.ArrayElementReference);
+                }
             });
         }
 
-        private void AnalyzeInvocation(OperationAnalysisContext context, InfoCache infoCache)
+        private void AnalyzeInvocation(
+            OperationAnalysisContext context, InfoCache infoCache)
         {
             var cancellationToken = context.CancellationToken;
             var invocationOperation = (IInvocationOperation)context.Operation;
@@ -81,19 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // Make sure we're actually on an invocation something like `s.Get(...)`.
-            var invocationSyntax = invocationOperation.Syntax as InvocationExpressionSyntax;
-            if (invocationSyntax is null)
-            {
-                return;
-            }
-
             AnalyzeInvokedMember(
                 context, infoCache,
-                invocationSyntax,
                 invocationOperation.Instance,
                 invocationOperation.TargetMethod,
                 invocationOperation.Arguments[0].Value,
+                lengthLikePropertyOpt: null,
                 cancellationToken);
         }
 
@@ -114,24 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // Make sure we're actually on something like `s[...]`.
-            var elementAccess = propertyReference.Syntax as ElementAccessExpressionSyntax;
-            if (elementAccess is null)
-            {
-                return;
-            }
-
             AnalyzeInvokedMember(
                 context, infoCache,
-                elementAccess,
                 propertyReference.Instance,
                 propertyReference.Property.GetMethod,
                 propertyReference.Arguments[0].Value,
+                lengthLikePropertyOpt: null,
                 cancellationToken);
         }
 
         private void AnalyzeArrayElementReference(
-            OperationAnalysisContext context, InfoCache infoCache)
+            OperationAnalysisContext context, InfoCache infoCache, IPropertySymbol arrayLengthProperty)
         {
             var cancellationToken = context.CancellationToken;
             var arrayElementReference = (IArrayElementReferenceOperation)context.Operation;
@@ -142,29 +137,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // Make sure we're actually on something like `s[...]`.
-            var elementAccess = arrayElementReference.Syntax as ElementAccessExpressionSyntax;
-            if (elementAccess is null)
-            {
-                return;
-            }
-
             AnalyzeInvokedMember(
                 context, infoCache,
-                elementAccess,
                 arrayElementReference.ArrayReference,
                 targetMethodOpt: null,
                 arrayElementReference.Indices[0],
+                lengthLikePropertyOpt: arrayLengthProperty,
                 cancellationToken);
         }
 
         private void AnalyzeInvokedMember(
-            OperationAnalysisContext context, InfoCache infoCache, SyntaxNode syntax,
-            IOperation instance, IMethodSymbol targetMethodOpt, IOperation argumentValue, 
-            CancellationToken cancellationToken)
+            OperationAnalysisContext context, InfoCache infoCache, 
+            IOperation instance, IMethodSymbol targetMethodOpt, IOperation argumentValue,
+            IPropertySymbol lengthLikePropertyOpt, CancellationToken cancellationToken)
         {
+            // look for `s[s.Length - value]` or `s.Get(s.Length- value)`.
+
+            // Needs to have the one arg for `s.Length - value`, and that arg needs to be
+            // a subtraction.
+            if (instance is null ||
+                !IsSubtraction(argumentValue, out var subtraction))
+            {
+                return;
+            }
+
+            if (!(subtraction.Syntax is BinaryExpressionSyntax binaryExpression))
+            {
+                return;
+            }
+
+            if (!CheckOptions(binaryExpression, cancellationToken))
+            {
+                return;
+            }
+
             // Only supported on C# 8 and above.
-            var syntaxTree = syntax.SyntaxTree;
+            var syntaxTree = binaryExpression.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
             {
@@ -184,16 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // look for `s[s.Length - value]` or `s.Get(s.Length- value)`.
-
-            // Needs to have the one arg for `s.Length - value`, and that arg needs to be
-            // a subtraction.
-            if (instance is null ||
-                !IsSubtraction(argumentValue, out var subtraction))
-            {
-                return;
-            }
-
             // Ok, looks promising.  We're indexing in with some subtraction expression. Examine the
             // type this indexer is in to see if there's another member that takes a System.Index
             // that we can convert to.
@@ -201,8 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Also ensure that the left side of the subtraction : `s.Length - value` is actually
             // getting the length off the same instance we're indexing into.
 
-            if (!infoCache.TryGetMemberInfo(targetMethodOpt, instance.Type, out var memberInfo) ||
-                !IsInstanceLengthCheck(memberInfo.LengthLikeProperty, instance, subtraction.LeftOperand))
+            lengthLikePropertyOpt = lengthLikePropertyOpt ?? TryGetLengthLikeProperty(infoCache, targetMethodOpt);
+            if (lengthLikePropertyOpt == null ||
+                !IsInstanceLengthCheck(lengthLikePropertyOpt, instance, subtraction.LeftOperand))
             {
                 return;
             }
@@ -211,10 +210,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
-                    subtraction.Syntax.GetLocation(),
+                    binaryExpression.GetLocation(),
                     option.Notification.Severity,
                     ImmutableArray<Location>.Empty,
                     ImmutableDictionary<string, string>.Empty));
         }
+
+        private bool CheckOptions(BinaryExpressionSyntax binaryExpression, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IPropertySymbol TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol targetMethodOpt)
+            => targetMethodOpt != null && infoCache.TryGetMemberInfo(targetMethodOpt, out var memberInfo)
+                ? memberInfo.LengthLikeProperty
+                : null;
     }
 }

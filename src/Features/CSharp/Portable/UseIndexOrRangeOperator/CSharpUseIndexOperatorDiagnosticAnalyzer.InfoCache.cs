@@ -27,17 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// </summary>
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
 
-            /// <summary>
-            /// Mapping from an array symbol (like 'int[]') to the Length property for it.
-            /// </summary>
-            private readonly ConcurrentDictionary<ITypeSymbol, MemberInfo> _arrayTypeToMemberInfo;
-
             public InfoCache(Compilation compilation)
             {
                 _indexType = compilation.GetTypeByMetadataName("System.Index");
 
                 _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
-                _arrayTypeToMemberInfo = new ConcurrentDictionary<ITypeSymbol, MemberInfo>();
 
                 // Always allow using System.Index indexers with System.String.  The compiler has
                 // hard-coded knowledge on how to use this type, even if there is no this[Index]
@@ -50,35 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
             }
 
-            public bool TryGetMemberInfo(
-                IMethodSymbol methodSymbolOpt, ITypeSymbol typeSymbol, out MemberInfo memberInfo)
+            public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
             {
                 memberInfo = default;
 
-                if (methodSymbolOpt != null)
+                if (IsIntIndexingMethod(methodSymbol))
                 {
-                    if (IsIntIndexingMethod(methodSymbolOpt))
-                    {
-                        memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbolOpt, m => ComputeMemberInfo(m, requireIndexMember: true));
-                    }
-                }
-                else if (typeSymbol != null)
-                {
-                    memberInfo = _arrayTypeToMemberInfo.GetOrAdd(typeSymbol, t => ComputeMemberInfo(t));
+                    memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m, requireIndexMember: true));
                 }
 
                 return memberInfo.LengthLikeProperty != null;
-            }
-
-            private MemberInfo ComputeMemberInfo(ITypeSymbol type)
-            {
-                if (type is IArrayTypeSymbol)
-                {
-                    var lengthProperty = GetNoArgInt32Property(type.BaseType, nameof(Array.Length));
-                    return new MemberInfo(lengthProperty, overloadedMethodOpt: null);
-                }
-
-                return default;
             }
 
             private MemberInfo ComputeMemberInfo(IMethodSymbol method, bool requireIndexMember)
