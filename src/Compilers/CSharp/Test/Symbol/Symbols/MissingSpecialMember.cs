@@ -884,6 +884,10 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
+                    case WellKnownMember.System_Index__FromEnd:
+                    case WellKnownMember.System_Index__Value:
+                    case WellKnownMember.System_Range__Start:
+                    case WellKnownMember.System_Range__End:
                     case WellKnownMember.System_Range__All:
                     case WellKnownMember.System_Range__Create:
                     case WellKnownMember.System_Range__FromStart:
