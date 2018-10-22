@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     {
         protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
 
-        protected override int LogicalExpressionSyntaxKind => (int)SyntaxKind.LogicalOrExpression;
+        protected override int LogicalOrSyntaxKind => (int)SyntaxKind.LogicalOrExpression;
 
         protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement)
         {

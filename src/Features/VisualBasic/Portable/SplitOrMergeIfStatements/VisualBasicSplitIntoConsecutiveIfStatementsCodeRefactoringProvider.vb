@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
 
         Protected Overrides ReadOnly Property IfKeywordText As String = SyntaxFacts.GetText(SyntaxKind.IfKeyword)
 
-        Protected Overrides ReadOnly Property LogicalExpressionSyntaxKind As Integer = SyntaxKind.OrElseExpression
+        Protected Overrides ReadOnly Property LogicalOrSyntaxKind As Integer = SyntaxKind.OrElseExpression
 
         Protected Overrides Function IsConditionOfIfStatement(expression As SyntaxNode, ByRef ifStatement As SyntaxNode) As Boolean
             If TypeOf expression.Parent Is IfStatementSyntax AndAlso

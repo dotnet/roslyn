@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
+        protected abstract int LogicalAndSyntaxKind { get; }
+        protected sealed override int LogicalExpressionSyntaxKind => LogicalAndSyntaxKind;
+
         protected abstract SyntaxNode SplitIfStatement(
             SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
