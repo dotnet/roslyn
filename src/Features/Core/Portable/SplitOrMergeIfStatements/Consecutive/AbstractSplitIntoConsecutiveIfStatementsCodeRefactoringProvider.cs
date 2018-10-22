@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : AbstractSplitIfStatementCodeRefactoringProvider
+        : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool HasElseClauses(SyntaxNode ifStatement);
@@ -29,14 +29,19 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => new MyCodeAction(createChangedDocument, IfKeywordText);
 
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
-            Document document, SyntaxNode root, SyntaxNode currentIfStatement, SyntaxNode left, SyntaxNode right, CancellationToken cancellationToken)
+            Document document,
+            SyntaxNode root,
+            SyntaxNode currentIfStatement,
+            TExpressionSyntax left,
+            TExpressionSyntax right,
+            CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var (firstIfStatement, secondIfStatement) =
                 await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken).ConfigureAwait(false)
-                ? SplitIfStatementIntoSeparateStatements(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right)
-                : SplitIfStatementIntoElseClause(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
+                ? SplitIfStatementIntoSeparateStatements(currentIfStatement, left, right)
+                : SplitIfStatementIntoElseClause(currentIfStatement, left, right);
 
             return secondIfStatement != null
                 ? root.ReplaceNode(currentIfStatement, ImmutableArray.Create(

@@ -12,7 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractSplitIfStatementCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
+        where TExpressionSyntax : SyntaxNode
     {
         protected abstract string IfKeywordText { get; }
 
@@ -23,7 +24,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument);
 
         protected abstract Task<SyntaxNode> GetChangedRootAsync(
-            Document document, SyntaxNode root, SyntaxNode currentIfStatement, SyntaxNode left, SyntaxNode right, CancellationToken cancellationToken);
+            Document document,
+            SyntaxNode root,
+            SyntaxNode currentIfStatement,
+            TExpressionSyntax left,
+            TExpressionSyntax right,
+            CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -72,14 +78,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return current.IsNode;
         }
 
-        private static (SyntaxNode left, SyntaxNode right) SplitBinaryExpressionChain(
+        private static (TExpressionSyntax left, TExpressionSyntax right) SplitBinaryExpressionChain(
             SyntaxToken token, SyntaxNode rootExpression, ISyntaxFactsService syntaxFacts)
         {
             syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var parentLeft, out _, out var parentRight);
 
             // (((a && b) && c) && d) && e
-            var left = parentLeft;
-            var right = rootExpression.ReplaceNode(token.Parent, parentRight);
+            var left = (TExpressionSyntax)parentLeft;
+            var right = (TExpressionSyntax)rootExpression.ReplaceNode(token.Parent, parentRight);
 
             return (left, right);
         }

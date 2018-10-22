@@ -15,7 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
+        where TExpressionSyntax : SyntaxNode
     {
         protected abstract string IfKeywordText { get; }
 

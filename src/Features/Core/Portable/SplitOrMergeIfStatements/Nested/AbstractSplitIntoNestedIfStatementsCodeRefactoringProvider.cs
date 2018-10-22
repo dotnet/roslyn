@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Formatting;
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : AbstractSplitIfStatementCodeRefactoringProvider
+        : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract SyntaxNode SplitIfStatement(
@@ -19,9 +19,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => new MyCodeAction(createChangedDocument, IfKeywordText);
 
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
-            Document document, SyntaxNode root, SyntaxNode currentIfStatement, SyntaxNode left, SyntaxNode right, CancellationToken cancellationToken)
+            Document document,
+            SyntaxNode root,
+            SyntaxNode currentIfStatement,
+            TExpressionSyntax left,
+            TExpressionSyntax right,
+            CancellationToken cancellationToken)
         {
-            var newIfStatement = SplitIfStatement(currentIfStatement, (TExpressionSyntax)left, (TExpressionSyntax)right);
+            var newIfStatement = SplitIfStatement(currentIfStatement, left, right);
 
             return Task.FromResult(
                 root.ReplaceNode(currentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation)));

@@ -13,8 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider<
-        TExpressionSyntax> : AbstractMergeIfStatementsCodeRefactoringProvider
+    internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider<TExpressionSyntax>
+        : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsElseClauseOfIfStatement(SyntaxNode statement, out SyntaxNode ifStatement);
