@@ -87,18 +87,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return True
         End Function
 
-        Protected Overrides Function MergeIfStatements(parentIfStatementNode As SyntaxNode,
-                                                       ifStatementNode As SyntaxNode,
+        Protected Overrides Function MergeIfStatements(firstIfStatementNode As SyntaxNode,
+                                                       secondIfStatementNode As SyntaxNode,
                                                        condition As ExpressionSyntax) As SyntaxNode
-            If TypeOf parentIfStatementNode Is MultiLineIfBlockSyntax Then
-                Dim parentIfBlock = DirectCast(parentIfStatementNode, MultiLineIfBlockSyntax)
-                Dim newIfBlock = parentIfBlock.WithIfStatement(parentIfBlock.IfStatement.WithCondition(condition))
+            If TypeOf firstIfStatementNode Is MultiLineIfBlockSyntax Then
+                Dim firstIfBlock = DirectCast(firstIfStatementNode, MultiLineIfBlockSyntax)
+                Dim newIfBlock = firstIfBlock.WithIfStatement(firstIfBlock.IfStatement.WithCondition(condition))
                 Return If(newIfBlock.ElseIfBlocks.Count > 0, newIfBlock.WithElseIfBlocks(newIfBlock.ElseIfBlocks.RemoveAt(0)), newIfBlock)
-            ElseIf TypeOf parentIfStatementNode Is ElseIfBlockSyntax Then
-                Dim parentElseIfBlock = DirectCast(parentIfStatementNode, ElseIfBlockSyntax)
-                Return parentElseIfBlock.WithElseIfStatement(parentElseIfBlock.ElseIfStatement.WithCondition(condition))
+            ElseIf TypeOf firstIfStatementNode Is ElseIfBlockSyntax Then
+                Dim firstElseIfBlock = DirectCast(firstIfStatementNode, ElseIfBlockSyntax)
+                Return firstElseIfBlock.WithElseIfStatement(firstElseIfBlock.ElseIfStatement.WithCondition(condition))
             End If
-            Throw ExceptionUtilities.UnexpectedValue(parentIfStatementNode)
+            Throw ExceptionUtilities.UnexpectedValue(firstIfStatementNode)
         End Function
     End Class
 End Namespace

@@ -34,40 +34,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return False
         End Function
 
-        Protected Overrides Function SplitIfStatement(currentIfStatementNode As SyntaxNode,
+        Protected Overrides Function SplitIfStatement(ifStatementNode As SyntaxNode,
                                                       condition1 As ExpressionSyntax,
                                                       condition2 As ExpressionSyntax) As SyntaxNode
             Dim innerIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.IfKeyword),
                                                              condition2,
                                                              SyntaxFactory.Token(SyntaxKind.ThenKeyword))
-            If TypeOf currentIfStatementNode Is MultiLineIfBlockSyntax Then
-                Dim currentIfBlock = DirectCast(currentIfStatementNode, MultiLineIfBlockSyntax)
+            If TypeOf ifStatementNode Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
 
                 Dim innerIfBlock = SyntaxFactory.MultiLineIfBlock(innerIfStatement,
-                                                              currentIfBlock.Statements,
-                                                              currentIfBlock.ElseIfBlocks,
-                                                              currentIfBlock.ElseBlock)
-                Dim outerIfBlock = currentIfBlock _
-                              .WithIfStatement(currentIfBlock.IfStatement.WithCondition(condition1)) _
+                                                              ifBlock.Statements,
+                                                              ifBlock.ElseIfBlocks,
+                                                              ifBlock.ElseBlock)
+                Dim outerIfBlock = ifBlock _
+                              .WithIfStatement(ifBlock.IfStatement.WithCondition(condition1)) _
                               .WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(innerIfBlock))
 
                 Return outerIfBlock
-            ElseIf TypeOf currentIfStatementNode Is ElseIfBlockSyntax Then
-                Dim currentElseIfBlock = DirectCast(currentIfStatementNode, ElseIfBlockSyntax)
-                Dim currentIfBlock = DirectCast(currentElseIfBlock.Parent, MultiLineIfBlockSyntax)
-                Dim currentElseIfBlockIndex = currentIfBlock.ElseIfBlocks.IndexOf(currentElseIfBlock)
+            ElseIf TypeOf ifStatementNode Is ElseIfBlockSyntax Then
+                Dim elseIfBlock = DirectCast(ifStatementNode, ElseIfBlockSyntax)
+                Dim ifBlock = DirectCast(elseIfBlock.Parent, MultiLineIfBlockSyntax)
+                Dim elseIfBlockIndex = ifBlock.ElseIfBlocks.IndexOf(elseIfBlock)
 
                 Dim innerIfBlock = SyntaxFactory.MultiLineIfBlock(innerIfStatement,
-                                                              currentElseIfBlock.Statements,
-                                                              currentIfBlock.ElseIfBlocks.RemoveRange(0, currentElseIfBlockIndex + 1),
-                                                              currentIfBlock.ElseBlock)
-                Dim outerElseIfBlock = currentElseIfBlock _
-                              .WithElseIfStatement(currentElseIfBlock.ElseIfStatement.WithCondition(condition1)) _
+                                                              elseIfBlock.Statements,
+                                                              ifBlock.ElseIfBlocks.RemoveRange(0, elseIfBlockIndex + 1),
+                                                              ifBlock.ElseBlock)
+                Dim outerElseIfBlock = elseIfBlock _
+                              .WithElseIfStatement(elseIfBlock.ElseIfStatement.WithCondition(condition1)) _
                               .WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(innerIfBlock))
 
                 Return outerElseIfBlock
             End If
-            Throw ExceptionUtilities.UnexpectedValue(currentIfStatementNode)
+            Throw ExceptionUtilities.UnexpectedValue(ifStatementNode)
         End Function
     End Class
 End Namespace

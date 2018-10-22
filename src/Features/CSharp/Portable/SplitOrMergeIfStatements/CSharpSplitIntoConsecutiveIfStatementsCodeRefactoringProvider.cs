@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         }
 
         protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
-            SyntaxNode currentIfStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
+            SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
-            var currentIfStatement = (IfStatementSyntax)currentIfStatementNode;
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
 
-            if (ContainsEmbeddedIfStatement(currentIfStatement))
+            if (ContainsEmbeddedIfStatement(ifStatement))
             {
-                currentIfStatement = currentIfStatement.WithStatement(SyntaxFactory.Block(currentIfStatement.Statement));
+                ifStatement = ifStatement.WithStatement(SyntaxFactory.Block(ifStatement.Statement));
             }
 
-            var secondIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement, currentIfStatement.Else);
-            var firstIfStatement = currentIfStatement
+            var secondIfStatement = SyntaxFactory.IfStatement(condition2, ifStatement.Statement, ifStatement.Else);
+            var firstIfStatement = ifStatement
                 .WithCondition(condition1)
                 .WithElse(SyntaxFactory.ElseClause(secondIfStatement));
 
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         }
 
         protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
-            SyntaxNode currentIfStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
+            SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
-            var currentIfStatement = (IfStatementSyntax)currentIfStatementNode;
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
 
-            var secondIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement);
-            var firstIfStatement = currentIfStatement.WithCondition(condition1);
+            var secondIfStatement = SyntaxFactory.IfStatement(condition2, ifStatement.Statement);
+            var firstIfStatement = ifStatement.WithCondition(condition1);
 
             return (firstIfStatement, secondIfStatement);
         }

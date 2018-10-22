@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         }
 
         protected override SyntaxNode MergeIfStatements(
-            SyntaxNode parentIfStatementNode, SyntaxNode ifStatementNode, ExpressionSyntax condition)
+            SyntaxNode firstIfStatementNode, SyntaxNode secondIfStatementNode, ExpressionSyntax condition)
         {
-            var parentIfStatement = (IfStatementSyntax)parentIfStatementNode;
-            var ifStatement = (IfStatementSyntax)ifStatementNode;
+            var firstIfStatement = (IfStatementSyntax)firstIfStatementNode;
+            var secondIfStatement = (IfStatementSyntax)secondIfStatementNode;
 
-            return parentIfStatement.WithCondition(condition).WithElse(ifStatement.Else);
+            return firstIfStatement.WithCondition(condition).WithElse(secondIfStatement.Else);
         }
     }
 }

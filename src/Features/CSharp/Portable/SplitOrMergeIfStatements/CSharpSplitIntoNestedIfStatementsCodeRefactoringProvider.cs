@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         }
 
         protected override SyntaxNode SplitIfStatement(
-            SyntaxNode currentIfStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
+            SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {
-            var currentIfStatement = (IfStatementSyntax)currentIfStatementNode;
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
 
-            var innerIfStatement = SyntaxFactory.IfStatement(condition2, currentIfStatement.Statement, currentIfStatement.Else);
-            var outerIfStatement = currentIfStatement
+            var innerIfStatement = SyntaxFactory.IfStatement(condition2, ifStatement.Statement, ifStatement.Else);
+            var outerIfStatement = ifStatement
                 .WithCondition(condition1)
                 .WithStatement(SyntaxFactory.Block(innerIfStatement));
 

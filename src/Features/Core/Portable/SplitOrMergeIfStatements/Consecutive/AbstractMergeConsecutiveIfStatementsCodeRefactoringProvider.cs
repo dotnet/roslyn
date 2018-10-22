@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract bool HasElseClauses(SyntaxNode ifStatementNode);
 
         protected abstract SyntaxNode MergeIfStatements(
-            SyntaxNode parentIfStatementNode, SyntaxNode ifStatementNode, TExpressionSyntax condition);
+            SyntaxNode firstIfStatementNode, SyntaxNode secondIfStatementNode, TExpressionSyntax condition);
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
             => new MyCodeAction(createChangedDocument, IfKeywordText);

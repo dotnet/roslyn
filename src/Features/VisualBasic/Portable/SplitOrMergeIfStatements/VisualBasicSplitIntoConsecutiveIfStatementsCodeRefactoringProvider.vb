@@ -43,47 +43,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return True
         End Function
 
-        Protected Overrides Function SplitIfStatementIntoElseClause(currentIfStatementNode As SyntaxNode,
+        Protected Overrides Function SplitIfStatementIntoElseClause(ifStatementNode As SyntaxNode,
                                                                     condition1 As ExpressionSyntax,
                                                                     condition2 As ExpressionSyntax) As (SyntaxNode, SyntaxNode)
             Dim secondIfStatement = SyntaxFactory.ElseIfStatement(SyntaxFactory.Token(SyntaxKind.ElseIfKeyword),
                                                                   condition2,
                                                                   SyntaxFactory.Token(SyntaxKind.ThenKeyword))
-            If TypeOf currentIfStatementNode Is MultiLineIfBlockSyntax Then
-                Dim currentIfBlock = DirectCast(currentIfStatementNode, MultiLineIfBlockSyntax)
+            If TypeOf ifStatementNode Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
 
-                Dim secondIfBlock = SyntaxFactory.ElseIfBlock(secondIfStatement, currentIfBlock.Statements)
-                Dim firstIfBlock = currentIfBlock _
-                                   .WithIfStatement(currentIfBlock.IfStatement.WithCondition(condition1)) _
-                                   .WithElseIfBlocks(currentIfBlock.ElseIfBlocks.Insert(0, secondIfBlock))
+                Dim secondIfBlock = SyntaxFactory.ElseIfBlock(secondIfStatement, ifBlock.Statements)
+                Dim firstIfBlock = ifBlock _
+                                   .WithIfStatement(ifBlock.IfStatement.WithCondition(condition1)) _
+                                   .WithElseIfBlocks(ifBlock.ElseIfBlocks.Insert(0, secondIfBlock))
 
                 Return (firstIfBlock, Nothing)
-            ElseIf TypeOf currentIfStatementNode Is ElseIfBlockSyntax Then
-                Dim currentElseIfBlock = DirectCast(currentIfStatementNode, ElseIfBlockSyntax)
+            ElseIf TypeOf ifStatementNode Is ElseIfBlockSyntax Then
+                Dim elseIfBlock = DirectCast(ifStatementNode, ElseIfBlockSyntax)
 
-                Dim secondIfBlock = SyntaxFactory.ElseIfBlock(secondIfStatement, currentElseIfBlock.Statements)
-                Dim firstIfblock = currentElseIfBlock _
-                                   .WithElseIfStatement(currentElseIfBlock.ElseIfStatement.WithCondition(condition1))
+                Dim secondIfBlock = SyntaxFactory.ElseIfBlock(secondIfStatement, elseIfBlock.Statements)
+                Dim firstIfblock = elseIfBlock _
+                                   .WithElseIfStatement(elseIfBlock.ElseIfStatement.WithCondition(condition1))
 
                 Return (firstIfblock, secondIfBlock)
             End If
-            Throw ExceptionUtilities.UnexpectedValue(currentIfStatementNode)
+            Throw ExceptionUtilities.UnexpectedValue(ifStatementNode)
         End Function
 
-        Protected Overrides Function SplitIfStatementIntoSeparateStatements(currentIfStatementNode As SyntaxNode,
+        Protected Overrides Function SplitIfStatementIntoSeparateStatements(ifStatementNode As SyntaxNode,
                                                                             condition1 As ExpressionSyntax,
                                                                             condition2 As ExpressionSyntax) As (SyntaxNode, SyntaxNode)
-            Dim currentIfBlock = DirectCast(currentIfStatementNode, MultiLineIfBlockSyntax)
+            Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
 
             Dim secondIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword),
                                                               condition2,
                                                               SyntaxFactory.Token(SyntaxKind.ThenKeyword))
             Dim secondIfBlock = SyntaxFactory.MultiLineIfBlock(secondIfStatement,
-                                                               currentIfBlock.Statements,
+                                                               ifBlock.Statements,
                                                                SyntaxFactory.List(Of ElseIfBlockSyntax),
                                                                Nothing)
-            Dim firstIfBlock = currentIfBlock.
-                               WithIfStatement(currentIfBlock.IfStatement.WithCondition(condition1))
+            Dim firstIfBlock = ifBlock.
+                               WithIfStatement(ifBlock.IfStatement.WithCondition(condition1))
 
             Return (firstIfBlock, secondIfBlock)
         End Function
