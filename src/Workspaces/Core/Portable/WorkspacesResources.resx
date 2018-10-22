@@ -225,6 +225,12 @@
   <data name="_0_is_not_open" xml:space="preserve">
     <value>'{0}' is not open.</value>
   </data>
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
   <data name="File_was_externally_modified_colon_0" xml:space="preserve">
     <value>File was externally modified: {0}.</value>
   </data>

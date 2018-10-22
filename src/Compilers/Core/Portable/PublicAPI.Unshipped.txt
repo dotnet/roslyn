@@ -1,5 +1,4 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
-*REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
@@ -13,8 +12,6 @@ abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterO
 abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSymbolEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
-abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
-abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.CommandLineArguments.AnalyzerConfigPaths.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
@@ -144,49 +141,8 @@ Microsoft.CodeAnalysis.Operations.ISwitchOperation.ExitLabel.get -> Microsoft.Co
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
-Microsoft.CodeAnalysis.Options.IOption
-Microsoft.CodeAnalysis.Options.IOption.DefaultValue.get -> object
-Microsoft.CodeAnalysis.Options.IOption.Feature.get -> string
-Microsoft.CodeAnalysis.Options.IOption.IsPerLanguage.get -> bool
-Microsoft.CodeAnalysis.Options.IOption.Name.get -> string
-Microsoft.CodeAnalysis.Options.IOption.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-Microsoft.CodeAnalysis.Options.IOption.Type.get -> System.Type
-Microsoft.CodeAnalysis.Options.Option<T>
-Microsoft.CodeAnalysis.Options.Option<T>.DefaultValue.get -> T
-Microsoft.CodeAnalysis.Options.Option<T>.Feature.get -> string
-Microsoft.CodeAnalysis.Options.Option<T>.Name.get -> string
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name) -> void
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue) -> void
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
-Microsoft.CodeAnalysis.Options.Option<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-Microsoft.CodeAnalysis.Options.Option<T>.Type.get -> System.Type
-Microsoft.CodeAnalysis.Options.OptionKey
-Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool
-Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string
-Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption
-Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
-Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
-Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Options.OptionStorageLocation
-Microsoft.CodeAnalysis.Options.OptionStorageLocation.OptionStorageLocation() -> void
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.DefaultValue.get -> T
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Feature.get -> string
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Name.get -> string
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue) -> void
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Type.get -> System.Type
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Options.Option<T>.ToString() -> string
-override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.Options.OptionKey.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.ToString() -> string
 static Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.KeyComparer.get -> System.StringComparer
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IBlockOperation body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation constructorBody, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
@@ -196,9 +152,6 @@ static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.Cod
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetCorrespondingOperation(this Microsoft.CodeAnalysis.Operations.IBranchOperation operation) -> Microsoft.CodeAnalysis.IOperation
-static Microsoft.CodeAnalysis.Options.Option<T>.implicit operator Microsoft.CodeAnalysis.Options.OptionKey(Microsoft.CodeAnalysis.Options.Option<T> option) -> Microsoft.CodeAnalysis.Options.OptionKey
-static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
-static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
 static readonly Microsoft.CodeAnalysis.SyntaxTree.EmptyDiagnosticOptions -> System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void

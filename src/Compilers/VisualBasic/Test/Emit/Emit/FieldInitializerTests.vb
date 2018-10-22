@@ -507,9 +507,9 @@ End Class
         Public Sub OptionInferConstTypeInference_1()
 
             Dim alloptions = {({"On", "On"}), ({"Off", "On"}), ({"Off", "Off"})}
-            For Each compilationOptions In alloptions
-                Dim strict = compilationOptions(0)
-                Dim infer = compilationOptions(1)
+            For Each options In alloptions
+                Dim strict = options(0)
+                Dim infer = options(1)
 
                 Dim source =
         <compilation>

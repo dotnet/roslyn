@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Options
         {
             if (language != null && !option.IsPerLanguage)
             {
-                throw new ArgumentException(CodeAnalysisResources.A_language_name_cannot_be_specified_for_this_option);
+                throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
             }
             else if (language == null && option.IsPerLanguage)
             {
-                throw new ArgumentNullException(CodeAnalysisResources.A_language_name_must_be_specified_for_this_option);
+                throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
             }
 
             this.Option = option ?? throw new ArgumentNullException(nameof(option));

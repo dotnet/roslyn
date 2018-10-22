@@ -187,6 +187,16 @@
         <target state="translated">'Element „{0}” nie jest otwarty.</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Nie można określić nazwy języka dla tej opcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Nazwa języka musi zostać określona dla tej opcji.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">Plik został zmodyfikowany na zewnątrz: {0}.</target>

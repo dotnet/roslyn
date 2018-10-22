@@ -187,6 +187,16 @@
         <target state="translated">'{0}' n'est pas ouvert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Impossible de spécifier un nom de langage pour cette option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Un nom de langage doit être spécifié pour cette option.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">Le fichier a été modifié en externe : {0}.</target>

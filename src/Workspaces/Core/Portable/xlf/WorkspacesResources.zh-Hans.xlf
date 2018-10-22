@@ -187,6 +187,16 @@
         <target state="translated">'未打开“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">无法为此选项指定语言名称。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">必须为此选项指定语言名称。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">已从外部修改文件: {0}。</target>
