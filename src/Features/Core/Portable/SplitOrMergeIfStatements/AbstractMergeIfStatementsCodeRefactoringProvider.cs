@@ -63,6 +63,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         protected static IReadOnlyList<SyntaxNode> WalkDownBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
         {
+            // If our statements only contain a single block, walk down the block and any subsequent nested blocks
+            // to get the real statements inside.
+
             while (statements.Count == 1 && syntaxFacts.IsPureBlock(statements[0]))
             {
                 statements = syntaxFacts.GetExecutableBlockStatements(statements[0]);
@@ -73,6 +76,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         protected static IReadOnlyList<SyntaxNode> WalkUpBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
         {
+            // If our statements are inside a block, walk up the block and any subsequent nested blocks that contain
+            // no other statements to get the topmost block.
+
             while (statements.Count > 0 && syntaxFacts.IsPureBlock(statements[0].Parent) &&
                    syntaxFacts.GetExecutableBlockStatements(statements[0].Parent).Count == statements.Count)
             {

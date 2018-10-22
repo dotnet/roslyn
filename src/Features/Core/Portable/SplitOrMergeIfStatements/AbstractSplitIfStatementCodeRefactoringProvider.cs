@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private static bool IsPartOfBinaryExpressionChain(SyntaxToken token, int syntaxKind, out SyntaxNode rootExpression)
         {
+            // Check whether the token is part of a binary expression, and if so,
+            // return the topmost binary expression in the chain (e.g. `a && b && c`).
+
             SyntaxNodeOrToken current = token;
 
             while (current.Parent?.RawKind == syntaxKind)
@@ -81,9 +84,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private static (TExpressionSyntax left, TExpressionSyntax right) SplitBinaryExpressionChain(
             SyntaxToken token, SyntaxNode rootExpression, ISyntaxFactsService syntaxFacts)
         {
+            // We have a left-associative binary expression chain, e.g. `a && b && c && d`.
+            // Let's say our token is the second `&&` token, between b and c. We'd like to split the chain at this point
+            // and build new expressions for the left side and the right side of this token. This will
+            // effectively change the associativity from `((a && b) && c) && d` to `(a && b) && (c && d)`.
+            // The left side is in the proper shape already and we can build the right side by getting the
+            // topmost expression and replacing our parent with our right side. In the example: `(a && b) && c` to `c`.
+
             syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var parentLeft, out _, out var parentRight);
 
-            // (((a && b) && c) && d) && e
             var left = (TExpressionSyntax)parentLeft;
             var right = (TExpressionSyntax)rootExpression.ReplaceNode(token.Parent, parentRight);
 
