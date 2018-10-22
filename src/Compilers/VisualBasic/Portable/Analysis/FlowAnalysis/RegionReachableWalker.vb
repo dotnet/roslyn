@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     endPointIsReachable = If(walker._regionEndPointIsReachable.HasValue, walker._regionEndPointIsReachable.Value, walker.State.Alive)
                 Else
                     startPointIsReachable = True
-                    startPointIsReachable = False
+                    endPointIsReachable = False
                 End If
             Finally
                 walker.Free()
