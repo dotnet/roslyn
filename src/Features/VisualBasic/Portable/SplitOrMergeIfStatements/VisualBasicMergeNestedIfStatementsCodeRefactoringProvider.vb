@@ -41,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return False
         End Function
 
-        Protected Overrides Function IsIfStatement(statement As SyntaxNode) As Boolean
-            Return TypeOf statement Is MultiLineIfBlockSyntax OrElse
-                   TypeOf statement Is ElseIfBlockSyntax
+        Protected Overrides Function IsIfStatement(node As SyntaxNode) As Boolean
+            Return TypeOf node Is MultiLineIfBlockSyntax OrElse
+                   TypeOf node Is ElseIfBlockSyntax
         End Function
 
         Protected Overrides Function GetElseClauses(ifStatementNode As SyntaxNode) As ImmutableArray(Of SyntaxNode)

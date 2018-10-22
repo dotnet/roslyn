@@ -61,44 +61,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return False
         End Function
 
-        Protected Overrides Function IsElseClauseOfIfStatement(statement As SyntaxNode, ByRef ifStatement As SyntaxNode) As Boolean
-            If TypeOf statement Is ElseIfBlockSyntax Then
-                Dim ifBlock = DirectCast(statement.Parent, MultiLineIfBlockSyntax)
-                Dim index = ifBlock.ElseIfBlocks.IndexOf(DirectCast(statement, ElseIfBlockSyntax))
-                ifStatement = If(index > 0, ifBlock.ElseIfBlocks(index - 1), DirectCast(ifBlock, SyntaxNode))
+        Protected Overrides Function IsElseClauseOfIfStatement(node As SyntaxNode, ByRef ifStatementNode As SyntaxNode) As Boolean
+            If TypeOf node Is ElseIfBlockSyntax Then
+                Dim ifBlock = DirectCast(node.Parent, MultiLineIfBlockSyntax)
+                Dim index = ifBlock.ElseIfBlocks.IndexOf(DirectCast(node, ElseIfBlockSyntax))
+                ifStatementNode = If(index > 0, ifBlock.ElseIfBlocks(index - 1), DirectCast(ifBlock, SyntaxNode))
                 Return True
             End If
 
-            ifStatement = Nothing
+            ifStatementNode = Nothing
             Return False
         End Function
 
-        Protected Overrides Function IsIfStatement(statement As SyntaxNode) As Boolean
-            Return TypeOf statement Is MultiLineIfBlockSyntax OrElse
-                   TypeOf statement Is ElseIfBlockSyntax
+        Protected Overrides Function IsIfStatement(node As SyntaxNode) As Boolean
+            Return TypeOf node Is MultiLineIfBlockSyntax OrElse
+                   TypeOf node Is ElseIfBlockSyntax
         End Function
 
-        Protected Overrides Function HasElseClauses(ifStatement As SyntaxNode) As Boolean
-            If TypeOf ifStatement Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifStatement, MultiLineIfBlockSyntax)
+        Protected Overrides Function HasElseClauses(ifStatementNode As SyntaxNode) As Boolean
+            If TypeOf ifStatementNode Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
                 Return ifBlock.ElseIfBlocks.Count > 0 OrElse ifBlock.ElseBlock IsNot Nothing
             End If
 
             Return True
         End Function
 
-        Protected Overrides Function MergeIfStatements(parentIfStatement As SyntaxNode,
-                                                       ifStatement As SyntaxNode,
+        Protected Overrides Function MergeIfStatements(parentIfStatementNode As SyntaxNode,
+                                                       ifStatementNode As SyntaxNode,
                                                        condition As ExpressionSyntax) As SyntaxNode
-            If TypeOf parentIfStatement Is MultiLineIfBlockSyntax Then
-                Dim parentIfBlock = DirectCast(parentIfStatement, MultiLineIfBlockSyntax)
+            If TypeOf parentIfStatementNode Is MultiLineIfBlockSyntax Then
+                Dim parentIfBlock = DirectCast(parentIfStatementNode, MultiLineIfBlockSyntax)
                 Dim newIfBlock = parentIfBlock.WithIfStatement(parentIfBlock.IfStatement.WithCondition(condition))
                 Return If(newIfBlock.ElseIfBlocks.Count > 0, newIfBlock.WithElseIfBlocks(newIfBlock.ElseIfBlocks.RemoveAt(0)), newIfBlock)
-            ElseIf TypeOf parentIfStatement Is ElseIfBlockSyntax Then
-                Dim parentElseIfBlock = DirectCast(parentIfStatement, ElseIfBlockSyntax)
+            ElseIf TypeOf parentIfStatementNode Is ElseIfBlockSyntax Then
+                Dim parentElseIfBlock = DirectCast(parentIfStatementNode, ElseIfBlockSyntax)
                 Return parentElseIfBlock.WithElseIfStatement(parentElseIfBlock.ElseIfStatement.WithCondition(condition))
             End If
-            Throw ExceptionUtilities.UnexpectedValue(parentIfStatement)
+            Throw ExceptionUtilities.UnexpectedValue(parentIfStatementNode)
         End Function
     End Class
 End Namespace

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         protected abstract int LogicalExpressionSyntaxKind { get; }
 
-        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement);
+        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatementNode);
 
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument);
 

@@ -39,14 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return false;
         }
 
-        protected override bool IsIfStatement(SyntaxNode statement)
+        protected override bool IsIfStatement(SyntaxNode node)
         {
-            return statement is IfStatementSyntax;
+            return node is IfStatementSyntax;
         }
 
-        protected override ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatement)
+        protected override ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatementNode)
         {
-            return ImmutableArray.Create<SyntaxNode>(((IfStatementSyntax)ifStatement).Else);
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
+
+            return ImmutableArray.Create<SyntaxNode>(ifStatement.Else);
         }
 
         protected override SyntaxNode MergeIfStatements(

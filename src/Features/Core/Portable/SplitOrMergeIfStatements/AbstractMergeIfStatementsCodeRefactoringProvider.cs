@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     {
         protected abstract string IfKeywordText { get; }
 
-        protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatement);
+        protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode);
 
-        protected abstract bool IsIfStatement(SyntaxNode statement);
+        protected abstract bool IsIfStatement(SyntaxNode node);
 
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument);
 

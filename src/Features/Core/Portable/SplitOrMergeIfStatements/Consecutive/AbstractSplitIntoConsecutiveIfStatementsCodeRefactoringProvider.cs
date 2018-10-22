@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract int LogicalOrSyntaxKind { get; }
         protected sealed override int LogicalExpressionSyntaxKind => LogicalOrSyntaxKind;
 
-        protected abstract bool HasElseClauses(SyntaxNode ifStatement);
+        protected abstract bool HasElseClauses(SyntaxNode ifStatementNode);
 
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
-            SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
+            SyntaxNode currentIfStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
-            SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
+            SyntaxNode currentIfStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
             => new MyCodeAction(createChangedDocument, IfKeywordText);

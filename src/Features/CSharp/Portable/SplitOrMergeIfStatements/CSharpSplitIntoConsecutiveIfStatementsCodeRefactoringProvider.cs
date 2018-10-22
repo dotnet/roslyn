@@ -17,21 +17,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
         protected override int LogicalOrSyntaxKind => (int)SyntaxKind.LogicalOrExpression;
 
-        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatement)
+        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatementNode)
         {
-            if (expression.Parent is IfStatementSyntax s && s.Condition == expression)
+            if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
             {
-                ifStatement = s;
+                ifStatementNode = ifStatement;
                 return true;
             }
 
-            ifStatement = null;
+            ifStatementNode = null;
             return false;
         }
 
-        protected override bool HasElseClauses(SyntaxNode ifStatement)
+        protected override bool HasElseClauses(SyntaxNode ifStatementNode)
         {
-            return ((IfStatementSyntax)ifStatement).Else != null;
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
+
+            return ifStatement.Else != null;
         }
 
         protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(

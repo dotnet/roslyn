@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract bool IsElseClauseOfIfStatement(SyntaxNode statement, out SyntaxNode ifStatement);
+        protected abstract bool IsElseClauseOfIfStatement(SyntaxNode node, out SyntaxNode ifStatementNode);
 
-        protected abstract bool HasElseClauses(SyntaxNode ifStatement);
+        protected abstract bool HasElseClauses(SyntaxNode ifStatementNode);
 
         protected abstract SyntaxNode MergeIfStatements(
-            SyntaxNode parentIfStatement, SyntaxNode ifStatement, TExpressionSyntax condition);
+            SyntaxNode parentIfStatementNode, SyntaxNode ifStatementNode, TExpressionSyntax condition);
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
             => new MyCodeAction(createChangedDocument, IfKeywordText);

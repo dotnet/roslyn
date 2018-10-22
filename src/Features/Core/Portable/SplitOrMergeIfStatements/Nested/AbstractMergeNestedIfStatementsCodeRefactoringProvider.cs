@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatement);
+        protected abstract ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatementNode);
 
         protected abstract SyntaxNode MergeIfStatements(
-            SyntaxNode outerIfStatement, SyntaxNode innerIfStatement, TExpressionSyntax condition);
+            SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, TExpressionSyntax condition);
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
             => new MyCodeAction(createChangedDocument, IfKeywordText);

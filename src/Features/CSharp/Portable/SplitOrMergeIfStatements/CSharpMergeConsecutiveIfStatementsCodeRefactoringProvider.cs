@@ -52,33 +52,38 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return false;
         }
 
-        protected override bool IsElseClauseOfIfStatement(SyntaxNode statement, out SyntaxNode ifStatement)
+        protected override bool IsElseClauseOfIfStatement(SyntaxNode node, out SyntaxNode ifStatementNode)
         {
-            if (statement.Parent is ElseClauseSyntax elseClause &&
-                elseClause.Parent is IfStatementSyntax s)
+            if (node.Parent is ElseClauseSyntax elseClause &&
+                elseClause.Parent is IfStatementSyntax ifStatement)
             {
-                ifStatement = s;
+                ifStatementNode = ifStatement;
                 return true;
             }
 
-            ifStatement = null;
+            ifStatementNode = null;
             return false;
         }
 
-        protected override bool IsIfStatement(SyntaxNode statement)
+        protected override bool IsIfStatement(SyntaxNode node)
         {
-            return statement is IfStatementSyntax;
+            return node is IfStatementSyntax;
         }
 
-        protected override bool HasElseClauses(SyntaxNode ifStatement)
+        protected override bool HasElseClauses(SyntaxNode ifStatementNode)
         {
-            return ((IfStatementSyntax)ifStatement).Else != null;
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
+
+            return ifStatement.Else != null;
         }
 
         protected override SyntaxNode MergeIfStatements(
-            SyntaxNode parentIfStatement, SyntaxNode ifStatement, ExpressionSyntax condition)
+            SyntaxNode parentIfStatementNode, SyntaxNode ifStatementNode, ExpressionSyntax condition)
         {
-            return ((IfStatementSyntax)parentIfStatement).WithCondition(condition).WithElse(((IfStatementSyntax)ifStatement).Else);
+            var parentIfStatement = (IfStatementSyntax)parentIfStatementNode;
+            var ifStatement = (IfStatementSyntax)ifStatementNode;
+
+            return parentIfStatement.WithCondition(condition).WithElse(ifStatement.Else);
         }
     }
 }

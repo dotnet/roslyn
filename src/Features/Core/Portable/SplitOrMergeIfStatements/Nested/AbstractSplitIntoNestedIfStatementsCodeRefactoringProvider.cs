@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override int LogicalExpressionSyntaxKind => LogicalAndSyntaxKind;
 
         protected abstract SyntaxNode SplitIfStatement(
-            SyntaxNode currentIfStatement, TExpressionSyntax condition1, TExpressionSyntax condition2);
+            SyntaxNode currentIfStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
             => new MyCodeAction(createChangedDocument, IfKeywordText);
