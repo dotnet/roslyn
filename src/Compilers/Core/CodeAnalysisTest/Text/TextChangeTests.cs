@@ -786,5 +786,79 @@ namespace Microsoft.CodeAnalysis.UnitTests
             change1 = new WeakReference(c1);
             change2 = fnChange2(c1);
         }
+
+        [Fact]
+        [WorkItem(26305, "https://github.com/dotnet/roslyn/issues/26305")]
+        public void WithChangesOverlap()
+        {
+            var sourceText = SourceText.From("Hello World");
+
+            var changedText = sourceText
+                .WithChanges(new TextChange(TextSpan.FromBounds(5, 6), ""))
+                .WithChanges(new TextChange(TextSpan.FromBounds(5, 5), "_"))
+                .WithChanges(new TextChange(TextSpan.FromBounds(5, 5), "+"));
+
+            var changedText2 = sourceText.WithChanges(
+                new TextChange(TextSpan.FromBounds(5, 6), ""),
+                new TextChange(TextSpan.FromBounds(5, 5), "_"),
+                new TextChange(TextSpan.FromBounds(5, 5), "+"));
+
+            var changeList = changedText.GetTextChanges(sourceText);
+        }
+
+        [Fact]
+        [WorkItem(26305, "https://github.com/dotnet/roslyn/issues/26305")]
+        public void WithChanges()
+        {
+            var text0 = SourceText.From(@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp22
+{
+    class Class1
+    {
+        void Method()
+        {
+            Console
+
+     
+        }
+
+    }
+}");
+
+            var text1 = text0.WithChanges(new TextChange(TextSpan.FromBounds(221, 228), ""));
+            var text2 = text1.WithChanges(new TextChange(TextSpan.FromBounds(228, 229), ""));
+            var text3 = text2.WithChanges(new TextChange(TextSpan.FromBounds(228, 228), "."));
+            var text4 = text3.WithChanges(new TextChange(TextSpan.FromBounds(229, 229), "w"));
+            var text5 = text4.WithChanges(new TextChange(TextSpan.FromBounds(230, 230), "R"));
+            var text6 = text5.WithChanges(new TextChange(TextSpan.FromBounds(231, 231), "I"));
+            var text7 = text6.WithChanges(new TextChange(TextSpan.FromBounds(232, 232), "T"));
+            var text8 = text7.WithChanges(new TextChange(TextSpan.FromBounds(233, 233), "E"));
+            var text9 = text8.WithChanges(new TextChange(TextSpan.FromBounds(231, 232), ""));
+
+            var textb = text0
+                .WithChanges(new TextChange(TextSpan.FromBounds(228, 229), ""))
+                .WithChanges(new TextChange(TextSpan.FromBounds(228, 228), "."))
+                .WithChanges(new TextChange(TextSpan.FromBounds(229, 229), "w"));
+
+            var changesb = textb
+                .GetTextChanges(text0)
+                .ToList();
+
+            var textc = text0.WithChanges(
+                new TextChange(TextSpan.FromBounds(228, 229), ""),
+                new TextChange(TextSpan.FromBounds(228, 228), "."),
+                new TextChange(TextSpan.FromBounds(229, 229), "w"));
+
+            var changesc = textc
+                .GetTextChanges(text0)
+                .ToList();
+
+            var changes = text4.GetTextChanges(text2).ToList();
+        }
     }
 }
