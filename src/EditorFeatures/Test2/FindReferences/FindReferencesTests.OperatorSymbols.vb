@@ -192,7 +192,7 @@ End Class
 
         <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpFindReferencesOnOverloadedStringOperator() As Task
+        Public Async Function TestCSharpFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -214,7 +214,7 @@ class A
 
         <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestVisualBasicFindReferencesOnOverloadedStringOperator() As Task
+        Public Async Function TestVisualBasicFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
