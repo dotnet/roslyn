@@ -307,4 +307,3 @@ class C
 }", parameters: s_testParameters);
         }
     }
-}
