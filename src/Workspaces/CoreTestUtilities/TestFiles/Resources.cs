@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string DuplicatedGuidsBecomeSelfReferential => GetText("SolutionFiles.DuplicatedGuidsBecomeSelfReferential.sln");
             public static string DuplicatedGuidsBecomeCircularReferential => GetText("SolutionFiles.DuplicatedGuidsBecomeCircularReferential.sln");
             public static string EmptyLineBetweenProjectBlock => GetText("SolutionFiles.EmptyLineBetweenProjectBlock.sln");
+            public static string Issue29122_Solution => GetText("Issue29122.TestVB2.sln");
+            public static string Issue30174_Solution => GetText("Issue30174.Solution.sln");
             public static string InvalidProjectPath => GetText("SolutionFiles.InvalidProjectPath.sln");
             public static string MissingEndProject1 => GetText("SolutionFiles.MissingEndProject1.sln");
             public static string MissingEndProject2 => GetText("SolutionFiles.MissingEndProject2.sln");
@@ -124,7 +126,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ExternAlias => GetText("ProjectFiles.CSharp.ExternAlias.csproj");
                 public static string ExternAlias2 => GetText("ProjectFiles.CSharp.ExternAlias2.csproj");
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
+                public static string Issue30174_InspectedLibrary => GetText("Issue30174.InspectedLibrary.InspectedLibrary.csproj");
+                public static string Issue30174_ReferencedLibrary => GetText("Issue30174.ReferencedLibrary.ReferencedLibrary.csproj");
                 public static string MsbuildError => GetText("ProjectFiles.CSharp.MsbuildError.csproj");
+                public static string MallformedAdditionalFilePath => GetText("ProjectFiles.CSharp.MallformedAdditionalFilePath.csproj");
                 public static string NetCoreApp2_Project => GetText("NetCoreApp2.Project.csproj");
                 public static string NetCoreApp2AndLibrary_Project => GetText("NetCoreApp2AndLibrary.Project.csproj");
                 public static string NetCoreApp2AndLibrary_Library => GetText("NetCoreApp2AndLibrary.Library.csproj");
@@ -161,6 +166,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string Circular_Target => GetText("ProjectFiles.VisualBasic.Circular_Target.vbproj");
                 public static string Circular_Top => GetText("ProjectFiles.VisualBasic.Circular_Top.vbproj");
                 public static string Embed => GetText("ProjectFiles.VisualBasic.Embed.vbproj");
+                public static string Issue29122_ClassLibrary1 => GetText("Issue29122.Proj1.ClassLibrary1.vbproj");
+                public static string Issue29122_ClassLibrary2 => GetText("Issue29122.Proj2.ClassLibrary2.vbproj");
                 public static string InvalidProjectReference => GetText("ProjectFiles.VisualBasic.InvalidProjectReference.vbproj");
                 public static string NonExistentProjectReference => GetText("ProjectFiles.VisualBasic.NonExistentProjectReference.vbproj");
                 public static string UnknownProjectExtension => GetText("ProjectFiles.VisualBasic.UnknownProjectExtension.vbproj");
@@ -182,6 +189,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CSharpClass_WithConditionalAttributes => GetText("SourceFiles.CSharp.CSharpClass_WithConditionalAttributes.cs");
                 public static string CSharpConsole => GetText("SourceFiles.CSharp.CSharpConsole.cs");
                 public static string CSharpExternAlias => GetText("SourceFiles.CSharp.CSharpExternAlias.cs");
+                public static string Issue30174_InspectedClass => GetText("Issue30174.InspectedLibrary.InspectedClass.cs");
+                public static string Issue30174_SomeMetadataAttribute => GetText("Issue30174.ReferencedLibrary.SomeMetadataAttribute.cs");
                 public static string NetCoreApp2_Program => GetText("NetCoreApp2.Program.cs");
                 public static string NetCoreApp2AndLibrary_Class1 => GetText("NetCoreApp2AndLibrary.Class1.cs");
                 public static string NetCoreApp2AndLibrary_Program => GetText("NetCoreApp2AndLibrary.Program.cs");
@@ -201,6 +210,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static class FSharp
             {
                 public static string NetCoreMultiTFM_ProjectReferenceToFSharp_FSharpLib_Library = GetText("NetCoreMultiTFM_ProjectReferenceToFSharp.fsharplib.Library.fs");
+            }
+
+            public static class Text
+            {
+                public static string ValidAdditionalFile => GetText("SourceFiles.Text.ValidAdditionalFile.txt");
             }
 
             public static class VisualBasic

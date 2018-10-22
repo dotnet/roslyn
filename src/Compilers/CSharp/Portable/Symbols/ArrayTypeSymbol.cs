@@ -90,7 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateSZArray(elementType, declaringAssembly.GetSpecialType(SpecialType.System_Array), GetSZArrayInterfaces(elementType, declaringAssembly));
         }
 
-        internal abstract ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType);
+        internal ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType)
+        {
+            return ElementType.IsSameAs(elementType) ? this : WithElementTypeCore(elementType);
+        }
+
+        protected abstract ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations elementType);
 
         private static ImmutableArray<NamedTypeSymbol> GetSZArrayInterfaces(
             TypeSymbolWithAnnotations elementType,
@@ -390,35 +395,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false; 
             }
 
-            if (oldElementType.IsSameAs(newElementType))
-            {
-                result = this;
-            }
-            else
-            {
-                result = IsSZArray ?
-                    ArrayTypeSymbol.CreateSZArray(newElementType, _baseType) :
-                    ArrayTypeSymbol.CreateMDArray(newElementType, Rank, Sizes, LowerBounds, _baseType);
-            }
-
+            result = WithElementType(newElementType);
             return true;
         }
 
         internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
-            TypeSymbolWithAnnotations oldElementType = ElementType;
-            TypeSymbolWithAnnotations newElementType = oldElementType.SetUnknownNullabilityForReferenceTypes();
+            return WithElementType(ElementType.SetUnknownNullabilityForReferenceTypes());
+        }
 
-            if (oldElementType.IsSameAs(newElementType))
-            {
-                return this;
-            }
-            else
-            {
-                return IsSZArray ?
-                    ArrayTypeSymbol.CreateSZArray(newElementType, _baseType) :
-                    ArrayTypeSymbol.CreateMDArray(newElementType, Rank, Sizes, LowerBounds, _baseType);
-            }
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            TypeSymbolWithAnnotations elementType = ElementType.MergeNullability(((ArrayTypeSymbol)other).ElementType, VarianceKind.None, out hadNullabilityMismatch);
+            return WithElementType(elementType);
         }
 
         public override Accessibility DeclaredAccessibility
@@ -528,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _interfaces = constructedInterfaces;
             }
 
-            internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations newElementType)
+            protected override ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations newElementType)
             {
                 var newInterfaces = _interfaces.SelectAsArray((i, t) => i.OriginalDefinition.Construct(t), newElementType.TypeSymbol);
                 return new SZArray(newElementType, BaseTypeNoUseSiteDiagnostics, newInterfaces);
@@ -618,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType)
+            protected override ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations elementType)
             {
                 return new MDArrayNoSizesOrBounds(elementType, Rank, BaseTypeNoUseSiteDiagnostics);
             }
@@ -651,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lowerBounds = lowerBounds;
             }
 
-            internal override ArrayTypeSymbol WithElementType(TypeSymbolWithAnnotations elementType)
+            protected override ArrayTypeSymbol WithElementTypeCore(TypeSymbolWithAnnotations elementType)
             {
                 return new MDArrayWithSizesAndBounds(elementType, Rank, _sizes, _lowerBounds, BaseTypeNoUseSiteDiagnostics);
             }

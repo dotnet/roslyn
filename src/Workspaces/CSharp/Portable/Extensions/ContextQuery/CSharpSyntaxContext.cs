@@ -340,5 +340,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             return new CSharpTypeInferenceService();
         }
+
+        /// <summary>
+        /// Is this a possible position for an await statement (`await using` or `await foreach`)?
+        /// </summary>
+        internal bool IsAwaitStatementContext(int position, CancellationToken cancellationToken)
+        {
+            var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.GetPreviousToken().IsBeginningOfStatementContext();
+        }
     }
 }

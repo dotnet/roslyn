@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SourceAssemblySymbol _sourceAssembly;
 
         private readonly Binder _binder;
+
+        /// <summary>
+        /// Conversions with nullability and unknown matching any.
+        /// </summary>
         private readonly Conversions _conversions;
 
         /// <summary>
@@ -159,6 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        // For purpose of nullability analysis, awaits create pending branches, so async usings do too
+        public sealed override bool AwaitUsingAddsPendingBranch => true;
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
@@ -1272,39 +1279,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(VisitRvalueWithResult(element));
             }
 
+            bool checkConversions = true;
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
             if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
-                var resultTypes = resultBuilder.ToImmutable();
-                // https://github.com/dotnet/roslyn/issues/27961 Initial binding calls InferBestType(ImmutableArray<BoundExpression>, ...)
-                // overload. Why are we calling InferBestType(ImmutableArray<TypeSymbolWithAnnotations>, ...) here?
-                // https://github.com/dotnet/roslyn/issues/27961 InferBestType(ImmutableArray<BoundExpression>, ...)
-                // uses a HashSet<TypeSymbol> to reduce the candidates to the unique types before comparing.
-                // Should do the same here.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                // If there are error types, use the first error type. (Matches InferBestType(ImmutableArray<BoundExpression>, ...).)
-                var bestType = resultTypes.FirstOrDefault(t => !t.IsNull && t.IsErrorType());
-                if (bestType.IsNull)
+                TypeSymbol bestType = null;
+                if (!node.HasErrors)
                 {
-                    bestType = BestTypeInferrer.InferBestType(resultTypes, _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
+                    var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+                    for (int i = 0; i < n; i++)
+                    {
+                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(elementBuilder[i], resultBuilder[i]));
+                    }
+                    var placeholders = placeholderBuilder.ToImmutableAndFree();
+                    bool hadNullabilityMismatch;
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, out hadNullabilityMismatch, ref useSiteDiagnostics);
+                    if (hadNullabilityMismatch)
+                    {
+                        ReportDiagnostic(ErrorCode.WRN_NoBestNullabilityArrayElements, node.Syntax);
+                        checkConversions = false;
+                    }
+                }
+                if ((object)bestType == null)
+                {
+                    elementType = elementType.SetUnknownNullabilityForReferenceTypes();
+                    checkConversions = false;
                 }
                 else
                 {
-                    // Mark the error type as null-oblivious.
-                    bestType = TypeSymbolWithAnnotations.Create(bestType.TypeSymbol);
-                }
-                // https://github.com/dotnet/roslyn/issues/27961 Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
-                // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
-                // (See similar code for conditional expressions: ErrorCode.WRN_NoBestNullabilityConditionalExpression.)
-                if (!bestType.IsNull)
-                {
-                    elementType = bestType;
+                    elementType = TypeSymbolWithAnnotations.Create(bestType, isNullableIfReferenceType: BestTypeInferrer.GetIsNullable(resultBuilder));
                 }
                 arrayType = arrayType.WithElementType(elementType);
             }
 
-            if (!elementType.IsNull && !elementType.IsValueType)
+            if (checkConversions && !elementType.IsValueType)
             {
                 for (int i = 0; i < n; i++)
                 {
@@ -1344,6 +1354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!IsConditionalState);
             Debug.Assert(!node.Expression.Type.IsValueType);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(node.Expression);
 
             var type = _resultType.TypeSymbol as ArrayTypeSymbol;
@@ -1353,7 +1365,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(i);
             }
 
-            _resultType = type?.ElementType ?? default;
+            if (node.Indices.Length == 1 &&
+                node.Indices[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                _resultType = TypeSymbolWithAnnotations.Create(type);
+            }
+            else
+            {
+                _resultType = type?.ElementType ?? default;
+            }
+
             return null;
         }
 
@@ -1825,14 +1846,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   object[] a = ...;
                 //   IEnumerable<object?> b = ...;
                 //   var c = true ? a : b;
+                BoundExpression consequencePlaceholder = CreatePlaceholderIfNecessary(consequence, consequenceResult);
+                BoundExpression alternativePlaceholder = CreatePlaceholderIfNecessary(alternative, alternativeResult);
+                bool hadNullabilityMismatch;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(
-                    createPlaceholderIfNecessary(consequence, consequenceResult),
-                    createPlaceholderIfNecessary(alternative, alternativeResult),
-                    _conversions,
-                    out _,
-                    ref useSiteDiagnostics);
-                if (resultType is null)
+                // https://github.com/dotnet/roslyn/issues/30432: InferBestTypeForConditionalOperator should use node.IsRef.
+                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, out hadNullabilityMismatch, ref useSiteDiagnostics);
+                Debug.Assert((object)resultType != null);
+                if (hadNullabilityMismatch)
                 {
                     ReportDiagnostic(
                         ErrorCode.WRN_NoBestNullabilityConditionalExpression,
@@ -1891,13 +1912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            BoundExpression createPlaceholderIfNecessary(BoundExpression expr, TypeSymbolWithAnnotations type)
-            {
-                return type.IsNull ?
-                    expr :
-                    new BoundExpressionWithNullability(expr.Syntax, expr, type.IsNullable, type.TypeSymbol);
-            }
-
             (BoundExpression, Conversion, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
                 Conversion conversion;
@@ -1914,6 +1928,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return (operand, conversion, _resultType);
             }
+        }
+
+        private static BoundExpression CreatePlaceholderIfNecessary(BoundExpression expr, TypeSymbolWithAnnotations type)
+        {
+            return type.IsNull ?
+                expr :
+                new BoundExpressionWithNullability(expr.Syntax, expr, type.IsNullable, type.TypeSymbol);
         }
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
@@ -1933,6 +1954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
             {
                 VisitRvalue(receiverOpt);
+                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+                // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
                 // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
             }
@@ -2105,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If you pass in a method symbol, its types will be re-inferred and the re-inferred method will be returned.
+        /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
         private MethodSymbol VisitArguments(
             BoundExpression node,
@@ -2565,6 +2588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes: out ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
             refKinds.Free();
+            bool hadNullabilityMismatch;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
                 _binder,
@@ -2574,13 +2598,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 arguments,
+                out hadNullabilityMismatch,
                 ref useSiteDiagnostics,
                 getIsNullableOpt: expr => GetIsNullable(expr));
-            if (result.Success)
+            if (!result.Success)
             {
-                return definition.Construct(result.InferredTypeArguments);
+                return method;
             }
-            return method;
+            if (hadNullabilityMismatch)
+            {
+                ReportDiagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, node.Syntax, definition);
+            }
+            return definition.Construct(result.InferredTypeArguments);
         }
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<TypeSymbolWithAnnotations> argumentResults)
@@ -2796,7 +2825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbolDefContainer = symbolDef.ContainingType;
             while (true)
             {
-                if (containingType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.ConsiderEverything))
+                if (containingType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
                 {
                     if (symbolDefContainer.IsTupleType)
                     {
@@ -3008,11 +3037,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !_conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics).Exists;
         }
 
-        private static bool HasTopLevelNullabilityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, bool requireIdentity)
+        private bool HasTopLevelNullabilityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, bool requireIdentity)
         {
             return requireIdentity ?
-                ConversionsBase.HasTopLevelNullabilityIdentityConversion(source, destination) :
-                ConversionsBase.HasTopLevelNullabilityImplicitConversion(source, destination);
+                _conversions.HasTopLevelNullabilityIdentityConversion(source, destination) :
+                _conversions.HasTopLevelNullabilityImplicitConversion(source, destination);
         }
 
         /// <summary>
@@ -3287,6 +3316,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null)
             {
                 VisitRvalue(receiverOpt);
+                // https://github.com/dotnet/roslyn/issues/30563: Should not check receiver here.
+                // That check should be handled when applying the method group conversion,
+                // when we have a specific method, to avoid reporting null receiver warnings
+                // for extension method delegates.
                 CheckPossibleNullReceiver(receiverOpt);
             }
 
@@ -3656,12 +3689,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiverOpt = node.ReceiverOpt;
             VisitRvalue(receiverOpt);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiverOpt);
 
             // https://github.com/dotnet/roslyn/issues/29964 Update indexer based on inferred receiver type.
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            _resultType = node.Indexer.Type;
+            // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
+            if (node.Arguments.Length == 1 &&
+                node.Arguments[0].Type == compilation.GetWellKnownType(WellKnownType.System_Range))
+            {
+                _resultType = TypeSymbolWithAnnotations.Create(node.Type);
+            }
+            else
+            {
+                _resultType = node.Indexer.Type;
+            }
             return null;
         }
 
@@ -3682,6 +3726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!member.IsStatic)
                 {
                     member = AsMemberOfResultType(member);
+                    // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
+                    // after RHS has been visited, and only if the receiver has not changed.
                     CheckPossibleNullReceiver(receiverOpt);
                 }
 
@@ -3946,14 +3992,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
-            if (node.Type.IsValueType || node.HasErrors || (object)node.GetResult == null)
+            if (node.Type.IsValueType || node.HasErrors || (object)node.AwaitableInfo.GetResult == null)
             {
                 SetResult(node);
             }
             else
             {
                 // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
-                _resultType = node.GetResult.ReturnType;
+                _resultType = node.AwaitableInfo.GetResult.ReturnType;
             }
             return result;
         }
@@ -4190,6 +4236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverOpt = node.ReceiverOpt;
             if (!node.Event.IsStatic)
             {
+                // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+                // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
             }
             VisitRvalue(node.Argument);
@@ -4278,6 +4326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
+            // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
+            // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiver);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
 
@@ -4293,6 +4343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckPossibleNullReceiver(BoundExpression receiverOpt)
         {
+            Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
             {
 #if DEBUG
@@ -4304,6 +4355,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !resultType.IsValueType)
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                    int slot = MakeSlot(receiverOpt);
+                    if (slot > 0)
+                    {
+                        this.State[slot] = true;
+                    }
                 }
             }
         }
