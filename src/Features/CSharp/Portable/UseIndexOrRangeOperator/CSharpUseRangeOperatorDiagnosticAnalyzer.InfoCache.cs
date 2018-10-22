@@ -3,7 +3,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using System.Diagnostics;
     using static Helpers;
@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
                 _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 
-                // Always allow using System.Range indexers with System.String.  The compiler has
-                // hard-coded knowledge on how to use this type, even if there is no this[Range]
-                // indexer declared on it directly.
+                // Always allow using System.Range indexers with System.String.Substring.  The
+                // compiler has hard-coded knowledge on how to use this type, even if there is no
+                // this[Range] indexer declared on it directly.
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
                 var substringMethod = stringType.GetMembers(nameof(string.Substring))
                                                 .OfType<IMethodSymbol>()
                                                 .FirstOrDefault(m => IsSliceLikeMethod(m));
 
-                _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireIndexer: false);
+                _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
             }
 
             private IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
 
             public bool TryGetMemberInfo(IMethodSymbol sliceLikeMethod, out MemberInfo memberInfo)
             {
-                Debug.Assert(IsSliceLikeMethod(sliceLikeMethod));
-
-                memberInfo = _methodToMemberInfo.GetOrAdd(sliceLikeMethod, m => ComputeMemberInfo(m, requireIndexer: true));
+                memberInfo = _methodToMemberInfo.GetOrAdd(sliceLikeMethod, m => ComputeMemberInfo(m, requireRangeMember: true));
                 return memberInfo.LengthLikeProperty != null;
             }
 
-            private MemberInfo ComputeMemberInfo(IMethodSymbol sliceLikeMethod, bool requireIndexer)
+            private MemberInfo ComputeMemberInfo(IMethodSymbol sliceLikeMethod, bool requireRangeMember)
             {
+                Debug.Assert(IsSliceLikeMethod(sliceLikeMethod));
+
                 // Check that the type has an int32 'Length' or 'Count' property. If not, we don't
                 // consider it something indexable.
                 var containingType = sliceLikeMethod.ContainingType;
@@ -64,50 +64,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                     return default;
                 }
 
+                if (!requireRangeMember)
+                {
+                    return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
+                }
+
                 // A Slice method can either be paired with an Range-taking indexer on the type, or
                 // an Range-taking overload.
-
-                IMethodSymbol sliceRangeMethodOpt = null;
                 if (sliceLikeMethod.ReturnType.Equals(containingType))
                 {
                     // it's a method like:  MyType MyType.Slice(int start, int length).  Look for an
                     // indexer like  `MyType MyType.this[Range range]`. If we can't find one return
                     // 'default' so we'll consider this named-type non-viable.
-                    if (requireIndexer)
+                    var indexer = GetIndexer(containingType, _rangeType, containingType);
+                    if (indexer != null)
                     {
-                        var indexer = GetIndexer(containingType, _rangeType);
-                        if (indexer == null)
-                        {
-                            return default;
-                        }
-
-                        // The "this[Range]" indexer has to return the same type as the Slice method.
-                        // If not, this type isn't one that matches the pattern we're looking for.
-                        if (!indexer.Type.Equals(sliceLikeMethod.ReturnType))
-                        {
-                            return default;
-                        }
+                        return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                     }
                 }
-                else
+
+                // it's a method like:   `SomeType MyType.Slice(int start, int length)`.  Look 
+                // for an overload like: `SomeType MyType.Slice(Range)`
+                var overloadedRangeMethod = GetOverload(sliceLikeMethod, _rangeType);
+                if (overloadedRangeMethod != null)
                 {
-                    // it's a method like:   `SomeType MyType.Slice(int start, int length)`.  Look 
-                    // for an overload like: `SomeType MyType.Slice(Range)`
-                    sliceRangeMethodOpt =
-                        containingType.GetMembers(sliceLikeMethod.Name)
-                                      .OfType<IMethodSymbol>()
-                                      .Where(m => IsPublicInstance(m) &&
-                                                  m.Parameters.Length == 1 &&
-                                                  m.Parameters[0].Type.Equals(_rangeType) &&
-                                                  m.ReturnType.Equals(sliceLikeMethod.ReturnType))
-                                      .FirstOrDefault();
-                    if (sliceRangeMethodOpt == null)
-                    {
-                        return default;
-                    }
+                    return new MemberInfo(lengthLikeProperty, overloadedRangeMethod);
                 }
 
-                return new MemberInfo(lengthLikeProperty, sliceRangeMethodOpt);
+                // A slice-like method that we can't convert.
+                return default;
             }
         }
     }

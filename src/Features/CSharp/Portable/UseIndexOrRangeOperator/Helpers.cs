@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     internal static class Helpers
     {
@@ -24,11 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         public static bool IsPublicInstance(ISymbol symbol)
             => !symbol.IsStatic && symbol.DeclaredAccessibility == Accessibility.Public;
 
-        public static IPropertySymbol GetIndexer(INamedTypeSymbol namedType, ITypeSymbol parameterType)
+        public static IPropertySymbol GetIndexer(INamedTypeSymbol namedType, ITypeSymbol parameterType, ITypeSymbol returnType)
             => namedType.GetMembers()
                         .OfType<IPropertySymbol>()
                         .Where(p => p.IsIndexer &&
                                     IsPublicInstance(p) &&
+                                    returnType.Equals(p.Type) &&
                                     p.Parameters.Length == 1 &&
                                     p.Parameters[0].Type.Equals(parameterType))
                         .FirstOrDefault();
@@ -65,10 +66,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
 
         /// <summary>
+        /// Look for methods like "SomeType MyType.Get(int)".  Also matches against the 'getter'
+        /// of an indexer like 'SomeType MyType.this[int]`
+        /// </summary>
+        public static bool IsIntIndexingMethod(IMethodSymbol method)
+            => method != null &&
+               (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.Ordinary) &&
+               IsPublicInstance(method) &&
+               method.Parameters.Length == 1 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Int32;
+
+        /// <summary>
         /// Look for methods like "SomeType MyType.Slice(int start, int length)".
         /// </summary>
         public static bool IsSliceLikeMethod(IMethodSymbol method)
-            => IsPublicInstance(method) &&
+            => method != null &&
+               IsPublicInstance(method) &&
                method.Parameters.Length == 2 &&
                IsSliceFirstParameter(method.Parameters[0]) &&
                IsSliceSecondParameter(method.Parameters[1]);
@@ -80,5 +93,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         private static bool IsSliceSecondParameter(IParameterSymbol parameter)
             => parameter.Type.SpecialType == SpecialType.System_Int32 &&
                (parameter.Name == "count" || parameter.Name == "length");
+
+        public static IMethodSymbol GetOverload(IMethodSymbol method, ITypeSymbol parameterType)
+            => method.MethodKind != MethodKind.Ordinary
+                ? null
+                : method.ContainingType.GetMembers(method.Name)
+                                       .OfType<IMethodSymbol>()
+                                       .Where(m => IsPublicInstance(m) &&
+                                              m.Parameters.Length == 1 &&
+                                              m.Parameters[0].Type.Equals(parameterType) &&
+                                              m.ReturnType.Equals(method.ReturnType))
+                                       .FirstOrDefault();
     }
 }

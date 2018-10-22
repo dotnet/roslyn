@@ -3,13 +3,13 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.UseIndexOperator;
+using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOperator
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
 {
     public class UseIndexOperatorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -245,6 +245,64 @@ class C
     void Goo(S s)
     {
         var v = s[[||]s.Count - 2];
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMethodToMethod()
+        {
+            await TestAsync(
+@"
+namespace System { class Index { } }
+struct S { public int Length { get; } public int Get(int i); public int Get(System.Index i); }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s.Get([||]s.Length - 1);
+    }
+}",
+@"
+namespace System { class Index { } }
+struct S { public int Length { get; } public int Get(int i); public int Get(System.Index i); }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s.Get(^1);
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMethodToMethodMissingIndexIndexer()
+        {
+            await TestMissingAsync(
+@"
+namespace System { class Index { } }
+struct S { public int Length { get; } public int Get(int i); }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s.Get([||]s.Length - 1);
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMethodToMethodWithIntIndexer()
+        {
+            await TestMissingAsync(
+@"
+namespace System { class Index { } }
+struct S { public int Length { get; } public int Get(int i); public int this[int i] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s.Get([||]s.Length - 1);
     }
 }", parameters: s_testParameters);
         }

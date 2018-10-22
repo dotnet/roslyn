@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using static Helpers;
 

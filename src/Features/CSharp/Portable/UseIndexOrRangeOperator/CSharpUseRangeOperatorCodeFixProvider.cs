@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using static CSharpUseRangeOperatorDiagnosticAnalyzer;
     using static Helpers;

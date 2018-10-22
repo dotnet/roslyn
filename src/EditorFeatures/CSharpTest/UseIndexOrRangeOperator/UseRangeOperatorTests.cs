@@ -3,13 +3,13 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.UseIndexOperator;
+using Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOperator
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
 {
     public class UseRangeOperatorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {

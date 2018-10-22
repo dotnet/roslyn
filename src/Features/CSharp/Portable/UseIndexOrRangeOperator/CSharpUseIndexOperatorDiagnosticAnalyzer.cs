@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
+    using System;
+    using System.Threading;
     using static Helpers;
 
     /// <summary>
@@ -43,7 +45,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 context.RegisterOperationAction(
                     c => AnalyzePropertyReference(c, infoCache),
                     OperationKind.PropertyReference);
+
+                context.RegisterOperationAction(
+                    c => AnalyzeInvocation(c, infoCache),
+                    OperationKind.Invocation);
             });
+        }
+
+        private void AnalyzeInvocation(OperationAnalysisContext context, InfoCache infoCache)
+        {
+            var cancellationToken = context.CancellationToken;
+            var invocationOperation = (IInvocationOperation)context.Operation;
+
+            // Make sure we're actually on an invocation something like `s.Get(...)`.
+            var invocationSyntax = invocationOperation.Syntax as InvocationExpressionSyntax;
+            if (invocationSyntax is null)
+            {
+                return;
+            }
+
+            var instance = invocationOperation.Instance;
+            var targetMethod = invocationOperation.TargetMethod;
+            var arguments = invocationOperation.Arguments;
+
+            AnalyzeInvokedMember(
+                context, infoCache, invocationOperation,
+                instance, targetMethod, arguments, cancellationToken);
         }
 
         private void AnalyzePropertyReference(
@@ -66,8 +93,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
+            var instance = propertyReference.Instance;
+            var targetMethod = property.GetMethod;
+            var arguments = propertyReference.Arguments;
+
+            AnalyzeInvokedMember(
+                context, infoCache, propertyReference, 
+                instance, targetMethod, arguments, cancellationToken);
+        }
+
+        private void AnalyzeInvokedMember(
+            OperationAnalysisContext context, InfoCache infoCache, IOperation invocation,
+            IOperation instance, IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, 
+            CancellationToken cancellationToken)
+        {
             // Only supported on C# 8 and above.
-            var syntaxTree = elementAccess.SyntaxTree;
+            var syntaxTree = invocation.Syntax.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
             {
@@ -87,40 +128,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
                 return;
             }
 
-            // Needs to be an indexer with a single int argument.
-            var indexer = property;
-            if (indexer.Parameters.Length != 1 ||
-                indexer.Parameters[0].Type.SpecialType != SpecialType.System_Int32)
-            {
-                return;
-            }
-
-            // Make sure this is a type that has both a Length/Count property, as well
-            // as an indexer that takes a System.Index.
-            var lengthLikeProperty = infoCache.GetLengthLikeProperty(indexer.ContainingType);
-            if (lengthLikeProperty is null)
-            {
-                return;
-            }
-
             // look for `s[s.Length - value]` and convert to `s[^val]`
 
-            // Needs to have the one arg for `[s.Length - value]`
-            if (propertyReference.Instance is null ||
-                propertyReference.Arguments.Length != 1)
+            // Needs to have the one arg for `[s.Length - value]`, and that arg needs to be
+            // a subtraction.
+            if (instance is null ||
+                arguments.Length != 1 ||
+                !IsSubtraction(arguments[0], out var subtraction))
             {
                 return;
             }
 
-            // Arg needs to be a subtraction for: `s.Length - value`
-            // And left side of the subtraction needs to be `s.Length`
-            var arg = propertyReference.Arguments[0];
-            if (!IsSubtraction(arg, out var subtraction) ||
-                !IsInstanceLengthCheck(lengthLikeProperty, propertyReference.Instance, subtraction.LeftOperand))
+            // Ok, looks promising.  We're indexing in with some subtraction expression.
+            // Examine the type this indexer is in to see if there's another meber that
+            // takes a System.Index that we can convert to.
+            //
+            // Also ensure that the left side of the subtraction : `s.Length - value` is
+            // actually getting the length off hte same instance we're indexing into.
+            if (!IsIntIndexingMethod(targetMethod) ||
+                !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo) ||
+                !IsInstanceLengthCheck(memberInfo.LengthLikeProperty, instance, subtraction.LeftOperand))
             {
                 return;
             }
 
+            // Everything looks good.  We can update this to use the System.Index member instead.
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,

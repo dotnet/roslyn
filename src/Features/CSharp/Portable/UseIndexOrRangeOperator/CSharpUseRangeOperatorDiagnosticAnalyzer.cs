@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using static Helpers;
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOperator
         {
             var properties = ImmutableDictionary<string, string>.Empty.Add(rangeKind, rangeKind);
 
-            if (memberInfo.SliceRangeMethodOpt == null)
+            if (memberInfo.OverloadedMethodOpt == null)
             {
                 properties = properties.Add(UseIndexer, UseIndexer);
             }
