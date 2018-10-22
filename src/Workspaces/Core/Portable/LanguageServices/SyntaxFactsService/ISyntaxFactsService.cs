@@ -219,6 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
         bool IsStatement(SyntaxNode node);
+        bool IsExecutableStatement(SyntaxNode node);
         bool IsParameter(SyntaxNode node);
         bool IsVariableDeclarator(SyntaxNode node);
         bool IsDeconstructionAssignment(SyntaxNode node);

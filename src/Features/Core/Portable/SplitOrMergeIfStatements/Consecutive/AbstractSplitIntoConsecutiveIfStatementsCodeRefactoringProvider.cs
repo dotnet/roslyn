@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
-            if (!syntaxFacts.IsStatement(ifStatement) ||
+            if (!syntaxFacts.IsExecutableStatement(ifStatement) ||
                 !syntaxFacts.IsExecutableBlock(ifStatement.Parent))
             {
                 return false;

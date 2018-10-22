@@ -280,6 +280,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsStatement(SyntaxNode node)
             => node is StatementSyntax;
 
+        public bool IsExecutableStatement(SyntaxNode node)
+            => node is StatementSyntax;
+
         public bool IsParameter(SyntaxNode node)
             => node is ParameterSyntax;
 

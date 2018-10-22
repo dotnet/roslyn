@@ -274,6 +274,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is StatementSyntax
         End Function
 
+        Public Function IsExecutableStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExecutableStatement
+            Return TypeOf node Is ExecutableStatementSyntax
+        End Function
+
         Public Function IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
             Return TypeOf node Is ParameterSyntax
         End Function
