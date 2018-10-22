@@ -17,16 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         protected override int LogicalAndSyntaxKind => (int)SyntaxKind.LogicalAndExpression;
 
         protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatementNode)
-        {
-            if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
-            {
-                ifStatementNode = ifStatement;
-                return true;
-            }
-
-            ifStatementNode = null;
-            return false;
-        }
+            => Helpers.IsConditionOfIfStatement(expression, out ifStatementNode);
 
         protected override SyntaxNode SplitIfStatement(
             SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)

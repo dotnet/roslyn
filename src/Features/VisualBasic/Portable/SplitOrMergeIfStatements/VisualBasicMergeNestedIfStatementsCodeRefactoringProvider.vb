@@ -47,16 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         End Function
 
         Protected Overrides Function GetElseClauses(ifStatementNode As SyntaxNode) As ImmutableArray(Of SyntaxNode)
-            If TypeOf ifStatementNode Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
-                Return ImmutableArray.ToImmutableArray(Of SyntaxNode)(ifBlock.ElseIfBlocks).Add(ifBlock.ElseBlock)
-            ElseIf TypeOf ifStatementNode Is ElseIfBlockSyntax Then
-                Dim elseIfBlock = DirectCast(ifStatementNode, ElseIfBlockSyntax)
-                Dim ifBlock = DirectCast(elseIfBlock.Parent, MultiLineIfBlockSyntax)
-                Dim nextElseIfBlocks = ifBlock.ElseIfBlocks.RemoveRange(0, ifBlock.ElseIfBlocks.IndexOf(elseIfBlock) + 1)
-                Return ImmutableArray.ToImmutableArray(Of SyntaxNode)(nextElseIfBlocks).Add(ifBlock.ElseBlock)
-            End If
-            Throw ExceptionUtilities.UnexpectedValue(ifStatementNode)
+            Return Helpers.GetElseClauses(ifStatementNode).ToImmutableArray()
         End Function
 
         Protected Overrides Function MergeIfStatements(outerIfStatementNode As SyntaxNode,

@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private static SyntaxNode GetPreviousStatement(ISyntaxFactsService syntaxFacts, SyntaxNode statement)
         {
-            if (!syntaxFacts.IsExecutableBlock(statement.Parent))
+            if (!syntaxFacts.IsStatement(statement) ||
+                !syntaxFacts.IsExecutableBlock(statement.Parent))
             {
                 return null;
             }

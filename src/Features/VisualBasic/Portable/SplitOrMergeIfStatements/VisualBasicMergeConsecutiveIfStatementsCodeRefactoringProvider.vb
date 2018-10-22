@@ -79,12 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         End Function
 
         Protected Overrides Function HasElseClauses(ifStatementNode As SyntaxNode) As Boolean
-            If TypeOf ifStatementNode Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
-                Return ifBlock.ElseIfBlocks.Count > 0 OrElse ifBlock.ElseBlock IsNot Nothing
-            End If
-
-            Return True
+            Return Helpers.GetElseClauses(ifStatementNode).Count > 0
         End Function
 
         Protected Overrides Function MergeIfStatements(firstIfStatementNode As SyntaxNode,

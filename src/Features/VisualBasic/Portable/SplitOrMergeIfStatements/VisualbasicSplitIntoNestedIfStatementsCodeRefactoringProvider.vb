@@ -16,22 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         Protected Overrides ReadOnly Property LogicalAndSyntaxKind As Integer = SyntaxKind.AndAlsoExpression
 
         Protected Overrides Function IsConditionOfIfStatement(expression As SyntaxNode, ByRef ifStatementNode As SyntaxNode) As Boolean
-            If TypeOf expression.Parent Is IfStatementSyntax AndAlso
-               DirectCast(expression.Parent, IfStatementSyntax).Condition Is expression AndAlso
-               TypeOf expression.Parent.Parent Is MultiLineIfBlockSyntax Then
-                ifStatementNode = expression.Parent.Parent
-                Return True
-            End If
-
-            If TypeOf expression.Parent Is ElseIfStatementSyntax AndAlso
-               DirectCast(expression.Parent, ElseIfStatementSyntax).Condition Is expression AndAlso
-               TypeOf expression.Parent.Parent Is ElseIfBlockSyntax Then
-                ifStatementNode = expression.Parent.Parent
-                Return True
-            End If
-
-            ifStatementNode = Nothing
-            Return False
+            Return Helpers.IsConditionOfIfStatement(expression, ifStatementNode)
         End Function
 
         Protected Overrides Function SplitIfStatement(ifStatementNode As SyntaxNode,
