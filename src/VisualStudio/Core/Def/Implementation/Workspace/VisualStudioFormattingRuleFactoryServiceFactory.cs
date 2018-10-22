@@ -46,13 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private bool IsContainedDocument(Document document)
             {
                 var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace == null)
-                {
-                    return false;
-                }
-
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id);
-                return containedDocument is ContainedDocument;
+                return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
             }
 
             public IFormattingRule CreateRule(Document document, int position)
@@ -63,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return _noopRule;
                 }
 
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
                 if (containedDocument == null)
                 {
                     return _noopRule;
@@ -123,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return changes;
                 }
 
-                var containedDocument = visualStudioWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+                var containedDocument = visualStudioWorkspace.TryGetContainedDocument(document.Id);
                 if (containedDocument == null)
                 {
                     return changes;

@@ -5827,7 +5827,6 @@ class C
         public void NullableReferenceTypes()
         {
             var source = @"
-[module: System.Runtime.CompilerServices.NonNullTypes(true)]
 class A<T>
 {
 }
@@ -5837,7 +5836,7 @@ class B
     static object?[] F2(object[]? o) => null;
     static A<object>? F3(A<object?> o) => null;
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
             var formatWithoutNonNullableModifier = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,

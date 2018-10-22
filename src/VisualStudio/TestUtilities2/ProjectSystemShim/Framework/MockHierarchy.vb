@@ -5,6 +5,7 @@ Imports Microsoft.VisualStudio.OLE.Interop
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Utilities
+Imports System.IO
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Public NotInheritable Class MockHierarchy
@@ -70,7 +71,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function GetCanonicalName(itemid As UInteger, ByRef pbstrName As String) As Integer Implements IVsHierarchy.GetCanonicalName
-            Throw New NotImplementedException()
+            If _hierarchyItems.TryGetValue(itemid, pbstrName) Then
+                Return VSConstants.S_OK
+            Else
+                Return VSConstants.E_FAIL
+            End If
         End Function
 
         Public Function GetGuidProperty(itemid As UInteger, propid As Integer, ByRef pguid As Guid) As Integer Implements IVsHierarchy.GetGuidProperty

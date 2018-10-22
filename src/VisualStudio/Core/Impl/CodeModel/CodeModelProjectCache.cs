@@ -29,9 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private EnvDTE.CodeModel _rootCodeModel;
         private bool _zombied;
 
-        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
         {
-            _state = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace);
+            _state = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
         }

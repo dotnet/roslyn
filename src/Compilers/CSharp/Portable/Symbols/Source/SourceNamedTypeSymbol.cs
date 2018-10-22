@@ -750,8 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
-                bool value = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().NonNullTypes = value;
+                // NonNullTypesAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else
             {
@@ -928,8 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
-                return data?.NonNullTypes ?? base.NonNullTypes;
+                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
             }
         }
 
@@ -1229,6 +1228,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeSymbolWithAnnotations.Create(baseType)));
                 }
+            }
+
+            bool? nonNullTypes = NonNullTypes;
+            if (nonNullTypes.HasValue && nonNullTypes != ((Symbol)ContainingType ?? ContainingModule).NonNullTypes)
+            {
+                AddSynthesizedAttribute(ref attributes,
+                                        compilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
             }
         }
 

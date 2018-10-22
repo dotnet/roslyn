@@ -1114,7 +1114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            Debug.Assert(part1.NonNullTypes == part2.NonNullTypes);
             var typeParameters2 = part2.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(nonNullTypesContext: part1, typeParameters1, indexedTypeParameters, allowAlpha: true);

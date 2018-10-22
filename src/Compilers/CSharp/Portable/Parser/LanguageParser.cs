@@ -9522,7 +9522,7 @@ tryAgain:
 
                     case SyntaxKind.ExclamationToken:
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
-                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureStaticNullChecking);
+                        expr = CheckFeatureAvailability(expr, MessageID.IDS_FeatureNullableReferenceTypes);
                         break;
 
                     default:

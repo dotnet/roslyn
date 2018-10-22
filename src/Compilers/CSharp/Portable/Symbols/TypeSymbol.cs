@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CSharpCompilation compilation;
 
-            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
+            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                 !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
                 (compilation = implementingMember.DeclaringCompilation) != null)
             {
