@@ -166,11 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            if (!CheckOptions(binaryExpression, cancellationToken))
-            {
-                return;
-            }
-
             // Only supported on C# 8 and above.
             var syntaxTree = binaryExpression.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
