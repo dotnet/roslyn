@@ -170,6 +170,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
+            if (symbol is IMethodSymbol methodSymbol &&
+                methodSymbol.MethodKind == MethodKind.BuiltinOperator)
+            {
+                var comparer = SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer;
+
+                // see if we can map the built-in language operator to a real method
+                // on the containing type of the symbol.
+                var mapped = symbol.ContainingType.GetMembers(methodSymbol.Name)
+                                                  .OfType<IMethodSymbol>()
+                                                  .FirstOrDefault(s => s.Parameters.SequenceEqual(methodSymbol.Parameters, comparer));
+                symbol = mapped ?? symbol;
+            }
+
             return symbol;
         }
 

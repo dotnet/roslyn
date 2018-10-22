@@ -97,18 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // root definition node for it.  That node won't be navigable.
             if (definition.Kind != SymbolKind.Namespace)
             {
-                if (definition is IMethodSymbol methodSymbol &&
-                    methodSymbol.MethodKind == MethodKind.BuiltinOperator)
-                {
-                    // Built-in operators (like string's operator `==`) don't have any actual
-                    // locations.  But we still want to be able to go-to def on them. Treat them as
-                    // a metadata-definition as that's how they're viewed by the rest of the
-                    // language service.
-                    return DefinitionItem.CreateMetadataDefinition(
-                        tags, displayParts, nameDisplayParts, project,
-                        definition, properties, displayIfNoReferences);
-                }
-
                 foreach (var location in definition.Locations)
                 {
                     if (location.IsInMetadata)
