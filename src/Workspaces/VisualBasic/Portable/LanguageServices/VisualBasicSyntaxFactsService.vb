@@ -661,10 +661,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
         End Function
 
-        Public Function IsIfStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIfStatement
-            Return (node.Kind() = SyntaxKind.IfStatement)
-        End Function
-
         Public Function GetIfStatementCondition(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetIfStatementCondition
             If TypeOf node Is MultiLineIfBlockSyntax Then
                 Return DirectCast(node, MultiLineIfBlockSyntax).IfStatement.Condition
