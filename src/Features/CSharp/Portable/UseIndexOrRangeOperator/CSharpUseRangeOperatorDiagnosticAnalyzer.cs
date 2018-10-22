@@ -15,9 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
     /// <summary>
     /// Analyzer that looks for several variants of code like `s.Slice(start, end - start)` and
-    /// offers to update to `s[start..end]`.  In order to convert, the type being called on needs a
-    /// slice-like method that takes two ints, and returns an instance of the same type. It also
-    /// needs a Length/Count property, as well as an indexer that takes a System.Range instance.
+    /// offers to update to `s[start..end]` or `s.Slice(start..end)`.  In order to convert to the
+    /// indexer, the type being called on needs a slice-like method that takes two ints, and returns
+    /// an instance of the same type. It also needs a Length/Count property, as well as an indexer
+    /// that takes a System.Range instance.  In order to convert between methods, there need to be
+    /// two overloads that are equivalent except that one takes two ints, and the other takes a
+    /// System.Range.
     ///
     /// It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
@@ -83,25 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // See if the call is to something slice-like.
-            var targetMethod = invocation.TargetMethod;
-            if (!IsSliceLikeMethod(invocation.TargetMethod))
-            {
-                return;
-            }
 
-            var sliceLikeMethod = targetMethod;
-            // See if this is a type we can use range-indexer for, and also if this is a call to the
-            // Slice-Like method we've found for that type.  Use the InfoCache so that we can reuse
-            // any previously computed values for this type.
-            if (!infoCache.TryGetMemberInfo(sliceLikeMethod, out var memberInfo))
-            {
-                return;
-            }
-
-            // look for `s.Slice(start, end - start)` and convert to `s[Range]`
-
-            // Needs to have the two args for `start` and `end - start`
+            // look for `s.Slice(e1, end - e2)`
             if (invocation.Instance is null ||
                 invocation.Instance.Syntax is null ||
                 invocation.Arguments.Length != 2)
@@ -109,21 +95,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // Arg2 needs to be a subtraction for: `end - start`
-            var arg2 = invocation.Arguments[1];
-            if (!IsSubtraction(arg2, out var subtraction))
+            // See if the call is to something slice-like.
+            var targetMethod = invocation.TargetMethod;
+
+            // Second arg needs to be a subtraction for: `end - e2`.  Once we've seen that we have
+            // that, try to see if we're calling into some sort of Slice method with a matching
+            // indexer or overload
+            if (!IsSubtraction(invocation.Arguments[1], out var subtraction) ||
+                !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
             {
                 return;
             }
 
-            // See if we have: (start, end - start).  The start operation has to be the same as the
-            // right side of the subtraction.
+            // See if we have: (start, end - start).  Specifically where the start operation it the
+            // same as the right side of the subtraction.
             var startOperation = invocation.Arguments[0].Value;
 
             if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 context.ReportDiagnostic(CreateDiagnostic(
-                    ComputedRange, option, invocationSyntax, sliceLikeMethod,
+                    ComputedRange, option, invocationSyntax, targetMethod,
                     memberInfo, startOperation, subtraction.LeftOperand));
                 return;
             }
@@ -135,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
             {
                 context.ReportDiagnostic(CreateDiagnostic(
-                    ConstantRange, option, invocationSyntax, sliceLikeMethod,
+                    ConstantRange, option, invocationSyntax, targetMethod,
                     memberInfo, startOperation, subtraction.RightOperand));
                 return;
             }

@@ -45,9 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                             .Where(m => IsSliceLikeMethod(m))
                             .FirstOrDefault();
 
-            public bool TryGetMemberInfo(IMethodSymbol sliceLikeMethod, out MemberInfo memberInfo)
+            public bool TryGetMemberInfo(IMethodSymbol method, out MemberInfo memberInfo)
             {
-                memberInfo = _methodToMemberInfo.GetOrAdd(sliceLikeMethod, m => ComputeMemberInfo(m, requireRangeMember: true));
+                if (!IsSliceLikeMethod(method))
+                {
+                    memberInfo = default;
+                    return false;
+                }
+
+                memberInfo = _methodToMemberInfo.GetOrAdd(method, m => ComputeMemberInfo(m, requireRangeMember: true));
                 return memberInfo.LengthLikeProperty != null;
             }
 

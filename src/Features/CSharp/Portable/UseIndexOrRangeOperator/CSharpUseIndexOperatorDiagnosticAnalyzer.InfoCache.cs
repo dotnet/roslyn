@@ -38,9 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
             }
 
-            public bool TryGetMemberInfo(IMethodSymbol intIndexingMethod, out MemberInfo memberInfo)
+            public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
             {
-                memberInfo = _methodToMemberInfo.GetOrAdd(intIndexingMethod, m => ComputeMemberInfo(m, requireIndexMember: true));
+                if (!IsIntIndexingMethod(methodSymbol))
+                {
+                    memberInfo = default;
+                    return false;
+                }
+
+                memberInfo = _methodToMemberInfo.GetOrAdd(methodSymbol, m => ComputeMemberInfo(m, requireIndexMember: true));
                 return memberInfo.LengthLikeProperty != null;
             }
 

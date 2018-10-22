@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,19 +11,27 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
-    using System;
-    using System.Threading;
     using static Helpers;
 
     /// <summary>
-    /// Analyzer that looks for code like `s[s.Length - n]` and offers to change that to `s[^n]`. In
-    /// order to do this, the type must look 'indexable'.  Meaning, it must have an int-returning
-    /// property called 'Length' or 'Count', and it must have both an int-indexer, and a
-    /// System.Index indexer.
+    /// Analyzer that looks for code like: 
+    /// 
+    /// 1) `s[s.Length - n]` and offers to change that to `s[^n]`. and.
+    /// 2) `s.Get(s.Length - n)` and offers to change that to `s.Get(^n)`
+    ///
+    /// In order to do convert between indexers, the type must look 'indexable'.  Meaning, it must
+    /// have an int-returning property called 'Length' or 'Count', and it must have both an
+    /// int-indexer, and a System.Index-indexer.  In order to convert between methods, the type
+    /// must have identical overloads except that one takes an int, and the other a System.Index.
     ///
     /// It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
     /// could always limit the feature to only work on a whitelist of known safe types.
+    /// 
+    /// Note that this feature only works if the code literally has `expr1.Length - expr2`.  If
+    /// code has this, and is calling into a method that takes either an int or a System.Index,
+    /// it feels very safe to assume this is well behaved and switching to `^expr2` is going to
+    /// preserve semantics.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
@@ -38,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         {
             context.RegisterCompilationStartAction(startContext =>
             {
-                // We're going to be checking every property-reference in the compilation. Cache
-                // information we compute in this object so we don't have to continually recompute
-                // it.
+                // We're going to be checking every property-reference and invocation in the
+                // compilation. Cache information we compute in this object so we don't have to
+                // continually recompute it.
                 var infoCache = new InfoCache(startContext.Compilation);
                 context.RegisterOperationAction(
                     c => AnalyzePropertyReference(c, infoCache),
@@ -128,9 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // look for `s[s.Length - value]` and convert to `s[^val]`
+            // look for `s[s.Length - value]` or `s.Get(s.Length- value)`.
 
-            // Needs to have the one arg for `[s.Length - value]`, and that arg needs to be
+            // Needs to have the one arg for `s.Length - value`, and that arg needs to be
             // a subtraction.
             if (instance is null ||
                 arguments.Length != 1 ||
@@ -139,14 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            // Ok, looks promising.  We're indexing in with some subtraction expression.
-            // Examine the type this indexer is in to see if there's another meber that
-            // takes a System.Index that we can convert to.
+            // Ok, looks promising.  We're indexing in with some subtraction expression. Examine the
+            // type this indexer is in to see if there's another member that takes a System.Index
+            // that we can convert to.
             //
-            // Also ensure that the left side of the subtraction : `s.Length - value` is
-            // actually getting the length off hte same instance we're indexing into.
-            if (!IsIntIndexingMethod(targetMethod) ||
-                !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo) ||
+            // Also ensure that the left side of the subtraction : `s.Length - value` is actually
+            // getting the length off the same instance we're indexing into.
+            if (!infoCache.TryGetMemberInfo(targetMethod, out var memberInfo) ||
                 !IsInstanceLengthCheck(memberInfo.LengthLikeProperty, instance, subtraction.LeftOperand))
             {
                 return;
