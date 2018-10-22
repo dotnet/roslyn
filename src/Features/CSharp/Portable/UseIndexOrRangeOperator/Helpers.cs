@@ -32,21 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             => !symbol.IsStatic && symbol.DeclaredAccessibility == Accessibility.Public;
 
         /// <summary>
-        /// Finds a public, non-static indexer in the given type.  The indexer has to accept the
-        /// provided <paramref name="parameterType"/> and must return the provided <paramref
-        /// name="returnType"/>.
-        /// </summary>
-        public static IPropertySymbol GetIndexer(ITypeSymbol type, ITypeSymbol parameterType, ITypeSymbol returnType)
-            => type.GetMembers(WellKnownMemberNames.Indexer)
-                   .OfType<IPropertySymbol>()
-                   .Where(p => p.IsIndexer &&
-                               IsPublicInstance(p) &&
-                               returnType.Equals(p.Type) &&
-                               p.Parameters.Length == 1 &&
-                               p.Parameters[0].Type.Equals(parameterType))
-                   .FirstOrDefault();
-
-        /// <summary>
         /// Creates an `^expr` index expression from a given `expr`.
         /// </summary>
         public static PrefixUnaryExpressionSyntax IndexExpression(ExpressionSyntax expr)
@@ -117,6 +102,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                (parameter.Name == "count" || parameter.Name == "length");
 
         /// <summary>
+        /// Finds a public, non-static indexer in the given type.  The indexer has to accept the
+        /// provided <paramref name="parameterType"/> and must return the provided <paramref
+        /// name="returnType"/>.
+        /// </summary>
+        public static IPropertySymbol GetIndexer(ITypeSymbol type, ITypeSymbol parameterType, ITypeSymbol returnType)
+            => type.GetMembers(WellKnownMemberNames.Indexer)
+                   .OfType<IPropertySymbol>()
+                   .Where(p => p.IsIndexer &&
+                               IsPublicInstance(p) &&
+                               returnType.Equals(p.Type) &&
+                               p.Parameters.Length == 1 &&
+                               p.Parameters[0].Type.Equals(parameterType))
+                   .FirstOrDefault();
+
+        /// <summary>
         /// Finds a public, non-static overload of <paramref name="method"/> in the containing type.
         /// The overload must have the same return type as <paramref name="method"/>.  It must only
         /// have a single parameter, with the provided <paramref name="parameterType"/>.
@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 : method.ContainingType.GetMembers(method.Name)
                                        .OfType<IMethodSymbol>()
                                        .Where(m => IsPublicInstance(m) &&
-                                              m.Parameters.Length == 1 &&
-                                              m.Parameters[0].Type.Equals(parameterType) &&
-                                              m.ReturnType.Equals(method.ReturnType))
+                                                   m.Parameters.Length == 1 &&
+                                                   m.Parameters[0].Type.Equals(parameterType) &&
+                                                   m.ReturnType.Equals(method.ReturnType))
                                        .FirstOrDefault();
     }
 }
