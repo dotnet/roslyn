@@ -195,11 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static bool IsFromEnd(
             IPropertySymbol lengthLikeProperty, IOperation instance, ref IOperation rangeOperation)
         {
-            if (rangeOperation is IBinaryOperation binaryOperation &&
-                binaryOperation.OperatorKind == BinaryOperatorKind.Subtract &&
-                IsInstanceLengthCheck(lengthLikeProperty, instance, binaryOperation.LeftOperand))
+            if (IsSubtraction(rangeOperation, out var subtraction) &&
+                IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
             {
-                rangeOperation = binaryOperation.RightOperand;
+                rangeOperation = subtraction.RightOperand;
                 return true;
             }
 

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // a subtraction.
             if (instance is null ||
                 arguments.Length != 1 ||
-                !IsSubtraction(arguments[0], out var subtraction))
+                !IsSubtraction(arguments[0].Value, out var subtraction))
             {
                 return;
             }

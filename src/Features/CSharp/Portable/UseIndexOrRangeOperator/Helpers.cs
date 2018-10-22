@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                lengthLikeProperty.Equals(propertyRef.Property) &&
                CSharpSyntaxFactsService.Instance.AreEquivalent(instance.Syntax, propertyRef.Instance.Syntax);
 
-        public static bool IsSubtraction(IArgumentOperation arg, out IBinaryOperation subtraction)
+        public static bool IsSubtraction(IOperation op, out IBinaryOperation subtraction)
         {
-            if (arg.Value is IBinaryOperation binaryOperation &&
+            if (op is IBinaryOperation binaryOperation &&
                 binaryOperation.OperatorKind == BinaryOperatorKind.Subtract)
             {
                 subtraction = binaryOperation;
