@@ -255,7 +255,27 @@ function Build-Artifacts() {
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
         Build-Installer
+        Build-OptProfData
     }
+}
+
+function Build-OptProfData() {
+    $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
+    $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
+    $configFile = Join-Path $repoDir "build\config\optprof.json"
+    $insertionFolder = Join-Path $vsSetupDir "Insertion"
+    $outputFolder = Join-Path $configDir "DevDivInsertionFiles\OptProf"
+    Write-Host "Generating optprof data using '$configFile' into '$outputFolder'"
+    $optProfArgs = "--configFile $configFile --insertionFolder $insertionFolder --outputFolder $outputFolder"
+    Exec-Console $optProfToolExe $optProfArgs
+
+    # Write Out Branch we are inserting into
+    $vsBranchFolder = Join-Path $configDir "DevDivInsertionFiles\BranchInfo"
+    New-Item -ItemType Directory -Force -Path $vsBranchFolder
+    $vsBranchText = Join-Path $vsBranchFolder "vsbranch.txt"
+    # InsertTargetBranchFullName is defined in .vsts-ci.yml
+    $vsBranch = $Env:InsertTargetBranchFullName
+    $vsBranch >> $vsBranchText
 }
 
 function Build-Installer () {
