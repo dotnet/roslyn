@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            session.ItemCommitted += ItemCommitted;
-            session.Dismissed += SessionDismissed;
+            SubscribeEvents(session);
             return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
         }
 
@@ -58,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
         {
+            SubscribeEvents(session);
             if (!session.Properties.TryGetProperty<bool>(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
             {
                 // This is the scenario when the session is created out of Roslyn, in some other provider, e.g. in Debugger.
@@ -473,9 +473,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         {
             if (sender is IAsyncCompletionSession session)
             {
-                session.ItemCommitted -= ItemCommitted;
-                session.Dismissed -= SessionDismissed;
+                UnsubscribeEvents(session);
             }
+        }
+
+        private void SubscribeEvents(IAsyncCompletionSession session)
+        {
+            UnsubscribeEvents(session);
+            session.ItemCommitted += ItemCommitted;
+
+            // We can be called multiple times for Update and for Sort during the lifecycle of the session.
+            // Then, the session can be dismissed out of our code. We should be sure, we do not keep references to dismissed sessions.
+            session.Dismissed += SessionDismissed;
+        }
+
+        private void UnsubscribeEvents(IAsyncCompletionSession session)
+        {
+            session.ItemCommitted -= ItemCommitted;
+            session.Dismissed -= SessionDismissed;
         }
 
         private readonly struct ExtendedFilterResult
