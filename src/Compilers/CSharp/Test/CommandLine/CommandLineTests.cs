@@ -238,7 +238,7 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal(
-$@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
+$@"warning CS8700: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
 
@@ -274,7 +274,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal(
-                $"error CS8501: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                $"error CS8701: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd());
         }
 
