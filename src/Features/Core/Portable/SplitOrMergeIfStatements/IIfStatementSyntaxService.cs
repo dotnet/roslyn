@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         bool IsConditionOfIfLikeStatement(SyntaxNode expression, out SyntaxNode ifLikeStatement);
 
+        SyntaxNode GetConditionOfIfLikeStatement(SyntaxNode ifLikeStatement);
+
         ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement);
     }
 }

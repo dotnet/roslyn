@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return false;
         }
 
+        public SyntaxNode GetConditionOfIfLikeStatement(SyntaxNode ifLikeStatement)
+        {
+            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+
+            return ifStatement.Condition;
+        }
+
         public ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement)
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;

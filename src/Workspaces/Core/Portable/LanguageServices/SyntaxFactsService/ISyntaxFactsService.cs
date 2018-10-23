@@ -178,8 +178,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
-        SyntaxNode GetIfStatementCondition(SyntaxNode node);
-
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);

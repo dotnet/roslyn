@@ -665,15 +665,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
         End Function
 
-        Public Function GetIfStatementCondition(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetIfStatementCondition
-            If TypeOf node Is MultiLineIfBlockSyntax Then
-                Return DirectCast(node, MultiLineIfBlockSyntax).IfStatement.Condition
-            ElseIf TypeOf node Is ElseIfBlockSyntax Then
-                Return DirectCast(node, ElseIfBlockSyntax).ElseIfStatement.Condition
-            End If
-            Throw ExceptionUtilities.UnexpectedValue(node)
-        End Function
-
         Public Function IsAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
             Return TypeOf node Is AttributeSyntax
         End Function

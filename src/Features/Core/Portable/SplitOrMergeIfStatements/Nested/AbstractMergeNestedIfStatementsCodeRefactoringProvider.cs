@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(syntaxFacts, ifSyntaxService, ifStatement, out var parentIfStatement));
 
             var newCondition = (TExpressionSyntax)generator.LogicalAndExpression(
-                syntaxFacts.GetIfStatementCondition(parentIfStatement),
-                syntaxFacts.GetIfStatementCondition(ifStatement));
+                ifSyntaxService.GetConditionOfIfLikeStatement(parentIfStatement),
+                ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
 
             var newIfStatement = MergeIfStatements(parentIfStatement, ifStatement, newCondition);
 
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             if (isIfStatement)
             {
                 // If we have two ElseIf blocks, their conditions have to match.
-                var condition1 = syntaxFacts.GetIfStatementCondition(elseClause1);
-                var condition2 = syntaxFacts.GetIfStatementCondition(elseClause2);
+                var condition1 = ifSyntaxService.GetConditionOfIfLikeStatement(elseClause1);
+                var condition2 = ifSyntaxService.GetConditionOfIfLikeStatement(elseClause2);
 
                 if (!syntaxFacts.AreEquivalent(condition1, condition2))
                 {

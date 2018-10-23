@@ -734,9 +734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((ParenthesizedExpressionSyntax)node).Expression;
         }
 
-        public SyntaxNode GetIfStatementCondition(SyntaxNode ifStatement)
-            => ((IfStatementSyntax)ifStatement).Condition;
-
         public bool IsAttribute(SyntaxNode node)
         {
             return node is AttributeSyntax;

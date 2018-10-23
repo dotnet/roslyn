@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
             var previousIfStatement = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement)
@@ -43,8 +44,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : GetPreviousStatement(syntaxFacts, ifStatement);
 
             var newCondition = (TExpressionSyntax)generator.LogicalOrExpression(
-                syntaxFacts.GetIfStatementCondition(previousIfStatement),
-                syntaxFacts.GetIfStatementCondition(ifStatement));
+                ifSyntaxService.GetConditionOfIfLikeStatement(previousIfStatement),
+                ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
 
             var newIfStatement = MergeIfStatements(previousIfStatement, ifStatement, newCondition);
 
