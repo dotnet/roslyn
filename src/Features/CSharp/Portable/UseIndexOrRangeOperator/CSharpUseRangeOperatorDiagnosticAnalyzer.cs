@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             // look for `s.Slice(e1, end - e2)`
             if (invocation.Instance is null ||
-                invocation.Instance.Syntax is null ||
                 invocation.Arguments.Length != 2)
             {
                 return;
