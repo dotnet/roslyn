@@ -328,5 +328,53 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestFixAll1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v1 = s[{|FixAllInDocument:|}s.Length - 1];
+        var v2 = s[s.Length - 1];
+    }
+}",
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v1 = s[^1];
+        var v2 = s[^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestFixAll2()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v1 = s[s.Length - 1];
+        var v2 = s[{|FixAllInDocument:|}s.Length - 1];
+    }
+}",
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v1 = s[^1];
+        var v2 = s[^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }
