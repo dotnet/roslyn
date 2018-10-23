@@ -194,6 +194,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _context = null;
         }
 
+        internal void SetContentType(int install)
+            => _context.SetContentType(install);
+
         public void Dispose()
         {
             if (_context != null)
