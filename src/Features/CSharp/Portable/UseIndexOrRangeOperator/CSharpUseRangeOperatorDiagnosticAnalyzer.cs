@@ -68,16 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            var result = resultOpt.Value;
-            context.ReportDiagnostic(CreateDiagnostic(
-                result.RangeKind,
-                result.Option,
-                result.Invocation,
-                result.SliceLikeMethod,
-                result.MemberInfo,
-                result.Op1,
-                result.Op2));
-        }
+            context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
+       }
 
         public static Result? AnalyzeInvocation(
             IInvocationOperation invocation, InfoCache infoCache,
@@ -142,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 return new Result(
-                    ComputedRange, option,
+                    ResultKind.Computed, option,
                     invocation, invocationSyntax,
                     targetMethod, memberInfo,
                     startOperation, subtraction.LeftOperand);
@@ -155,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
             {
                 return new Result(
-                    ConstantRange, option,
+                    ResultKind.Constant, option,
                     invocation, invocationSyntax,
                     targetMethod, memberInfo,
                     startOperation, subtraction.RightOperand);
@@ -164,11 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return default;
         }
 
-        private Diagnostic CreateDiagnostic(
-            string rangeKind, CodeStyleOption<bool> option, InvocationExpressionSyntax invocation,
-            IMethodSymbol sliceLikeMethod, MemberInfo memberInfo, IOperation op1, IOperation op2)
+        private Diagnostic CreateDiagnostic(Result result)
         {
             // Keep track of the invocation node
+            var invocation = result.Invocation;
             var additionalLocations = ImmutableArray.Create(
                 invocation.GetLocation());
 
@@ -181,41 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return DiagnosticHelper.Create(
                 Descriptor,
                 location,
-                option.Notification.Severity,
+                result.Option.Notification.Severity,
                 additionalLocations,
                 ImmutableDictionary<string, string>.Empty,
-                sliceLikeMethod.Name);
+                result.SliceLikeMethod.Name);
         }
 
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
-
-        public readonly struct Result
-        {
-            public readonly string RangeKind;
-            public readonly CodeStyleOption<bool> Option;
-            public readonly IInvocationOperation InvocationOperation;
-            public readonly InvocationExpressionSyntax Invocation;
-            public readonly IMethodSymbol SliceLikeMethod;
-            public readonly MemberInfo MemberInfo;
-            public readonly IOperation Op1;
-            public readonly IOperation Op2;
-
-            public Result(
-                string rangeKind, CodeStyleOption<bool> option,
-                IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
-                IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
-                IOperation op1, IOperation op2)
-            {
-                RangeKind = rangeKind;
-                Option = option;
-                InvocationOperation = invocationOperation;
-                Invocation = invocation;
-                SliceLikeMethod = sliceLikeMethod;
-                MemberInfo = memberInfo;
-                Op1 = op1;
-                Op2 = op2;
-            }
-        }
     }
 }

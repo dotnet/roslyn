@@ -116,17 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private RangeExpressionSyntax CreateRangeExpression(
             SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
         {
-            if (result.RangeKind == ComputedRange)
+            switch (result.Kind)
             {
-                return CreateComputedRange(semanticModel, result, cancellationToken);
-            }
-            else if (result.RangeKind == ConstantRange)
-            {
-                return CreateConstantRange(semanticModel, result, cancellationToken);
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
+                case ResultKind.Computed:
+                    return CreateComputedRange(semanticModel, result, cancellationToken);
+                case ResultKind.Constant:
+                    return CreateConstantRange(semanticModel, result, cancellationToken);
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
