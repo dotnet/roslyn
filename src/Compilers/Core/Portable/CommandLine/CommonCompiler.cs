@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Holds results from <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
+        /// Holds results from <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{AnalyzerConfig}, CommonMessageProvider, DiagnosticBag)"/>.
         /// </summary>
         internal readonly struct AnalyzerConfigOptionsResult
         {
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             /// <remarks>
             /// The item index corresponds to the input source path to
-            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
+            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{AnalyzerConfig}, CommonMessageProvider, DiagnosticBag)"/>.
             /// </remarks>
             public ImmutableArray<TreeOptions> TreeOptions { get; }
 
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             /// <remarks>
             /// The item index corresponds to the input source path to
-            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{EditorConfig}, CommonMessageProvider, DiagnosticBag)"/>.
+            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{AnalyzerConfig}, CommonMessageProvider, DiagnosticBag)"/>.
             /// </remarks>
             public ImmutableArray<AnalyzerOptions> AnalyzerOptions { get; }
 
@@ -290,17 +290,17 @@ namespace Microsoft.CodeAnalysis
         /// Takes a list of paths to source files and a list of AnalyzeConfigs and produces a
         /// resultant dictionary of diagnostic configurations for each of the source paths.
         /// Source paths are matched by checking if they are members of the language recognized by
-        /// <see cref="EditorConfig.Section.Name"/>s.
+        /// <see cref="AnalyzerConfig.Section.Name"/>s.
         /// </summary>
         /// <param name="sourcePaths">
         /// Absolute, normalized paths to source files. These paths are expected to be normalized
         /// using the same mechanism used to normalize the path passed to the path paramater of 
-        /// <see cref="EditorConfig.Parse(string, string)"/>. Source files will only be considered
-        /// applicable for a given <see cref="EditorConfig"/> if the config path is an ordinal
+        /// <see cref="AnalyzerConfig.Parse(string, string)"/>. Source files will only be considered
+        /// applicable for a given <see cref="AnalyzerConfig"/> if the config path is an ordinal
         /// prefix of the source path.
         /// </param>
         /// <param name="analyzerConfigs">
-        /// Parsed AnalyzerConfig files. The <see cref="EditorConfig.NormalizedDirectory"/>
+        /// Parsed AnalyzerConfig files. The <see cref="AnalyzerConfig.NormalizedDirectory"/>
         /// must be an ordinal prefix of a source file path to be considered applicable.
         /// </param>
         /// <param name="messageProvider">Used to produce diagnostics.</param>
@@ -311,13 +311,13 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         internal static AnalyzerConfigOptionsResult GetAnalyzerConfigOptions(
             IReadOnlyList<string> sourcePaths,
-            IReadOnlyList<EditorConfig> analyzerConfigs,
+            IReadOnlyList<AnalyzerConfig> analyzerConfigs,
             CommonMessageProvider messageProvider,
             DiagnosticBag diagnostics)
         {
             // Since paths are compared as ordinal string comparisons, the least nested
             // file will always be the first in sort order
-            if (!analyzerConfigs.IsSorted(EditorConfig.DirectoryLengthComparer))
+            if (!analyzerConfigs.IsSorted(AnalyzerConfig.DirectoryLengthComparer))
             {
                 throw new ArgumentException(
                     "Analyzer config files must be sorted from shortest to longest path",
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
             var allTreeOptions = ArrayBuilder<TreeOptions>.GetInstance(sourcePaths.Count);
             var allAnalyzerOptions = ArrayBuilder<AnalyzerOptions>.GetInstance(sourcePaths.Count);
 
-            var allRegexes = PooledDictionary<EditorConfig, ImmutableArray<Regex>>.GetInstance();
+            var allRegexes = PooledDictionary<AnalyzerConfig, ImmutableArray<Regex>>.GetInstance();
             foreach (var config in analyzerConfigs)
             {
                 // Create an array of regexes with each entry corresponding to the same index
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                 var builder = ArrayBuilder<Regex>.GetInstance(config.NamedSections.Length);
                 foreach (var section in config.NamedSections)
                 {
-                    string regex = EditorConfig.TryCompileSectionNameToRegEx(section.Name);
+                    string regex = AnalyzerConfig.TryCompileSectionNameToRegEx(section.Name);
                     builder.Add(new Regex(regex, RegexOptions.Compiled));
                 }
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis
                 var normalizedPath = PathWithForwardSlashSeparators(sourceFile);
                 // The editorconfig paths are sorted from shortest to longest, so matches
                 // are resolved from most nested to least nested, where last setting wins
-                foreach (EditorConfig config in analyzerConfigs)
+                foreach (AnalyzerConfig config in analyzerConfigs)
                 {
                     if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
                     {
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 allAnalyzerOptions.ToImmutableAndFree());
 
             void addOptions(
-                EditorConfig.Section section,
+                AnalyzerConfig.Section section,
                 TreeOptions.Builder treeBuilder,
                 AnalyzerOptions.Builder analyzerBuilder,
                 string analyzerConfigPath)
@@ -471,9 +471,9 @@ namespace Microsoft.CodeAnalysis
         internal bool TryGetSortedAnalyzerConfigFiles(
             ImmutableArray<string> analyzerConfigPaths,
             DiagnosticBag diagnostics,
-            out ImmutableArray<EditorConfig> analyzerConfigs)
+            out ImmutableArray<AnalyzerConfig> analyzerConfigs)
         {
-            var configs = ArrayBuilder<EditorConfig>.GetInstance(analyzerConfigPaths.Length);
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigPaths.Length);
 
             var processedDirs = PooledHashSet<string>.GetInstance();
 
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 processedDirs.Add(directory);
 
-                var editorConfig = EditorConfig.Parse(fileContent, normalizedPath);
+                var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
                 configs.Add(editorConfig);
             }
 
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Sort editorconfig paths from shortest to longest.
-            configs.Sort(EditorConfig.DirectoryLengthComparer);
+            configs.Sort(AnalyzerConfig.DirectoryLengthComparer);
 
             analyzerConfigs = configs.ToImmutableAndFree();
             return true;
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            ImmutableArray<EditorConfig> sortedAnalyzerConfigs = default;
+            ImmutableArray<AnalyzerConfig> sortedAnalyzerConfigs = default;
             AnalyzerConfigOptionsResult analyzerConfigOptions = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<AdditionalText> additionalTextFiles,
-            ImmutableArray<EditorConfig> sortedAnalyzerConfigs,
+            ImmutableArray<AnalyzerConfig> sortedAnalyzerConfigs,
             ImmutableArray<ImmutableDictionary<string, string>> treeAnalyzerOptions,
             ImmutableArray<EmbeddedText> embeddedTexts,
             DiagnosticBag diagnostics,

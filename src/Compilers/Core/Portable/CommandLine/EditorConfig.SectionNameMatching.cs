@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed partial class EditorConfig
+    internal sealed partial class AnalyzerConfig
     {
         /// <summary>
         /// Takes a <see cref="Section.Name"/> and compiles the file glob

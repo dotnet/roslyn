@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a single EditorConfig file, see http://editorconfig.org for details about the format.
     /// </summary>
-    internal sealed partial class EditorConfig
+    internal sealed partial class AnalyzerConfig
     {
         // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
@@ -59,19 +59,19 @@ namespace Microsoft.CodeAnalysis
         public string NormalizedDirectory { get; }
 
         /// <summary>
-        /// The path passed to <see cref="EditorConfig.Parse(string, string)"/> during construction.
+        /// The path passed to <see cref="AnalyzerConfig.Parse(string, string)"/> during construction.
         /// </summary>
         public string PathToFile { get; }
 
         /// <summary>
-        /// Comparer for sorting <see cref="EditorConfig"/> files by <see cref="NormalizedDirectory"/> path length.
+        /// Comparer for sorting <see cref="AnalyzerConfig"/> files by <see cref="NormalizedDirectory"/> path length.
         /// </summary>
-        internal static Comparer<EditorConfig> DirectoryLengthComparer { get; } = Comparer<EditorConfig>.Create(
+        internal static Comparer<AnalyzerConfig> DirectoryLengthComparer { get; } = Comparer<AnalyzerConfig>.Create(
             (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
 
         public ImmutableArray<Section> NamedSections { get; }
 
-        private EditorConfig(
+        private AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
             string pathToFile)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         /// Parses an editor config file text located at the given path. No parsing
         /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
-        public static EditorConfig Parse(string text, string pathToFile)
+        public static AnalyzerConfig Parse(string text, string pathToFile)
         {
             if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
                 namedSectionBuilder.Add(lastSection);
             }
 
-            return new EditorConfig(globalSection, namedSectionBuilder.ToImmutable(), pathToFile);
+            return new AnalyzerConfig(globalSection, namedSectionBuilder.ToImmutable(), pathToFile);
         }
 
         private static bool IsComment(string line)
@@ -238,8 +238,8 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Keys and values for this section. All keys are lower-cased according to the
             /// EditorConfig specification and keys are compared case-insensitively. Values are
-            /// lower-cased if the value appears in <see cref="EditorConfig.ReservedValues" />
-            /// or if the corresponding key is in <see cref="EditorConfig.ReservedKeys" />. Otherwise,
+            /// lower-cased if the value appears in <see cref="AnalyzerConfig.ReservedValues" />
+            /// or if the corresponding key is in <see cref="AnalyzerConfig.ReservedKeys" />. Otherwise,
             /// the values are the literal values present in the source.
             /// </summary>
             public ImmutableDictionary<string, string> Properties { get; }
