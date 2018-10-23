@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider
         : AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
-        protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatementNode)
-            => Helpers.IsConditionOfIfStatement(expression, out ifStatementNode);
-
         protected override SyntaxNode SplitIfStatement(
             SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {

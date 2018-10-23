@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     {
         protected abstract int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService);
 
-        protected abstract bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatementNode);
-
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
         protected abstract Task<SyntaxNode> GetChangedRootAsync(
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
             if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(ifSyntaxService), out var rootExpression) &&
-                IsConditionOfIfStatement(rootExpression, out _))
+                ifSyntaxService.IsConditionOfIfLikeStatement(rootExpression, out _))
             {
                 context.RegisterRefactoring(
                     CreateCodeAction(
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
 
             Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(ifSyntaxService), out var rootExpression));
-            Contract.ThrowIfFalse(IsConditionOfIfStatement(rootExpression, out var currentIfStatement));
+            Contract.ThrowIfFalse(ifSyntaxService.IsConditionOfIfLikeStatement(rootExpression, out var currentIfStatement));
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());
 

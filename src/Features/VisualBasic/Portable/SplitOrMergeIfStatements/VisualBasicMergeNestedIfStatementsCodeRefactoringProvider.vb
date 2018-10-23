@@ -44,10 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
                    TypeOf node Is ElseIfBlockSyntax
         End Function
 
-        Protected Overrides Function GetElseClauses(ifStatementNode As SyntaxNode) As ImmutableArray(Of SyntaxNode)
-            Return Helpers.GetElseClauses(ifStatementNode).ToImmutableArray()
-        End Function
-
         Protected Overrides Function MergeIfStatements(outerIfStatementNode As SyntaxNode,
                                                        innerIfStatementNode As SyntaxNode,
                                                        condition As ExpressionSyntax) As SyntaxNode

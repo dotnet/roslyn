@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatementNode);
-
         protected abstract SyntaxNode MergeIfStatements(
             SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, TExpressionSyntax condition);
 
@@ -80,8 +78,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode innerIfStatement,
             CancellationToken cancellationToken)
         {
-            if (!GetElseClauses(outerIfStatement).SequenceEqual(
-                    GetElseClauses(innerIfStatement), (a, b) => IsElseClauseEquivalent(syntaxFacts, a, b)))
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+
+            if (!ifSyntaxService.GetElseLikeClauses(outerIfStatement).SequenceEqual(
+                    ifSyntaxService.GetElseLikeClauses(innerIfStatement), (a, b) => IsElseClauseEquivalent(syntaxFacts, a, b)))
             {
                 return false;
             }

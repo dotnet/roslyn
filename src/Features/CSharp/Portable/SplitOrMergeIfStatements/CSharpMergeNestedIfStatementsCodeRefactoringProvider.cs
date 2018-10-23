@@ -42,13 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return node is IfStatementSyntax;
         }
 
-        protected override ImmutableArray<SyntaxNode> GetElseClauses(SyntaxNode ifStatementNode)
-        {
-            var ifStatement = (IfStatementSyntax)ifStatementNode;
-
-            return ImmutableArray.Create<SyntaxNode>(ifStatement.Else);
-        }
-
         protected override SyntaxNode MergeIfStatements(
             SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, ExpressionSyntax condition)
         {
