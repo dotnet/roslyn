@@ -1920,9 +1920,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsStatementContainer(SyntaxNode node)
             => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
 
-        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node) => IsExecutableBlock(node)
-                ? GetExecutableBlockStatements(node)
-                : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
+        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
+            => IsExecutableBlock(node)
+               ? GetExecutableBlockStatements(node)
+               : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;

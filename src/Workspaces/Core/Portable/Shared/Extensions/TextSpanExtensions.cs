@@ -55,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsAround(this TextSpan span, SyntaxNodeOrToken startNode, SyntaxNodeOrToken endNode)
         {
-            return span.Contains(TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End)) &&
-                   TextSpan.FromBounds(startNode.FullSpan.Start, endNode.FullSpan.End).Contains(span);
+            var innerSpan = TextSpan.FromBounds(startNode.Span.Start, endNode.Span.End);
+            var outerSpan = TextSpan.FromBounds(startNode.FullSpan.Start, endNode.FullSpan.End);
+            return span.Contains(innerSpan) && outerSpan.Contains(span);
         }
     }
 }
