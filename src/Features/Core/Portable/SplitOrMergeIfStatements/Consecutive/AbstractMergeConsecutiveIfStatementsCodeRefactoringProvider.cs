@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
@@ -18,8 +19,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract bool IsElseClauseOfIfStatement(SyntaxNode node, out SyntaxNode ifStatementNode);
-
-        protected abstract bool HasElseClauses(SyntaxNode ifStatementNode);
 
         protected abstract SyntaxNode MergeIfStatements(
             SyntaxNode firstIfStatementNode, SyntaxNode secondIfStatementNode, TExpressionSyntax condition);
@@ -34,9 +33,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false);
         }
 
-        protected sealed override SyntaxNode GetChangedRoot(
-            SyntaxNode root, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, SyntaxGenerator generator)
+        protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+
             var previousIfStatement = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement)
                 ? parentIfStatement
                 : GetPreviousStatement(syntaxFacts, ifStatement);
@@ -71,14 +72,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode ifStatement,
             CancellationToken cancellationToken)
         {
-            if (HasElseClauses(ifStatement))
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+
+            if (ifSyntaxService.GetElseLikeClauses(ifStatement).Length > 0)
             {
                 return false;
             }
 
             var previousStatement = GetPreviousStatement(syntaxFacts, ifStatement);
 
-            if (!IsIfStatement(previousStatement) || HasElseClauses(previousStatement))
+            if (!ifSyntaxService.IsIfLikeStatement(previousStatement) || ifSyntaxService.GetElseLikeClauses(previousStatement).Length > 0)
             {
                 return false;
             }

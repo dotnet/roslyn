@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         int LogicalOrExpressionKind { get; }
 
+        bool IsIfLikeStatement(SyntaxNode node);
+
         bool IsConditionOfIfLikeStatement(SyntaxNode expression, out SyntaxNode ifLikeStatement);
 
         ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement);

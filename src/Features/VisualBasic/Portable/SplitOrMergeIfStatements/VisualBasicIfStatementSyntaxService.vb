@@ -20,6 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         Public ReadOnly Property LogicalOrExpressionKind As Integer =
             SyntaxKind.OrElseExpression Implements IIfStatementSyntaxService.LogicalOrExpressionKind
 
+        Public Function IsIfLikeStatement(node As SyntaxNode) As Boolean Implements IIfStatementSyntaxService.IsIfLikeStatement
+            Return TypeOf node Is MultiLineIfBlockSyntax OrElse
+                   TypeOf node Is ElseIfBlockSyntax
+        End Function
+
         Public Function IsConditionOfIfLikeStatement(expression As SyntaxNode, ByRef ifLikeStatement As SyntaxNode) As Boolean Implements IIfStatementSyntaxService.IsConditionOfIfLikeStatement
             If TypeOf expression.Parent Is IfStatementSyntax AndAlso
                DirectCast(expression.Parent, IfStatementSyntax).Condition Is expression AndAlso

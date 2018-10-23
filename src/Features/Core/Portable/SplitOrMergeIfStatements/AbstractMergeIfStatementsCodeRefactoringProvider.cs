@@ -20,15 +20,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     {
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode);
 
-        protected abstract bool IsIfStatement(SyntaxNode node);
-
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
         protected abstract Task<bool> CanBeMergedAsync(
             Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
 
-        protected abstract SyntaxNode GetChangedRoot(
-            SyntaxNode root, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, SyntaxGenerator generator);
+        protected abstract SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
 
-            var newRoot = GetChangedRoot(root, ifStatement, syntaxFacts, document.GetLanguageService<SyntaxGenerator>());
+            var newRoot = GetChangedRoot(document, root, ifStatement);
             return document.WithSyntaxRoot(newRoot);
         }
 

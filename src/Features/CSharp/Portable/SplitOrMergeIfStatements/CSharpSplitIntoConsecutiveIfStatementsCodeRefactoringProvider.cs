@@ -13,13 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
-        protected override bool HasElseClauses(SyntaxNode ifStatementNode)
-        {
-            var ifStatement = (IfStatementSyntax)ifStatementNode;
-
-            return ifStatement.Else != null;
-        }
-
         protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
             SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
         {

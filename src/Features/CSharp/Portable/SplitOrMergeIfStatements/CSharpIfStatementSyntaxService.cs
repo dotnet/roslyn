@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
         public int LogicalOrExpressionKind => (int)SyntaxKind.LogicalOrExpression;
 
+        public bool IsIfLikeStatement(SyntaxNode node) => node is IfStatementSyntax;
+
         public bool IsConditionOfIfLikeStatement(SyntaxNode expression, out SyntaxNode ifLikeStatement)
         {
             if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
@@ -33,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;
 
-            return ImmutableArray.Create<SyntaxNode>(ifStatement.Else);
+            return ifStatement.Else != null
+                ? ImmutableArray.Create<SyntaxNode>(ifStatement.Else)
+                : ImmutableArray<SyntaxNode>.Empty;
         }
     }
 }

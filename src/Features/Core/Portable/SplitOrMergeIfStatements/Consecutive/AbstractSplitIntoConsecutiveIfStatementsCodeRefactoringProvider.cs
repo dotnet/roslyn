@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
             => ifSyntaxService.LogicalOrExpressionKind;
 
-        protected abstract bool HasElseClauses(SyntaxNode ifStatementNode);
-
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
             SyntaxNode ifStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
@@ -60,7 +58,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode ifStatement,
             CancellationToken cancellationToken)
         {
-            if (HasElseClauses(ifStatement))
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+
+            if (ifSyntaxService.GetElseLikeClauses(ifStatement).Length > 0)
             {
                 return false;
             }

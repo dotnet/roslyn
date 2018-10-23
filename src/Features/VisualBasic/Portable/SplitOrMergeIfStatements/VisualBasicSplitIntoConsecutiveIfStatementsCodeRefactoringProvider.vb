@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         Inherits AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider(Of ExpressionSyntax)
 
-        Protected Overrides Function HasElseClauses(ifStatementNode As SyntaxNode) As Boolean
-            Return New VisualBasicIfStatementSyntaxService().GetElseLikeClauses(ifStatementNode).Count > 0
-        End Function
-
         Protected Overrides Function SplitIfStatementIntoElseClause(ifStatementNode As SyntaxNode,
                                                                     condition1 As ExpressionSyntax,
                                                                     condition2 As ExpressionSyntax) As (SyntaxNode, SyntaxNode)
