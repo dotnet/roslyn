@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
     [UseExportProvider]
     public class FixInterpolatedVerbatimStringCommandHandlerTests
     {
-        private static readonly char[] s_allChars = { '@', '$', '"' };
-
         private static TestWorkspace CreateTestWorkspace(string inputMarkup)
         {
             var workspace = TestWorkspace.CreateCSharp(inputMarkup);
@@ -72,9 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
                 // Ensure that after undo, the ordering fix is undone but the typed character remains inserted
                 Assert.Equal(insertedCharSnapshotText, view.TextBuffer.CurrentSnapshot.GetText());
-                // TODO: This doesn't work properly in the case of inserting @ before $" (TestBeforeDollarSignQuoteSign)
-                // The cursor remains to the right of these characters after undo
-                //Assert.Equal(insertedCharCaretPosition, view.Caret.Position.BufferPosition.Position);
+                Assert.Equal(insertedCharCaretPosition, view.Caret.Position.BufferPosition.Position);
             }
         }
 
@@ -101,31 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
             }
         }
 
-        private static void TestHandledWithSingle(char ch, string inputMarkup, string expectedOutputMarkup)
-        {
-            TestHandled(ch, inputMarkup, expectedOutputMarkup);
-
-            foreach (var other in s_allChars)
-            {
-                if (other != ch)
-                {
-                    TestNotHandled(other, inputMarkup);
-                }
-            }
-        }
-
-        private static void TestNotHandledWithAny(string inputMarkup)
-        {
-            foreach (var ch in s_allChars)
-            {
-                TestNotHandled(ch, inputMarkup);
-            }
-        }
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSign()
         {
-            TestHandledWithSingle('"',
+            TestHandled('"',
 @"class C
 {
     void M()
@@ -143,49 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-        public void TestBetweenAtSignQuoteSign()
-        {
-            TestHandledWithSingle('$',
-@"class C
-{
-    void M()
-    {
-        var v = @[||]""
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $@[||]""
-    }
-}");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-        public void TestBeforeDollarSignQuoteSign()
-        {
-            TestHandledWithSingle('@',
-@"class C
-{
-    void M()
-    {
-        var v = [||]$""
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var v = $@[||]""
-    }
-}");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingAfterDollarSignAtSign()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -198,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingAfterAtSign()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -211,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingAfterDollarSign()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -222,52 +157,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-        public void TestMissingAfterQuoteSign()
-        {
-            TestNotHandledWithAny(
-@"class C
-{
-    void M()
-    {
-        var v = ""[||]
-    }
-}");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
         {
-            TestNotHandledWithAny(@"@$[||]");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-        public void TestMissingInEmptyFileAfterAtSign()
-        {
-            TestNotHandledWithAny(@"@[||]");
+            TestNotHandled('"', @"@$[||]");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
         {
-            TestNotHandledWithAny( @"$[||]");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-        public void TestMissingInEmptyFileAfterQuoteSign()
-        {
-            TestNotHandledWithAny(@"$[||]");
+            TestNotHandled('"', @"$[||]");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
         {
-            TestNotHandledWithAny(@"[||]");
+            TestNotHandled('"', @"[||]");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()
         {
-            TestHandledWithSingle('"',
+            TestHandled('"',
 @"class C
 {
     void M()
@@ -283,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInClassDeclaration()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     @$[||]
@@ -293,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInComment1()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -306,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInComment2()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -319,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInString()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -332,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInVerbatimString()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -345,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInInterpolatedString()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -358,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInInterpolatedVerbatimString1()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -371,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInInterpolatedVerbatimString2()
         {
-            TestNotHandledWithAny(
+            TestNotHandled('"',
 @"class C
 {
     void M()
@@ -384,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestTrivia()
         {
-            TestHandledWithSingle('"',
+            TestHandled('"',
 @"class C
 {
     void M()

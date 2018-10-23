@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
                     var startPosition = caret.Value.Position - charOffset - 1;
                     var snapshot = caret.Value.Snapshot;
 
-                    if (startPosition >= 0 && startPosition + 2 < snapshot.Length &&
+                    if (startPosition >= 0 &&
                         snapshot[startPosition + 0] == '@' &&
                         snapshot[startPosition + 1] == '$' &&
                         snapshot[startPosition + 2] == '"')
