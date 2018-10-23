@@ -439,6 +439,7 @@ namespace BuildBoss
             foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
             {
                 // TODO: Code Style projects need to be moved over to 4.7.2 and netstandard2.0
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/712825 
                 if (ProjectFilePath.Contains("CodeStyle"))
                 {
                     switch (targetFramework)
