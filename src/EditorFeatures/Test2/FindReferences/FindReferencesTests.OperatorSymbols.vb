@@ -231,5 +231,71 @@ end class
 </Workspace>
             Await TestAPIAndFeature(input)
         End Function
+
+        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrossLanguageFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent_FromCSharp() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Goo(string a, string b, int x, int y)
+    {
+        var m = a $$[|==|] b;
+        var n = a [|==|] b;
+        var o = x == y;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class A
+    sub Goo(a as string, b as string, x as integer, y as integer)
+        dim m = a [|=|] b
+        dim n = a [|=|] b
+        dim o = x = y
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCrossLanguageFindReferencesOnBuiltInOperatorWithUserDefinedEquivalent_FromVisualBasic() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class A
+{
+    void Goo(string a, string b, int x, int y)
+    {
+        var m = a [|==|] b;
+        var n = a [|==|] b;
+        var o = x == y;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+class A
+    sub Goo(a as string, b as string, x as integer, y as integer)
+        dim m = a $$[|=|] b
+        dim n = a [|=|] b
+        dim o = x = y
+    end sub
+end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
     End Class
 End Namespace
