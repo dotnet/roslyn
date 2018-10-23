@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
             for (int i = 0; i < list.Count; ++i)
             {
-                if (list[i].Equals(item))
+                if (EqualityComparer<T>.Default.Equals(list[i], item))
                 {
                     return i;
                 }
