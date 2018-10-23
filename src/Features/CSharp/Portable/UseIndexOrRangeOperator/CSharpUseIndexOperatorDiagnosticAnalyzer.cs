@@ -211,11 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     ImmutableDictionary<string, string>.Empty));
         }
 
-        private bool CheckOptions(BinaryExpressionSyntax binaryExpression, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         private IPropertySymbol TryGetLengthLikeProperty(InfoCache infoCache, IMethodSymbol targetMethodOpt)
             => targetMethodOpt != null && infoCache.TryGetMemberInfo(targetMethodOpt, out var memberInfo)
                 ? memberInfo.LengthLikeProperty
