@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                   from typeDefHandle in module.MetadataReader.TypeDefinitions
                                   let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
                                   let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
-                                  where supportedLanguages != null && supportedLanguages.Any()
+                                  where supportedLanguages.Any()
                                   let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
                                   from supportedLanguage in supportedLanguages
                                   group typeName by supportedLanguage;
