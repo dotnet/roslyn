@@ -1,12 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
     internal class SymbolDependentsBuilder : SyntaxWalker
     {
@@ -37,16 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                 ContextDocument = contextDocument
             };
 
-            var selectedSyntax = userSelectedNodeSymbol.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-            builder.Visit(selectedSyntax);
+            var selectedSyntax = userSelectedNodeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (selectedSyntax != null)
+            {
+                builder.Visit(selectedSyntax);
+            }
             return builder.SymbolDependentsList;
         }
 
         public override void Visit(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.IdentifierName))
+            var symbol = SemanticModel.GetDeclaredSymbol(node);
+            if (symbol != null &&
+                (symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method ||
+                symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Event))
             {
-                var symbol = SymbolFinder.FindSymbolAtPositionAsync(ContextDocument, node.SpanStart).Result;
                 if (SymbolSet.Contains(symbol))
                 {
                     SymbolDependentsList.Add(symbol);

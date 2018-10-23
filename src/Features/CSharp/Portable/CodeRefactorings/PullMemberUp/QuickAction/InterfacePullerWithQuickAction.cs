@@ -1,60 +1,59 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CodeActions;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
-using Microsoft.CodeAnalysis.Editing;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PullMemberUp.QuickAction;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal class InterfacePullerWithQuickAction : AbstractMemberPullerWithQuickAction
     {
-        internal InterfacePullerWithQuickAction(
-            INamedTypeSymbol targetInterfaceSymbol,
-            CodeRefactoringContext context,
-            SemanticModel semanticModel,
-            SyntaxNode userSelectedNode):
-            base(targetInterfaceSymbol, context, semanticModel, userSelectedNode)
-        {
-        }
-
         internal override bool AreModifiersValid(INamedTypeSymbol targetSymbol, ISymbol selectedMembers)
         {
             var validator = new InterfaceModifiersValidator();
             return validator.AreModifiersValid(targetSymbol, new ISymbol[] { selectedMembers });
         }
 
-        internal override CodeAction ComputeRefactoring()
+        internal override async Task<CodeAction> CreateAction(IMethodSymbol methodSymbol, Document contextDocument)
         {
-            if (IsDeclarationAlreadyInTarget())
-            {
-                return default;
-            }
-            return base.ComputeRefactoring();
+            var changedDocument = await CodeGenerationService.AddMethodAsync(contextDocument.Project.Solution, TargetTypeSymbol, methodSymbol);
+            return new DocumentChangeAction(Title, _ => Task.FromResult(changedDocument));
         }
 
-        protected override CodeAction CreateSolutionChangeAction(SyntaxNode nodeToPullUp, Document contextDocument)
+        internal override async Task<CodeAction> CreateAction(IPropertySymbol propertyOrIndexerSymbol, Document contextDocument)
         {
-            var changedSolution = ChangedSolutionAndDocumentCreator.
-                AddMembersToSolutionAsync(new SyntaxNode[] { nodeToPullUp }, TargetSyntaxNode,
-                contextDocument, CancellationToken);
-            return new SolutionChangeAction(Title, _ => changedSolution);
+            var pullUpSymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
+                propertyOrIndexerSymbol,
+                propertyOrIndexerSymbol.GetAttributes(),
+                propertyOrIndexerSymbol.DeclaredAccessibility,
+                DeclarationModifiers.From(propertyOrIndexerSymbol),
+                propertyOrIndexerSymbol.ExplicitInterfaceImplementations,
+                propertyOrIndexerSymbol.Name,
+                propertyOrIndexerSymbol.IsIndexer,
+                propertyOrIndexerSymbol.GetMethod.DeclaredAccessibility == Accessibility.Public ? propertyOrIndexerSymbol.GetMethod : null,
+                propertyOrIndexerSymbol.SetMethod.DeclaredAccessibility == Accessibility.Public ? propertyOrIndexerSymbol.SetMethod : null);
+
+            var changedDocument = await CodeGenerationService.AddPropertyAsync(contextDocument.Project.Solution, TargetTypeSymbol, pullUpSymbol);
+            return new DocumentChangeAction(Title, _ => Task.FromResult(changedDocument));
         }
 
-        protected override CodeAction CreateDocumentChangeAction(SyntaxNode nodeToPullUp, Document contextDocument)
+        internal override async Task<CodeAction> CreateAction(IEventSymbol eventSymbol, Document contextDocument)
         {
-            var changedDocument = ChangedSolutionAndDocumentCreator.
-                AddMembersToDocumentAsync(new SyntaxNode[] { nodeToPullUp }, TargetSyntaxNode,
-                contextDocument, CancellationToken);
-            return new DocumentChangeAction(Title, _ => changedDocument);
+            var option = new CodeGenerationOptions(generateMembers: false, generateMethodBodies: false);
+            var changedDocument = await CodeGenerationService.AddEventAsync(contextDocument.Project.Solution, TargetTypeSymbol ,eventSymbol, option);
+            return new DocumentChangeAction(Title, _ => Task.FromResult(changedDocument));
         }
 
-        private bool IsDeclarationAlreadyInTarget()
+        internal override Task<CodeAction> CreateAction(IFieldSymbol fieldSymbol, Document contextDocument)
+        {
+            throw new NotImplementedException("Can't pull a field up to interface");
+        }
+
+        protected override bool IsDeclarationAlreadyInTarget()
         {
             var allMembers = TargetTypeSymbol.GetMembers();
 
@@ -67,32 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                 }
             }
             return false;
-        }
-
-        internal override CodeAction CreateAction(IMethodSymbol methodSymbol, Document contextDocument)
-        {
-            // Maybe change it to async ???
-            var targetNode = CodeGenerationService.AddMethod(TargetSyntaxNode, methodSymbol);
-            return CreateDocumentOrSolutionChangedAction(targetNode, contextDocument);
-        }
-
-        internal override CodeAction CreateAction(IPropertySymbol propertyOrIndexerNode, Document contextDocument)
-        {
-            var option = new CodeGenerationOptions(generateDefaultAccessibility: false);
-            var targetNode = CodeGenerationService.AddProperty(TargetSyntaxNode, propertyOrIndexerNode, option);
-            return CreateDocumentOrSolutionChangedAction(targetNode, contextDocument);
-        }
-
-        internal override CodeAction CreateAction(IEventSymbol eventSymbol, Document contextDocument)
-        {
-            var option = new CodeGenerationOptions(generateMembers: false, generateMethodBodies: false);
-            var targetNode = CodeGenerationService.AddEvent(TargetSyntaxNode, eventSymbol, option);
-            return CreateDocumentOrSolutionChangedAction(targetNode, contextDocument);
-        }
-
-        internal override CodeAction CreateAction(IFieldSymbol fieldSymbol, Document contextDocument)
-        {
-            throw new NotImplementedException("Can't pull a field up to interface");
         }
     }
 }

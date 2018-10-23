@@ -1,106 +1,138 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
 {
     internal class ClassPullerWithDialog
     {
-        internal async Task<Solution> ComputeChangedSolution(
-            PullTargetsResult result,
-            SemanticModel semanticModel,
-            Document contextDocument,
+        private void AddMembersToTarget(
+            PullMemberDialogResult result,
+            DocumentEditor editor,
+            SyntaxNode targetNodeSyntax,
             ICodeGenerationService codeGenerationService,
             CancellationToken cancellationToken)
         {
-            var targetDeclaringSyntax = await result.Target.DeclaringSyntaxReferences.First().GetSyntaxAsync(cancellationToken);
-
-            var solution = contextDocument.Project.Solution;
-            var solutionEditor = new SolutionEditor(solution);
-            var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocument(targetDeclaringSyntax.SyntaxTree).Id, cancellationToken).ConfigureAwait(false);
-
-            var symbolsToPullUp = new List<ISymbol>();
-            var changeTargetAbstract = false;
-
-            // Remove node
-            targetDeclaringSyntax = RemoveMembers(result.SelectedMembers.
-                Where(memberSelectionPair => !memberSelectionPair.makeAbstract).
-                Select(memberSelectionPair => memberSelectionPair.member), targetDeclaringSyntax);
-            
-            // Add members
+            var pullUpMemberSymbols = result.SelectedMembers.Select(userSelection => userSelection.member);
             if (result.Target.IsAbstract)
             {
-                foreach ((var symbol, var makeAbstract) in result.SelectedMembers)
+                var abstractMembersSymbol = result.SelectedMembers.Where(selectionPair => selectionPair.makeAbstract).
+                    Select(selectionPair => GetAbstractMemberSymbol(selectionPair.member));
+
+                pullUpMemberSymbols = result.SelectedMembers.Where(selectionPair => !selectionPair.makeAbstract).
+                    Select(selection => selection.member).Concat(abstractMembersSymbol);
+            }
+
+            var options = new CodeGenerationOptions(reuseSyntax: true);
+            var membersAddedTarget = codeGenerationService.AddMembers(targetNodeSyntax, pullUpMemberSymbols, options: options, cancellationToken);
+            editor.ReplaceNode(targetNodeSyntax, membersAddedTarget);
+        }
+
+        private void ChangeTargetType(
+            PullMemberDialogResult result,
+            SyntaxNode targetSyntaxNode,
+            DocumentEditor editor)
+        {
+            // If try to pull an abstract member to ordinary class
+            // Change the class to abstract
+            if (result.Target is INamedTypeSymbol target &&
+                !target.IsAbstract &&
+                target.TypeKind == TypeKind.Class)
+            {
+                var changeTargetToAbstract = result.SelectedMembers.Aggregate(false,
+                    (acc, selectionPair) => acc || selectionPair.makeAbstract || selectionPair.member.IsAbstract);
+
+                if (changeTargetToAbstract)
                 {
-                    if (makeAbstract && !symbol.IsAbstract)
-                    {
-                        symbolsToPullUp.Add(GetAbstractMemberSymbol(symbol, codeGenerationService));
-                    }
-                    else
-                    {
-                        symbolsToPullUp.Add(symbol);
-                    }
+                    // TODO: if there are multiple partial classes, should change them 
+                    // all?
+                    editor.SetModifiers(targetSyntaxNode,
+                        DeclarationModifiers.From(result.Target).WithIsAbstract(true));
                 }
             }
-            else if (result.Target.IsStatic)
+        }
+
+        private async Task ChangeContainingType(
+            PullMemberDialogResult result,
+            SyntaxNode targetSyntaxNode,
+            DocumentEditor editor,
+            CancellationToken cancellationToken)
+        {
+            // If user want to make it abstract then don't remove the original member
+            var tasks = result.SelectedMembers.Where(selectionPair => !selectionPair.makeAbstract).
+                Select(async selectionPair => (memberSyntax: (await selectionPair.member.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntaxAsync(cancellationToken)), memberSymbol: selectionPair.member));
+            var membersToRemove = await Task.WhenAll(tasks).ConfigureAwait(false);
+            foreach ((var syntax, var symbol) in membersToRemove)
             {
-                foreach ((var symbol, var makeAbstract) in result.SelectedMembers)
+                if (syntax != null)
                 {
-                    // TODO: What to pull Up if the member is abstract?
-                    symbolsToPullUp.Add(symbol);
+                    if (symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Event)
+                    {
+                        if (syntax.Parent != null &&
+                            syntax.Parent.Parent is BaseFieldDeclarationSyntax fieldOrEventSyntaxDeclaration)
+                        {
+                            if (fieldOrEventSyntaxDeclaration.Declaration.Variables.Count() == 1)
+                            {
+                                editor.RemoveNode(fieldOrEventSyntaxDeclaration);
+                            }
+                            else
+                            {
+                                editor.RemoveNode(syntax);
+                            }
+                        }
+                    }
                 }
+                else
+                {
+                    editor.RemoveNode(syntax);
+                }
+            }
+        }
+
+        internal async Task<Solution> ComputeChangedSolution(
+            PullMemberDialogResult result,
+            Document contextDocument,
+            CancellationToken cancellationToken)
+        {
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var targetSyntaxNode = await codeGenerationService.
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
+
+            if (targetSyntaxNode != null)
+            {
+                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
+                var contextEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Id, cancellationToken);
+                var targetEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+
+                await ChangeContainingType(result, targetSyntaxNode, contextEditor, cancellationToken);
+
+                AddMembersToTarget(result, targetEditor, targetSyntaxNode, codeGenerationService, cancellationToken);
+
+                ChangeTargetType(result, targetSyntaxNode, targetEditor);
+
+                return solutionEditor.GetChangedSolution();
             }
             else
             {
-                foreach ((var symbol, var makeAbstract) in result.SelectedMembers)
-                {
-                    if (symbol.IsAbstract || makeAbstract)
-                    {
-                        changeTargetAbstract = true;
-                    }
-
-                    if (!symbol.IsAbstract && makeAbstract)
-                    {
-                        symbolsToPullUp.Add(GetAbstractMemberSymbol(symbol, codeGenerationService));
-                    }
-                }
+                return default;
             }
-            var changedTarget = targetDeclaringSyntax;
-            if (changeTargetAbstract)
-            {
-                changedTarget = codeGenerationService.UpdateDeclarationModifiers(targetDeclaringSyntax,
-                    new SyntaxToken[] { SyntaxFactory.Token(SyntaxKind.AbstractKeyword) });
-            }
-
-            changedTarget = codeGenerationService.AddMembers(targetDeclaringSyntax, symbolsToPullUp);
-            targetDocumentEditor.ReplaceNode(targetDeclaringSyntax, changedTarget);
-            return solutionEditor.GetChangedSolution();
         }
 
-        private SyntaxNode RemoveMembers(IEnumerable<ISymbol> symbolsToBeRemoved, SyntaxNode targetSyntaxNode)
+        private ISymbol GetAbstractMemberSymbol(ISymbol memberSymbol)
         {
-            // TODO: How to locate the right position of the syntax from symbol?
-            // Also the remove should behave right for multiple declaration on same line
-            // If public int i, j, k are all need 
-            var syntaxTobeRemoved = symbolsToBeRemoved.Select(symbol => symbol.DeclaringSyntaxReferences).
-                Where(references => references.Length > 0).Select(references => references.First().GetSyntax());
-
-            foreach (var node in syntaxTobeRemoved)
+            if (memberSymbol.IsAbstract)
             {
-                targetSyntaxNode = targetSyntaxNode.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
+                return memberSymbol;
             }
-            return targetSyntaxNode;
-        }
-
-        private ISymbol GetAbstractMemberSymbol(ISymbol memberSymbol, ICodeGenerationService codeGenerationService)
-        {
-            var modifier = new DeclarationModifiers(isAbstract:true);
+            var modifier = DeclarationModifiers.From(memberSymbol).WithIsAbstract(true);
             if (memberSymbol is IMethodSymbol methodSymbol)
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);

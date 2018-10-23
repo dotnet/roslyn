@@ -1,7 +1,8 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal interface IValidator
     {
@@ -14,16 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
     {
         public List<string> WarningMessageList { get; }
 
-        internal ClassModifiersValidator()
+        private bool GenerateWarningMessage { get; }
+
+        internal ClassModifiersValidator(bool generateWarningMessage=false)
         {
-            WarningMessageList = new List<string>();
+            if (GenerateWarningMessage)
+            {
+                WarningMessageList = new List<string>();
+            }
         }
 
         internal bool IsStaticModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
         {
             if (targetSymbol.IsStatic && !selectedMember.IsStatic)
             {
-                WarningMessageList.Add($"{targetSymbol.Name} is static class, {selectedMember.Name} will be changed to static.");
+                if (GenerateWarningMessage)
+                {
+                    WarningMessageList.Add($"{targetSymbol.Name} is static class, {selectedMember.Name} will be changed to static.");
+                }
                 return false;
             }
             return true;
@@ -33,7 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
             if (selectedMember.IsAbstract && !targetSymbol.IsAbstract)
             {
-                WarningMessageList.Add($"{selectedMember} is abstract, {targetSymbol} will be changed to abstract.");
+                if (GenerateWarningMessage)
+                {
+                    WarningMessageList.Add($"{selectedMember} is abstract, {targetSymbol} will be changed to abstract.");
+                }
                 return false;
             }
             return true;
@@ -56,16 +68,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
     {
         public List<string> WarningMessageList { get; }
 
-        internal InterfaceModifiersValidator()
+        private bool GenerateWarningMessage { get; }
+
+        internal InterfaceModifiersValidator(bool generateWarningMessage=false)
         {
-            WarningMessageList = new List<string>();
+            if (GenerateWarningMessage)
+            {
+                WarningMessageList = new List<string>();
+            }
         }
 
         internal bool IsAccessiblityModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
         {
             if (selectedMember.DeclaredAccessibility != Accessibility.Public)
             {
-                WarningMessageList.Add($"Destination {targetSymbol.Name} is an interface, {selectedMember.Name} will be changed to public.");
+                if (GenerateWarningMessage)
+                {
+                    WarningMessageList.Add($"Destination {targetSymbol.Name} is an interface, {selectedMember.Name} will be changed to public.");
+                }
                 return false;
             }
             return true;
@@ -75,7 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
             if (selectedMember.IsStatic)
             {
-                WarningMessageList.Add($"Destination {targetSymbol.Name} is an interface, {selectedMember.Name} will be changed to non-static.");
+                if (GenerateWarningMessage)
+                {
+                    WarningMessageList.Add($"Destination {targetSymbol.Name} is an interface, {selectedMember.Name} will be changed to non-static.");
+                }
                 return false;
             }
             return true;

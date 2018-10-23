@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,13 +46,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             if (TargetMembersContainer.SelectedItem is MemberSymbolViewModelGraphNode memberGraphNode)
             {
                 ViewModel.SelectedTarget = memberGraphNode;
-                if (memberGraphNode.MemberSymbolViewModel.MemberSymbol is INamedTypeSymbol typeSymbol && typeSymbol.TypeKind == TypeKind.Interface)
+                if (memberGraphNode.MemberSymbolViewModel.MemberSymbol is INamedTypeSymbol interfaceSymbol && interfaceSymbol.TypeKind == TypeKind.Interface)
                 {
                     DisableFieldCheckBox();
+                    DisableAbstractBox();
                 }
                 else
                 {
                     EnableFieldChekcBox();
+                    EnableAbstractBox();
+                }
+            }
+        }
+
+        private void DisableAbstractBox()
+        {
+            foreach (var member in ViewModel.SelectedMembersContainer)
+            {
+                member.IsAbstractSelectable = false;
+                member.IsAbstract = false;
+            }
+        }
+
+        private void EnableAbstractBox()
+        {
+            foreach (var member in ViewModel.SelectedMembersContainer)
+            {
+                if (member.MemberSymbol.Kind != SymbolKind.Field)
+                {
+                    member.IsAbstractSelectable = true;
                 }
             }
         }
@@ -92,10 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         private void Cancel_Button_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
-        private void AbstractCheckBox_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private void SelecDependentsButton_Click(object sender, RoutedEventArgs e)
         {
             var checkedMembers = ViewModel.SelectedMembersContainer.
@@ -124,7 +144,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
-                member.IsChecked = true;
+                if (member.IsSelectable)
+                {
+                    member.IsChecked = true;
+                }
             }
         }
 

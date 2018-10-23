@@ -1,10 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -13,63 +14,115 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
     internal class InterfacePullerWithDialog
     {
         internal async Task<Solution> ComputeChangedSolution(
-            PullTargetsResult result,
-            SemanticModel semanticModel,
+            PullMemberDialogResult result,
             Document contextDocument,
-            ICodeGenerationService codeGenerationService,
             CancellationToken cancellationToken)
         {
-            var targetDeclaringSyntax = await result.Target.DeclaringSyntaxReferences.First().GetSyntaxAsync(cancellationToken);
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var targetSyntaxNode = await codeGenerationService.
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
 
-            var nodesToPullUp = new List<SyntaxNode>();
-
-            var solution = contextDocument.Project.Solution;
-            var solutionEditor = new SolutionEditor(solution);
-            var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocument(targetDeclaringSyntax.SyntaxTree).Id, cancellationToken).ConfigureAwait(false);
-
-            foreach((var memberSymbol, var _) in result.SelectedMembers)
+            if (targetSyntaxNode != null)
             {
-                if (memberSymbol.DeclaredAccessibility != Accessibility.Public)
-                {
-                    await UpdateAccessibilityToPublic(memberSymbol, codeGenerationService, targetDocumentEditor, cancellationToken);
-                }
+                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
+                var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(
+                   contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+                var contextDocumentEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Id);
 
-                if (memberSymbol is IMethodSymbol methodSymbol)
-                {
-                    nodesToPullUp.Add(codeGenerationService.AddMethod(targetDeclaringSyntax, methodSymbol));
-                }
-                else if (memberSymbol is IEventSymbol eventSymbol)
-                {
-                    var option = new CodeGenerationOptions(generateMethodBodies : false);
-                    nodesToPullUp.Add(codeGenerationService.AddEvent(targetDeclaringSyntax, eventSymbol));
-                }
-                else if (memberSymbol is IPropertySymbol propertySymbol)
-                {
-                    nodesToPullUp.Add(codeGenerationService.AddProperty(targetDeclaringSyntax, propertySymbol));
-                }
-                else
-                {
-                    throw new ArgumentException($"nameof {memberSymbol} should be method, event or property");
-                }
+                var membersAddedTargetNode = AddMembersToTarget(result, contextDocument, targetSyntaxNode, codeGenerationService);
+                targetDocumentEditor.ReplaceNode(targetSyntaxNode, membersAddedTargetNode);
+                await ChangeAccessibilityToPublic(result, contextDocumentEditor, targetSyntaxNode, codeGenerationService, cancellationToken);
+
+                return solutionEditor.GetChangedSolution();
             }
-
-            foreach (var node in nodesToPullUp)
+            else
             {
-                targetDocumentEditor.AddMember(targetDeclaringSyntax, node);
+                return default;
             }
-
-            return solutionEditor.GetChangedSolution();
         }
 
-        private async Task UpdateAccessibilityToPublic(
-            ISymbol memberSymbol,
-            ICodeGenerationService codeGenerationService,
+        private async Task ChangeAccessibilityToPublic(
+            PullMemberDialogResult result,
             DocumentEditor editor,
+            SyntaxNode targetNode,
+            ICodeGenerationService codeGenerationService,
             CancellationToken cancellationToken)
         {
-            var memberSyntax = await memberSymbol.DeclaringSyntaxReferences.First().GetSyntaxAsync(cancellationToken);
-            var publicMemberSyntax = codeGenerationService.UpdateDeclarationAccessibility(memberSyntax, Accessibility.Public);
-            editor.ReplaceNode(memberSyntax, publicMemberSyntax);
+            var nonPublicMembers = result.SelectedMembers.
+                Where(selectionPair => selectionPair.member.DeclaredAccessibility != Accessibility.Public).
+                Select(selectionPair => selectionPair.member);
+
+            var tasks = nonPublicMembers.
+                Select(async symbol => (memberSyntax: (await symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntaxAsync(cancellationToken)), memberSymbol: symbol));
+            var syntaxAndSymbolPairs = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            foreach ((var syntax, var symbol) in syntaxAndSymbolPairs)
+            {
+                if (syntax != null)
+                {
+                    if (symbol is IEventSymbol eventSymbol)
+                    {
+                        if (syntax.Parent != null &&
+                            syntax.Parent.Parent is BaseFieldDeclarationSyntax eventDeclaration)
+                        {
+                            if (eventDeclaration.Declaration.Variables.Count == 1)
+                            {
+                                editor.SetAccessibility(eventDeclaration, Accessibility.Public);
+                            }
+                            else if (eventDeclaration.Declaration.Variables.Count > 1)
+                            {
+                                // If multiple declaration on same line
+                                // e.g. private EventHandler event Event1, Event2, Event3
+                                // change Event1 to public need to create a new declaration
+                                var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+                                var publicSyntax = codeGenerationService.CreateEventDeclaration(eventSymbol, CodeGenerationDestination.InterfaceType, options);
+
+                                editor.RemoveNode(syntax);
+                                editor.AddMember(targetNode, publicSyntax);
+
+                                // If all of them are removed, how to remove the type and modifiers
+                            }
+                        }
+                    }
+                    else
+                    {
+                        editor.SetAccessibility(syntax, Accessibility.Public);
+                    }
+                }
+            }
+        }
+
+        private SyntaxNode AddMembersToTarget(
+            PullMemberDialogResult result,
+            Document contextDocument,
+            SyntaxNode targetNode,
+            ICodeGenerationService codeGenerationService)
+        {
+            var symbolsToPullUp = result.SelectedMembers.
+                Select(selectionPair =>
+                {
+                    if (selectionPair.member is IPropertySymbol propertySymbol)
+                    {
+                        return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                                propertySymbol,
+                                propertySymbol.GetAttributes(),
+                                Accessibility.Public,
+                                DeclarationModifiers.From(propertySymbol),
+                                propertySymbol.ExplicitInterfaceImplementations,
+                                propertySymbol.Name,
+                                propertySymbol.IsIndexer,
+                                propertySymbol.GetMethod.DeclaredAccessibility == Accessibility.Public ? propertySymbol.GetMethod : null,
+                                propertySymbol.SetMethod.DeclaredAccessibility == Accessibility.Public ? propertySymbol.SetMethod : null);
+                    }
+                    else
+                    {
+                        return selectionPair.member;
+                    }
+                });
+
+            var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+
+            return codeGenerationService.AddMembers(targetNode, symbolsToPullUp, options:options);
         }
     }
 }

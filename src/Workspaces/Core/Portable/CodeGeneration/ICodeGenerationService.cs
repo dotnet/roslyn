@@ -175,5 +175,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <c>true</c> if destination is a location where other symbols can be added to.
         /// </summary>
         bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Return the most relevant declaration to
+        /// <param name="namespaceOrType"/>
+        /// </summary>
+        Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options = null, CancellationToken cancellationToken = default);
     }
 }

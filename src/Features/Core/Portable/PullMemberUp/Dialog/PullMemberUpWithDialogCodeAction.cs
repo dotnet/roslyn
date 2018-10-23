@@ -1,16 +1,17 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.PullMemberUp.Dialog;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
     internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
     {
@@ -20,32 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 
         private ISymbol SelectedNodeSymbol { get; }
 
-        private SemanticModel SemanticModel { get; }
-
         private Document ContextDocument { get; }
 
         private Dictionary<ISymbol, Lazy<List<ISymbol>>> LazyDependentsMap { get; }
-
-        private CodeRefactoringContext Context { get; }
-
-        private ICodeGenerationService CodeGenerationService { get; }
 
         // TODO: Add this title to config file??
         public override string Title => "...";
 
         internal PullMemberUpWithDialogCodeAction(
             SemanticModel semanticModel,
-            IPullMemberUpService service,
             CodeRefactoringContext context,
-            ISymbol selectedNodeSymbol,
-            Document contextDocument,
-            ICodeGenerationService codeGenerationService,
-            CancellationToken cancellationToken)
+            ISymbol selectedNodeSymbol)
         {
-            SemanticModel = semanticModel;
-            Context = context;
-            PullMemberUpService = service;
-            CodeGenerationService = codeGenerationService;
+            PullMemberUpService = context.Document.Project.Solution.Workspace.Services.GetService<IPullMemberUpService>();
             Members = selectedNodeSymbol.ContainingType.GetMembers().Where(
                 member => {
                     if (member is IMethodSymbol methodSymbol)
@@ -56,13 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                     {
                         return !member.IsImplicitlyDeclared;
                     }
-                    else
+                    else if (member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event)
                     {
                         return true;
+                    }
+                    else
+                    {
+                        return false;
                     }
                 });
 
             var membersSet = new HashSet<ISymbol>(Members);
+
+            // This map contains the content used by select dependents button
             LazyDependentsMap = Members.ToDictionary(
                 memberSymbol => memberSymbol,
                 memberSymbol => new Lazy<List<ISymbol>>(
@@ -74,12 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                        }
                        else
                        {
-                           return SymbolDependentsBuilder.Build(SemanticModel, memberSymbol, membersSet, contextDocument, cancellationToken);
+                           return SymbolDependentsBuilder.Build(semanticModel, memberSymbol, membersSet, context.Document, context.CancellationToken);
                        }
 
                    }, false));
             SelectedNodeSymbol = selectedNodeSymbol;
-            ContextDocument = contextDocument;
+            ContextDocument = context.Document;
         }
 
         public override object GetOptions(CancellationToken cancellationToken)
@@ -93,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             {
                 if (result.Target.TypeKind == TypeKind.Interface)
                 {
-                    return ValidateSelection(new InterfaceModifiersValidator(), result, cancellationToken);
+                    return ValidateSelection(new InterfaceModifiersValidator(generateWarningMessage: true), result, cancellationToken);
                 }
                 else if (result.Target.TypeKind == TypeKind.Class)
                 {
-                    return ValidateSelection(new ClassModifiersValidator(), result, cancellationToken);
+                    return ValidateSelection(new ClassModifiersValidator(generateWarningMessage: true), result, cancellationToken);
                 }
                 else
                 {
@@ -106,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             }
         }
 
-        private PullTargetsResult ValidateSelection(IValidator validator, PullTargetsResult result, CancellationToken cancellationToken)
+        private PullMemberDialogResult ValidateSelection(IValidator validator, PullMemberDialogResult result, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested && !validator.AreModifiersValid(result.Target, result.SelectedMembers.Select(memberSelectionPair => memberSelectionPair.member)))
             {
@@ -126,20 +120,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         
         protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            if (options is PullTargetsResult result && !result.IsCanceled)
+            if (options is PullMemberDialogResult result && !result.IsCanceled)
             {
+                var service = ContextDocument.Project.LanguageServices.GetRequiredService<IPullMemberUpWithDialogService>();
                 if (result.Target.TypeKind == TypeKind.Interface)
                 {
-                    var interfacePuller 
-                        = new InterfacePullerWithDialog();
-                    var operation = new ApplyChangesOperation(await
-                        interfacePuller.ComputeChangedSolution(result, SemanticModel, ContextDocument, CodeGenerationService, cancellationToken));
+                    var operation = new ApplyChangesOperation(
+                        await service.ComputeInterfaceRefactoring(result, ContextDocument, cancellationToken));
                     return new CodeActionOperation[] { operation };
                 }
                 else if (result.Target.TypeKind == TypeKind.Class)
                 {
-                    // TODO: Add class puller
-                    return null;
+                    var operation = new ApplyChangesOperation(
+                        await service.ComputeClassRefactoring(result, ContextDocument, cancellationToken));
+                    return new CodeActionOperation[] { operation };
                 }
                 else
                 {

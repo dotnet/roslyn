@@ -108,6 +108,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return availableIndices != null && availableIndices.Any(b => b);
         }
 
+        public async Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+            Solution solution,
+            INamespaceOrTypeSymbol namespaceOrType,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+        {
+            return (await FindMostRelevantDeclarationAsync(solution, namespaceOrType, options ?? CodeGenerationOptions.Default, cancellationToken)).declaration;
+        }
+
         private async Task<(SyntaxNode declaration, IList<bool> availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,

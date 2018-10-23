@@ -48,7 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     {
         public bool IsAbstract { get; set; }
 
-        public bool IsAbstractSelectable { get; set; }
+        private bool _isAbstractSelectable;
+        
+        public bool IsAbstractSelectable { get => _isAbstractSelectable; set => SetProperty(ref _isAbstractSelectable, value); }
 
         private bool _isSelectable;
 

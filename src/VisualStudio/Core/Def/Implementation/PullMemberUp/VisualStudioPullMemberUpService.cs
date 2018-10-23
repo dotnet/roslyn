@@ -1,13 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
+
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense;
-using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
@@ -39,13 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             }
         }
 
-        public PullTargetsResult RestoreSelectionDialog()
+        public PullMemberDialogResult RestoreSelectionDialog()
         {
             var dialog = new PullMemberUpDialogxaml(ViewModel);
             return CreateResult(ViewModel, dialog.ShowModal());
         }
 
-        public PullTargetsResult GetPullTargetAndMembers(
+        public PullMemberDialogResult GetPullTargetAndMembers(
             ISymbol selectedOwnerSymbol,
             IEnumerable<ISymbol> members,
             Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
@@ -56,11 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             return CreateResult(ViewModel, dialog.ShowModal());
         }
 
-        private PullTargetsResult CreateResult(PullMemberUpViewModel viewModel, bool? showModal)
+        private PullMemberDialogResult CreateResult(PullMemberUpViewModel viewModel, bool? showModal)
         {
             if (showModal.GetValueOrDefault())
             {
-                return new PullTargetsResult(
+                return new PullMemberDialogResult(
                     ViewModel.SelectedMembersContainer.
                     Where(memberSymbolView => memberSymbolView.IsChecked).
                     Select(memberSymbolView => (memberSymbolView.MemberSymbol, memberSymbolView.IsAbstract)),
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             }
             else
             {
-                return PullTargetsResult.CanceledResult;
+                return PullMemberDialogResult.CanceledResult;
             }
         }
     }
