@@ -14517,6 +14517,27 @@ class C
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
         }
 
+        [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
+        public void CS1599ERR_LocalFunctionReturnCanBeSpan()
+        {
+            var text = @"
+using System;
+class C
+{
+    static void M()
+    {
+        byte[] bytes = new byte[1];
+        Span<byte> local1()
+        {
+            return new Span<byte>(bytes);
+        }
+        Span<byte> res = local1();
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpanSrc(text).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
         public void CS1601ERR_MethodArgCantBeRefAny()
         {
