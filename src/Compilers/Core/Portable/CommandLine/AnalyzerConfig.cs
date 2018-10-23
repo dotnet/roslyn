@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Text.RegularExpressions;
 using Roslyn.Utilities;
 
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a single EditorConfig file, see http://editorconfig.org for details about the format.
     /// </summary>
-    internal sealed partial class AnalyzerConfig
+    public sealed partial class AnalyzerConfig
     {
         // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis
         /// Represents a named section of the editorconfig file, which consists of a name followed by a set
         /// of key-value pairs.
         /// </summary>
-        internal sealed class Section
+        public sealed class Section
         {
             /// <summary>
             /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
