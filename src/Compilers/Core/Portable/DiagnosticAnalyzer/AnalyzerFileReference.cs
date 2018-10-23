@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
-        [PerformanceSensitive( "https://github.com/dotnet/roslyn/issues/30449" )]
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
         private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate)
         {
             using (var assembly = AssemblyMetadata.CreateFromFile(fullPath))
