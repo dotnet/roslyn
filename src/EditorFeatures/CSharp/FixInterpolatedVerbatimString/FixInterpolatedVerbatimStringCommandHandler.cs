@@ -4,12 +4,10 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -24,18 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
     [Name(nameof(FixInterpolatedVerbatimStringCommandHandler))]
     internal sealed class FixInterpolatedVerbatimStringCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-
-        [ImportingConstructor]
-        public FixInterpolatedVerbatimStringCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-        }
-
         public string DisplayName => CSharpEditorResources.Fix_interpolated_verbatim_string;
 
         private static int GetCharOffset(char ch)
@@ -75,15 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
                             var token = root.FindToken(startPosition);
                             if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
                             {
-                                using (var transaction = CaretPreservingEditTransaction.TryCreate(
-                                    DisplayName,
-                                    args.TextView,
-                                    _undoHistoryRegistry,
-                                    _editorOperationsFactoryService))
-                                {
-                                    args.SubjectBuffer.Replace(new Span(startPosition, 2), "$@");
-                                    transaction?.Complete();
-                                }
+                                args.SubjectBuffer.Replace(new Span(startPosition, 2), "$@");
                             }
                         }
                     }
