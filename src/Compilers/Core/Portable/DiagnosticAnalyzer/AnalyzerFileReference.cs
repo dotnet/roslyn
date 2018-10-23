@@ -169,10 +169,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // supported languages prior to creating the type names.
                 var typeNameMap = from module in assembly.GetModules()
                                   from typeDefHandle in module.MetadataReader.TypeDefinitions
-                                  let typeDef = module.MetadataReader.GetTypeDefinition( typeDefHandle )
-                                  let supportedLanguages = GetSupportedLanguages( typeDef, module.Module, attributePredicate )
+                                  let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
+                                  let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate)
                                   where supportedLanguages != null && supportedLanguages.Any()
-                                  let typeName = GetFullyQualifiedTypeName( typeDef, module.Module )
+                                  let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
                                   from supportedLanguage in supportedLanguages
                                   group typeName by supportedLanguage;
 
