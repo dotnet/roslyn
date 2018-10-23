@@ -51275,5 +51275,38 @@ class Program
                 //         y2.GetEnumerator(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(18, 9));
         }
+
+        [Fact]
+        public void AccessPropertyWithoutArguments()
+        {
+            var source1 =
+@"Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Interface I
+    Property Value(Optional index As Object = Nothing) As Object
+End Interface";
+            var ref1 = BasicCompilationUtils.CompileToMetadata(source1);
+
+            var source2 =
+@"class C : I
+{
+    public dynamic get_Value(object index = null) => ""Test"";
+    public void set_Value(object index = null, object value = null) { }
+}
+class Test
+{
+    static void Main()
+    {
+        I x = new C();
+        System.Console.WriteLine(x.Value.Length);
+    }
+}";
+            var comp = CreateCompilation(source2, new[] { ref1.WithEmbedInteropTypes(true), CSharpRef }, options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
+            CompileAndVerify(comp, expectedOutput: "4");
+        }
     }
 }
