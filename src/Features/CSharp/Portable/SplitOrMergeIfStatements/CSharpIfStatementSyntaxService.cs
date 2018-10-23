@@ -42,9 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;
 
-            return ifStatement.Else != null
-                ? ImmutableArray.Create<SyntaxNode>(ifStatement.Else)
-                : ImmutableArray<SyntaxNode>.Empty;
+            var builder = ImmutableArray.CreateBuilder<SyntaxNode>();
+
+            while (ifStatement.Else?.Statement is IfStatementSyntax elseIfStatement)
+            {
+                builder.Add(elseIfStatement);
+                ifStatement = elseIfStatement;
+            }
+
+            if (ifStatement.Else != null)
+            {
+                builder.Add(ifStatement.Else);
+            }
+
+            return builder.ToImmutable();
         }
     }
 }
