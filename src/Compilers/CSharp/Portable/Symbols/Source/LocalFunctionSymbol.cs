@@ -241,6 +241,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
             }
 
+            // span-like types are returnable in general
+            if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+            {
+                // Method or delegate cannot return type '{0}'
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.TypeSymbol);
+            }
+
             Debug.Assert(_refKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);

@@ -154,7 +154,7 @@ phases:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/Binaries/$(_configuration)/Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)/Binaries/Debug/Logs'
         ArtifactName: 'Linux $(_name)'
         publishLocation: Container
       continueOnError: true
