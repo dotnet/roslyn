@@ -376,5 +376,49 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestNestedFixAll1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v1 = s[s.Length - 2][s[{|FixAllInDocument:|}s.Length - 2].Length - 1];
+    }
+}",
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v1 = s[^2][^1];
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestNestedFixAll2()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Goo(string[] s)
+    {
+        var v1 = s[{|FixAllInDocument:|}s[0][s[0].Length - 1].Length - 1];
+    }
+}",
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v1 = s[^(s[0][^1])];
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }

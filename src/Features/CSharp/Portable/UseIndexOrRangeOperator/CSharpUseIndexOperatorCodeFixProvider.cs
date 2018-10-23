@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
+    using System.Linq;
     using static Helpers;
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
@@ -35,13 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
-                var binaryExpr = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
                 editor.ReplaceNode(
-                    binaryExpr,
-                    IndexExpression(binaryExpr.Right));
+                    node,
+                    (currentNode, _) => IndexExpression(((BinaryExpressionSyntax)currentNode).Right));
             }
 
             return Task.CompletedTask;
