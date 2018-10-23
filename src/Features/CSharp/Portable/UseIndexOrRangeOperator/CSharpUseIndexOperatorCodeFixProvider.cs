@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            // Process diagnostics from innermost to outermost in case any are nested.
             foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);

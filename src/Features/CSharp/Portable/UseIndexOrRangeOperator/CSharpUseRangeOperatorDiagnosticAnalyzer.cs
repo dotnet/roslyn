@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public const string UseIndexer = nameof(UseIndexer);
+        // public const string UseIndexer = nameof(UseIndexer);
         public const string ComputedRange = nameof(ComputedRange);
         public const string ConstantRange = nameof(ConstantRange);
 
-        public CSharpUseRangeOperatorDiagnosticAnalyzer() 
+        public CSharpUseRangeOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_range_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources._0_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -59,44 +60,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private void AnalyzeInvocation(
             OperationAnalysisContext context, InfoCache infoCache)
         {
-            var cancellationToken = context.CancellationToken;
-            var invocation = (IInvocationOperation)context.Operation;
+            var resultOpt = AnalyzeInvocation(
+                (IInvocationOperation)context.Operation, infoCache, context.Options, context.CancellationToken);
 
+            if (resultOpt == null)
+            {
+                return;
+            }
+
+            var result = resultOpt.Value;
+            context.ReportDiagnostic(CreateDiagnostic(
+                result.RangeKind,
+                result.Option,
+                result.Invocation,
+                result.SliceLikeMethod,
+                result.MemberInfo,
+                result.Op1,
+                result.Op2));
+        }
+
+        public static Result? AnalyzeInvocation(
+            IInvocationOperation invocation, InfoCache infoCache,
+            AnalyzerOptions analyzerOptionsOpt, CancellationToken cancellationToken)
+        {
             // Validate we're on a piece of syntax we expect.  While not necessary for analysis, we
             // want to make sure we're on something the fixer will know how to actually fix.
             var invocationSyntax = invocation.Syntax as InvocationExpressionSyntax;
             if (invocationSyntax is null ||
                 invocationSyntax.ArgumentList is null)
             {
-                return;
+                return default;
             }
 
-            // Check if we're at least on C# 8, and that the user wants these operators.
-            var syntaxTree = invocationSyntax.SyntaxTree;
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
+            CodeStyleOption<bool> option = null;
+            if (analyzerOptionsOpt != null)
             {
-                return;
-            }
+                // Check if we're at least on C# 8, and that the user wants these operators.
+                var syntaxTree = invocationSyntax.SyntaxTree;
+                var parseOptions = (CSharpParseOptions)syntaxTree.Options;
+                if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
+                {
+                    return default;
+                }
 
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet is null)
-            {
-                return;
-            }
+                var optionSet = analyzerOptionsOpt.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+                if (optionSet is null)
+                {
+                    return default;
+                }
 
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferRangeOperator);
-            if (!option.Value)
-            {
-                return;
+                option = optionSet.GetOption(CSharpCodeStyleOptions.PreferRangeOperator);
+                if (!option.Value)
+                {
+                    return default;
+                }
             }
-
 
             // look for `s.Slice(e1, end - e2)`
             if (invocation.Instance is null ||
                 invocation.Arguments.Length != 2)
             {
-                return;
+                return default;
             }
 
             // See if the call is to something slice-like.
@@ -108,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (!IsSubtraction(invocation.Arguments[1].Value, out var subtraction) ||
                 !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
             {
-                return;
+                return default;
             }
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
@@ -117,10 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             if (CSharpSyntaxFactsService.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
-                context.ReportDiagnostic(CreateDiagnostic(
-                    ComputedRange, option, invocationSyntax, targetMethod,
-                    memberInfo, startOperation, subtraction.LeftOperand));
-                return;
+                return new Result(
+                    ComputedRange, option,
+                    invocation, invocationSyntax,
+                    targetMethod, memberInfo,
+                    startOperation, subtraction.LeftOperand);
             }
 
             // See if we have: (constant1, s.Length - constant2).  The constants don't have to be
@@ -129,30 +154,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 IsConstantInt32(subtraction.RightOperand) &&
                 IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
             {
-                context.ReportDiagnostic(CreateDiagnostic(
-                    ConstantRange, option, invocationSyntax, targetMethod,
-                    memberInfo, startOperation, subtraction.RightOperand));
-                return;
+                return new Result(
+                    ConstantRange, option,
+                    invocation, invocationSyntax,
+                    targetMethod, memberInfo,
+                    startOperation, subtraction.RightOperand);
             }
+
+            return default;
         }
 
         private Diagnostic CreateDiagnostic(
-            string rangeKind, CodeStyleOption<bool> option, InvocationExpressionSyntax invocation, 
+            string rangeKind, CodeStyleOption<bool> option, InvocationExpressionSyntax invocation,
             IMethodSymbol sliceLikeMethod, MemberInfo memberInfo, IOperation op1, IOperation op2)
         {
-            var properties = ImmutableDictionary<string, string>.Empty.Add(rangeKind, rangeKind);
-
-            if (memberInfo.OverloadedMethodOpt == null)
-            {
-                properties = properties.Add(UseIndexer, UseIndexer);
-            }
-
-            // Keep track of the syntax nodes from the start/end ops so that we can easily 
-            // generate the range-expression in the fixer.
+            // Keep track of the invocation node
             var additionalLocations = ImmutableArray.Create(
-                invocation.GetLocation(),
-                op1.Syntax.GetLocation(),
-                op2.Syntax.GetLocation());
+                invocation.GetLocation());
 
             // Mark the span under the two arguments to .Slice(..., ...) as what we will be
             // updating.
@@ -165,11 +183,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 location,
                 option.Notification.Severity,
                 additionalLocations,
-                properties,
+                ImmutableDictionary<string, string>.Empty,
                 sliceLikeMethod.Name);
         }
 
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
+
+        public readonly struct Result
+        {
+            public readonly string RangeKind;
+            public readonly CodeStyleOption<bool> Option;
+            public readonly IInvocationOperation InvocationOperation;
+            public readonly InvocationExpressionSyntax Invocation;
+            public readonly IMethodSymbol SliceLikeMethod;
+            public readonly MemberInfo MemberInfo;
+            public readonly IOperation Op1;
+            public readonly IOperation Op2;
+
+            public Result(
+                string rangeKind, CodeStyleOption<bool> option,
+                IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
+                IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
+                IOperation op1, IOperation op2)
+            {
+                RangeKind = rangeKind;
+                Option = option;
+                InvocationOperation = invocationOperation;
+                Invocation = invocation;
+                SliceLikeMethod = sliceLikeMethod;
+                MemberInfo = memberInfo;
+                Op1 = op1;
+                Op2 = op2;
+            }
+        }
     }
 }

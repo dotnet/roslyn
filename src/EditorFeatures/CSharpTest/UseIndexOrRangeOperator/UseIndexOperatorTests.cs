@@ -408,15 +408,15 @@ class C
 {
     void Goo(string[] s)
     {
-        var v1 = s[{|FixAllInDocument:|}s[0][s[0].Length - 1].Length - 1];
+        var v1 = s[{|FixAllInDocument:|}s.Length - 2][s[s.Length - 2].Length - 1];
     }
 }",
 @"
 class C
 {
-    void Goo(string s)
+    void Goo(string[] s)
     {
-        var v1 = s[^(s[0][^1])];
+        var v1 = s[^2][^1];
     }
 }", parseOptions: s_parseOptions);
         }

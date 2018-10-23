@@ -154,5 +154,29 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestFixAllInvocationToElementAccess1()
+        {
+            // Note: once the IOp tree has support for range operators, this should 
+            // simplify even further.
+            await TestAsync(
+@"
+class C
+{
+    void Goo(string s, string t)
+    {
+        var v = t.Substring(s.Substring({|FixAllInDocument:|}1, s.Length - 2)[0], t.Length - s.Substring(1, s.Length - 2)[0]);
+    }
+}",
+@"
+class C
+{
+    void Goo(string s, string t)
+    {
+        var v = t.Substring(s[1..^1][0], t.Length - s[1..^1][0]);
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }

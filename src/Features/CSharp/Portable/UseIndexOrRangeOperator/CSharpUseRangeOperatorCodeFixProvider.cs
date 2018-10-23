@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -41,60 +42,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
+                                             .OrderByDescending(i => i.SpanStart)
+                                             .ToImmutableArray();
 
-            foreach (var diagnostic in diagnostics)
-            {
-                FixOne(semanticModel, editor, diagnostic, cancellationToken);
-            }
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
+                document, invocationNodes,
+                canReplace: (_1, _2) => true,
+                (semanticModel, currentRoot, currentInvocation) =>
+                    UpdateInvocation(semanticModel, currentRoot, currentInvocation, cancellationToken),
+                cancellationToken);
         }
 
-        private void FixOne(
-            SemanticModel semanticModel, SyntaxEditor editor,
-            Diagnostic diagnostic, CancellationToken cancellationToken)
+        private SyntaxNode UpdateInvocation(
+            SemanticModel semanticModel, SyntaxNode currentRoot, 
+            InvocationExpressionSyntax currentInvocation, 
+            CancellationToken cancellationToken)
         {
-            var invocation = (InvocationExpressionSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var invocation = semanticModel.GetOperation(currentInvocation, cancellationToken) as IInvocationOperation;
+            if (invocation != null)
+            {
+                var infoCache = new InfoCache(semanticModel.Compilation);
+                var resultOpt = AnalyzeInvocation(
+                    invocation, infoCache, analyzerOptionsOpt: null, cancellationToken);
+
+                if (resultOpt != null)
+                {
+                    var result = resultOpt.Value;
+                    var updatedNode = FixOne(semanticModel, result, cancellationToken);
+                    if (updatedNode != null)
+                    {
+                        return currentRoot.ReplaceNode(result.Invocation, updatedNode);
+                    }
+                }
+            }
+
+            return currentRoot;
+        }
+
+        private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
+            => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+        private ExpressionSyntax FixOne(
+            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
+        {
+            var invocation = result.Invocation;
             var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
                 ? memberAccess.Expression
                 : invocation.Expression;
 
-            var rangeExpression = CreateRangeExpression(
-                semanticModel, diagnostic, invocation, cancellationToken);
+            var rangeExpression = CreateRangeExpression(semanticModel, result, cancellationToken);
             var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
             var arguments = SingletonSeparatedList(argument);
 
-            if (diagnostic.Properties.ContainsKey(UseIndexer))
+            if (result.MemberInfo.OverloadedMethodOpt == null)
             {
                 var argList = invocation.ArgumentList;
-                var elementAccess = ElementAccessExpression(
+                return ElementAccessExpression(
                     expression,
                     BracketedArgumentList(
                         Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(argList.OpenParenToken),
                         arguments,
                         Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(argList.CloseParenToken)));
-
-                editor.ReplaceNode(invocation, elementAccess);
             }
             else
             {
-                editor.ReplaceNode(
+                return invocation.ReplaceNode(
                     invocation.ArgumentList,
                     invocation.ArgumentList.WithArguments(arguments));
             }
         }
 
         private RangeExpressionSyntax CreateRangeExpression(
-            SemanticModel semanticModel, Diagnostic diagnostic,
-            InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
+            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
         {
-            var properties = diagnostic.Properties;
-            if (properties.ContainsKey(ComputedRange))
+            if (result.RangeKind == ComputedRange)
             {
-                return CreateComputedRange(semanticModel, diagnostic, invocation, cancellationToken);
+                return CreateComputedRange(semanticModel, result, cancellationToken);
             }
-            else if (properties.ContainsKey(ConstantRange))
+            else if (result.RangeKind == ConstantRange)
             {
-                return CreateConstantRange(semanticModel, diagnostic, cancellationToken);
+                return CreateConstantRange(semanticModel, result, cancellationToken);
             }
             else
             {
@@ -103,59 +131,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         }
 
         private RangeExpressionSyntax CreateComputedRange(
-            SemanticModel semanticModel, Diagnostic diagnostic,
-            InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
+            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
         {
-            var startExpr = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var endExpr = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
-
             // We have enough information now to generate `start..end`.  However, this will often
             // not be what the user wants.  For example, generating `start..expr.Length` is not as
             // desirable as `start..`.  Similarly, `start..(expr.Length - 1)` is not as desirable as
             // `start..^1`.  
 
+            var startOperation = result.Op1;
+            var endOperation = result.Op2;
+
+            var startExpr = (ExpressionSyntax)startOperation.Syntax;
+            var endExpr = (ExpressionSyntax)endOperation.Syntax;
+
             var startFromEnd = false;
             var endFromEnd = false;
 
-            if (semanticModel.GetOperation(invocation, cancellationToken) is IInvocationOperation invocationOp &&
-                IsSliceLikeMethod(invocationOp.TargetMethod) &&
-                invocationOp.Instance != null)
+            var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
+            var instance = result.InvocationOperation.Instance;
+
+            // If our start-op is actually equivalent to `expr.Length - val`, then just change our
+            // start-op to be `val` and record that we should emit it as `^val`.
+            startFromEnd = IsFromEnd(lengthLikeProperty, instance, ref startOperation);
+            startExpr = (ExpressionSyntax)startOperation.Syntax;
+
+            // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
+            // change our end-op to be `val` and record that we should emit it as `^val`.
+            endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
+            endExpr = (ExpressionSyntax)endOperation.Syntax;
+
+            // If the range operation goes to 'expr.Length' then we can just leave off the end part
+            // of the range.  i.e. `start..`
+            if (IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
             {
-                var startOperation = semanticModel.GetOperation(startExpr, cancellationToken);
-                var endOperation = semanticModel.GetOperation(endExpr, cancellationToken);
-                var checker = new InfoCache(semanticModel.Compilation);
+                endExpr = null;
+            }
 
-                if (startOperation != null && 
-                    endOperation != null &&
-                    checker.TryGetMemberInfo(invocationOp.TargetMethod, out var memberInfo))
-                {
-                    var lengthLikeProperty = memberInfo.LengthLikeProperty;
-
-                    // If our start-op is actually equivalent to `expr.Length - val`, then just change our
-                    // start-op to be `val` and record that we should emit it as `^val`.
-                    startFromEnd = IsFromEnd(lengthLikeProperty, invocationOp.Instance, ref startOperation);
-                    startExpr = (ExpressionSyntax)startOperation.Syntax;
-
-                    // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
-                    // change our end-op to be `val` and record that we should emit it as `^val`.
-                    endFromEnd = IsFromEnd(lengthLikeProperty, invocationOp.Instance, ref endOperation);
-                    endExpr = (ExpressionSyntax)endOperation.Syntax;
-
-                    // If the range operation goes to 'expr.Length' then we can just leave off the end part
-                    // of the range.  i.e. `start..`
-                    if (IsInstanceLengthCheck(lengthLikeProperty, invocationOp.Instance, endOperation))
-                    {
-                        endExpr = null;
-                    }
-
-                    // If we're starting the range operation from 0, then we can just leave off the start of
-                    // the range. i.e. `..end`
-                    if (startOperation.ConstantValue.HasValue &&
-                        startOperation.ConstantValue.Value is 0)
-                    {
-                        startExpr = null;
-                    }
-                }
+            // If we're starting the range operation from 0, then we can just leave off the start of
+            // the range. i.e. `..end`
+            if (startOperation.ConstantValue.HasValue &&
+                startOperation.ConstantValue.Value is 0)
+            {
+                startExpr = null;
             }
 
             return RangeExpression(
@@ -169,15 +186,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 : props.ContainsKey(fromEndKey) ? IndexExpression(expr) : expr;
 
         private static RangeExpressionSyntax CreateConstantRange(
-            SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken)
+            SemanticModel semanticModel, Result result, CancellationToken cancellationToken)
         {
-            var constant1Syntax = (ExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var constant2Syntax = (ExpressionSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var constant1Syntax = (ExpressionSyntax)result.Op1.Syntax;
+            var constant2Syntax = (ExpressionSyntax)result.Op2.Syntax;
 
             // the form is s.Slice(constant1, s.Length - constant2).  Want to generate
             // s[constant1..(constant2-constant1)]
-            var constant1 = GetInt32Value(semanticModel.GetOperation(constant1Syntax));
-            var constant2 = GetInt32Value(semanticModel.GetOperation(constant2Syntax));
+            var constant1 = GetInt32Value(result.Op1);
+            var constant2 = GetInt32Value(result.Op2);
 
             var endExpr = (ExpressionSyntax)CSharpSyntaxGenerator.Instance.LiteralExpression(constant2 - constant1);
             return RangeExpression(
