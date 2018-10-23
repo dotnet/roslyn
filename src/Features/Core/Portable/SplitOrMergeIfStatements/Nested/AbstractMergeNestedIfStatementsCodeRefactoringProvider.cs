@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract SyntaxNode MergeIfStatements(
             SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, TExpressionSyntax condition);
 
-        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-            => new MyCodeAction(createChangedDocument, IfKeywordText);
+        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
+            => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<bool> CanBeMergedAsync(
             Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

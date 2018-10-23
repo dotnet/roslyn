@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
-        protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
-
-        protected override int LogicalOrSyntaxKind => (int)SyntaxKind.LogicalOrExpression;
-
         protected override bool IsConditionOfIfStatement(SyntaxNode expression, out SyntaxNode ifStatementNode)
             => Helpers.IsConditionOfIfStatement(expression, out ifStatementNode);
 

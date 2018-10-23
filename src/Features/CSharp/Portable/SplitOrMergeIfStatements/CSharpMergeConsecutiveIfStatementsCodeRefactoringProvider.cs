@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
-        protected override string IfKeywordText => SyntaxFacts.GetText(SyntaxKind.IfKeyword);
-
         protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode)
         {
             if (node is IfStatementSyntax ifStatement)

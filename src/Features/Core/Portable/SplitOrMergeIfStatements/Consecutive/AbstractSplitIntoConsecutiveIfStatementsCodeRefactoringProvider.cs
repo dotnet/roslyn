@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract int LogicalOrSyntaxKind { get; }
-        protected sealed override int LogicalExpressionSyntaxKind => LogicalOrSyntaxKind;
+        protected override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
+            => ifSyntaxService.LogicalOrExpressionKind;
 
         protected abstract bool HasElseClauses(SyntaxNode ifStatementNode);
 
@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
             SyntaxNode ifStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
 
-        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-            => new MyCodeAction(createChangedDocument, IfKeywordText);
+        protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
+            => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
             Document document,

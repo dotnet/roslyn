@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicSplitIntoNestedIfStatementsCodeRefactoringProvider
         Inherits AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider(Of ExpressionSyntax)
 
-        Protected Overrides ReadOnly Property IfKeywordText As String = SyntaxFacts.GetText(SyntaxKind.IfKeyword)
-
-        Protected Overrides ReadOnly Property LogicalAndSyntaxKind As Integer = SyntaxKind.AndAlsoExpression
-
         Protected Overrides Function IsConditionOfIfStatement(expression As SyntaxNode, ByRef ifStatementNode As SyntaxNode) As Boolean
             Return Helpers.IsConditionOfIfStatement(expression, ifStatementNode)
         End Function

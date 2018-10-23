@@ -11,8 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicMergeConsecutiveIfStatementsCodeRefactoringProvider
         Inherits AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider(Of ExpressionSyntax)
 
-        Protected Overrides ReadOnly Property IfKeywordText As String = SyntaxFacts.GetText(SyntaxKind.IfKeyword)
-
         Protected Overrides Function IsApplicableSpan(node As SyntaxNode, span As TextSpan, ByRef ifStatementNode As SyntaxNode) As Boolean
             If TypeOf node Is IfStatementSyntax AndAlso TypeOf node.Parent Is MultiLineIfBlockSyntax Then
                 Dim ifStatement = DirectCast(node, IfStatementSyntax)

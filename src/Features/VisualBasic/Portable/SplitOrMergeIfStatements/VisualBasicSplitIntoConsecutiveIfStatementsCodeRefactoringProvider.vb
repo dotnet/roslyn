@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         Inherits AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider(Of ExpressionSyntax)
 
-        Protected Overrides ReadOnly Property IfKeywordText As String = SyntaxFacts.GetText(SyntaxKind.IfKeyword)
-
-        Protected Overrides ReadOnly Property LogicalOrSyntaxKind As Integer = SyntaxKind.OrElseExpression
-
         Protected Overrides Function IsConditionOfIfStatement(expression As SyntaxNode, ByRef ifStatementNode As SyntaxNode) As Boolean
             Return Helpers.IsConditionOfIfStatement(expression, ifStatementNode)
         End Function

@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract string IfKeywordText { get; }
-
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode);
 
         protected abstract bool IsIfStatement(SyntaxNode node);
 
-        protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument);
+        protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
         protected abstract Task<bool> CanBeMergedAsync(
             Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
@@ -39,13 +37,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             if (IsApplicableSpan(node, context.Span, out var ifStatement))
             {
+                var ifSyntaxService = context.Document.GetLanguageService<IIfStatementSyntaxService>();
                 var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
                 if (await CanBeMergedAsync(context.Document, ifStatement, syntaxFacts, context.CancellationToken).ConfigureAwait(false))
                 {
                     context.RegisterRefactoring(
                         CreateCodeAction(
-                            c => RefactorAsync(context.Document, context.Span, syntaxFacts, c)));
+                            c => RefactorAsync(context.Document, context.Span, syntaxFacts, c),
+                            syntaxFacts.GetText(ifSyntaxService.IfKeywordKind)));
                 }
             }
         }
