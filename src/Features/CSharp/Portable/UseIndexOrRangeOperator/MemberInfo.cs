@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
-    internal struct MemberInfo
+    internal readonly struct MemberInfo
     {
         /// <summary>
         /// The Length/Count property on the type.  Must be public, non-static, no-parameter,
