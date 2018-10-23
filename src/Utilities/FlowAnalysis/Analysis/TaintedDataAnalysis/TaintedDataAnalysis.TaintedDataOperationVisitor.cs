@@ -165,6 +165,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return value;
             }
 
+            // TODO consider overriding DefaultVisit, and collecting tainted and merged datas
             public override TaintedDataAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
             {
                 TaintedDataAbstractValue leftAbstractValue = Visit(operation.LeftOperand, argument);
@@ -206,6 +207,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return TaintedDataAbstractValue.NotTainted;
                 }
 
+                // TODO check if baseVisit is tainted when interprocedural DFA reveals the method returns tainted...or not
                 TaintedDataAbstractValue returnValue = baseVisit;
                 if (visitedInstance != null)
                 {
@@ -270,6 +272,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IArgumentOperation operation,
                 TaintedDataAbstractValue defaultValue)
             {
+                // TODO what to do with interprocedural finds the out argument isn't tainted?
+                // Need lots of test cases
                 if (operation.Parent is IInvocationOperation invocationOperation)
                 {
                     // Treat ref or out arguments as the same as the invocation operation.
@@ -282,6 +286,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
+            // TODO See if DefaultVisit override can replace this.
             public override TaintedDataAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
             {
                 HashSet<SymbolAccess> sourceOrigins = null;
@@ -345,6 +350,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments,
                 IOperation originalOperation)
             {
+                // TODO consider putting this stuff in VisitArgument...or not since we need the interprocedural stuff afterwards
                 if (this.IsMethodArgumentASink(targetMethod, taintedArguments))
                 {
                     foreach (IArgumentOperation taintedArgument in taintedArguments)

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    // TODO consider making this CacheBasedEquatable based
     /// <summary>
     /// Represents an access a symbol.
     /// </summary>
@@ -23,6 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ISymbol Symbol { get; }
 
+        //TODO paulming: Change to Location.
         /// <summary>
         /// Syntax of the access.
         /// </summary>
