@@ -96,7 +96,7 @@ steps:
 - task: PublishBuildArtifacts@1
   displayName: Publish Drop - Binaries
   inputs:
-    PathtoPublish: 'Binaries\$(BuildConfiguration)\DevDivPackages'
+    PathtoPublish: 'Binaries\$(BuildConfiguration)\DevDivInsertionFiles'
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
@@ -108,7 +108,7 @@ steps:
 - task: PowerShell@2
   displayName: Publish Drop - Binaries Real
   inputs:
-    arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber) -ParallelCount 8 -Exclude UnitTests,PerfTests,DevDivPackages'
+    arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber) -ParallelCount 8 -Exclude UnitTests,PerfTests'
     filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
