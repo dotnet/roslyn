@@ -624,8 +624,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ignoredDiagnostics.Free();
 
             var errorCode = wrongAsync
-                ? (isAsync ? ErrorCode.ERR_AsyncForEachMissingMemberWrongAsync : ErrorCode.ERR_ForEachMissingMemberWrongAsync)
-                : (isAsync ? ErrorCode.ERR_AsyncForEachMissingMember : ErrorCode.ERR_ForEachMissingMember);
+                ? (isAsync ? ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync : ErrorCode.ERR_ForEachMissingMemberWrongAsync)
+                : (isAsync ? ErrorCode.ERR_AwaitForEachMissingMember : ErrorCode.ERR_ForEachMissingMember);
 
             diagnostics.Add(errorCode, _syntax.Expression.Location,
                 collectionExprType, isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName);
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionExprType.Kind == SymbolKind.DynamicType && IsAsync)
             {
-                diagnostics.Add(ErrorCode.ERR_BadDynamicAsyncForEach, _syntax.Expression.Location);
+                diagnostics.Add(ErrorCode.ERR_BadDynamicAwaitForEach, _syntax.Expression.Location);
                 return EnumeratorResult.FailedAndReported;
             }
 
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isAsync && IsIAsyncEnumerable(collectionExprType))
             {
                 // This indicates a problem with the well-known IAsyncEnumerable type - it should have satisfied the GetAsyncEnumerator pattern.
-                diagnostics.Add(ErrorCode.ERR_AsyncForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetAsyncEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetAsyncEnumeratorMethodName);
                 return EnumeratorResult.FailedAndReported;
             }
 

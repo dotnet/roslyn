@@ -118,8 +118,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected string GetAbsolutePath(string path)
         {
-            var directoryPath = PathUtilities.GetDirectoryName(Project.FullPath);
-            return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, directoryPath) ?? path);
+            var baseDirectory = PathUtilities.GetDirectoryName(Project.FullPath);
+            var absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path;
+            return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
         }
 
         protected void ReadAdditionalFiles()

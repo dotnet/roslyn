@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
 
         private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
-        private const string NonNullTypes = @"
-[module: System.Runtime.CompilerServices.NonNullTypes(true)]
+        private readonly string NonNullTypes = @"
+" + Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase.NonNullTypesOn() + @"
 ";
 
         [Fact]

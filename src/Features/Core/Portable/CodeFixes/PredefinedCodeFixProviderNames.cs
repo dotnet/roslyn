@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddNew = nameof(AddNew);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
+        public const string UseExplicitTypeForConst = nameof(UseExplicitTypeForConst);
         public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UseThrowExpression = nameof(UseThrowExpression);

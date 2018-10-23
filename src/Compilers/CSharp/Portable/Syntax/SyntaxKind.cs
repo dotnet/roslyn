@@ -211,11 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         DisableKeyword = 8479,
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
-        LoadKeyword = 8485,
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
         InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
+
+        // additional preprocessor keywords (continued)
+        LoadKeyword = 8485,
+        NullableKeyword = 8486,
+        EnableKeyword = 8487,
 
         // Other
         UnderscoreToken = 8491,
@@ -570,5 +574,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ThrowExpression = 9052,
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
+        NullableDirectiveTrivia = 9055,
     }
 }

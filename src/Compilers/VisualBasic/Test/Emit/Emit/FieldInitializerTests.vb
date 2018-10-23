@@ -583,7 +583,7 @@ BC30424: Constants must be of an intrinsic or enumerated type, not a class, stru
 </expected>)
         End Sub
 
-#If NET46 Then
+#If NOT NETCOREAPP2_1 Then
         <Fact>
         Public Sub ChrChrWAscAscWAreConst()
             Dim source =

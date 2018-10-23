@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// </summary>
         internal static string Generate_Event_Subscription {
             get {
-                return ResourceManager.GetString("Generate Event Subscription", resourceCulture);
+                return ResourceManager.GetString("Generate_Event_Subscription", resourceCulture);
             }
         }
         

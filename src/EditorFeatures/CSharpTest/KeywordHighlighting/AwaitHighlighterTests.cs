@@ -232,7 +232,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestForEachAwait_OnAsync()
+        public async Task TestAwaitForEach_OnAsync()
         {
             await TestAsync(
 @"using System.Threading.Tasks;
@@ -247,7 +247,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestForEachAwait_OnAwait()
+        public async Task TestAwaitForEach_OnAwait()
         {
             await TestAsync(
 @"using System.Threading.Tasks;

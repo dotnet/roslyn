@@ -3188,6 +3188,12 @@ print Goodbye, World"
             Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/bar/"), doublemap(1))
         End Sub
 
+        <Fact>
+        Public Sub NothingBaseDirectoryNotAddedToKeyFileSearchPaths()
+            Dim args As VisualBasicCommandLineArguments = VisualBasicCommandLineParser.Default.Parse(New String() {}, Nothing, RuntimeEnvironment.GetRuntimeDirectory())
+            AssertEx.Equal(ImmutableArray.Create(Of String)(), args.KeyFileSearchPaths)
+        End Sub
+
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapPdbDeterminism()

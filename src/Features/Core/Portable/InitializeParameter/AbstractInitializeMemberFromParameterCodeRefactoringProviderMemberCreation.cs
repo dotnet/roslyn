@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,6 +31,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
+        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
+
+        protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
+
+        protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+
         // Standard field/property names we look for when we have a parameter with a given name.
         // We also use the rules to help generate fresh fields/properties.  Note that we always
         // look at these rules *after* the user's own rules.  That way we respect user naming, but
@@ -52,8 +57,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: ReportDiagnostic.Hidden));
-
-        protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
@@ -108,8 +111,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var parameterNameParts = this.GetParameterWordParts(parameter);
                 var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var field = CreateField(parameter, rules, parameterNameParts);
-                var property = CreateProperty(parameter, rules, parameterNameParts);
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var requireAccessibilityModifiers = options.GetOption(CodeStyleOptions.RequireAccessibilityModifiers);
+
+                var field = CreateField(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
+                var property = CreateProperty(requireAccessibilityModifiers, parameter, rules, parameterNameParts);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -123,7 +129,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IFieldSymbol CreateField(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
@@ -131,9 +140,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
+                    var accessibilityLevel = Accessibility.Private;
+                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    {
+                        var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
+                        if (defaultAccessibility == Accessibility.Private)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                    }
+
                     return CodeGenerationSymbolFactory.CreateFieldSymbol(
                         default,
-                        Accessibility.Private,
+                        accessibilityLevel,
                         DeclarationModifiers.ReadOnly,
                         parameter.Type, uniqueName);
                 }
@@ -158,13 +177,26 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IPropertySymbol CreateProperty(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            CodeStyleOption<AccessibilityModifiersRequired> requireAccessibilityModifiers,
+            IParameterSymbol parameter,
+            ImmutableArray<NamingRule> rules,
+            ImmutableArray<string> parameterNameParts)
         {
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
                 {
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
+
+                    var accessibilityLevel = Accessibility.Public;
+                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    {
+                        var defaultAccessibility = DetermineDefaultPropertyAccessibility();
+                        if (defaultAccessibility == Accessibility.Public)
+                        {
+                            accessibilityLevel = Accessibility.NotApplicable;
+                        }
+                    }
 
                     var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default,
@@ -173,7 +205,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         default,
-                        Accessibility.Public,
+                        accessibilityLevel,
                         new DeclarationModifiers(),
                         parameter.Type,
                         RefKind.None,
@@ -484,7 +516,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private ImmutableArray<string> GetParameterWordParts(IParameterSymbol parameter)
         {
             var parts = StringBreaker.GetWordParts(parameter.Name);
-            var result  = CreateWords(parts, parameter.Name);
+            var result = CreateWords(parts, parameter.Name);
             parts.Free();
             return result;
         }

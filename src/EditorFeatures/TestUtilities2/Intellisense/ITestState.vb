@@ -144,12 +144,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Function WaitForAsynchronousOperationsAsync() As Task
 
-
         Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
+                               Optional displayTextSuffix As String = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing) As Task
 #End Region
     End Interface

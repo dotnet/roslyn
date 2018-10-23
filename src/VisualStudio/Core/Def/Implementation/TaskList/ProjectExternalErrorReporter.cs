@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,7 +15,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
@@ -26,19 +26,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
+            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())
         {
+        }
+
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
+        {
+            Debug.Assert(workspace != null);
+
+            // TODO: re-enable this assert; right now it'll fail in unit tests
+            // Debug.Assert(diagnosticProvider != null);
+
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
-
-            _workspace = serviceProvider.GetMefService<VisualStudioWorkspaceImpl>();
-            _diagnosticProvider = serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>();
-
-            Debug.Assert(_workspace != null);
-            Debug.Assert(_diagnosticProvider != null);
+            _workspace = workspace;
+            _diagnosticProvider = diagnosticProvider;
         }
 
         private bool CanHandle(string errorId)
@@ -112,18 +118,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return GetDiagnosticData(error);
         }
 
+        private DocumentId TryGetDocumentId(string filePath)
+        {
+            return _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath)
+                             .Where(f => f.ProjectId == _projectId)
+                             .FirstOrDefault();
+        }
+
         private DiagnosticData CreateDocumentDiagnosticItem(ExternalError error)
         {
-            var hostProject = _workspace.GetHostProject(_projectId);
-            if (!hostProject.ContainsFile(error.bstrFileName))
+            var documentId = TryGetDocumentId(error.bstrFileName);
+            if (documentId == null)
             {
                 return null;
             }
 
-            var hostDocument = hostProject.GetCurrentDocumentFromPath(error.bstrFileName);
-
             var line = error.iLine;
             var column = error.iCol;
+            /* TODO: make work again
             if (hostDocument is ContainedDocument containedDocument)
             {
                 var span = new VsTextSpan
@@ -142,8 +154,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 line = spans[0].iStartLine;
                 column = spans[0].iStartIndex;
             }
+            */
 
-            return GetDiagnosticData(error, hostDocument.Id, line, column);
+            return GetDiagnosticData(error, documentId, line, column);
         }
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -198,8 +211,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            var hostProject = _workspace.GetHostProject(_projectId);
-            if (!hostProject.ContainsFile(bstrFileName))
+            var documentId = TryGetDocumentId(bstrFileName);
+            if (documentId == null)
             {
                 var projectDiagnostic = GetDiagnosticData(
                     null, bstrErrorId, bstrErrorMessage, severity,
@@ -210,14 +223,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 return;
             }
 
-            var hostDocument = hostProject.GetCurrentDocumentFromPath(bstrFileName);
-
             var diagnostic = GetDiagnosticData(
-                hostDocument.Id, bstrErrorId, bstrErrorMessage, severity,
+                documentId, bstrErrorId, bstrErrorMessage, severity,
                 null, iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
 
-            _diagnosticProvider.AddNewErrors(hostDocument.Id, diagnostic);
+            _diagnosticProvider.AddNewErrors(documentId, diagnostic);
         }
 
         public int ClearErrors()

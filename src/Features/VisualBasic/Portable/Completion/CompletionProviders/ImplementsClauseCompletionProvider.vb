@@ -241,25 +241,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             If IsGlobal(symbol) Then
-                Return ("Global", "Global")
+                Return ("Global", "", "Global")
             End If
-
-            Dim displayText As String = Nothing
-            Dim insertionText As String = Nothing
 
             If IsGenericType(symbol) Then
-                displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
-                insertionText = displayText
+                Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
+                Return (displayText, "", displayText)
             Else
-                Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
-
-                displayText = displayAndInsertionText.Item1
-                insertionText = displayAndInsertionText.Item2
+                Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
             End If
-
-            Return (displayText, insertionText)
         End Function
 
         Private Shared Function IsGenericType(symbol As ISymbol) As Boolean
@@ -276,8 +268,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim item = MyBase.CreateItem(displayText, insertionText, symbols, context, preselect, supportedPlatformData)
+        Protected Overrides Function CreateItem(
+                displayText As String, displayTextSuffix As String, insertionText As String,
+                symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            Dim item = MyBase.CreateItem(displayText, displayTextSuffix, insertionText, symbols, context, preselect, supportedPlatformData)
 
             If IsGenericType(symbols(0)) Then
                 Dim text = symbols(0).ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
