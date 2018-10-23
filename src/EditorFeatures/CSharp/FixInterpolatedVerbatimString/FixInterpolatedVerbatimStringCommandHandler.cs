@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
 
         public string DisplayName => CSharpEditorResources.Fix_interpolated_verbatim_string;
 
-        private static int? GetCharOffset(char ch)
+        private static int GetCharOffset(char ch)
         {
             switch (ch)
             {
                 case '@': return 0;
                 case '$': return 1;
                 case '"': return 2;
-                default: return null;
+                default: return -1;
             }
         }
 
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
             nextCommandHandler();
 
             var charOffset = GetCharOffset(args.TypedChar);
-            if (charOffset.HasValue)
+            if (charOffset != -1)
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (caret != null)
                 {
-                    var startPosition = caret.Value.Position - charOffset.Value - 1;
+                    var startPosition = caret.Value.Position - charOffset - 1;
                     var snapshot = caret.Value.Snapshot;
 
                     if (startPosition >= 0 && startPosition + 2 < snapshot.Length &&
