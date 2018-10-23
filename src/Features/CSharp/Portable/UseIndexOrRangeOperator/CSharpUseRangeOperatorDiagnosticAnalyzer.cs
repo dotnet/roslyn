@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// could always limit the feature to only work on a whitelist of known safe types.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string UseIndexer = nameof(UseIndexer);
         public const string ComputedRange = nameof(ComputedRange);

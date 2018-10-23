@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// preserve semantics.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
