@@ -296,7 +296,8 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ComponentModelHost"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CodingConventions"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CoreUtility"/>
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Engine"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Engine-implementation"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Metadata-implementation"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.UI.Interfaces"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Designer.Interfaces"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider"/>
