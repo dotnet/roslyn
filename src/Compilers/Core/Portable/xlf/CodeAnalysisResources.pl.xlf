@@ -14,6 +14,16 @@
         <target state="translated">Dany blok operacji nie należy do bieżącego kontekstu analizy.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Dana operacja ma element nadrzędny inny niż null.</target>
@@ -47,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">Nie można użyć kopii modułu do utworzenia metadanych zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../VBResources.resx">
     <body>
+      <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
+        <source>unconstrained type parameters in binary conditional expressions</source>
+        <target state="new">unconstrained type parameters in binary conditional expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trees0">
         <source>trees({0})</source>
         <target state="translated">트리({0})</target>
@@ -4853,8 +4858,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalCondTypeInIIF">
-        <source>First operand in a binary 'If' expression must be nullable or a reference type.</source>
-        <target state="translated">If' 이항 식의 첫 번째 피연산자는 nullable이거나 참조 형식이어야 합니다.</target>
+        <source>First operand in a binary 'If' expression must be a nullable value type, a reference type, or an unconstrained generic type.</source>
+        <target state="needs-review-translation">If' 이항 식의 첫 번째 피연산자는 nullable이거나 참조 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantCallIIF">

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionPresenterSession completionPresenterSession,
             CompletionItem completionItem)
             : base(displayText: null, insertionText: null, description: null,
-                   iconMoniker: default, suffix: completionItem.SuffixText)
+                   iconMoniker: default, suffix: completionItem.InlineDescription)
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState

@@ -45,20 +45,14 @@ if [[ "${runtime}" == "dotnet" ]]; then
 elif [[ "${runtime}" =~ ^(mono|mono-debug)$ ]]; then
     file_list=( "${unittest_dir}"/*/net46/*.UnitTests.dll )
     file_skiplist=(
-        'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll'
         # Omitted because we appear to be missing things necessary to compile vb.net.
         # See https://github.com/mono/mono/issues/10679
         'Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.dll'
         'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll'
         # PortablePdb and lots of other problems
         'Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests.dll'
-        # GetSystemInfo is missing, and other problems
-        # See https://github.com/mono/mono/issues/10678
-        'Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.dll'
         # Many test failures
         'Microsoft.CodeAnalysis.UnitTests.dll'
-        # Multiple test failures
-        'Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.dll'
         # Multiple test failures
         'Microsoft.Build.Tasks.CodeAnalysis.UnitTests.dll'
         # Disabling on assumption
@@ -78,19 +72,6 @@ else
     echo "Unknown runtime: ${runtime}"
     exit 1
 fi
-
-UNAME="$(uname)"
-if [ "$UNAME" == "Darwin" ]; then
-    runtime_id=osx-x64
-elif [ "$UNAME" == "Linux" ]; then
-    runtime_id=linux-x64
-else
-    echo "Unknown OS: $UNAME" 1>&2
-    exit 1
-fi
-
-echo "Publishing ILAsm.csproj"
-dotnet publish "${root_path}/src/Tools/ILAsm" --no-restore --runtime ${runtime_id} --self-contained -o "${binaries_path}/Tools/ILAsm"
 
 echo "Using ${xunit_console}"
 
@@ -125,6 +106,13 @@ do
 
     echo Running "${runtime} ${file_name}"
     if [[ "${runtime}" == "dotnet" ]]; then
+        # Disable the VB Semantic tests while we investigate the core dump issue
+        # https://github.com/dotnet/roslyn/issues/29660
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
         runner="dotnet exec --fx-version ${dotnet_runtime_version} --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -702,6 +703,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var valueConversion = operation.ValueConversion;
         }
 
+        public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            Assert.Equal(OperationKind.CoalesceAssignment, operation.Kind);
+            AssertEx.Equal(new[] { operation.Target, operation.Value }, operation.Children);
+        }
+
         public override void VisitIsType(IIsTypeOperation operation)
         {
             Assert.Equal(OperationKind.IsType, operation.Kind);
@@ -1288,6 +1295,46 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
             Assert.NotNull(operation.Local);
             Assert.True(operation.Local.IsStatic);
+        }
+
+        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
+        {
+            Assert.Equal(OperationKind.FromEndIndex, operation.Kind);
+            Assert.Same(operation.Operand, operation.Children.Single());
+        }
+
+        public override void VisitRangeOperation(IRangeOperation operation)
+        {
+            Assert.Equal(OperationKind.Range, operation.Kind);
+
+            IOperation[] children = operation.Children.ToArray();
+
+            int index = 0;
+
+            if (operation.LeftOperand != null)
+            {
+                Assert.Same(operation.LeftOperand, children[index++]);
+            }
+
+            if (operation.RightOperand != null)
+            {
+                Assert.Same(operation.RightOperand, children[index++]);
+            }
+
+            Assert.Equal(index, children.Length);
+        }
+
+        public override void VisitReDim(IReDimOperation operation)
+        {
+            Assert.Equal(OperationKind.ReDim, operation.Kind);
+            AssertEx.Equal(operation.Clauses, operation.Children);
+            var preserve = operation.Preserve;
+        }
+
+        public override void VisitReDimClause(IReDimClauseOperation operation)
+        {
+            Assert.Equal(OperationKind.ReDimClause, operation.Kind);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
         }
     }
 }

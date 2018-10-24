@@ -136,6 +136,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     return null;
                 }
 
+                public ImmutableArray<UnresolvedMetadataReference> GetUnresolvedMetadataReferences()
+                {
+                    var builder = ImmutableArray.CreateBuilder<UnresolvedMetadataReference>();
+
+                    foreach (var metadataReference in GetMetadataReferences())
+                    {
+                        if (metadataReference is UnresolvedMetadataReference unresolvedMetadataReference)
+                        {
+                            builder.Add(unresolvedMetadataReference);
+                        }
+                    }
+
+                    return builder.ToImmutable();
+                }
+
                 private ImmutableArray<MetadataReference> GetMetadataReferences()
                 {
                     var builder = ImmutableArray.CreateBuilder<MetadataReference>();
@@ -213,12 +228,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     builder.AddProjectReference(newProjectReference);
                 }
 
+                // Are there still any unresolved metadata references? If so, remove them and report diagnostics.
+                foreach (var unresolvedMetadataReference in builder.GetUnresolvedMetadataReferences())
+                {
+                    var filePath = unresolvedMetadataReference.Reference;
+
+                    builder.Remove(filePath);
+
+                    _diagnosticReporter.Report(new ProjectDiagnostic(
+                        WorkspaceDiagnosticKind.Warning,
+                        string.Format(WorkspaceMSBuildResources.Unresolved_metadata_reference_removed_from_project_0, filePath),
+                        id));
+                }
+
                 return builder.ToResolvedReferences();
             }
 
             private async Task<bool> TryLoadAndAddReferenceAsync(ProjectId id, string projectReferencePath, ImmutableArray<string> aliases, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
                 var projectReferenceInfos = await LoadProjectInfosFromPathAsync(projectReferencePath, _discoveredProjectOptions, cancellationToken).ConfigureAwait(false);
+
+                if (projectReferenceInfos.IsEmpty)
+                {
+                    return false;
+                }
 
                 // Find the project reference info whose output we have a metadata reference for.
                 ProjectInfo projectReferenceInfo = null;
@@ -234,7 +267,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (projectReferenceInfo == null)
                 {
-                    return false;
+                    // We didn't find the project reference info that matches any of our metadata references.
+                    // In this case, we'll go ahead and use the first project reference info that was found,
+                    // but report a warning because this likely means that either a metadata reference path
+                    // or a project output path is incorrect.
+
+                    projectReferenceInfo = projectReferenceInfos[0];
+
+                    _diagnosticReporter.Report(new ProjectDiagnostic(
+                        WorkspaceDiagnosticKind.Warning,
+                        string.Format(WorkspaceMSBuildResources.Found_project_reference_without_a_matching_metadata_reference_0, projectReferencePath),
+                        id));
                 }
 
                 if (!ProjectReferenceExists(to: id, from: projectReferenceInfo))
@@ -271,7 +314,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
-                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, _globalProperties, cancellationToken).ConfigureAwait(false);
+                var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
                 return builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);
             }

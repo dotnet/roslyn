@@ -1,4 +1,18 @@
+*REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
+Microsoft.CodeAnalysis.OperationKind.FromEndIndex = 100 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.Range = 99 -> Microsoft.CodeAnalysis.OperationKind
+abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
+abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
+abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSymbolEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
+Microsoft.CodeAnalysis.Compilation.IsSymbolAccessibleWithin(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ISymbol within, Microsoft.CodeAnalysis.ITypeSymbol throughType = null) -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.GetControlFlowGraph() -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.GetControlFlowGraph(Microsoft.CodeAnalysis.IOperation operationBlock) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.GetControlFlowGraph(Microsoft.CodeAnalysis.IOperation operationBlock) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
@@ -16,26 +30,10 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolEndActi
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolEndActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.SymbolStartActionsCount.set -> void
-Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.GetAnonymousFunctionControlFlowGraph(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation anonymousFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
-Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.GetLocalFunctionControlFlowGraph(Microsoft.CodeAnalysis.IMethodSymbol localFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
-Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.LocalFunctions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IMethodSymbol>
-Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.CaptureIds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.CaptureId>
-Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.LocalFunctions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IMethodSymbol>
-Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation
-Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation
-Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
-Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
-Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
-Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
-abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
-abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
-abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
-*REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.BranchValue.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionKind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionalSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
+Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionKind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.EnclosingRegion.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.FallThroughSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.IsReachable.get -> bool
@@ -72,14 +70,21 @@ Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind.WhenFalse = 1 -> Mi
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind.WhenTrue = 2 -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Blocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock>
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.GetAnonymousFunctionControlFlowGraph(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation anonymousFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.GetLocalFunctionControlFlowGraph(Microsoft.CodeAnalysis.IMethodSymbol localFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.LocalFunctions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IMethodSymbol>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.OriginalOperation.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Parent.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Root.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraphExtensions
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.CaptureIds.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.CaptureId>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.EnclosingRegion.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.ExceptionType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.FirstBlockOrdinal.get -> int
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.Kind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.LastBlockOrdinal.get -> int
+Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.LocalFunctions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IMethodSymbol>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion.NestedRegions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion>
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind
@@ -94,41 +99,68 @@ Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind.StaticLocalInitializer
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind.Try = 2 -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind.TryAndCatch = 6 -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind
 Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind.TryAndFinally = 8 -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegionKind
+Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation
+Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation
+Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation.Symbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation.Id.get -> Microsoft.CodeAnalysis.FlowAnalysis.CaptureId
 Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation
 Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation.Id.get -> Microsoft.CodeAnalysis.FlowAnalysis.CaptureId
+Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation
+Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.OperationKind.ReDim = 101 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ReDimClause = 102 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IReDimClauseOperation
+Microsoft.CodeAnalysis.Operations.IReDimClauseOperation.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
+Microsoft.CodeAnalysis.Operations.IReDimClauseOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IReDimOperation
+Microsoft.CodeAnalysis.Operations.IReDimOperation.Clauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.IReDimClauseOperation>
+Microsoft.CodeAnalysis.Operations.IReDimOperation.Preserve.get -> bool
+Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
+Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.ILocalSymbol.IsFixed.get -> bool
+Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.OperationKind.CaughtException = 94 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.CoalesceAssignment = 97 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FlowAnonymousFunction = 96 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FlowCapture = 91 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FlowCaptureReference = 92 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsNull = 93 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 95 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.SuppressNullableWarning = 98 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
 Microsoft.CodeAnalysis.Operations.ICaseClauseOperation.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
+Microsoft.CodeAnalysis.Operations.ICoalesceAssignmentOperation
 Microsoft.CodeAnalysis.Operations.ICoalesceOperation.ValueConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IForLoopOperation.ConditionLocals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.IForToLoopOperation.IsChecked.get -> bool
+Microsoft.CodeAnalysis.Operations.IFromEndIndexOperation
+Microsoft.CodeAnalysis.Operations.IFromEndIndexOperation.IsLifted.get -> bool
+Microsoft.CodeAnalysis.Operations.IFromEndIndexOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IFromEndIndexOperation.Symbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IInstanceReferenceOperation.ReferenceKind.get -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ContinueLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ContainingTypeInstance = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ImplicitReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.IRangeOperation
+Microsoft.CodeAnalysis.Operations.IRangeOperation.IsLifted.get -> bool
+Microsoft.CodeAnalysis.Operations.IRangeOperation.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.IRangeOperation.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Operations.IRangeOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation
+Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ISwitchCaseOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ContainingTypeInstance = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
-Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ImplicitReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSymbolEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action) -> void
-abstract Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, System.Collections.Immutable.ImmutableArray<TLanguageKindEnum> syntaxKinds) -> void
+Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier = 64 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
+const Microsoft.CodeAnalysis.WellKnownMemberNames.GetAsyncEnumeratorMethodName = "GetAsyncEnumerator" -> string
+const Microsoft.CodeAnalysis.WellKnownMemberNames.MoveNextAsyncMethodName = "MoveNextAsync" -> string
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.FlowAnalysis.CaptureId.GetHashCode() -> int
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IBlockOperation body, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
@@ -138,20 +170,32 @@ static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.Cod
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation initializer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
+static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraphExtensions.GetAnonymousFunctionControlFlowGraphInScope(this Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph controlFlowGraph, Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation anonymousFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
+static Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraphExtensions.GetLocalFunctionControlFlowGraphInScope(this Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph controlFlowGraph, Microsoft.CodeAnalysis.IMethodSymbol localFunction, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetCorrespondingOperation(this Microsoft.CodeAnalysis.Operations.IBranchOperation operation) -> Microsoft.CodeAnalysis.IOperation
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSymbolStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext> action, Microsoft.CodeAnalysis.SymbolKind symbolKind) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCaughtException(Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCoalesceAssignment(Microsoft.CodeAnalysis.Operations.ICoalesceAssignmentOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowAnonymousFunction(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCaptureReference(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFromEndIndexOperation(Microsoft.CodeAnalysis.Operations.IFromEndIndexOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsNull(Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRangeOperation(Microsoft.CodeAnalysis.Operations.IRangeOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDim(Microsoft.CodeAnalysis.Operations.IReDimOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCaughtException(Microsoft.CodeAnalysis.FlowAnalysis.ICaughtExceptionOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCoalesceAssignment(Microsoft.CodeAnalysis.Operations.ICoalesceAssignmentOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowAnonymousFunction(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCapture(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCaptureReference(Microsoft.CodeAnalysis.FlowAnalysis.IFlowCaptureReferenceOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFromEndIndexOperation(Microsoft.CodeAnalysis.Operations.IFromEndIndexOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitIsNull(Microsoft.CodeAnalysis.FlowAnalysis.IIsNullOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRangeOperation(Microsoft.CodeAnalysis.Operations.IRangeOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDim(Microsoft.CodeAnalysis.Operations.IReDimOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitReDimClause(Microsoft.CodeAnalysis.Operations.IReDimClauseOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation operation, TArgument argument) -> TResult
-Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation
-Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation.Symbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowAnonymousFunction(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowAnonymousFunction(Microsoft.CodeAnalysis.FlowAnalysis.IFlowAnonymousFunctionOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSuppressNullableWarningExpression(Microsoft.CodeAnalysis.Operations.ISuppressNullableWarningOperation operation, TArgument argument) -> TResult

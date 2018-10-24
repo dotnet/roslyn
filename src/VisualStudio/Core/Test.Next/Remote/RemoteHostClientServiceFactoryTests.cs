@@ -53,6 +53,26 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task ClientId()
+        {
+            var service = CreateRemoteHostClientService();
+            service.Enable();
+
+            var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            var id1 = client1.ClientId;
+
+            await service.RequestNewRemoteHostAsync(CancellationToken.None);
+
+            var client2 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            var id2 = client2.ClientId;
+
+            Assert.NotEqual(id1, id2);
+
+            service.Disable();
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task GlobalAssets()
         {
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());

@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
@@ -78,10 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private void SetReadOnly(Document document)
         {
             // Only set documents read-only if they're part of a project that supports Enc.
-            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            var project = workspace?.DeferredState?.ProjectTracker?.GetProject(document.Project.Id);
+            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
-            if (project?.EditAndContinueImplOpt != null)
+            if (workspace != null && VsENCRebuildableProjectImpl.TryGetRebuildableProject(document.Project.Id) != null)
             {
                 SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out var sessionReason, out var projectReason) && AllowsReadOnly(document.Id));
             }
@@ -93,9 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
             // while the code is running and get refreshed next time the web page is hit.
 
-            // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.
-            var visualStudioWorkspace = _workspace as VisualStudioWorkspaceImpl;
-            var containedDocument = visualStudioWorkspace?.GetHostDocument(documentId) as ContainedDocument;
+            // Note that Razor-like views are modelled as a ContainedDocument
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
             return containedDocument == null;
         }
 

@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 var partialName = directoryPath.Substring(0, comma);
                 foreach (var identity in GetAssemblyIdentities(partialName))
                 {
-                    result.Add(CommonCompletionItem.Create(identity.GetDisplayName(), glyph: Glyph.Assembly, rules: _itemRules));
+                    result.Add(CommonCompletionItem.Create(
+                        identity.GetDisplayName(), displayTextSuffix: "", glyph: Glyph.Assembly, rules: _itemRules));
                 }
             }
             else
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 foreach (var displayName in s_lazyAssemblySimpleNames.Value)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    result.Add(CommonCompletionItem.Create(displayName, glyph: Glyph.Assembly, rules: _itemRules));
+                    result.Add(CommonCompletionItem.Create(
+                        displayName, displayTextSuffix: "", glyph: Glyph.Assembly, rules: _itemRules));
                 }
             }
 

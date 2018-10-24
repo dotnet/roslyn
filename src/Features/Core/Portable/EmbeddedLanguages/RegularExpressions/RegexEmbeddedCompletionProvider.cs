@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -14,8 +16,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    using System.Collections.Immutable;
-    using Microsoft.CodeAnalysis.Completion.Providers;
     using static WorkspacesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 properties.Add(StartKey, textChange.Span.Start.ToString());
                 properties.Add(LengthKey, textChange.Span.Length.ToString());
                 properties.Add(NewTextKey, textChange.NewText);
-                properties.Add(DescriptionKey, embeddedItem.Description);
+                properties.Add(DescriptionKey, embeddedItem.FullDescription);
                 properties.Add(AbstractEmbeddedLanguageCompletionProvider.EmbeddedProviderName, this.Name);
 
                 if (change.NewPosition != null)
@@ -104,10 +104,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                     displayText: embeddedItem.DisplayText,
                     filterText: null,
                     sortText: sortText,
-                    suffixText: "    " + embeddedItem.Suffix,
                     properties: properties.ToImmutable(),
                     tags: default,
-                    rules: s_rules);
+                    rules: s_rules,
+                    displayTextPrefix: null,
+                    displayTextSuffix: null,
+                    inlineDescription: "    " + embeddedItem.InlineDescription);
 
                 context.AddItem(item);
                 index++;
@@ -532,16 +534,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     internal struct RegexItem
     {
         public readonly string DisplayText;
-        public readonly string Suffix;
-        public readonly string Description;
+        public readonly string InlineDescription;
+        public readonly string FullDescription;
         public readonly CompletionChange Change;
 
         public RegexItem(
-            string displayText, string suffix, string description, CompletionChange change)
+            string displayText, string inlineDescription, string fullDescription, CompletionChange change)
         {
             DisplayText = displayText;
-            Suffix = suffix;
-            Description = description;
+            InlineDescription = inlineDescription;
+            FullDescription = fullDescription;
             Change = change;
         }
     }

@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.AccessingCapturedVariableInLambda,
                 RudeEditKind.NotAccessingCapturedVariableInLambda,
-                RudeEditKind.RenamingCapturedVariable
+                RudeEditKind.RenamingCapturedVariable,
+                RudeEditKind.InternalError,
             };
 
             var arg3 = new HashSet<RudeEditKind>()

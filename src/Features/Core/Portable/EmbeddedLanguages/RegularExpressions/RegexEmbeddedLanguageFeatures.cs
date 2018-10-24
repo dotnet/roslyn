@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
         public IDocumentHighlightsService DocumentHighlightsService { get; }
-        public AbstractCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        public AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
         public CompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguageFeatures(
