@@ -833,7 +833,28 @@ else if (b)
     }
 }");
         }
-        
+
+        [Fact]
+        public async Task SplitWithPreservedSingleLineFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a [||]|| b) System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a) System.Console.WriteLine();
+        else if (b) System.Console.WriteLine();
+    }
+}");
+        }
+
         [Fact]
         public async Task SplitIntoSeparateStatementsIfControlFlowQuits1()
         {
@@ -1060,6 +1081,27 @@ else if (b)
         if (b)
             if (true)
                 return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SplitIntoSeparateStatementsIfControlFlowQuitsWithPreservedSingleLineFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a [||]|| b) return;
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a) return;
+        if (b) return;
     }
 }");
         }

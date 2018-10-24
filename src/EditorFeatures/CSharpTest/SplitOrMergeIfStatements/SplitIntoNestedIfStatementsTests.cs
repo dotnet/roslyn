@@ -786,5 +786,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     }
 }");
         }
+
+        [Fact]
+        public async Task SplitWithPreservedSingleLineFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a [||]&& b) System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            if (b) System.Console.WriteLine();
+        }
+    }
+}");
+        }
     }
 }
