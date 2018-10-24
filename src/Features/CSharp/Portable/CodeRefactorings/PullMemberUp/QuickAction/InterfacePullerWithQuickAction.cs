@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 propertyOrIndexerSymbol.ExplicitInterfaceImplementations,
                 propertyOrIndexerSymbol.Name,
                 propertyOrIndexerSymbol.IsIndexer,
-                propertyOrIndexerSymbol.GetMethod.DeclaredAccessibility == Accessibility.Public ? propertyOrIndexerSymbol.GetMethod : null,
-                propertyOrIndexerSymbol.SetMethod.DeclaredAccessibility == Accessibility.Public ? propertyOrIndexerSymbol.SetMethod : null);
+                propertyOrIndexerSymbol.GetMethod != null && propertyOrIndexerSymbol.GetMethod.DeclaredAccessibility == Accessibility.Public ? propertyOrIndexerSymbol.GetMethod : null,
+                propertyOrIndexerSymbol.SetMethod != null && propertyOrIndexerSymbol.SetMethod.DeclaredAccessibility == Accessibility.Public ? propertyOrIndexerSymbol.SetMethod : null);
 
-            var changedDocument = await CodeGenerationService.AddPropertyAsync(contextDocument.Project.Solution, TargetTypeSymbol, pullUpSymbol);
+            var changedDocument = await CodeGenerationService.AddPropertyAsync(contextDocument.Project.Solution, TargetTypeSymbol, propertyOrIndexerSymbol);
             return new DocumentChangeAction(Title, _ => Task.FromResult(changedDocument));
         }
 

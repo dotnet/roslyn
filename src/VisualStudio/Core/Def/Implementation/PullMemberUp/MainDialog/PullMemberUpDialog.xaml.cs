@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
-                if (member.MemberSymbol.Kind != SymbolKind.Field)
+                if (member.MemberSymbol.Kind != SymbolKind.Field && !member.MemberSymbol.IsAbstract)
                 {
                     member.IsAbstractSelectable = true;
                 }

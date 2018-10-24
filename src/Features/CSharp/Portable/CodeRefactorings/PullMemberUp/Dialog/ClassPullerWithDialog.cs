@@ -12,11 +12,61 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
 {
-    internal class ClassPullerWithDialog
+    internal class ClassPullerWithDialog : AbstractMemberPullerWithDialog
     {
+        internal async Task<Solution> ComputeChangedSolution(
+            PullMemberDialogResult result,
+            Document contextDocument,
+            CancellationToken cancellationToken)
+        {
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var targetSyntaxNode = await codeGenerationService.
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
+
+            if (targetSyntaxNode != null)
+            {
+                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
+                var targetEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+
+                await RemoveMembers(result, contextDocument, solutionEditor, cancellationToken);
+                var changedTarget = ChangeTargetType(result, targetSyntaxNode, codeGenerationService);
+                AddMembersToTarget(result, targetEditor, targetSyntaxNode, changedTarget, codeGenerationService, cancellationToken);
+                return solutionEditor.GetChangedSolution();
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        private SyntaxNode ChangeTargetType(
+            PullMemberDialogResult result,
+            SyntaxNode targetSyntaxNode,
+            ICodeGenerationService codeGenerationService)
+        {
+            // If try to pull an abstract member to ordinary class
+            // Change the class to abstract
+            if (result.Target is INamedTypeSymbol target &&
+                !target.IsAbstract &&
+                target.TypeKind == TypeKind.Class)
+            {
+                var changeTargetToAbstract = result.SelectedMembers.Aggregate(false,
+                    (acc, selectionPair) => acc || selectionPair.makeAbstract || selectionPair.member.IsAbstract);
+
+                if (changeTargetToAbstract)
+                {
+                    // TODO: should we make all classes abstract? Or just this node?
+                    var options = new CodeGenerationOptions(reuseSyntax: true);
+                    return codeGenerationService.CreateNamedTypeDeclaration(GetAbstractMemberSymbol(result.Target) as INamedTypeSymbol, options: options);
+                }
+            }
+            return targetSyntaxNode;
+        }
+
         private void AddMembersToTarget(
             PullMemberDialogResult result,
             DocumentEditor editor,
+            SyntaxNode originTarget,
             SyntaxNode targetNodeSyntax,
             ICodeGenerationService codeGenerationService,
             CancellationToken cancellationToken)
@@ -31,49 +81,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                     Select(selection => selection.member).Concat(abstractMembersSymbol);
             }
 
-            var options = new CodeGenerationOptions(reuseSyntax: true);
+            var options = new CodeGenerationOptions(generateMembers: false, generateMethodBodies: false, reuseSyntax: true);
             var membersAddedTarget = codeGenerationService.AddMembers(targetNodeSyntax, pullUpMemberSymbols, options: options, cancellationToken);
-            editor.ReplaceNode(targetNodeSyntax, membersAddedTarget);
+            editor.ReplaceNode(originTarget, membersAddedTarget);
         }
 
-        private void ChangeTargetType(
+        private async Task RemoveMembers(
             PullMemberDialogResult result,
-            SyntaxNode targetSyntaxNode,
-            DocumentEditor editor)
-        {
-            // If try to pull an abstract member to ordinary class
-            // Change the class to abstract
-            if (result.Target is INamedTypeSymbol target &&
-                !target.IsAbstract &&
-                target.TypeKind == TypeKind.Class)
-            {
-                var changeTargetToAbstract = result.SelectedMembers.Aggregate(false,
-                    (acc, selectionPair) => acc || selectionPair.makeAbstract || selectionPair.member.IsAbstract);
-
-                if (changeTargetToAbstract)
-                {
-                    // TODO: if there are multiple partial classes, should change them 
-                    // all?
-                    editor.SetModifiers(targetSyntaxNode,
-                        DeclarationModifiers.From(result.Target).WithIsAbstract(true));
-                }
-            }
-        }
-
-        private async Task ChangeContainingType(
-            PullMemberDialogResult result,
-            SyntaxNode targetSyntaxNode,
-            DocumentEditor editor,
+            Document contextDocument,
+            SolutionEditor solutionEditor,
             CancellationToken cancellationToken)
         {
             // If user want to make it abstract then don't remove the original member
-            var tasks = result.SelectedMembers.Where(selectionPair => !selectionPair.makeAbstract).
-                Select(async selectionPair => (memberSyntax: (await selectionPair.member.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntaxAsync(cancellationToken)), memberSymbol: selectionPair.member));
-            var membersToRemove = await Task.WhenAll(tasks).ConfigureAwait(false);
-            foreach ((var syntax, var symbol) in membersToRemove)
-            {
-                if (syntax != null)
+            await ChangeMembers(
+                result,
+                selectionPair => !selectionPair.makeAbstract,
+                async (syntax, symbol, containingTypeNode) =>
                 {
+                    var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
                     if (symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Event)
                     {
                         if (syntax.Parent != null &&
@@ -89,70 +114,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                             }
                         }
                     }
-                }
-                else
-                {
-                    editor.RemoveNode(syntax);
-                }
-            }
+                    else
+                    {
+                        editor.RemoveNode(syntax);
+                    }
+                },
+                cancellationToken);
         }
 
-        internal async Task<Solution> ComputeChangedSolution(
-            PullMemberDialogResult result,
-            Document contextDocument,
-            CancellationToken cancellationToken)
+        private ISymbol GetAbstractMemberSymbol(ISymbol symbol)
         {
-            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
-            var targetSyntaxNode = await codeGenerationService.
-                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
-
-            if (targetSyntaxNode != null)
+            if (symbol.IsAbstract)
             {
-                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
-                var contextEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Id, cancellationToken);
-                var targetEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
-
-                await ChangeContainingType(result, targetSyntaxNode, contextEditor, cancellationToken);
-
-                AddMembersToTarget(result, targetEditor, targetSyntaxNode, codeGenerationService, cancellationToken);
-
-                ChangeTargetType(result, targetSyntaxNode, targetEditor);
-
-                return solutionEditor.GetChangedSolution();
+                return symbol;
             }
-            else
-            {
-                return default;
-            }
-        }
-
-        private ISymbol GetAbstractMemberSymbol(ISymbol memberSymbol)
-        {
-            if (memberSymbol.IsAbstract)
-            {
-                return memberSymbol;
-            }
-            var modifier = DeclarationModifiers.From(memberSymbol).WithIsAbstract(true);
-            if (memberSymbol is IMethodSymbol methodSymbol)
+            var modifier = DeclarationModifiers.From(symbol).WithIsAbstract(true);
+            if (symbol is IMethodSymbol methodSymbol)
             {
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
             }
-            else if (memberSymbol is IPropertySymbol propertySymbol)
+            else if (symbol is IPropertySymbol propertySymbol)
             {
                 return CodeGenerationSymbolFactory.CreatePropertySymbol(propertySymbol, modifiers: modifier);
             }
-            else if (memberSymbol is IEventSymbol eventSymbol)
+            else if (symbol is IEventSymbol eventSymbol)
             {
                 return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
             }
-            else if (memberSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.TypeKind == TypeKind.Class)
+            else if (symbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.TypeKind == TypeKind.Class)
             {
                 return CodeGenerationSymbolFactory.
                     CreateNamedTypeSymbol(namedTypeSymbol.GetAttributes(), namedTypeSymbol.DeclaredAccessibility, modifier, namedTypeSymbol.TypeKind, namedTypeSymbol.Name, namedTypeSymbol.TypeParameters, namedTypeSymbol.BaseType, namedTypeSymbol.Interfaces, namedTypeSymbol.SpecialType, namedTypeSymbol.GetMembers());
             }
             else
             {
-                throw new ArgumentException($"{nameof(memberSymbol)} should be method, property, event, indexer or class");
+                throw new ArgumentException($"{nameof(symbol)} should be method, property, event, indexer or class");
             }
         }
     }

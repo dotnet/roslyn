@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
         {
             var classPuller = new ClassPullerWithDialog();
             return classPuller.ComputeChangedSolution(result, contextDocument, cancellationToken);
-
-        
         }
 
         public Task<Solution> ComputeInterfaceRefactoring(PullMemberDialogResult result, Document contextDocument, CancellationToken cancellationToken)

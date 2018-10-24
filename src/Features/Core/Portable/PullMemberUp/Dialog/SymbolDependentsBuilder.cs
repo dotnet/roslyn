@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
         private HashSet<ISymbol> SymbolSet { get; set; }
 
         private Document ContextDocument { get; set; }
+
+        private CancellationToken CancellationToken { get; set; }
 
         private SymbolDependentsBuilder()
         {
@@ -32,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             {
                 SymbolSet = new HashSet<ISymbol>(members),
                 SemanticModel = semanticModel,
-                ContextDocument = contextDocument
+                ContextDocument = contextDocument,
+                CancellationToken = cancellationToken
             };
 
             var selectedSyntax = userSelectedNodeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
@@ -45,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 
         public override void Visit(SyntaxNode node)
         {
-            var symbol = SemanticModel.GetDeclaredSymbol(node);
+            var symbol = SymbolFinder.FindSymbolAtPositionAsync(ContextDocument, node.SpanStart, CancellationToken).Result;
             if (symbol != null &&
                 (symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Method ||
                 symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Event))

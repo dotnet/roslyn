@@ -19,25 +19,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         internal ClassModifiersValidator(bool generateWarningMessage=false)
         {
+            GenerateWarningMessage = generateWarningMessage;
             if (GenerateWarningMessage)
             {
                 WarningMessageList = new List<string>();
             }
         }
 
-        internal bool IsStaticModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
-        {
-            if (targetSymbol.IsStatic && !selectedMember.IsStatic)
-            {
-                if (GenerateWarningMessage)
-                {
-                    WarningMessageList.Add($"{targetSymbol.Name} is static class, {selectedMember.Name} will be changed to static.");
-                }
-                return false;
-            }
-            return true;
-        }
-      
         internal bool IsAbstractModifiersMatch(INamedTypeSymbol targetSymbol, ISymbol selectedMember)
         {
             if (selectedMember.IsAbstract && !targetSymbol.IsAbstract)
@@ -56,9 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var result = true;
             foreach (var member in selectedMembers)
             {
-                result = result &&
-                         IsStaticModifiersMatch(targetSymbol, member) &&
-                         IsAbstractModifiersMatch(targetSymbol, member);
+                result = result && IsAbstractModifiersMatch(targetSymbol, member);
             }
             return result;
         }
@@ -72,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         internal InterfaceModifiersValidator(bool generateWarningMessage=false)
         {
+            GenerateWarningMessage = generateWarningMessage;
             if (GenerateWarningMessage)
             {
                 WarningMessageList = new List<string>();
