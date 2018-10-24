@@ -175,16 +175,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // for operators.  However, we would prefer to just use the real operator on the type
             // if it has one.
             if (symbol is IMethodSymbol methodSymbol &&
-                methodSymbol.MethodKind == MethodKind.BuiltinOperator)
+                methodSymbol.MethodKind == MethodKind.BuiltinOperator &&
+                methodSymbol.ContainingType is ITypeSymbol containingType)
             {
                 var comparer = SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer;
 
                 // Note: this will find the real method vs the built-in.  That's because the
                 // built-in is synthesized operator that isn't actually in the list of members of
                 // its 'ContainingType'.
-                var mapped = symbol.ContainingType.GetMembers(methodSymbol.Name)
-                                                  .OfType<IMethodSymbol>()
-                                                  .FirstOrDefault(s => s.Parameters.SequenceEqual(methodSymbol.Parameters, comparer));
+                var mapped = containingType.GetMembers(methodSymbol.Name)
+                                           .OfType<IMethodSymbol>()
+                                           .FirstOrDefault(s => s.Parameters.SequenceEqual(methodSymbol.Parameters, comparer));
                 symbol = mapped ?? symbol;
             }
 
