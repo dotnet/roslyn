@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
     {
         private static readonly string s_compilerVersion =
             typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-        private static readonly string s_logoAndHelpPrompt = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+
+        private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}";
@@ -117,7 +118,7 @@ select x * x
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > async Task<int[]> GetStuffAsync()
 . {{
 .   return new int[] {{ 1, 2, 3, 4, 5 }};
@@ -214,7 +215,7 @@ Print(2)
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > Print(1);
 1
 > Print(2)
@@ -230,7 +231,7 @@ $@"{s_logoAndHelpPrompt}
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > (1,2)
 [(1, 2)]
 > ", runner.Console.Out.ToString());
@@ -247,7 +248,7 @@ div(10, 0)
             Assert.Equal(0, runner.RunInteractive());
 
             Assert.Equal(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > int div(int a, int b) => a/b;
 > div(10, 2)
 5
@@ -275,7 +276,7 @@ C<string>.div<bool>(10, 0)
             Assert.Equal(0, runner.RunInteractive());
 
             Assert.Equal(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
 > C<string>.div<bool>(10, 2)
 5
@@ -302,7 +303,7 @@ $@"{new System.DivideByZeroException().Message}
             runner.RunInteractive();
 
             Assert.Equal(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > 1+1
 2
 > ", runner.Console.Out.ToString());
@@ -531,7 +532,7 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 
             runner.RunInteractive();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > nameof(Microsoft.Missing)
 «Red»
 (1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }
@@ -646,7 +647,7 @@ X
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{s_logoAndHelpPrompt}
+{LogoAndHelpPrompt}
 > SourcePaths
 SearchPaths {{ }}
 > #load ""a.csx""
@@ -682,7 +683,7 @@ new C()
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-{s_logoAndHelpPrompt}
+{LogoAndHelpPrompt}
 > ReferencePaths
 SearchPaths {{ }}
 > #r ""C.dll""
@@ -794,7 +795,7 @@ C {{ }}
             runner.RunInteractive();
 
             Assert.Equal(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > #help
 { ScriptingResources.HelpText }
 > ", runner.Console.Out.ToString());
@@ -858,7 +859,7 @@ var l2 = new Lib2();
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > #r ""{file1.Path}""
 > var l1 = new Lib1();
 > #r ""{file2.Path}""
@@ -881,7 +882,7 @@ i + j + k
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > int i = 100;
 > int j = 20; throw new System.Exception(""Bang!""); int k = 3;
 «Yellow»
@@ -910,7 +911,7 @@ Print(i);
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{s_logoAndHelpPrompt}
+$@"{LogoAndHelpPrompt}
 > int i = default;
 > Print(i);
 0
