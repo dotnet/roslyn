@@ -25,7 +25,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        ElseIf b then
         end if
     end sub
 end class")
@@ -43,7 +43,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        ElseIf b then
         end if
     end sub
 end class")
@@ -61,7 +61,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        ElseIf b then
         end if
     end sub
 end class")
@@ -79,7 +79,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        ElseIf b then
         end if
     end sub
 end class")
@@ -174,7 +174,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a then
-        ElseIf b orelse c orelse d Then
+        ElseIf b orelse c orelse d then
         end if
     end sub
 end class")
@@ -192,7 +192,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse b then
-        ElseIf c orelse d Then
+        ElseIf c orelse d then
         end if
     end sub
 end class")
@@ -210,7 +210,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse b orelse c then
-        ElseIf d Then
+        ElseIf d then
         end if
     end sub
 end class")
@@ -261,7 +261,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a then
-        ElseIf (b orelse c) orelse d Then
+        ElseIf (b orelse c) orelse d then
         end if
     end sub
 end class")
@@ -279,7 +279,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse (b orelse c) then
-        ElseIf d Then
+        ElseIf d then
         end if
     end sub
 end class")
@@ -297,7 +297,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a then
-        ElseIf b andalso c Then
+        ElseIf b andalso c then
         end if
     end sub
 end class")
@@ -315,7 +315,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b then
-        ElseIf c Then
+        ElseIf c then
         end if
     end sub
 end class")
@@ -335,7 +335,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             System.Console.WriteLine(a orelse b)
-        ElseIf b Then
+        ElseIf b then
             System.Console.WriteLine(a orelse b)
         end if
     end sub
@@ -358,8 +358,7 @@ end class",
         if a then
             if true
             end if
-        ElseIf b Then
-
+        ElseIf b then
             if true
             end if
         end if
@@ -383,7 +382,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             System.Console.WriteLine()
-        ElseIf b Then
+        ElseIf b then
             System.Console.WriteLine()
         else
             System.Console.WriteLine(a orelse b)
@@ -409,7 +408,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             System.Console.WriteLine()
-        ElseIf b Then
+        ElseIf b then
             System.Console.WriteLine()
         else
             if true
@@ -437,7 +436,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             System.Console.WriteLine()
-        ElseIf b Then
+        ElseIf b then
             System.Console.WriteLine()
         elseif a then
             System.Console.WriteLine(a)
@@ -468,7 +467,7 @@ end class",
             System.Console.WriteLine()
         elseif a then
             System.Console.WriteLine(a)
-        ElseIf b Then
+        elseif b then
             System.Console.WriteLine(a)
         else
             System.Console.WriteLine(b)
@@ -493,9 +492,9 @@ end class",
             return
         end if
 
-        If b Then
+        if b then
             return
-        End If
+        end if
     end sub
 end class")
         End Function
@@ -516,9 +515,9 @@ end class",
             throw new System.Exception()
         end if
 
-        If b Then
+        if b then
             throw new System.Exception()
-        End If
+        end if
     end sub
 end class")
         End Function
@@ -542,9 +541,9 @@ end class",
                 continue while
             end if
 
-            If b Then
+            if b then
                 continue while
-            End If
+            end if
         end while
     end sub
 end class")
@@ -577,14 +576,13 @@ end class",
                 end if
             end if
 
-            If b Then
-
+            if b then
                 if a then
                     continue while
                 else
                     exit while
                 end if
-            End If
+            end if
         end while
     end sub
 end class")
@@ -600,7 +598,7 @@ end class")
                 if a [||]orelse b then
                     exit select
                 end if
-                
+
                 exit select
         end select
     end sub
@@ -613,9 +611,9 @@ end class",
                     exit select
                 end if
 
-                If b Then
+                if b then
                     exit select
-                End If
+                end if
 
                 exit select
         end select
@@ -638,7 +636,7 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-        ElseIf b Then
+        ElseIf b then
         end if
     end sub
 end class")
@@ -662,8 +660,7 @@ end class",
             if a then
                 return
             end if
-        ElseIf b Then
-
+        ElseIf b then
             if a then
                 return
             end if
@@ -690,8 +687,7 @@ end class",
             while a
                 exit while
             end while
-        ElseIf b Then
-
+        ElseIf b then
             while a
                 exit while
             end while
@@ -721,8 +717,7 @@ end class",
                 while a
                     continue while
                 end while
-            ElseIf b Then
-
+            ElseIf b then
                 while a
                     continue while
                 end while
@@ -748,7 +743,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             return
-        ElseIf b Then
+        ElseIf b then
             return
         else
             return
@@ -773,7 +768,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             return
-        ElseIf b Then
+        ElseIf b then
             return
         else if a then
             return
@@ -800,7 +795,7 @@ end class",
     sub M(a as boolean, b as boolean)
         if a then
             return
-        ElseIf b Then
+        ElseIf b then
             return
         else if a then
             return
@@ -829,7 +824,7 @@ end class",
             return
         elseif a then
             return
-        ElseIf b Then
+        elseif b then
             return
         end if
     end sub

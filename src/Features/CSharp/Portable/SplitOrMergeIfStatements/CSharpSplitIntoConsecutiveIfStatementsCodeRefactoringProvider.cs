@@ -13,46 +13,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<ExpressionSyntax>
     {
-        protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
-            SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
-        {
-            var ifStatement = (IfStatementSyntax)ifStatementNode;
-
-            if (ContainsEmbeddedIfStatement(ifStatement))
-            {
-                ifStatement = ifStatement.WithStatement(SyntaxFactory.Block(ifStatement.Statement));
-            }
-
-            var secondIfStatement = SyntaxFactory.IfStatement(condition2, ifStatement.Statement, ifStatement.Else);
-            var firstIfStatement = ifStatement
-                .WithCondition(condition1)
-                .WithElse(SyntaxFactory.ElseClause(secondIfStatement));
-
-            return (firstIfStatement, null);
-        }
-
-        protected override (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
-            SyntaxNode ifStatementNode, ExpressionSyntax condition1, ExpressionSyntax condition2)
-        {
-            var ifStatement = (IfStatementSyntax)ifStatementNode;
-
-            var secondIfStatement = SyntaxFactory.IfStatement(condition2, ifStatement.Statement);
-            var firstIfStatement = ifStatement.WithCondition(condition1);
-
-            return (firstIfStatement, secondIfStatement);
-        }
-
-        private static bool ContainsEmbeddedIfStatement(IfStatementSyntax ifStatement)
-        {
-            for (var statement = ifStatement.Statement; statement.IsEmbeddedStatementOwner(); statement = statement.GetEmbeddedStatement())
-            {
-                if (statement.IsKind(SyntaxKind.IfStatement))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 }

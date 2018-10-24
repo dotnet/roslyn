@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,36 +21,46 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
             => ifSyntaxService.LogicalOrExpressionKind;
 
-        protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoElseClause(
-            SyntaxNode ifStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
-
-        protected abstract (SyntaxNode, SyntaxNode) SplitIfStatementIntoSeparateStatements(
-            SyntaxNode ifStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
-
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode currentIfStatement,
+            SyntaxNode ifStatement,
             TExpressionSyntax left,
             TExpressionSyntax right,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var (firstIfStatement, secondIfStatement) =
-                await CanBeSeparateStatementsAsync(document, syntaxFacts, currentIfStatement, cancellationToken).ConfigureAwait(false)
-                ? SplitIfStatementIntoSeparateStatements(currentIfStatement, left, right)
-                : SplitIfStatementIntoElseClause(currentIfStatement, left, right);
+            left = left.WithAdditionalAnnotations(Formatter.Annotation);
+            right = right.WithAdditionalAnnotations(Formatter.Annotation);
 
-            return secondIfStatement != null
-                ? root.ReplaceNode(currentIfStatement, ImmutableArray.Create(
-                    firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation),
-                    secondIfStatement.WithAdditionalAnnotations(Formatter.Annotation)))
-                : root.ReplaceNode(currentIfStatement,
-                    firstIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
+            root = root.TrackNodes(ifStatement);
+            root = root.ReplaceNode(
+                root.GetCurrentNode(ifStatement),
+                ifSyntaxService.WithCondition(root.GetCurrentNode(ifStatement), left));
+
+            var editor = new SyntaxEditor(root, generator);
+
+            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false))
+            {
+                var secondIfStatement = ifSyntaxService.WithCondition(ifStatement, right)
+                    .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
+
+                editor.InsertAfter(root.GetCurrentNode(ifStatement), secondIfStatement);
+            }
+            else
+            {
+                var elseIfClause = ifSyntaxService.WithCondition(ifSyntaxService.ToElseIfClause(ifStatement), right);
+
+                ifSyntaxService.InsertElseIfClause(editor, root.GetCurrentNode(ifStatement), elseIfClause);
+            }
+
+            return editor.GetChangedRoot();
         }
 
         private async Task<bool> CanBeSeparateStatementsAsync(

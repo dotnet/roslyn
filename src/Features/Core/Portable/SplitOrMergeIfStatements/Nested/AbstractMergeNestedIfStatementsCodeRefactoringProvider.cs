@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode MergeIfStatements(
-            SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, TExpressionSyntax condition);
-
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
@@ -46,7 +43,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 ifSyntaxService.GetConditionOfIfLikeStatement(parentIfStatement),
                 ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
 
-            var newIfStatement = MergeIfStatements(parentIfStatement, ifStatement, newCondition);
+            var newIfStatement = ifSyntaxService.WithStatementsOf(
+                ifSyntaxService.WithCondition(parentIfStatement, newCondition),
+                ifStatement);
 
             return root.ReplaceNode(parentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
         }

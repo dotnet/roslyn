@@ -10,41 +10,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InvertLogical, Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     Friend NotInheritable Class VisualBasicSplitIntoNestedIfStatementsCodeRefactoringProvider
         Inherits AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider(Of ExpressionSyntax)
-
-        Protected Overrides Function SplitIfStatement(ifStatementNode As SyntaxNode,
-                                                      condition1 As ExpressionSyntax,
-                                                      condition2 As ExpressionSyntax) As SyntaxNode
-            Dim innerIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.IfKeyword),
-                                                             condition2,
-                                                             SyntaxFactory.Token(SyntaxKind.ThenKeyword))
-            If TypeOf ifStatementNode Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifStatementNode, MultiLineIfBlockSyntax)
-
-                Dim innerIfBlock = SyntaxFactory.MultiLineIfBlock(innerIfStatement,
-                                                              ifBlock.Statements,
-                                                              ifBlock.ElseIfBlocks,
-                                                              ifBlock.ElseBlock)
-                Dim outerIfBlock = ifBlock _
-                              .WithIfStatement(ifBlock.IfStatement.WithCondition(condition1)) _
-                              .WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(innerIfBlock))
-
-                Return outerIfBlock
-            ElseIf TypeOf ifStatementNode Is ElseIfBlockSyntax Then
-                Dim elseIfBlock = DirectCast(ifStatementNode, ElseIfBlockSyntax)
-                Dim ifBlock = DirectCast(elseIfBlock.Parent, MultiLineIfBlockSyntax)
-                Dim elseIfBlockIndex = ifBlock.ElseIfBlocks.IndexOf(elseIfBlock)
-
-                Dim innerIfBlock = SyntaxFactory.MultiLineIfBlock(innerIfStatement,
-                                                              elseIfBlock.Statements,
-                                                              ifBlock.ElseIfBlocks.RemoveRange(0, elseIfBlockIndex + 1),
-                                                              ifBlock.ElseBlock)
-                Dim outerElseIfBlock = elseIfBlock _
-                              .WithElseIfStatement(elseIfBlock.ElseIfStatement.WithCondition(condition1)) _
-                              .WithStatements(SyntaxFactory.SingletonList(Of StatementSyntax)(innerIfBlock))
-
-                Return outerElseIfBlock
-            End If
-            Throw ExceptionUtilities.UnexpectedValue(ifStatementNode)
-        End Function
     End Class
 End Namespace

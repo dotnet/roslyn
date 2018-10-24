@@ -534,9 +534,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
             if (true) { }
         }
         else if (b)
-        {
             if (true) { }
-        }
     }
 }");
         }
@@ -566,11 +564,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
                     using (null) { }
         }
         else if (b)
-        {
             while (a)
                 if (true)
                     using (null) { }
-        }
     }
 }");
         }
@@ -657,7 +653,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     void M(bool a, bool b)
     {
         if (a)
-else if (b)    }
+else if (b)
+    }
 }");
         }
 

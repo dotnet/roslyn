@@ -38,23 +38,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             ifStatementNode = Nothing
             Return False
         End Function
-
-        Protected Overrides Function MergeIfStatements(outerIfStatementNode As SyntaxNode,
-                                                       innerIfStatementNode As SyntaxNode,
-                                                       condition As ExpressionSyntax) As SyntaxNode
-            Dim innerIfBlock = DirectCast(innerIfStatementNode, MultiLineIfBlockSyntax)
-            If TypeOf outerIfStatementNode Is MultiLineIfBlockSyntax Then
-                Dim outerIfBlock = DirectCast(outerIfStatementNode, MultiLineIfBlockSyntax)
-
-                Return outerIfBlock.WithIfStatement(outerIfBlock.IfStatement.WithCondition(condition)) _
-                                   .WithStatements(innerIfBlock.Statements)
-            ElseIf TypeOf outerIfStatementNode Is ElseIfBlockSyntax Then
-                Dim outerElseIfBlock = DirectCast(outerIfStatementNode, ElseIfBlockSyntax)
-
-                Return outerElseIfBlock.WithElseIfStatement(outerElseIfBlock.ElseIfStatement.WithCondition(condition)) _
-                                       .WithStatements(innerIfBlock.Statements)
-            End If
-            Throw ExceptionUtilities.UnexpectedValue(outerIfStatementNode)
-        End Function
     End Class
 End Namespace

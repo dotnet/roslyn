@@ -614,6 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Function(x As SingleLineElseClauseSyntax) x.WithStatements(statements),
                 Function(x As SingleLineLambdaExpressionSyntax) ReplaceSingleLineLambdaExpressionStatements(x, statements, annotations),
                 Function(x As MultiLineIfBlockSyntax) x.WithStatements(statements),
+                Function(x As ElseIfBlockSyntax) x.WithStatements(statements),
                 Function(x As ElseBlockSyntax) x.WithStatements(statements),
                 Function(x As TryBlockSyntax) x.WithStatements(statements),
                 Function(x As CatchBlockSyntax) x.WithStatements(statements),

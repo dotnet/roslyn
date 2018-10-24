@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -15,24 +16,24 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
             => ifSyntaxService.LogicalAndExpressionKind;
 
-        protected abstract SyntaxNode SplitIfStatement(
-            SyntaxNode ifStatementNode, TExpressionSyntax condition1, TExpressionSyntax condition2);
-
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode currentIfStatement,
+            SyntaxNode ifStatement,
             TExpressionSyntax left,
             TExpressionSyntax right,
             CancellationToken cancellationToken)
         {
-            var newIfStatement = SplitIfStatement(currentIfStatement, left, right);
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+
+            var innerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.ToIfStatement(ifStatement), right);
+            var outerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.WithStatement(ifStatement, innerIfStatement), left);
 
             return Task.FromResult(
-                root.ReplaceNode(currentIfStatement, newIfStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                root.ReplaceNode(ifStatement, outerIfStatement.WithAdditionalAnnotations(Formatter.Annotation)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

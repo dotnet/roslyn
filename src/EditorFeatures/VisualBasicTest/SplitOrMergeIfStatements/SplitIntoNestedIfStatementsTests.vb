@@ -25,8 +25,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
-            End If
+            if b then
+            end if
         end if
     end sub
 end class")
@@ -44,8 +44,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
-            End If
+            if b then
+            end if
         end if
     end sub
 end class")
@@ -63,8 +63,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
-            End If
+            if b then
+            end if
         end if
     end sub
 end class")
@@ -82,8 +82,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
-            End If
+            if b then
+            end if
         end if
     end sub
 end class")
@@ -178,8 +178,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a then
-            If b andalso c andalso d Then
-            End If
+            if b andalso c andalso d then
+            end if
         end if
     end sub
 end class")
@@ -197,8 +197,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b then
-            If c andalso d Then
-            End If
+            if c andalso d then
+            end if
         end if
     end sub
 end class")
@@ -216,8 +216,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b andalso c then
-            If d Then
-            End If
+            if d then
+            end if
         end if
     end sub
 end class")
@@ -268,8 +268,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a then
-            If (b andalso c) andalso d Then
-            End If
+            if (b andalso c) andalso d then
+            end if
         end if
     end sub
 end class")
@@ -287,8 +287,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso (b andalso c) then
-            If d Then
-            End If
+            if d then
+            end if
         end if
     end sub
 end class")
@@ -328,8 +328,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
         if a then
-            If (b orelse c) Then
-            End If
+            if (b orelse c) then
+            end if
         end if
     end sub
 end class")
@@ -347,8 +347,8 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
         if (a orelse b) then
-            If c Then
-            End If
+            if c then
+            end if
         end if
     end sub
 end class")
@@ -367,9 +367,9 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
+            if b then
                 System.Console.WriteLine(a andalso b)
-            End If
+            end if
         end if
     end sub
 end class")
@@ -389,11 +389,10 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
-
+            if b then
                 if true
                 end if
-            End If
+            end if
         end if
     end sub
 end class")
@@ -414,11 +413,11 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
+            if b then
                 System.Console.WriteLine()
             else
                 System.Console.WriteLine(a andalso b)
-            End If
+            end if
         else
             System.Console.WriteLine(a andalso b)
         end if
@@ -442,12 +441,12 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
+            if b then
                 System.Console.WriteLine()
             else
                 if true
                 end if
-            End If
+            end if
         else
             if true
             end if
@@ -473,13 +472,13 @@ end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            If b Then
+            if b then
                 System.Console.WriteLine()
             elseif a then
                 System.Console.WriteLine(a)
             else
                 System.Console.WriteLine(b)
-            End If
+            end if
         elseif a then
             System.Console.WriteLine(a)
         else
@@ -508,11 +507,11 @@ end class",
         if true then
             System.Console.WriteLine()
         elseif a then
-            If b Then
+            if b then
                 System.Console.WriteLine(a)
             else
                 System.Console.WriteLine(b)
-            End If
+            end if
         else
             System.Console.WriteLine(b)
         end if
@@ -539,11 +538,11 @@ end class",
         if true then
             System.Console.WriteLine()
         elseif a then
-            If b Then
+            if b then
                 System.Console.WriteLine(a)
             elseif a orelse b
                 System.Console.WriteLine(b)
-            End If
+            end if
         elseif a orelse b
             System.Console.WriteLine(b)
         end if

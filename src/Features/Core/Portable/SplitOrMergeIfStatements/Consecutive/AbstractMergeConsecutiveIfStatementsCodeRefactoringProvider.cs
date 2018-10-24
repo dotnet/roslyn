@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     {
         protected abstract bool IsElseClauseOfIfStatement(SyntaxNode node, out SyntaxNode ifStatementNode);
 
-        protected abstract SyntaxNode MergeIfStatements(
-            SyntaxNode firstIfStatementNode, SyntaxNode secondIfStatementNode, TExpressionSyntax condition);
-
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
@@ -39,26 +36,32 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var previousIfStatement = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement)
-                ? parentIfStatement
-                : GetPreviousStatement(syntaxFacts, ifStatement);
+            var isElseIfClause = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement);
+            var previousIfStatement = isElseIfClause ? parentIfStatement : GetPreviousStatement(syntaxFacts, ifStatement);
 
             var newCondition = (TExpressionSyntax)generator.LogicalOrExpression(
                 ifSyntaxService.GetConditionOfIfLikeStatement(previousIfStatement),
                 ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
 
-            var newIfStatement = MergeIfStatements(previousIfStatement, ifStatement, newCondition);
+            newCondition = newCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var newRoot = root.TrackNodes(previousIfStatement, ifStatement);
-            newRoot = newRoot.ReplaceNode(newRoot.GetCurrentNode(previousIfStatement), newIfStatement.WithAdditionalAnnotations(Formatter.Annotation));
+            root = root.TrackNodes(previousIfStatement, ifStatement);
+            root = root.ReplaceNode(
+                root.GetCurrentNode(previousIfStatement),
+                ifSyntaxService.WithCondition(root.GetCurrentNode(previousIfStatement), newCondition));
 
-            var currentIfStatement = newRoot.GetCurrentNode(ifStatement);
-            if (currentIfStatement != null)
+            var editor = new SyntaxEditor(root, generator);
+
+            if (isElseIfClause)
             {
-                newRoot = newRoot.RemoveNode(currentIfStatement, SyntaxGenerator.DefaultRemoveOptions);
+                ifSyntaxService.RemoveElseIfClause(editor, root.GetCurrentNode(ifStatement));
+            }
+            else
+            {
+                editor.RemoveNode(root.GetCurrentNode(ifStatement));
             }
 
-            return newRoot;
+            return editor.GetChangedRoot();
         }
 
         private bool CanBeMergedWithParent(ISyntaxFactsService syntaxFacts, SyntaxNode ifStatement)

@@ -70,19 +70,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             ifStatementNode = Nothing
             Return False
         End Function
-
-        Protected Overrides Function MergeIfStatements(firstIfStatementNode As SyntaxNode,
-                                                       secondIfStatementNode As SyntaxNode,
-                                                       condition As ExpressionSyntax) As SyntaxNode
-            If TypeOf firstIfStatementNode Is MultiLineIfBlockSyntax Then
-                Dim firstIfBlock = DirectCast(firstIfStatementNode, MultiLineIfBlockSyntax)
-                Dim newIfBlock = firstIfBlock.WithIfStatement(firstIfBlock.IfStatement.WithCondition(condition))
-                Return If(newIfBlock.ElseIfBlocks.Count > 0, newIfBlock.WithElseIfBlocks(newIfBlock.ElseIfBlocks.RemoveAt(0)), newIfBlock)
-            ElseIf TypeOf firstIfStatementNode Is ElseIfBlockSyntax Then
-                Dim firstElseIfBlock = DirectCast(firstIfStatementNode, ElseIfBlockSyntax)
-                Return firstElseIfBlock.WithElseIfStatement(firstElseIfBlock.ElseIfStatement.WithCondition(condition))
-            End If
-            Throw ExceptionUtilities.UnexpectedValue(firstIfStatementNode)
-        End Function
     End Class
 End Namespace

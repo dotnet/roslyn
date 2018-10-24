@@ -585,7 +585,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     {
         if (a)
         {
-            if (b)}
+            if (b)
+}
     }
 }");
         }

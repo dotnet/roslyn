@@ -36,14 +36,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             ifStatementNode = null;
             return false;
         }
-
-        protected override SyntaxNode MergeIfStatements(
-            SyntaxNode outerIfStatementNode, SyntaxNode innerIfStatementNode, ExpressionSyntax condition)
-        {
-            var outerIfStatement = (IfStatementSyntax)outerIfStatementNode;
-            var innerIfStatement = (IfStatementSyntax)innerIfStatementNode;
-
-            return outerIfStatement.WithCondition(condition).WithStatement(innerIfStatement.Statement);
-        }
     }
 }
