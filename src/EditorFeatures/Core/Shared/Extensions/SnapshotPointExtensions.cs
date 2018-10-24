@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class SnapshotPointExtensions
     {
-        public static void GetLineAndCharector(this SnapshotPoint point, out int lineNumber, out int characterIndex)
+        public static void GetLineAndCharacter(this SnapshotPoint point, out int lineNumber, out int characterIndex)
         {
             point.Snapshot.GetLineAndCharacter(point.Position, out lineNumber, out characterIndex);
         }

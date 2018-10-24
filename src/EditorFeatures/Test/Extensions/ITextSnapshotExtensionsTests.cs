@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         public void GetLineAndCharacterTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            snapshot.GetLineAndCharacter(16, out var line, out var charector);
+            snapshot.GetLineAndCharacter(16, out var line, out var character);
             Assert.Equal(3, line);
-            Assert.Equal(1, charector);
+            Assert.Equal(1, character);
         }
 
         private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)

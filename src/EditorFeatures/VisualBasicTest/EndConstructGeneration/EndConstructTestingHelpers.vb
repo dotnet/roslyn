@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
                 Dim actualLine As Integer
                 Dim actualChar As Integer
-                view.Caret.Position.BufferPosition.GetLineAndCharector(actualLine, actualChar)
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(actualLine, actualChar)
                 Assert.Equal(endCaretPos(0), actualLine)
                 Assert.Equal(endCaretPos(1), actualChar)
             End Using
