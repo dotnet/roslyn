@@ -584,7 +584,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
                     var corLibrary = _compilation.SourceAssembly.CorLibrary;
                     var conversions = new TypeConversions(corLibrary);
-                    typeSymbol.CheckAllConstraints(conversions, @using.UsingDirective.Name.Location, semanticDiagnostics);
+                    var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
+                    typeSymbol.CheckAllConstraints(conversions, location, semanticDiagnostics);
                 }
             }
 
