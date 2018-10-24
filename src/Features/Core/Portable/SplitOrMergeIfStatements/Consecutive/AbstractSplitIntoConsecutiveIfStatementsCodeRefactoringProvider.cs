@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override async Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode ifStatement,
+            SyntaxNode ifLikeStatement,
             SyntaxNode leftCondition,
             SyntaxNode rightCondition,
             CancellationToken cancellationToken)
@@ -37,25 +37,25 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             leftCondition = leftCondition.WithAdditionalAnnotations(Formatter.Annotation);
             rightCondition = rightCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
-            root = root.TrackNodes(ifStatement);
+            root = root.TrackNodes(ifLikeStatement);
             root = root.ReplaceNode(
-                root.GetCurrentNode(ifStatement),
-                ifSyntaxService.WithCondition(root.GetCurrentNode(ifStatement), leftCondition));
+                root.GetCurrentNode(ifLikeStatement),
+                ifSyntaxService.WithCondition(root.GetCurrentNode(ifLikeStatement), leftCondition));
 
             var editor = new SyntaxEditor(root, generator);
 
-            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false))
+            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifLikeStatement, cancellationToken).ConfigureAwait(false))
             {
-                var secondIfStatement = ifSyntaxService.WithCondition(ifStatement, rightCondition)
+                var secondIfStatement = ifSyntaxService.WithCondition(ifLikeStatement, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
-                editor.InsertAfter(root.GetCurrentNode(ifStatement), secondIfStatement);
+                editor.InsertAfter(root.GetCurrentNode(ifLikeStatement), secondIfStatement);
             }
             else
             {
-                var elseIfClause = ifSyntaxService.WithCondition(ifSyntaxService.ToElseIfClause(ifStatement), rightCondition);
+                var elseIfClause = ifSyntaxService.WithCondition(ifSyntaxService.ToElseIfClause(ifLikeStatement), rightCondition);
 
-                ifSyntaxService.InsertElseIfClause(editor, root.GetCurrentNode(ifStatement), elseIfClause);
+                ifSyntaxService.InsertElseIfClause(editor, root.GetCurrentNode(ifLikeStatement), elseIfClause);
             }
 
             return editor.GetChangedRoot();
@@ -64,23 +64,23 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private async Task<bool> CanBeSeparateStatementsAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
-            SyntaxNode ifStatement,
+            SyntaxNode ifLikeStatement,
             CancellationToken cancellationToken)
         {
+            // If the if-like statement is an else-if clause or we're not inside a block, we cannot introduce another statement.
+            if (!syntaxFacts.IsExecutableStatement(ifLikeStatement) ||
+                !syntaxFacts.IsExecutableBlock(ifLikeStatement.Parent))
+            {
+                return false;
+            }
+
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
-
-            if (ifSyntaxService.GetElseLikeClauses(ifStatement).Length > 0)
+            if (ifSyntaxService.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;
             }
 
-            if (!syntaxFacts.IsExecutableStatement(ifStatement) ||
-                !syntaxFacts.IsExecutableBlock(ifStatement.Parent))
-            {
-                return false;
-            }
-
-            var insideStatements = syntaxFacts.GetStatementContainerStatements(ifStatement);
+            var insideStatements = syntaxFacts.GetStatementContainerStatements(ifLikeStatement);
             if (insideStatements.Count == 0)
             {
                 // Even though there are no statements inside, we still can't split this into separate statements

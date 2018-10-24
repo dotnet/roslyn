@@ -6,29 +6,42 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
+    /// <summary>
+    /// An if-like statement is either an if statement or an else-if clause.
+    /// When querying the syntax, C# else if chains are "flattened" and modeled to look like VB else-if clauses.
+    /// </summary>
     internal interface IIfStatementSyntaxService : ILanguageService
     {
         bool IsIfLikeStatement(SyntaxNode node);
 
-        bool IsConditionOfIfLikeStatement(SyntaxNode expression, out SyntaxNode ifLikeStatement);
+        bool IsCondition(SyntaxNode expression, out SyntaxNode ifLikeStatement);
 
         bool IsElseIfClause(SyntaxNode node, out SyntaxNode parentIfLikeStatement);
 
-        SyntaxNode GetConditionOfIfLikeStatement(SyntaxNode ifLikeStatement);
+        SyntaxNode GetCondition(SyntaxNode ifLikeStatement);
 
+        /// <summary>
+        /// Returns the list of subsequent else-if clauses and a final else clause (if present).
+        /// </summary>
         ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement);
 
-        SyntaxNode WithCondition(SyntaxNode ifOrElseIfNode, SyntaxNode condition);
+        SyntaxNode WithCondition(SyntaxNode ifLikeStatement, SyntaxNode condition);
 
-        SyntaxNode WithStatement(SyntaxNode ifOrElseIfNode, SyntaxNode statement);
+        SyntaxNode WithStatement(SyntaxNode ifLikeStatement, SyntaxNode statement);
 
-        SyntaxNode WithStatementsOf(SyntaxNode ifOrElseIfNode, SyntaxNode otherIfOrElseIfNode);
+        SyntaxNode WithStatementsOf(SyntaxNode ifLikeStatement, SyntaxNode otherIfLikeStatement);
 
-        SyntaxNode ToIfStatement(SyntaxNode ifOrElseIfNode);
+        /// <summary>
+        /// Converts an else-if clause to an if statement, preserving its subsequent else-if and else clauses.
+        /// </summary>
+        SyntaxNode ToIfStatement(SyntaxNode ifLikeStatement);
 
-        SyntaxNode ToElseIfClause(SyntaxNode ifOrElseIfNode);
+        /// <summary>
+        /// Convert an if statement to an else-if clause, discarding any of its else-if and else clauses.
+        /// </summary>
+        SyntaxNode ToElseIfClause(SyntaxNode ifLikeStatement);
 
-        void InsertElseIfClause(SyntaxEditor editor, SyntaxNode ifOrElseIfNode, SyntaxNode elseIfClause);
+        void InsertElseIfClause(SyntaxEditor editor, SyntaxNode afterIfLikeStatement, SyntaxNode elseIfClause);
 
         void RemoveElseIfClause(SyntaxEditor editor, SyntaxNode elseIfClause);
     }

@@ -21,43 +21,43 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<bool> CanBeMergedAsync(
-            Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+            Document document, SyntaxNode ifLikeStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
 
-            return CanBeMergedWithParent(syntaxFacts, ifSyntaxService, ifStatement) ||
-                   await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false);
+            return CanBeMergedWithParent(syntaxFacts, ifSyntaxService, ifLikeStatement) ||
+                   await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifLikeStatement, cancellationToken).ConfigureAwait(false);
         }
 
-        protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement)
+        protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifLikeStatement)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var isElseIfClause = ifSyntaxService.IsElseIfClause(ifStatement, out var parentIfStatement);
-            var previousIfStatement = isElseIfClause ? parentIfStatement : GetPreviousStatement(syntaxFacts, ifStatement);
+            var isElseIfClause = ifSyntaxService.IsElseIfClause(ifLikeStatement, out var parentIfLikeStatement);
+            var previousIfLikeStatement = isElseIfClause ? parentIfLikeStatement : GetPreviousStatement(syntaxFacts, ifLikeStatement);
 
             var newCondition = generator.LogicalOrExpression(
-                ifSyntaxService.GetConditionOfIfLikeStatement(previousIfStatement),
-                ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
+                ifSyntaxService.GetCondition(previousIfLikeStatement),
+                ifSyntaxService.GetCondition(ifLikeStatement));
 
             newCondition = newCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
-            root = root.TrackNodes(previousIfStatement, ifStatement);
+            root = root.TrackNodes(previousIfLikeStatement, ifLikeStatement);
             root = root.ReplaceNode(
-                root.GetCurrentNode(previousIfStatement),
-                ifSyntaxService.WithCondition(root.GetCurrentNode(previousIfStatement), newCondition));
+                root.GetCurrentNode(previousIfLikeStatement),
+                ifSyntaxService.WithCondition(root.GetCurrentNode(previousIfLikeStatement), newCondition));
 
             var editor = new SyntaxEditor(root, generator);
 
             if (isElseIfClause)
             {
-                ifSyntaxService.RemoveElseIfClause(editor, root.GetCurrentNode(ifStatement));
+                ifSyntaxService.RemoveElseIfClause(editor, root.GetCurrentNode(ifLikeStatement));
             }
             else
             {
-                editor.RemoveNode(root.GetCurrentNode(ifStatement));
+                editor.RemoveNode(root.GetCurrentNode(ifLikeStatement));
             }
 
             return editor.GetChangedRoot();
@@ -66,33 +66,39 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private bool CanBeMergedWithParent(
             ISyntaxFactsService syntaxFacts,
             IIfStatementSyntaxService ifSyntaxService,
-            SyntaxNode ifStatement)
+            SyntaxNode ifLikeStatement)
         {
-            return ifSyntaxService.IsElseIfClause(ifStatement, out var parentIfStatement) &&
-                   ContainEquivalentStatements(syntaxFacts, ifStatement, parentIfStatement, out _);
+            return ifSyntaxService.IsElseIfClause(ifLikeStatement, out var parentIfLikeStatement) &&
+                   ContainEquivalentStatements(syntaxFacts, ifLikeStatement, parentIfLikeStatement, out _);
         }
 
         private async Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
-            SyntaxNode ifStatement,
+            SyntaxNode ifLikeStatement,
             CancellationToken cancellationToken)
         {
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
-
-            if (ifSyntaxService.GetElseLikeClauses(ifStatement).Length > 0)
+            // If the if-like statement is an else-if clause or we're not inside a block, there is no previous statement.
+            if (!syntaxFacts.IsExecutableStatement(ifLikeStatement) ||
+                !syntaxFacts.IsExecutableBlock(ifLikeStatement.Parent))
             {
                 return false;
             }
 
-            var previousStatement = GetPreviousStatement(syntaxFacts, ifStatement);
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            if (ifSyntaxService.GetElseLikeClauses(ifLikeStatement).Length > 0)
+            {
+                return false;
+            }
+
+            var previousStatement = GetPreviousStatement(syntaxFacts, ifLikeStatement);
 
             if (!ifSyntaxService.IsIfLikeStatement(previousStatement) || ifSyntaxService.GetElseLikeClauses(previousStatement).Length > 0)
             {
                 return false;
             }
 
-            if (!ContainEquivalentStatements(syntaxFacts, ifStatement, previousStatement, out var insideStatements))
+            if (!ContainEquivalentStatements(syntaxFacts, ifLikeStatement, previousStatement, out var insideStatements))
             {
                 return false;
             }
@@ -119,12 +125,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private static SyntaxNode GetPreviousStatement(ISyntaxFactsService syntaxFacts, SyntaxNode statement)
         {
-            if (!syntaxFacts.IsExecutableStatement(statement) ||
-                !syntaxFacts.IsExecutableBlock(statement.Parent))
-            {
-                return null;
-            }
-
             var blockStatements = syntaxFacts.GetExecutableBlockStatements(statement.Parent);
             var statementIndex = blockStatements.IndexOf(statement);
 

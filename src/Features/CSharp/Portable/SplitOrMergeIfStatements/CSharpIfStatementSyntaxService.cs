@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     {
         public bool IsIfLikeStatement(SyntaxNode node) => node is IfStatementSyntax;
 
-        public bool IsConditionOfIfLikeStatement(SyntaxNode expression, out SyntaxNode ifLikeStatement)
+        public bool IsCondition(SyntaxNode expression, out SyntaxNode ifLikeStatement)
         {
             if (expression.Parent is IfStatementSyntax ifStatement && ifStatement.Condition == expression)
             {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return false;
         }
 
-        public SyntaxNode GetConditionOfIfLikeStatement(SyntaxNode ifLikeStatement)
+        public SyntaxNode GetCondition(SyntaxNode ifLikeStatement)
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;
             return ifStatement.Condition;
@@ -65,34 +65,34 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return builder.ToImmutable();
         }
 
-        public SyntaxNode WithCondition(SyntaxNode ifOrElseIfNode, SyntaxNode condition)
+        public SyntaxNode WithCondition(SyntaxNode ifLikeStatement, SyntaxNode condition)
         {
-            var ifStatement = (IfStatementSyntax)ifOrElseIfNode;
+            var ifStatement = (IfStatementSyntax)ifLikeStatement;
             return ifStatement.WithCondition((ExpressionSyntax)condition);
         }
 
-        public SyntaxNode WithStatement(SyntaxNode ifOrElseIfNode, SyntaxNode statement)
+        public SyntaxNode WithStatement(SyntaxNode ifLikeStatement, SyntaxNode statement)
         {
-            var ifStatement = (IfStatementSyntax)ifOrElseIfNode;
+            var ifStatement = (IfStatementSyntax)ifLikeStatement;
             return ifStatement.WithStatement(SyntaxFactory.Block((StatementSyntax)statement));
         }
 
-        public SyntaxNode WithStatementsOf(SyntaxNode ifOrElseIfNode, SyntaxNode otherIfOrElseIfNode)
+        public SyntaxNode WithStatementsOf(SyntaxNode ifLikeStatement, SyntaxNode otherIfLikeStatement)
         {
-            var ifStatement = (IfStatementSyntax)ifOrElseIfNode;
-            var otherIfStatement = (IfStatementSyntax)otherIfOrElseIfNode;
+            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+            var otherIfStatement = (IfStatementSyntax)otherIfLikeStatement;
             return ifStatement.WithStatement(otherIfStatement.Statement);
         }
 
-        public SyntaxNode ToIfStatement(SyntaxNode ifOrElseIfNode)
-            => ifOrElseIfNode;
+        public SyntaxNode ToIfStatement(SyntaxNode ifLikeStatement)
+            => ifLikeStatement;
 
-        public SyntaxNode ToElseIfClause(SyntaxNode ifOrElseIfNode)
-            => ((IfStatementSyntax)ifOrElseIfNode).WithElse(null);
+        public SyntaxNode ToElseIfClause(SyntaxNode ifLikeStatement)
+            => ((IfStatementSyntax)ifLikeStatement).WithElse(null);
 
-        public void InsertElseIfClause(SyntaxEditor editor, SyntaxNode ifOrElseIfNode, SyntaxNode elseIfClause)
+        public void InsertElseIfClause(SyntaxEditor editor, SyntaxNode afterIfLikeStatement, SyntaxNode elseIfClause)
         {
-            var ifStatement = (IfStatementSyntax)ifOrElseIfNode;
+            var ifStatement = (IfStatementSyntax)afterIfLikeStatement;
             var elseIfStatement = (IfStatementSyntax)elseIfClause;
 
             var newElseIfStatement = elseIfStatement.WithElse(ifStatement.Else);
@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
             if (ifStatement.Else == null && ContainsEmbeddedIfStatement(ifStatement))
             {
+                // If the if statement contains an embedded if statement (not wrapped inside a block), adding an else
+                // clause might introduce a dangling else problem (the 'else' would bind to the inner if statement),
+                // so if there used to be no else clause, we'll insert a new block to prevent that.
                 newIfStatement = newIfStatement.WithStatement(SyntaxFactory.Block(newIfStatement.Statement));
             }
 

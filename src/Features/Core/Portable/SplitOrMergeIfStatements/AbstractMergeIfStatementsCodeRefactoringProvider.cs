@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
     internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode);
+        protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifLikeStatement);
 
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
         protected abstract Task<bool> CanBeMergedAsync(
-            Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+            Document document, SyntaxNode ifLikeStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
 
         protected abstract SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement);
 
@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
 
-            if (IsApplicableSpan(node, context.Span, out var ifStatement))
+            if (IsApplicableSpan(node, context.Span, out var ifLikeStatement))
             {
                 var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
                 var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
-                if (await CanBeMergedAsync(context.Document, ifStatement, syntaxFacts, context.CancellationToken).ConfigureAwait(false))
+                if (await CanBeMergedAsync(context.Document, ifLikeStatement, syntaxFacts, context.CancellationToken).ConfigureAwait(false))
                 {
                     context.RegisterRefactoring(
                         CreateCodeAction(
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span, getInnermostNodeForTie: true);
 
-            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifStatement));
+            Contract.ThrowIfFalse(IsApplicableSpan(node, span, out var ifLikeStatement));
 
-            var newRoot = GetChangedRoot(document, root, ifStatement);
+            var newRoot = GetChangedRoot(document, root, ifLikeStatement);
             return document.WithSyntaxRoot(newRoot);
         }
 

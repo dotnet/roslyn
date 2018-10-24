@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode currentIfStatement,
+            SyntaxNode ifLikeStatement,
             SyntaxNode leftCondition,
             SyntaxNode rightCondition,
             CancellationToken cancellationToken);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
             if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression) &&
-                ifSyntaxService.IsConditionOfIfLikeStatement(rootExpression, out _))
+                ifSyntaxService.IsCondition(rootExpression, out _))
             {
                 context.RegisterRefactoring(
                     CreateCodeAction(
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
 
             Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
-            Contract.ThrowIfFalse(ifSyntaxService.IsConditionOfIfLikeStatement(rootExpression, out var currentIfStatement));
+            Contract.ThrowIfFalse(ifSyntaxService.IsCondition(rootExpression, out var ifLikeStatement));
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());
 
-            var newRoot = await GetChangedRootAsync(document, root, currentIfStatement, left, right, cancellationToken).ConfigureAwait(false);
+            var newRoot = await GetChangedRootAsync(document, root, ifLikeStatement, left, right, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 

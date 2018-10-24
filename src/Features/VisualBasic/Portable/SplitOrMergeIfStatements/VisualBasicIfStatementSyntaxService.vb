@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
                    TypeOf node Is ElseIfBlockSyntax
         End Function
 
-        Public Function IsConditionOfIfLikeStatement(expression As SyntaxNode, ByRef ifLikeStatement As SyntaxNode) As Boolean Implements IIfStatementSyntaxService.IsConditionOfIfLikeStatement
+        Public Function IsCondition(expression As SyntaxNode, ByRef ifLikeStatement As SyntaxNode) As Boolean Implements IIfStatementSyntaxService.IsCondition
             If TypeOf expression.Parent Is IfStatementSyntax AndAlso
                DirectCast(expression.Parent, IfStatementSyntax).Condition Is expression AndAlso
                TypeOf expression.Parent.Parent Is MultiLineIfBlockSyntax Then
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return False
         End Function
 
-        Public Function GetConditionOfIfLikeStatement(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.GetConditionOfIfLikeStatement
+        Public Function GetCondition(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.GetCondition
             If TypeOf ifLikeStatement Is MultiLineIfBlockSyntax Then
                 Return DirectCast(ifLikeStatement, MultiLineIfBlockSyntax).IfStatement.Condition
             ElseIf TypeOf ifLikeStatement Is ElseIfBlockSyntax Then
@@ -76,29 +76,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return If(node IsNot Nothing, list.Add(node), list)
         End Function
 
-        Public Function WithCondition(ifOrElseIfNode As SyntaxNode, condition As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.WithCondition
-            If TypeOf ifOrElseIfNode Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifOrElseIfNode, MultiLineIfBlockSyntax)
+        Public Function WithCondition(ifLikeStatement As SyntaxNode, condition As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.WithCondition
+            If TypeOf ifLikeStatement Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(ifLikeStatement, MultiLineIfBlockSyntax)
                 Return ifBlock.WithIfStatement(ifBlock.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax)))
-            ElseIf TypeOf ifOrElseIfNode Is ElseIfBlockSyntax Then
-                Dim elseIfBlock = DirectCast(ifOrElseIfNode, ElseIfBlockSyntax)
+            ElseIf TypeOf ifLikeStatement Is ElseIfBlockSyntax Then
+                Dim elseIfBlock = DirectCast(ifLikeStatement, ElseIfBlockSyntax)
                 Return elseIfBlock.WithElseIfStatement(elseIfBlock.ElseIfStatement.WithCondition(DirectCast(condition, ExpressionSyntax)))
             Else
-                Throw ExceptionUtilities.UnexpectedValue(ifOrElseIfNode)
+                Throw ExceptionUtilities.UnexpectedValue(ifLikeStatement)
             End If
         End Function
 
-        Public Function WithStatement(ifOrElseIfNode As SyntaxNode, statement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.WithStatement
-            Return ifOrElseIfNode.ReplaceStatements(SyntaxFactory.SingletonList(DirectCast(statement, StatementSyntax)))
+        Public Function WithStatement(ifLikeStatement As SyntaxNode, statement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.WithStatement
+            Return ifLikeStatement.ReplaceStatements(SyntaxFactory.SingletonList(DirectCast(statement, StatementSyntax)))
         End Function
 
-        Public Function WithStatementsOf(ifOrElseIfNode As SyntaxNode, otherIfOrElseIfNode As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.WithStatementsOf
-            Return ifOrElseIfNode.ReplaceStatements(otherIfOrElseIfNode.GetStatements())
+        Public Function WithStatementsOf(ifLikeStatement As SyntaxNode, otherIfLikeStatement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.WithStatementsOf
+            Return ifLikeStatement.ReplaceStatements(otherIfLikeStatement.GetStatements())
         End Function
 
-        Public Function ToIfStatement(ifOrElseIfNode As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.ToIfStatement
-            If TypeOf ifOrElseIfNode Is ElseIfBlockSyntax Then
-                Dim elseIfBlock = DirectCast(ifOrElseIfNode, ElseIfBlockSyntax)
+        Public Function ToIfStatement(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.ToIfStatement
+            If TypeOf ifLikeStatement Is ElseIfBlockSyntax Then
+                Dim elseIfBlock = DirectCast(ifLikeStatement, ElseIfBlockSyntax)
                 Dim ifBlock = DirectCast(elseIfBlock.Parent, MultiLineIfBlockSyntax)
                 Dim nextElseIfBlocks = ifBlock.ElseIfBlocks.RemoveRange(0, ifBlock.ElseIfBlocks.IndexOf(elseIfBlock) + 1)
 
@@ -112,13 +112,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
                                                                 ifBlock.EndIfStatement)
                 Return newIfBlock
             Else
-                Return ifOrElseIfNode
+                Return ifLikeStatement
             End If
         End Function
 
-        Public Function ToElseIfClause(ifOrElseIfNode As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.ToElseIfClause
-            If TypeOf ifOrElseIfNode Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifOrElseIfNode, MultiLineIfBlockSyntax)
+        Public Function ToElseIfClause(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.ToElseIfClause
+            If TypeOf ifLikeStatement Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(ifLikeStatement, MultiLineIfBlockSyntax)
 
                 Dim newElseIfStatement = SyntaxFactory.ElseIfStatement(SyntaxFactory.Token(SyntaxKind.ElseIfKeyword),
                                                                        ifBlock.IfStatement.Condition,
@@ -127,20 +127,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
                                                                ifBlock.Statements)
                 Return newElseIfBlock
             Else
-                Return ifOrElseIfNode
+                Return ifLikeStatement
             End If
         End Function
 
-        Public Sub InsertElseIfClause(editor As SyntaxEditor, ifOrElseIfNode As SyntaxNode, elseIfClause As SyntaxNode) Implements IIfStatementSyntaxService.InsertElseIfClause
+        Public Sub InsertElseIfClause(editor As SyntaxEditor, afterIfLikeStatement As SyntaxNode, elseIfClause As SyntaxNode) Implements IIfStatementSyntaxService.InsertElseIfClause
             Dim elseIfBlockToInsert = DirectCast(elseIfClause, ElseIfBlockSyntax)
-            If TypeOf ifOrElseIfNode Is MultiLineIfBlockSyntax Then
-                Dim ifBlock = DirectCast(ifOrElseIfNode, MultiLineIfBlockSyntax)
+            If TypeOf afterIfLikeStatement Is MultiLineIfBlockSyntax Then
+                Dim ifBlock = DirectCast(afterIfLikeStatement, MultiLineIfBlockSyntax)
                 Dim newIfBlock = ifBlock.WithElseIfBlocks(ifBlock.ElseIfBlocks.Insert(0, elseIfBlockToInsert))
                 editor.ReplaceNode(ifBlock, newIfBlock)
-            ElseIf TypeOf ifOrElseIfNode Is ElseIfBlockSyntax Then
-                editor.InsertAfter(ifOrElseIfNode, elseIfBlockToInsert)
+            ElseIf TypeOf afterIfLikeStatement Is ElseIfBlockSyntax Then
+                editor.InsertAfter(afterIfLikeStatement, elseIfBlockToInsert)
             Else
-                Throw ExceptionUtilities.UnexpectedValue(ifOrElseIfNode)
+                Throw ExceptionUtilities.UnexpectedValue(afterIfLikeStatement)
             End If
         End Sub
 

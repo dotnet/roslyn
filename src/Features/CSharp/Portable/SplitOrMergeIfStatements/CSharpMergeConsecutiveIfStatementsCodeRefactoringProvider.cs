@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider
     {
-        protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode)
+        protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifLikeStatement)
         {
             if (node is IfStatementSyntax ifStatement)
             {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
                     span.IsAround(ifStatement.IfKeyword, ifStatement.CloseParenToken) ||
                     span.IsAround(ifStatement.IfKeyword, ifStatement.Statement))
                 {
-                    ifStatementNode = ifStatement;
+                    ifLikeStatement = ifStatement;
                     return true;
                 }
             }
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
                     span.IsAround(elseClause.ElseKeyword, elseIfStatement.CloseParenToken) ||
                     span.IsAround(elseClause.ElseKeyword, elseIfStatement.Statement))
                 {
-                    ifStatementNode = elseIfStatement;
+                    ifLikeStatement = elseIfStatement;
                     return true;
                 }
             }
 
-            ifStatementNode = null;
+            ifLikeStatement = null;
             return false;
         }
     }

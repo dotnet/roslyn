@@ -22,18 +22,18 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
             Document document,
             SyntaxNode root,
-            SyntaxNode ifStatement,
+            SyntaxNode ifLikeStatement,
             SyntaxNode leftCondition,
             SyntaxNode rightCondition,
             CancellationToken cancellationToken)
         {
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
 
-            var innerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.ToIfStatement(ifStatement), rightCondition);
-            var outerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.WithStatement(ifStatement, innerIfStatement), leftCondition);
+            var innerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.ToIfStatement(ifLikeStatement), rightCondition);
+            var outerIfLikeStatement = ifSyntaxService.WithCondition(ifSyntaxService.WithStatement(ifLikeStatement, innerIfStatement), leftCondition);
 
             return Task.FromResult(
-                root.ReplaceNode(ifStatement, outerIfStatement.WithAdditionalAnnotations(Formatter.Annotation)));
+                root.ReplaceNode(ifLikeStatement, outerIfLikeStatement.WithAdditionalAnnotations(Formatter.Annotation)));
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
