@@ -33,15 +33,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             if (IsApplicableSpan(node, context.Span, out var ifStatement))
             {
-                var ifSyntaxService = context.Document.GetLanguageService<IIfStatementSyntaxService>();
                 var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
                 if (await CanBeMergedAsync(context.Document, ifStatement, syntaxFacts, context.CancellationToken).ConfigureAwait(false))
                 {
                     context.RegisterRefactoring(
                         CreateCodeAction(
                             c => RefactorAsync(context.Document, context.Span, syntaxFacts, c),
-                            syntaxFacts.GetText(ifSyntaxService.IfKeywordKind)));
+                            syntaxFacts.GetText(syntaxKinds.IfKeyword)));
                 }
             }
         }

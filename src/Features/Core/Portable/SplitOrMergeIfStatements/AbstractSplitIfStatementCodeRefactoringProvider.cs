@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     internal abstract class AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService);
+        protected abstract int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds);
 
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
@@ -40,14 +40,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             var ifSyntaxService = context.Document.GetLanguageService<IIfStatementSyntaxService>();
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
-            if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(ifSyntaxService), out var rootExpression) &&
+            if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression) &&
                 ifSyntaxService.IsConditionOfIfLikeStatement(rootExpression, out _))
             {
                 context.RegisterRefactoring(
                     CreateCodeAction(
                         c => RefactorAsync(context.Document, context.Span, c),
-                        syntaxFacts.GetText(ifSyntaxService.IfKeywordKind)));
+                        syntaxFacts.GetText(syntaxKinds.IfKeyword)));
             }
         }
 
@@ -57,8 +58,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var token = root.FindToken(span.Start);
 
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
 
-            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(ifSyntaxService), out var rootExpression));
+            Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
             Contract.ThrowIfFalse(ifSyntaxService.IsConditionOfIfLikeStatement(rootExpression, out var currentIfStatement));
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());

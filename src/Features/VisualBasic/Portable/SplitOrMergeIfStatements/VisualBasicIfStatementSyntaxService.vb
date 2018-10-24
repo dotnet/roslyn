@@ -12,15 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicIfStatementSyntaxService
         Implements IIfStatementSyntaxService
 
-        Public ReadOnly Property IfKeywordKind As Integer =
-            SyntaxKind.IfKeyword Implements IIfStatementSyntaxService.IfKeywordKind
-
-        Public ReadOnly Property LogicalAndExpressionKind As Integer =
-            SyntaxKind.AndAlsoExpression Implements IIfStatementSyntaxService.LogicalAndExpressionKind
-
-        Public ReadOnly Property LogicalOrExpressionKind As Integer =
-            SyntaxKind.OrElseExpression Implements IIfStatementSyntaxService.LogicalOrExpressionKind
-
         Public Function IsIfLikeStatement(node As SyntaxNode) As Boolean Implements IIfStatementSyntaxService.IsIfLikeStatement
             Return TypeOf node Is MultiLineIfBlockSyntax OrElse
                    TypeOf node Is ElseIfBlockSyntax

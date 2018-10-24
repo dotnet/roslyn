@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected sealed override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
-            => ifSyntaxService.LogicalAndExpressionKind;
+        protected sealed override int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds)
+            => syntaxKinds.LogicalAndExpression;
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);

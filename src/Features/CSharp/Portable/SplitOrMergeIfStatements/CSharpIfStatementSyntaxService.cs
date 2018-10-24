@@ -13,12 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     [ExportLanguageService(typeof(IIfStatementSyntaxService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpIfStatementSyntaxService : IIfStatementSyntaxService
     {
-        public int IfKeywordKind => (int)SyntaxKind.IfKeyword;
-
-        public int LogicalAndExpressionKind => (int)SyntaxKind.LogicalAndExpression;
-
-        public int LogicalOrExpressionKind => (int)SyntaxKind.LogicalOrExpression;
-
         public bool IsIfLikeStatement(SyntaxNode node) => node is IfStatementSyntax;
 
         public bool IsConditionOfIfLikeStatement(SyntaxNode expression, out SyntaxNode ifLikeStatement)
