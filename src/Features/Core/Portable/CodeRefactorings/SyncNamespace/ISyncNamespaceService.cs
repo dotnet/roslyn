@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// namespace in the replacement node.</param>
         /// <param name="old">The node to be replaced. This might be an ancestor of original </param>
         /// <param name="new">The replacement node.</param>
-        bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
+        bool TryGetReplacementReferenceSyntax(
+            SyntaxNode reference, 
+            ImmutableArray<string> newNamespaceParts, 
+            ISyntaxFactsService syntaxFacts, 
+            out SyntaxNode old,
+            out SyntaxNode @new);
     }
 }

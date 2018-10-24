@@ -306,42 +306,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         /// <summary>
         /// Get the default namespace of the project ("" if not defined, which means global namespace),
-        /// or null if it is unknown or not applicable. Default namespace is a C# only concept, where
-        /// the value is defined in "rootnamespace" property in the project file.
+        /// or null if it is unknown or not applicable. 
         /// </summary>
         private static string GetDefaultNamespace(IVsHierarchy hierarchy, string language)
         {
-            /* While both csproj and vbproj use <rootnamespace> property to define , they are very different things.
-             * 
-             * In C#, it's called default namespace (even though we got the value from rootnamespace property),
-             * and it doesn't affect the semantic of the code in anyway, pretty much just something used by VS.
-             * For example, when you create a new class, the namespace for the new class is based on it. 
-             * Therefore, we can't get this info from compiler.
-             * 
-             * However, in VB, it's actually called root namespace, and that info is part of the VB compilation 
-             * (parsed from arguments), because VB compiler needs it to determine the root of all the namespace 
-             * declared in the compilation.
-             * 
-             * Unfortuantely, although being different concepts, default namespace and root namespace are almost
-             * used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
-             * files and, (2) the property name we use to call into DTE project below to retrieve the value is 
-             * called "DefaultNamespace".
-             */
-            if (hierarchy != null || language == LanguageNames.CSharp)
+            // While both csproj and vbproj might define <rootnamespace> property in the project file, 
+            // they are very different things.
+            // 
+            // In C#, it's called default namespace (even though we got the value from rootnamespace property),
+            // and it doesn't affect the semantic of the code in anyway, just something used by VS.
+            // For example, when you create a new class, the namespace for the new class is based on it. 
+            // Therefore, we can't get this info from compiler.
+            // 
+            // However, in VB, it's actually called root namespace, and that info is part of the VB compilation 
+            // (parsed from arguments), because VB compiler needs it to determine the root of all the namespace 
+            // declared in the compilation.
+            // 
+            // Unfortunately, although being different concepts, default namespace and root namespace are almost
+            // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
+            // files and, (2) the property name we use to call into DTE project below to retrieve the value is 
+            // called "DefaultNamespace".
+
+            if (hierarchy != null && language == LanguageNames.CSharp)
             {
                 if (hierarchy.TryGetProject(out var dteProject))
                 {
                     try
                     {
-                        return (string)dteProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
+                        return (string)dteProject.Properties.Item("DefaultNamespace").Value;
                     }
                     catch (ArgumentException)
                     {
                         // DefaultNamespace does not exist for this project.
+                        return string.Empty;
                     }
                 }
-
-                return string.Empty;
             }
 
             return null;

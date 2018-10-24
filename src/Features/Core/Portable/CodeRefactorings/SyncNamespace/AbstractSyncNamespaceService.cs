@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         }
 
         public abstract bool TryGetReplacementReferenceSyntax(
-            SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new);
+            SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, out SyntaxNode old, out SyntaxNode @new);
 
         protected abstract string EscapeIdentifier(string identifier);
 

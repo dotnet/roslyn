@@ -29,10 +29,5 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
         {
             return _removeService.RemoveUnnecessaryNamespacesAsync(document, cancellationToken) ?? Task.FromResult(document);
         }
-
-        public Task<Document> RemoveUnnecessaryImportsFromCurrentContextAsync(Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-        {
-            return _removeService.RemoveUnnecessaryNamespacesAsync(document, cancellationToken) ?? Task.FromResult(document);
-        }
     }
 }

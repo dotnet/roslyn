@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -374,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var containers = new HashSet<SyntaxNode>();
 
                 var generator = SyntaxGenerator.GetGenerator(document);
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var dummyImport = CreateImport(generator, "Dummy", withFormatterAnnotation: false);
 
                 foreach (var refLoc in refLocations)
@@ -400,7 +402,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     // have exact same span.
 
                     var refNode = root.FindNode(refLoc.Location.SourceSpan, getInnermostNodeForTie: true);
-                    if (syncNamespaceService.TryGetReplacementReferenceSyntax(refNode, namespaceParts, out var oldNode, out var newNode))
+                    if (syncNamespaceService.TryGetReplacementReferenceSyntax(
+                        refNode, namespaceParts, syntaxFacts, out var oldNode, out var newNode))
                     {
                         editor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
                     }

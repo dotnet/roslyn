@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -45,7 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         /// will be replaced with given namespace in the new node.</param>
         /// <param name="old">The node to be replaced. This might be an ancestor of original reference.</param>
         /// <param name="new">The replacement node.</param>
-        public override bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, out SyntaxNode old, out SyntaxNode @new)
+        public override bool TryGetReplacementReferenceSyntax(
+            SyntaxNode reference,
+            ImmutableArray<string> newNamespaceParts, 
+            ISyntaxFactsService syntaxFacts, 
+            out SyntaxNode old, 
+            out SyntaxNode @new)
         {
             if (!(reference is SimpleNameSyntax nameRef))
             {
@@ -68,13 +74,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             //    namespace. We need to replace the qualified reference with a new qualified reference (which is qualified 
             //    with new namespace.)
 
-            var outerMostNode = GetQualifiedNameSyntax(nameRef);
-            old = outerMostNode;
+            old = syntaxFacts.IsRightSideOfQualifiedName(nameRef) ? nameRef.Parent : nameRef;
 
             // If no namespace is specified, we just find and return the full NameSyntax.
-            if (outerMostNode == nameRef || newNamespaceParts.IsDefaultOrEmpty)
+            if (old == nameRef || newNamespaceParts.IsDefaultOrEmpty)
             {
-                @new = outerMostNode;
+                @new = old;
             }
             else
             {
@@ -88,13 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 }
                 else
                 {
-                    var aliasQualifier = GetAliasQualifierOpt(outerMostNode);
+                    var aliasQualifier = GetAliasQualifierOpt(old);
                     var qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
                     @new = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
                 }
 
                 // We might lose some trivia associated with children of `outerMostNode`.  
-                @new = @new.WithTriviaFrom(outerMostNode);
+                @new = @new.WithTriviaFrom(old);
             }
             return true;
         }
@@ -236,10 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                     .WithAdditionalAnnotations(WarningAnnotation, Formatter.Annotation)));
         }
 
-        private static NameSyntax GetQualifiedNameSyntax(NameSyntax node)
-            => node.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == node ? qualifiedName : node;
-
-        private static string GetAliasQualifierOpt(NameSyntax name)
+        private static string GetAliasQualifierOpt(SyntaxNode name)
         {
             while (true)
             {

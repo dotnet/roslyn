@@ -5,6 +5,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
@@ -12,14 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
     Friend Class VisualBasicSyncNamespaceService
         Inherits AbstractSyncNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax)
 
-        Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
+        Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
             If nameRef IsNot Nothing Then
-                Dim outerMostNode = GetQualifiedNameSyntax(nameRef)
-                old = outerMostNode
+                old = If(syntaxFacts.IsRightSideOfQualifiedName(nameRef), nameRef.Parent, nameRef)
 
-                If outerMostNode Is nameRef Or newNamespaceParts.IsDefaultOrEmpty Then
-                    [new] = outerMostNode
+                If old Is nameRef Or newNamespaceParts.IsDefaultOrEmpty Then
+                    [new] = old
                 Else
                     If newNamespaceParts.Length = 1 And newNamespaceParts(0).Length = 0 Then
                         [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
                         Dim qualifiedNamespaceName = CreateNameSyntax(newNamespaceParts, newNamespaceParts.Length - 1)
                         [new] = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia())
                     End If
-                    [new] = [new].WithTriviaFrom(outerMostNode)
+                    [new] = [new].WithTriviaFrom(old)
                 End If
                 Return True
             Else
@@ -54,15 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
         Protected Overrides Function ShouldPositionTriggerRefactoringAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of (Boolean, NamespaceStatementSyntax))
             Throw ExceptionUtilities.Unreachable
-        End Function
-
-        Private Function GetQualifiedNameSyntax(node As NameSyntax) As NameSyntax
-            Dim parent = TryCast(node.Parent, QualifiedNameSyntax)
-            If parent IsNot Nothing Then
-                Return If(parent.Right Is node, parent, node)
-            Else
-                Return node
-            End If
         End Function
 
         Private Function CreateNameSyntax(namespaceParts As ImmutableArray(Of String), index As Integer) As NameSyntax

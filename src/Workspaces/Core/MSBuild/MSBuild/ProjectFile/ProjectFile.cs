@@ -119,10 +119,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
             }
 
-            var defaultNamespace = project.ReadPropertyString(PropertyNames.RootNamespace);
-            if (string.IsNullOrWhiteSpace(defaultNamespace))
+            // Get the default namespace for C# project, which is a C# only concept at the moment.
+            // We need the language check because "rootnamespace" property is also used in VB for
+            // completely different purpose.
+            string defaultNamespace = null;
+            if (Language == LanguageNames.CSharp)
             {
-                defaultNamespace = string.Empty;
+                defaultNamespace = project.ReadPropertyString(PropertyNames.RootNamespace);
+                if (string.IsNullOrWhiteSpace(defaultNamespace))
+                {
+                    defaultNamespace = string.Empty;
+                }
             }
 
             var targetFramework = project.ReadPropertyString(PropertyNames.TargetFramework);
