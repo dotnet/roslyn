@@ -1545,7 +1545,7 @@ Class C
     Public Goo = SByte.[|MinValue|]
 End Class";
 
-            var expected = "Public Const MinValue As SByte = -128";
+            var expected = "Public Const MinValue As [SByte] = -128";
 
             using (var context = TestContext.Create(LanguageNames.VisualBasic, sourceWithSymbolReference: source))
             {
