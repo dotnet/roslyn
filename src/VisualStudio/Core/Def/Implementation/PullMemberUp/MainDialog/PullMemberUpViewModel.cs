@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -89,9 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         /// then this base type will be put into the descendants of each types. This method assume there is no loop in the
         /// graph
         /// </summary>
-        /// <param name="root"></param>
-        /// <param name="glyphService"></param>
-        /// <returns></returns>
         internal static MemberSymbolViewModelGraphNode CreateInheritanceGraph(INamedTypeSymbol root, IGlyphService glyphService)
         {
             var rootNode = new MemberSymbolViewModelGraphNode(new MemberSymbolViewModel(root, glyphService) { IsChecked = false});
