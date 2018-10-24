@@ -21,12 +21,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<bool> CanBeMergedAsync(
-            Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+            Document document, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             return IsFirstStatementOfIfLikeStatement(syntaxFacts, ifGenerator, ifStatement, out var outerIfLikeStatement) &&
-                   await CanBeMergedWithOuterAsync(document, syntaxFacts, outerIfLikeStatement, ifStatement, cancellationToken).ConfigureAwait(false);
+                   await CanBeMergedWithOuterAsync(document, syntaxFacts, ifGenerator, outerIfLikeStatement, ifStatement, cancellationToken).ConfigureAwait(false);
         }
 
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement)
@@ -49,7 +50,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         }
 
         private bool IsFirstStatementOfIfLikeStatement(
-            ISyntaxFactsService syntaxFacts, IIfLikeStatementGenerator ifGenerator, SyntaxNode statement, out SyntaxNode ifLikeStatement)
+            ISyntaxFactsService syntaxFacts,
+            IIfLikeStatementGenerator ifGenerator,
+            SyntaxNode statement,
+            out SyntaxNode ifLikeStatement)
         {
             // Check whether the statement is a first statement inside an if statement.
             // If it's inside a block, it has to be the first statement of the block.
@@ -76,12 +80,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private async Task<bool> CanBeMergedWithOuterAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IIfLikeStatementGenerator ifGenerator,
             SyntaxNode outerIfLikeStatement,
             SyntaxNode innerIfStatement,
             CancellationToken cancellationToken)
         {
-            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
-
             if (!ifGenerator.GetElseLikeClauses(outerIfLikeStatement).SequenceEqual(
                     ifGenerator.GetElseLikeClauses(innerIfStatement), (a, b) => IsElseLikeClauseEquivalent(syntaxFacts, ifGenerator, a, b)))
             {

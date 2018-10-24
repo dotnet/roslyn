@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText);
 
         protected abstract Task<bool> CanBeMergedAsync(
-            Document document, SyntaxNode ifLikeStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+            Document document, SyntaxNode ifLikeStatement, CancellationToken cancellationToken);
 
-        protected abstract SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement);
+        protected abstract SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifLikeStatement);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
                 var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
-                if (await CanBeMergedAsync(context.Document, ifLikeStatement, syntaxFacts, context.CancellationToken).ConfigureAwait(false))
+                if (await CanBeMergedAsync(context.Document, ifLikeStatement, context.CancellationToken).ConfigureAwait(false))
                 {
                     context.RegisterRefactoring(
                         CreateCodeAction(
-                            c => RefactorAsync(context.Document, context.Span, syntaxFacts, c),
+                            c => RefactorAsync(context.Document, context.Span, c),
                             syntaxFacts.GetText(syntaxKinds.IfKeyword)));
                 }
             }
         }
 
-        private async Task<Document> RefactorAsync(Document document, TextSpan span, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+        private async Task<Document> RefactorAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span, getInnermostNodeForTie: true);

@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return;
             }
 
-            var ifGenerator = context.Document.GetLanguageService<IIfLikeStatementGenerator>();
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
             var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
+            var ifGenerator = context.Document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression) &&
                 ifGenerator.IsCondition(rootExpression, out _))
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
 
-            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
             Contract.ThrowIfFalse(ifGenerator.IsCondition(rootExpression, out var ifLikeStatement));

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             var editor = new SyntaxEditor(root, generator);
 
-            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifLikeStatement, cancellationToken).ConfigureAwait(false))
+            if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifGenerator, ifLikeStatement, cancellationToken).ConfigureAwait(false))
             {
                 var secondIfStatement = ifGenerator.WithCondition(ifLikeStatement, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private async Task<bool> CanBeSeparateStatementsAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifLikeStatement,
             CancellationToken cancellationToken)
         {
@@ -74,7 +75,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
-            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;

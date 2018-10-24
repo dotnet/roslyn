@@ -21,12 +21,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<bool> CanBeMergedAsync(
-            Document document, SyntaxNode ifLikeStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
+            Document document, SyntaxNode ifLikeStatement, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             return CanBeMergedWithParent(syntaxFacts, ifGenerator, ifLikeStatement) ||
-                   await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifLikeStatement, cancellationToken).ConfigureAwait(false);
+                   await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifGenerator, ifLikeStatement, cancellationToken).ConfigureAwait(false);
         }
 
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifLikeStatement)
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         private async Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
+            IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifLikeStatement,
             CancellationToken cancellationToken)
         {
@@ -85,7 +87,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
-            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;
