@@ -252,24 +252,11 @@ d.cs
 
         [Fact]
         [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
-        public void SdkPathArg()
-        {
-            var parentDir = Temp.CreateDirectory();
-
-            var sdkDir = parentDir.CreateDirectory("sdk");
-            var sdkPath = sdkDir.Path;
-
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { $"-sdkPath:{sdkPath}" }, null, null);
-            AssertEx.Equal(ImmutableArray.Create(sdkPath), parser.ReferencePaths);
-        }
-
-        [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
         public void SdkPathNoArg()
         {
             var parentDir = Temp.CreateDirectory();
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "-sdkPath" }, parentDir.Path, null);
-            parser.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString, arguments: new[] { "<text>", "-sdkPath" }).WithLocation(1, 1));
+            parser.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch, arguments: new[] { "-sdkPath" }).WithLocation(1, 1));
         }
 
         [Fact]
@@ -279,24 +266,6 @@ d.cs
             var parentDir = Temp.CreateDirectory();
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/sdkPath-" }, parentDir.Path, null);
             AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
-        }
-
-        [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
-        public void SdkPathArgFollowedByNull()
-        {
-            var parentDir = Temp.CreateDirectory();
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/sdkPath-" }, parentDir.Path, null);
-            AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
-        }
-
-        [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
-        public void SdkPathNullFollowedByArg()
-        {
-            var parentDir = Temp.CreateDirectory();
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/sdkPath-", "-sdkPath:path/to/sdk" }, parentDir.Path, null);
-            AssertEx.Equal(ImmutableArray.Create("path/to/sdk"), parser.ReferencePaths);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
