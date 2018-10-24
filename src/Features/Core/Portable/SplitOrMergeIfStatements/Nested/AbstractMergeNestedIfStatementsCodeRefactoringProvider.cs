@@ -105,20 +105,17 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 //    below the outer 'if' and run the same statements twice).
                 // This will typically look like a single return, break, continue or a throw statement.
 
-                // If the outer if-like statement is an else-if clause, bail out.
-                if (!syntaxFacts.IsExecutableStatement(outerIfLikeStatement))
-                {
-                    return false;
-                }
+                // If we have an else-if, get the topmost if statement.
+                var outerIfStatement = ifGenerator.GetRootIfStatement(outerIfLikeStatement);
 
                 // This is a defensive check that should always succeed.
-                if (!syntaxFacts.IsStatementContainer(outerIfLikeStatement.Parent))
+                if (!syntaxFacts.IsStatementContainer(outerIfStatement.Parent))
                 {
                     return false;
                 }
 
-                var outerStatements = syntaxFacts.GetStatementContainerStatements(outerIfLikeStatement.Parent);
-                var outerIfStatementIndex = outerStatements.IndexOf(outerIfLikeStatement);
+                var outerStatements = syntaxFacts.GetStatementContainerStatements(outerIfStatement.Parent);
+                var outerIfStatementIndex = outerStatements.IndexOf(outerIfStatement);
 
                 var remainingStatements = statements.Skip(1);
                 var remainingOuterStatements = outerStatements.Skip(outerIfStatementIndex + 1);

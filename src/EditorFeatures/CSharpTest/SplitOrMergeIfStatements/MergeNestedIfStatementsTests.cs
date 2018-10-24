@@ -2025,6 +2025,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowContinues()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a == b)
+        {
+        }
+        else if (a || b)
+        {
+        }
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine(a);
+
+            System.Console.WriteLine();
+        }
+        else
+            System.Console.WriteLine(a);
+
+        System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact]
         public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits1()
         {
             await TestInRegularAndScriptAsync(
@@ -2259,6 +2290,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task MergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a == b)
+        {
+        }
+        else if (a || b)
+        {
+        }
+        else if (a)
+        {
+            [||]if (b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine(a);
+
+            return;
+        }
+        else
+            System.Console.WriteLine(a);
+
+        return;
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a == b)
+        {
+        }
+        else if (a || b)
+        {
+        }
+        else if (a && b)
+            System.Console.WriteLine(a && b);
+        else
+            System.Console.WriteLine(a);
+
+        return;
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotMergedWithExtraMatchingStatementsInsideExtraBlockIfControlFlowQuits()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2315,22 +2395,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
+        public async Task NotMergedWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
     {
-        if (a || b)
-            System.Console.WriteLine(a);
-        else if (a)
-        {
-            [||]if (b)
-                System.Console.WriteLine(a && b);
+        using (null)
+            if (a)
+            {
+                [||]if (b)
+                    System.Console.WriteLine(a && b);
 
-            return;
+                return;
+            }
+
+        return;
+    }
+}");
         }
+
+        [Fact]
+        public async Task NotMergedIntoElseIfWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        using (null)
+            if (a || b)
+                System.Console.WriteLine(a);
+            else if (a)
+            {
+                [||]if (b)
+                    System.Console.WriteLine(a && b);
+
+                return;
+            }
 
         return;
     }

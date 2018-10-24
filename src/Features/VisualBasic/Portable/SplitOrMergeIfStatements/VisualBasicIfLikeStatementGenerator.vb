@@ -58,6 +58,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             End If
         End Function
 
+        Public Function GetRootIfStatement(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.GetRootIfStatement
+            If TypeOf ifLikeStatement Is MultiLineIfBlockSyntax Then
+                Return ifLikeStatement
+            ElseIf TypeOf ifLikeStatement Is ElseIfBlockSyntax Then
+                Return ifLikeStatement.Parent
+            Else
+                Throw ExceptionUtilities.UnexpectedValue(ifLikeStatement)
+            End If
+        End Function
+
         Public Function GetElseLikeClauses(ifLikeStatement As SyntaxNode) As ImmutableArray(Of SyntaxNode) Implements IIfLikeStatementGenerator.GetElseLikeClauses
             If TypeOf ifLikeStatement Is MultiLineIfBlockSyntax Then
                 Dim ifBlock = DirectCast(ifLikeStatement, MultiLineIfBlockSyntax)

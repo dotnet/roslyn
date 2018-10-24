@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         SyntaxNode GetCondition(SyntaxNode ifLikeStatement);
 
         /// <summary>
+        /// Returns the topmost if statement for an else-if clause.
+        /// </summary>
+        SyntaxNode GetRootIfStatement(SyntaxNode ifLikeStatement);
+
+        /// <summary>
         /// Returns the list of subsequent else-if clauses and a final else clause (if present).
         /// </summary>
         ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement);

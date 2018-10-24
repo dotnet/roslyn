@@ -1154,6 +1154,30 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowContinues() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a = b then
+        elseif a orelse b then
+        elseif a then
+            [||]if b then
+                System.Console.WriteLine(a andalso b)
+            else
+                System.Console.WriteLine(a)
+            end if
+
+            System.Console.WriteLine()
+        else
+            System.Console.WriteLine(a)
+        end if
+
+        System.Console.WriteLine()
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function MergedWithExtraMatchingStatementsIfControlFlowQuits1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -1352,19 +1376,78 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function MergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits() As Task
+            Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
-        if a orelse b then
-            System.Console.WriteLine()
+        if a = b then
+        elseif a orelse b then
         elseif a then
             [||]if b then
                 System.Console.WriteLine(a andalso b)
+            else
+                System.Console.WriteLine(a)
             end if
 
             return
+        else
+            System.Console.WriteLine(a)
         end if
+
+        return
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a = b then
+        elseif a orelse b then
+        elseif a AndAlso b then
+            System.Console.WriteLine(a andalso b)
+        else
+            System.Console.WriteLine(a)
+        end if
+
+        return
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithExtraMatchingStatementInOuterScopeOfUsingBlockIfControlFlowQuits() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        using nothing
+            if a then
+                [||]if b then
+                    System.Console.WriteLine(a andalso b)
+                end if
+
+                return
+            end if
+        end using
+
+        return
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoElseIfWithExtraMatchingStatementInOuterScopeOfUsingBlockIfControlFlowQuits() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        using nothing
+            if a orelse b then
+                System.Console.WriteLine()
+            elseif a then
+                [||]if b then
+                    System.Console.WriteLine(a andalso b)
+                end if
+
+                return
+            end if
+        end using
 
         return
     end sub

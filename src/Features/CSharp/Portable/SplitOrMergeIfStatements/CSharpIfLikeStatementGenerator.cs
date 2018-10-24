@@ -45,6 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return ifStatement.Condition;
         }
 
+        public SyntaxNode GetRootIfStatement(SyntaxNode ifLikeStatement)
+        {
+            var ifStatement = (IfStatementSyntax)ifLikeStatement;
+
+            while (ifStatement.Parent is ElseClauseSyntax elseClause)
+            {
+                ifStatement = (IfStatementSyntax)elseClause.Parent;
+            }
+
+            return ifStatement;
+        }
+
         public ImmutableArray<SyntaxNode> GetElseLikeClauses(SyntaxNode ifLikeStatement)
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;
