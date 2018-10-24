@@ -186,6 +186,7 @@
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>4.5.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemTextEncodingCodePagesVersion>4.5.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
