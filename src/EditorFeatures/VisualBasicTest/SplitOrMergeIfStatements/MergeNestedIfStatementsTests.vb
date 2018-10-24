@@ -327,6 +327,18 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotMergedOnSingleLineIf() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            [||]if b then System.Console.WriteLine()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function MergedWithAndAlsoExpressions() As Task
             Await TestInRegularAndScriptAsync(
 "class C

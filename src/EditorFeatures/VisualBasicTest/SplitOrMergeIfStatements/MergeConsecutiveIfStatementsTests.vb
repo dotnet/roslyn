@@ -1001,5 +1001,33 @@ end class")
     end sub
 end class")
         End Function
+
+        <Fact>
+        Public Async Function NotMergedSingleLineIfWithPreviousStatementIfControlFlowQuits() As Task
+            Await TestMissingAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+
+        [||]if b then return
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedWithPreviousStatementSingleLineIfIfControlFlowQuits() As Task
+            Await TestMissingAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then return
+
+        [||]if b then
+            return
+        end if
+    end sub
+end class")
+        End Function
     End Class
 End Namespace

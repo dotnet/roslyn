@@ -163,6 +163,16 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotSplitOnSingleLineIf() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a [||]orelse b then System.Console.WriteLine()
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function SplitWithChainedOrElseExpression1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
