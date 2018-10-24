@@ -17,6 +17,17 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider
         : AbstractMergeIfStatementsCodeRefactoringProvider
     {
+        // Converts:
+        //    if (a)
+        //    {
+        //        if (b)
+        //            Console.WriteLine();
+        //    }
+        //
+        // To:
+        //    if (a && b)
+        //        Console.WriteLine();
+
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
@@ -85,6 +96,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode innerIfStatement,
             CancellationToken cancellationToken)
         {
+            // We can only merge this with the outer if statement if any inner else-if and else clauses are equal
+            // to else-if and else clauses following the outer if statement because we'll be removing them.
             if (!ifGenerator.GetElseLikeClauses(outerIfLikeStatement).SequenceEqual(
                     ifGenerator.GetElseLikeClauses(innerIfStatement), (a, b) => IsElseLikeClauseEquivalent(syntaxFacts, ifGenerator, a, b)))
             {
@@ -104,6 +117,16 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 // 2. control flow can't reach the end of these statements (otherwise, it would continue
                 //    below the outer 'if' and run the same statements twice).
                 // This will typically look like a single return, break, continue or a throw statement.
+                // The opposite refactoring (SplitIntoNestedIfStatements) never generates this but we support it anyway.
+
+                // Example:
+                //    if (a)
+                //    {
+                //        if (b)
+                //            Console.WriteLine();
+                //        return;
+                //    }
+                //    return;
 
                 // If we have an else-if, get the topmost if statement.
                 var outerIfStatement = ifGenerator.GetRootIfStatement(outerIfLikeStatement);

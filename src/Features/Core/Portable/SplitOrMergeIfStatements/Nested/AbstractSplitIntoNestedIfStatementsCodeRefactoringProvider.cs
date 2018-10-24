@@ -13,6 +13,17 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider
         : AbstractSplitIfStatementCodeRefactoringProvider
     {
+        // Converts:
+        //    if (a && b)
+        //        Console.WriteLine();
+        //
+        // To:
+        //    if (a)
+        //    {
+        //        if (b)
+        //            Console.WriteLine();
+        //    }
+
         protected sealed override int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds)
             => syntaxKinds.LogicalAndExpression;
 
@@ -28,6 +39,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             CancellationToken cancellationToken)
         {
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
+
+            // If we have an else-if clause, we first convert it to an if statement. If there are any
+            // else-if or else clauses following the outer if statement, they will be copied and placed inside too.
 
             var innerIfStatement = ifGenerator.WithCondition(ifGenerator.ToIfStatement(ifLikeStatement), rightCondition);
             var outerIfLikeStatement = ifGenerator.WithCondition(ifGenerator.WithStatement(ifLikeStatement, innerIfStatement), leftCondition);

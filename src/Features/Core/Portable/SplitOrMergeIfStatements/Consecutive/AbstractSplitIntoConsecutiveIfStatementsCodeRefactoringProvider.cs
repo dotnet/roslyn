@@ -16,6 +16,26 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractSplitIfStatementCodeRefactoringProvider
     {
+        // Converts:
+        //    if (a || b)
+        //        Console.WriteLine();
+        //
+        // To:
+        //    if (a)
+        //        Console.WriteLine();
+        //    else if (b)
+        //        Console.WriteLine();
+
+        // Converts:
+        //    if (a || b)
+        //        return;
+        //
+        // To:
+        //    if (a)
+        //        return;
+        //    if (b)
+        //        return;
+
         protected sealed override int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds)
             => syntaxKinds.LogicalOrExpression;
 
@@ -46,6 +66,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifGenerator, ifLikeStatement, cancellationToken).ConfigureAwait(false))
             {
+                // Generate:
+                // if (a)
+                //     return;
+                // if (b)
+                //     return;
+
+                // At this point, ifLikeStatement must be a standalone if statement with no else clause.
+
                 var secondIfStatement = ifGenerator.WithCondition(ifLikeStatement, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
@@ -53,6 +81,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             }
             else
             {
+                // Generate:
+                // if (a)
+                //     Console.WriteLine();
+                // else if (b)
+                //     Console.WriteLine();
+
+                // If the if statement is not an else-if clause, we convert it to an else-if clause first (for VB).
+                // Then we insert it right after our current if statement or else-if clause.
+
                 var elseIfClause = ifGenerator.WithCondition(ifGenerator.ToElseIfClause(ifLikeStatement), rightCondition);
 
                 ifGenerator.InsertElseIfClause(editor, root.GetCurrentNode(ifLikeStatement), elseIfClause);
@@ -75,6 +112,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
+            // If there is an else clause, we *could* in theory separate these and move the current else clause to the second
+            // statement, but we won't. It would break the else-if chain in an odd way. We'll insert an else-if instead.
             if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;

@@ -17,6 +17,26 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractMergeIfStatementsCodeRefactoringProvider
     {
+        // Converts:
+        //    if (a)
+        //        Console.WriteLine();
+        //    else if (b)
+        //        Console.WriteLine();
+        //
+        // To:
+        //    if (a || b)
+        //        Console.WriteLine();
+
+        // Converts:
+        //    if (a)
+        //        return;
+        //    if (b)
+        //        return;
+        //
+        // To:
+        //    if (a || b)
+        //        return;
+
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
@@ -54,10 +74,30 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             if (isElseIfClause)
             {
+                // We have:
+                //    if (a)
+                //        Console.WriteLine();
+                //    else if (b)
+                //        Console.WriteLine();
+
+                // Remove the else-if clause and preserve any subsequent clauses.
+
                 ifGenerator.RemoveElseIfClause(editor, root.GetCurrentNode(ifLikeStatement));
             }
             else
             {
+                // We have:
+                //    if (a)
+                //        return;
+                //    if (b)
+                //        return;
+
+                // At this point, ifLikeStatement must be a standalone if statement, possibly with an else clause (there won't
+                // be any on the first statement though). We'll move any else-if and else clauses to the first statement
+                // and then remove the second one.
+                // The opposite refactoring (SplitIntoConsecutiveIfStatements) never generates a separate statement
+                // with an else clause but we support it anyway (in inserts an else-if instead).
+
                 editor.ReplaceNode(
                     root.GetCurrentNode(previousIfLikeStatement),
                     ifGenerator.WithElseLikeClausesOf(root.GetCurrentNode(previousIfLikeStatement), ifLikeStatement));
@@ -84,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode ifLikeStatement,
             CancellationToken cancellationToken)
         {
-            // If the if-like statement is an else-if clause or we're not inside a block, there is no previous statement.
+            // If the if-like statement is an else-if clause or we're not inside a block, there is no previous statement to merge with.
             if (!syntaxFacts.IsExecutableStatement(ifLikeStatement) ||
                 !syntaxFacts.IsExecutableBlock(ifLikeStatement.Parent))
             {
@@ -93,6 +133,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             var previousStatement = GetPreviousStatement(syntaxFacts, ifLikeStatement);
 
+            // We don't support cases where the previous if statement has any else-if or else clauses. In order for that
+            // to be mergable, the control flow would have to quit from inside every branch, which is getting a little complex.
             if (!ifGenerator.IsIfLikeStatement(previousStatement) || ifGenerator.GetElseLikeClauses(previousStatement).Length > 0)
             {
                 return false;
