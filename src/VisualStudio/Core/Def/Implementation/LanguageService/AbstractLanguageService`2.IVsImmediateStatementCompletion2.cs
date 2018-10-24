@@ -51,12 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     filter.SetNextFilter(nextFilter);
                 }
 
-                this.filters[textView].SetContentType(install);
+                this.filters[textView].SetContentType(install: true);
             }
             else
             {
                 Marshal.ThrowExceptionForHR(textView.RemoveCommandFilter(this.filters[textView]));
-                this.filters[textView].SetContentType(install);
+                this.filters[textView].SetContentType(install: false);
                 this.filters[textView].Dispose();
                 this.filters.Remove(textView);
             }

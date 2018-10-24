@@ -202,9 +202,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             return true;
         }
 
-        internal void SetContentType(int install)
+        internal void SetContentType(bool install)
         {
-            var contentType = install == 0 ? _originalContentType : _contentType;
+            var contentType = install ? _contentType :_originalContentType;
             _textView.TextBuffer.ChangeContentType(contentType, null);
         }
 
