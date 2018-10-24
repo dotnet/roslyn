@@ -1422,6 +1422,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task MergedWithPreviousStatementIncludingElseClauseIfControlFlowQuits()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        [||]if (b)
+            return;
+        else
+            System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+        else
+            System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedWithPreviousStatementIncludingElseIfClauseIfControlFlowQuits()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+            return;
+        [||]if (b)
+            return;
+        else if (a && b)
+            System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b)
+            return;
+        else if (a && b)
+            System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotMergedWithPreviousStatementIfControlFlowContinues1()
         {
             // Even though there are no statements inside, we still can't merge these into one statement
@@ -1549,26 +1605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            return;
-
-        [||]if (b)
-            return;
-        else
-            return;
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits2()
+        public async Task NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1587,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits3()
+        public async Task NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C

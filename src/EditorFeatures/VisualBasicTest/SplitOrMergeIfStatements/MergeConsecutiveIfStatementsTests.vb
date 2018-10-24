@@ -746,6 +746,60 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function MergedWithPreviousStatementIncludingElseClauseIfControlFlowQuits() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+
+        [||]if b then
+            return
+        else
+            System.Console.WriteLine()
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        else
+            System.Console.WriteLine()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithPreviousStatementIncludingElseIfClauseIfControlFlowQuits() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+
+        [||]if b then
+            return
+        elseif a andalso b then
+            System.Console.WriteLine()
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        elseif a andalso b then
+            System.Console.WriteLine()
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues1() As Task
             ' Even though there are no statements inside, we still can't merge these into one statement
             ' because it would change the semantics from always evaluating the second condition to short-circuiting.
@@ -856,43 +910,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits1() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            return
-        end if
-
-        [||]if b then
-            return
-        else
-            return
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithElseIfClauseIfControlFlowQuits1() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a then
-            return
-        end if
-
-        [||]if b then
-            return
-        elseif true then
-            return
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits2() As Task
+        Public Async Function NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -910,7 +928,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithElseIfClauseIfControlFlowQuits2() As Task
+        Public Async Function NotMergedWithPreviousStatementThatHasElseIfClauseIfControlFlowQuits1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -928,7 +946,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithElseClauseIfControlFlowQuits3() As Task
+        Public Async Function NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -948,7 +966,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithElseIfClauseIfControlFlowQuits3() As Task
+        Public Async Function NotMergedWithPreviousStatementThatHasElseIfClauseIfControlFlowQuits2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)

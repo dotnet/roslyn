@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             }
             else
             {
+                editor.ReplaceNode(
+                    root.GetCurrentNode(previousIfLikeStatement),
+                    ifGenerator.WithElseLikeClausesOf(root.GetCurrentNode(previousIfLikeStatement), ifLikeStatement));
+
                 editor.RemoveNode(root.GetCurrentNode(ifLikeStatement));
             }
 
@@ -83,11 +87,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // If the if-like statement is an else-if clause or we're not inside a block, there is no previous statement.
             if (!syntaxFacts.IsExecutableStatement(ifLikeStatement) ||
                 !syntaxFacts.IsExecutableBlock(ifLikeStatement.Parent))
-            {
-                return false;
-            }
-
-            if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;
             }

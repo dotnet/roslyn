@@ -106,6 +106,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return ifLikeStatement.ReplaceStatements(otherIfLikeStatement.GetStatements())
         End Function
 
+        Public Function WithElseLikeClausesOf(ifStatement As SyntaxNode, otherIfStatement As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.WithElseLikeClausesOf
+            Dim ifBlock = DirectCast(ifStatement, MultiLineIfBlockSyntax)
+            Dim otherIfBlock = DirectCast(otherIfStatement, MultiLineIfBlockSyntax)
+            Return ifBlock.WithElseIfBlocks(otherIfBlock.ElseIfBlocks).WithElseBlock(otherIfBlock.ElseBlock)
+        End Function
+
         Public Function ToIfStatement(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.ToIfStatement
             If TypeOf ifLikeStatement Is ElseIfBlockSyntax Then
                 Dim elseIfBlock = DirectCast(ifLikeStatement, ElseIfBlockSyntax)

@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         SyntaxNode WithStatementsOf(SyntaxNode ifLikeStatement, SyntaxNode otherIfLikeStatement);
 
+        SyntaxNode WithElseLikeClausesOf(SyntaxNode ifStatement, SyntaxNode otherIfStatement);
+
         /// <summary>
         /// Converts an else-if clause to an if statement, preserving its subsequent else-if and else clauses.
         /// </summary>
