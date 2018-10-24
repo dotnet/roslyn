@@ -102,13 +102,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
                 var item = CompletionItem.Create(
                     displayText: embeddedItem.DisplayText,
-                    filterText: null,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
-                    tags: default,
                     rules: s_rules,
-                    displayTextPrefix: null,
-                    displayTextSuffix: null,
                     inlineDescription: "    " + embeddedItem.InlineDescription);
 
                 context.AddItem(item);

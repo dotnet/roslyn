@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Rules = rules ?? CompletionItemRules.Default;
         }
 
+        // binary back compat overload
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -118,6 +119,20 @@ namespace Microsoft.CodeAnalysis.Completion
             return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix: null, displayTextSuffix: null);
         }
 
+        // binary back compat overload
+        public static CompletionItem Create(
+            string displayText,
+            string filterText,
+            string sortText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules,
+            string displayTextPrefix,
+            string displayTextSuffix)
+        {
+            return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription: null);
+        }
+
         public static CompletionItem Create(
             string displayText,
             string filterText = null,
@@ -126,30 +141,8 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags = default,
             CompletionItemRules rules = null,
             string displayTextPrefix = null,
-            string displayTextSuffix = null)
-        {
-            return Create(
-                displayText: displayText,
-                filterText: filterText,
-                sortText: sortText,
-                properties: properties,
-                tags: tags,
-                rules: rules,
-                displayTextPrefix: displayTextPrefix,
-                displayTextSuffix: displayTextSuffix,
-                inlineDescription: null);
-        }
-
-        internal static CompletionItem Create(
-            string displayText,
-            string filterText,
-            string sortText,
-            ImmutableDictionary<string, string> properties,
-            ImmutableArray<string> tags,
-            CompletionItemRules rules,
-            string displayTextPrefix,
-            string displayTextSuffix,
-            string inlineDescription)
+            string displayTextSuffix = null,
+            string inlineDescription = null)
         {
             return new CompletionItem(
                 span: default,
