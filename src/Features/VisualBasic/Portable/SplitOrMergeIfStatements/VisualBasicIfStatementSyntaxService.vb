@@ -45,6 +45,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             Return False
         End Function
 
+        Public Function IsElseIfClause(node As SyntaxNode, ByRef parentIfLikeStatement As SyntaxNode) As Boolean Implements IIfStatementSyntaxService.IsElseIfClause
+            If TypeOf node Is ElseIfBlockSyntax Then
+                Dim ifBlock = DirectCast(node.Parent, MultiLineIfBlockSyntax)
+                Dim index = ifBlock.ElseIfBlocks.IndexOf(DirectCast(node, ElseIfBlockSyntax))
+                parentIfLikeStatement = If(index > 0, ifBlock.ElseIfBlocks(index - 1), DirectCast(ifBlock, SyntaxNode))
+                Return True
+            End If
+
+            parentIfLikeStatement = Nothing
+            Return False
+        End Function
+
         Public Function GetConditionOfIfLikeStatement(ifLikeStatement As SyntaxNode) As SyntaxNode Implements IIfStatementSyntaxService.GetConditionOfIfLikeStatement
             If TypeOf ifLikeStatement Is MultiLineIfBlockSyntax Then
                 Return DirectCast(ifLikeStatement, MultiLineIfBlockSyntax).IfStatement.Condition

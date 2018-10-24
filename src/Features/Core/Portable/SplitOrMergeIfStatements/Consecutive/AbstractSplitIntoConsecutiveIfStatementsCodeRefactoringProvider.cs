@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
+        protected sealed override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
             => ifSyntaxService.LogicalOrExpressionKind;
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)

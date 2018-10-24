@@ -58,17 +58,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             ifStatementNode = Nothing
             Return False
         End Function
-
-        Protected Overrides Function IsElseClauseOfIfStatement(node As SyntaxNode, ByRef ifStatementNode As SyntaxNode) As Boolean
-            If TypeOf node Is ElseIfBlockSyntax Then
-                Dim ifBlock = DirectCast(node.Parent, MultiLineIfBlockSyntax)
-                Dim index = ifBlock.ElseIfBlocks.IndexOf(DirectCast(node, ElseIfBlockSyntax))
-                ifStatementNode = If(index > 0, ifBlock.ElseIfBlocks(index - 1), DirectCast(ifBlock, SyntaxNode))
-                Return True
-            End If
-
-            ifStatementNode = Nothing
-            Return False
-        End Function
     End Class
 End Namespace

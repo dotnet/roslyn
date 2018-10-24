@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract bool IsElseClauseOfIfStatement(SyntaxNode node, out SyntaxNode ifStatementNode);
-
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
         protected sealed override async Task<bool> CanBeMergedAsync(
             Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            return CanBeMergedWithParent(syntaxFacts, ifStatement) ||
+            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+
+            return CanBeMergedWithParent(syntaxFacts, ifSyntaxService, ifStatement) ||
                    await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false);
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var isElseIfClause = IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement);
+            var isElseIfClause = ifSyntaxService.IsElseIfClause(ifStatement, out var parentIfStatement);
             var previousIfStatement = isElseIfClause ? parentIfStatement : GetPreviousStatement(syntaxFacts, ifStatement);
 
             var newCondition = (TExpressionSyntax)generator.LogicalOrExpression(
@@ -64,9 +64,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return editor.GetChangedRoot();
         }
 
-        private bool CanBeMergedWithParent(ISyntaxFactsService syntaxFacts, SyntaxNode ifStatement)
+        private bool CanBeMergedWithParent(
+            ISyntaxFactsService syntaxFacts,
+            IIfStatementSyntaxService ifSyntaxService,
+            SyntaxNode ifStatement)
         {
-            return IsElseClauseOfIfStatement(ifStatement, out var parentIfStatement) &&
+            return ifSyntaxService.IsElseIfClause(ifStatement, out var parentIfStatement) &&
                    ContainEquivalentStatements(syntaxFacts, ifStatement, parentIfStatement, out _);
         }
 

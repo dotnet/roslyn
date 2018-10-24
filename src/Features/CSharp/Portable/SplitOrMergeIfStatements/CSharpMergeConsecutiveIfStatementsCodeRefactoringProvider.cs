@@ -49,18 +49,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             ifStatementNode = null;
             return false;
         }
-
-        protected override bool IsElseClauseOfIfStatement(SyntaxNode node, out SyntaxNode ifStatementNode)
-        {
-            if (node.Parent is ElseClauseSyntax elseClause &&
-                elseClause.Parent is IfStatementSyntax ifStatement)
-            {
-                ifStatementNode = ifStatement;
-                return true;
-            }
-
-            ifStatementNode = null;
-            return false;
-        }
     }
 }

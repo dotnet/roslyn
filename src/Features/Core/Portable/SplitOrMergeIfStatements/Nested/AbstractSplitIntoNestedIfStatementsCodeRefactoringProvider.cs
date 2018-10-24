@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
+        protected sealed override int GetLogicalExpressionKind(IIfStatementSyntaxService ifSyntaxService)
             => ifSyntaxService.LogicalAndExpressionKind;
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)

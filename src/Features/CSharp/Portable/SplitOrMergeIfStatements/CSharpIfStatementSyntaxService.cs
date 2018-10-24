@@ -33,6 +33,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return false;
         }
 
+        public bool IsElseIfClause(SyntaxNode node, out SyntaxNode parentIfLikeStatement)
+        {
+            if (node is IfStatementSyntax && node.Parent is ElseClauseSyntax)
+            {
+                parentIfLikeStatement = (IfStatementSyntax)node.Parent.Parent;
+                return true;
+            }
+
+            parentIfLikeStatement = null;
+            return false;
+        }
+
         public SyntaxNode GetConditionOfIfLikeStatement(SyntaxNode ifLikeStatement)
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;
