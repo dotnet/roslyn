@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -79,10 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case bool val: return GenerateBooleanLiteralExpression(val);
                 case string val: return GenerateStringLiteralExpression(val);
                 case char val: return GenerateCharLiteralExpression(val);
-                case sbyte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (sbyte)-x);
-                case short val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (short)-x);
-                case int val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x);
-                case long val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x);
+                case sbyte val: return GenerateSByteLiteralExpression(type, val, canUseFieldReference);
+                case short val: return GenerateShortLiteralExpression(type, val, canUseFieldReference);
+                case int val: return GenerateIntLiteralExpression(type, val, canUseFieldReference);
+                case long val: return GenerateLongLiteralExpression(type, val, canUseFieldReference);
                 case byte val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
                 case ushort val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v));
                 case uint val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
@@ -310,6 +311,58 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             result = result.WithAdditionalAnnotations(Simplifier.Annotation);
             return result;
+        }
+
+        private static ExpressionSyntax GenerateSByteLiteralExpression(ITypeSymbol type, sbyte value, bool canUseFieldReference)
+        {
+            if (canUseFieldReference || value > sbyte.MinValue)
+            {
+                return GenerateLiteralExpression(type, value, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (sbyte)-x);
+            }
+
+            // We have to special case how sbyte.MinValue is printed when we can't refer to the
+            // field directly.
+            var numericLiteralToken = SyntaxFactory.Literal("-128", value);
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, numericLiteralToken);
+        }
+
+        private static ExpressionSyntax GenerateShortLiteralExpression(ITypeSymbol type, short value, bool canUseFieldReference)
+        {
+            if (canUseFieldReference || value > short.MinValue)
+            {
+                return GenerateLiteralExpression(type, value, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (short)-x);
+            }
+
+            // We have to special case how short.MinValue is printed when we can't refer to the
+            // field directly.
+            var numericLiteralToken = SyntaxFactory.Literal("-32768", value);
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, numericLiteralToken);
+        }
+
+        private static ExpressionSyntax GenerateIntLiteralExpression(ITypeSymbol type, int value, bool canUseFieldReference)
+        {
+            if (canUseFieldReference || value > int.MinValue)
+            {
+                return GenerateLiteralExpression(type, value, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x);
+            }
+
+            // We have to special case how int.MinValue is printed when we can't refer to the
+            // field directly.
+            var numericLiteralToken = SyntaxFactory.Literal("-2147483648", value);
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, numericLiteralToken);
+        }
+
+        private static ExpressionSyntax GenerateLongLiteralExpression(ITypeSymbol type, long value, bool canUseFieldReference)
+        {
+            if (canUseFieldReference || value > long.MinValue)
+            {
+                return GenerateLiteralExpression(type, value, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x);
+            }
+
+            // We have to special case how long.MinValue is printed when we can't refer to the
+            // field directly.
+            var numericLiteralToken = SyntaxFactory.Literal("-9223372036854775808", IntegerUtilities.ToUInt64(value));
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, numericLiteralToken);
         }
     }
 }
