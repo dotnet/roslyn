@@ -285,11 +285,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
 
+        /// <summary>
+        /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
+        /// </summary>
         bool IsPureBlock(SyntaxNode node);
+
+        /// <summary>
+        /// A node that contains a list of statements. In C#, this is BlockSyntax and SwitchSectionSyntax.
+        /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
+        /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
         SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
+        /// <summary>
+        /// A node that can host a list of statements or a single statement. In addition to
+        /// every "executable block", this also includes C# embedded statement owners.
+        /// </summary>
         bool IsStatementContainer(SyntaxNode node);
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
