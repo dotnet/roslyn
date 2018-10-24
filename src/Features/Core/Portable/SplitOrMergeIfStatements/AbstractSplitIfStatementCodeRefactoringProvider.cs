@@ -56,13 +56,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
 
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
             Contract.ThrowIfFalse(ifGenerator.IsCondition(rootExpression, out var ifLikeStatement));
 
-            var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());
+            var (left, right) = SplitBinaryExpressionChain(token, rootExpression, syntaxFacts);
 
             var newRoot = await GetChangedRootAsync(document, root, ifLikeStatement, left, right, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
