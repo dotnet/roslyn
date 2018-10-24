@@ -311,6 +311,73 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatementsInSwitchSection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                bool used = true;
+                int [|unused|];
+
+                return used;
+        }
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                bool used = true;
+
+                return used;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatementsInSwitchSection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                int [|unused|];
+
+                return used;
+        }
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                return used;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
         public async Task RemoveVariableAndComment()
         {
             await TestInRegularAndScriptAsync(
