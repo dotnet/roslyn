@@ -11,32 +11,52 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface.ExtractInterfaceDialogViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PushMemberUp
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
-    internal class PushMemberUpViewModel : AbstractNotifyPropertyChanged
+    internal class PullMemberUpViewModel : AbstractNotifyPropertyChanged
     {
-        public List<MemberSymbolViewWithAbstactSelection> SelectedMembersContainer { get; set; }
+        public List<PullUpMemberSymbolView> SelectedMembersContainer { get; set; }
 
         public ObservableCollection<MemberSymbolViewModelGraphNode> TargetMembersContainer { get; set; }
 
+        public Dictionary<ISymbol, Lazy<List<ISymbol>>> LazyDependentsMap { get; }
+        
         public MemberSymbolViewModelGraphNode SelectedTarget { get; set; }
         
-        internal PushMemberUpViewModel(
+        internal PullMemberUpViewModel(
             List<ISymbol> allMembers,
             ObservableCollection<MemberSymbolViewModelGraphNode> targetMembersContainer,
-            IGlyphService glyphService)
+            ISymbol userSelectNodeSymbol,
+            IGlyphService glyphService,
+            Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
         {
-            SelectedMembersContainer =
-                allMembers.Select(member => new MemberSymbolViewWithAbstactSelection(member, glyphService) { IsChecked = false, IsAbstract = false }).ToList();
+            SelectedMembersContainer = allMembers.
+                Select(member => new PullUpMemberSymbolView(member, glyphService)
+                {
+                    IsChecked = member.Equals(userSelectNodeSymbol),
+                    IsAbstract = false,
+                    IsAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
+                    IsSelectable = true
+                }).ToList();
+                
             TargetMembersContainer = targetMembersContainer;
+            LazyDependentsMap = lazyDependentsMap;
         }
     }
 
-    internal class MemberSymbolViewWithAbstactSelection : MemberSymbolViewModel
+    internal class PullUpMemberSymbolView : MemberSymbolViewModel
     {
         public bool IsAbstract { get; set; }
 
-        public MemberSymbolViewWithAbstactSelection(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
+        private bool _isAbstractSelectable;
+        
+        public bool IsAbstractSelectable { get => _isAbstractSelectable; set => SetProperty(ref _isAbstractSelectable, value); }
+
+        private bool _isSelectable;
+
+        public bool IsSelectable { get => _isSelectable; set => SetProperty(ref _isSelectable, value); }
+
+        public PullUpMemberSymbolView(ISymbol symbol, IGlyphService glyphService) : base(symbol, glyphService)
         {
         }
     }

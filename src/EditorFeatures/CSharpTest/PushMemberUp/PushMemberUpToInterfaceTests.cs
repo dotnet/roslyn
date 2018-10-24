@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PushMemberUp;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PushMemberUp
     public class PushMemberUpToIntefaceTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new PushMemberUpCodeRefactoringProvider();
+            => new PullMemberUpCodeRefactoringProvider();
 
         #region interface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]

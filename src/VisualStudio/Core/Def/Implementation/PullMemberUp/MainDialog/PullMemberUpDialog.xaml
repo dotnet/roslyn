@@ -1,0 +1,189 @@
+﻿<vs:DialogWindow
+             x:Uid="PullMemberUpDialog" 
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.PullMemberUpDialogxaml"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp"
+             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             mc:Ignorable="d" 
+             SizeToContent="Width"
+             WindowStartupLocation="CenterOwner"
+             Height="480"
+             Width="500"
+             Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
+    <Window.Resources>
+        <Thickness x:Key="okAndCancelButton">5, 3, 8, 4</Thickness>
+        <Thickness x:Key="selectDependantsButton">2, 4, 4, 2</Thickness>
+        <sys:Double x:Key="okAndCancelButtonWidth">50</sys:Double>
+        <sys:Double x:Key="okAndCancelButtonHeight">20</sys:Double>
+        <Style x:Key="LibraryTreeViewItemStyle"
+               TargetType="{x:Type TreeViewItem}">
+            <Setter Property="IsSelected"
+                        Value="{Binding IsSelected, Mode=TwoWay}" />
+            <Setter Property="FontWeight"
+                        Value="Normal" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="IsExpanded"
+                            Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
+    <Grid Margin="10,8,10,8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35*"/>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="30*"/>
+            <RowDefinition Height="10*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Height="Auto" MinWidth="370" Margin="0,0,0,1">
+            <Label
+                x:Uid="Description"
+                x:Name="Description"
+                Content="  Select destination and members to pull up"/>
+            <Separator/>
+
+            <Label x:Name="TargetSelectionLabel"
+                   Content="Select destination type"/>
+
+            <TreeView x:Uid="PullTargetTreeView"
+                      x:Name="TargetMembersContainer"
+                      MinHeight="110"
+                      MinWidth="370"
+                      ScrollViewer.VerticalScrollBarVisibility="Visible"
+                      ItemsSource="{Binding TargetMembersContainer}"
+                      ItemContainerStyle="{StaticResource LibraryTreeViewItemStyle}"
+                      SelectedItemChanged="TargetMembersContainer_SelectedItemChanged">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Neighbours}"
+                                              DataType="{x:Type self:MemberSymbolViewModelGraphNode}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding MemberSymbolViewModel.Glyph}"/>
+                            <TextBlock Text="{Binding MemberSymbolViewModel.MemberName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </StackPanel>
+
+        <Label Grid.Row ="1" x:Uid="MemberSelectionLabel" Content="Select members:"/>
+        <Grid Grid.Row="2" Margin="5,5,5,0" Height="Auto" Width="Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70*"/>
+                <ColumnDefinition Width="30*"/>
+            </Grid.ColumnDefinitions>
+            <u:AutomationDelegatingListView
+                Grid.Column="0"
+                x:Uid="MemberSelection"
+                x:Name="MemberSelection"
+                Margin="2"
+                Height="Auto"
+                Width="Auto"
+                ScrollViewer.VerticalScrollBarVisibility="Visible"
+                ItemsSource="{Binding SelectedMembersContainer}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Members" Width="217" x:Name="membersColumn">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="MemberSelectionCheckBox"
+                                                      IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                                                      Width="Auto"
+                                                      IsEnabled="{Binding IsSelectable, UpdateSourceTrigger=PropertyChanged}"
+                                                      Focusable="False"/>
+                                        <Image x:Name="GlyphOfMember"
+                                                   Margin="8,0,0,0"
+                                                   Source="{Binding Glyph}"/>
+                                        <TextBlock x:Uid="MemberName"
+                                                       Text="{Binding MemberName}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Make abstract" Width="Auto" x:Name="makeAbstractColumn">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox x:Name="MakeAbstract" 
+                                              IsEnabled="{Binding IsAbstractSelectable, UpdateSourceTrigger=PropertyChanged}"
+                                              IsChecked="{Binding IsAbstract, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </u:AutomationDelegatingListView>
+            <StackPanel Grid.Column="1"
+                        Orientation="Vertical"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Width="Auto">
+                <vs:DialogButton
+                    x:Name="SelecDependentsButton"
+                    Margin="{StaticResource ResourceKey=selectDependantsButton}"
+                    Content="Select dependents"
+                    Click="SelecDependentsButton_Click"
+                    MinHeight="20"
+                    MaxWidth="120"/>
+                <vs:DialogButton
+                    x:Name="SelectAllButton"
+                    Content="Select all"
+                    Margin="{StaticResource ResourceKey=selectDependantsButton}"
+                    Click="SelectAllButton_Click"
+                    MinHeight="20"
+                    MaxWidth="120"/>
+                <vs:DialogButton
+                    x:Name="SelectPublic"
+                    Content="Select public"
+                    Click="SelectPublic_Click"
+                    MinHeight="20"
+                    MaxWidth="120"
+                    Margin="{StaticResource ResourceKey=selectDependantsButton}"/>
+                <vs:DialogButton
+                    x:Name="DeselectedAll"
+                    Content="Deselect all"
+                    Click="DeselectedAll_Click"
+                    MinHeight="20"
+                    MaxWidth="120"
+                    Margin="{StaticResource ResourceKey=selectDependantsButton}"/>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="3"
+                   Orientation="Vertical"
+                   MaxHeight="40" Margin="0,8,0,8" MinWidth="445">
+            <Separator/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <vs:DialogButton x:Uid="CancelButton"
+                    Grid.Column="1"
+                    Click="Cancel_Button_Click"
+                    Margin= "{StaticResource ResourceKey=okAndCancelButton}"
+                    Content="{Binding Cancel, ElementName=dialog}"
+                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
+                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                <vs:DialogButton x:Uid="OKButton"
+                    Grid.Column="2"
+                    Click="OK_Button_Click"
+                    Margin = "{StaticResource ResourceKey=okAndCancelButton}"
+                    Content="{Binding OK, ElementName=dialog}"
+                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
+                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>
