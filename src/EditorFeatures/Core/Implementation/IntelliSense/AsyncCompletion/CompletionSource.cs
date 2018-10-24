@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +23,7 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
-    internal class CompletionSource : IAsyncCompletionSource
+    internal class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
         internal const string TriggerSnapshot = nameof(TriggerSnapshot);
@@ -34,11 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
 
+        internal CompletionSource(IThreadingContext threadingContext) : base(threadingContext)
+        {
+        }
+
         public AsyncCompletionData.CompletionStartData InitializeCompletion(
             AsyncCompletionData.CompletionTrigger trigger, 
             SnapshotPoint triggerLocation, 
             CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
@@ -110,6 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             SnapshotSpan applicableToSpan, 
             CancellationToken cancellationToken)
         {
+            AssertIsBackground();
+
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
@@ -173,6 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
+            AssertIsBackground();
+
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
                 !item.Properties.TryGetProperty<ITextSnapshot>(TriggerSnapshot, out var triggerSnapshot))
             {

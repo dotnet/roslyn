@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +22,7 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
-    internal sealed class CommitManager : IAsyncCompletionCommitManager
+    internal sealed class CommitManager : ForegroundThreadAffinitizedObject, IAsyncCompletionCommitManager
     {
         private static readonly IEnumerable<char> s_commitChars = ImmutableArray.Create(
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
@@ -33,6 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         public IEnumerable<char> PotentialCommitCharacters => s_commitChars;
 
+        internal CommitManager(IThreadingContext threadingContext) : base(threadingContext)
+        {
+        }
+
         /// <summary>
         /// The method performs a preliminarily filtering of commit availability.
         /// In case of a doubt, it should respond with true.
@@ -43,7 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             SnapshotPoint location,
             char typedChar,
             CancellationToken cancellationToken)
-            => s_commitChars.Contains(typedChar);
+        {
+            AssertIsForeground();
+            return s_commitChars.Contains(typedChar);
+        }
 
         public AsyncCompletionData.CommitResult TryCommit(
             IAsyncCompletionSession session,
@@ -52,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             char typeChar,
             CancellationToken cancellationToken)
         {
+            AssertIsForeground();
+
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {

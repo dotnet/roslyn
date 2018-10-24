@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
@@ -14,12 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class CommitManagerProvider : IAsyncCompletionCommitManagerProvider
     {
-        private readonly IAsyncCompletionCommitManager _instance = new CommitManager();
+        private readonly IAsyncCompletionCommitManager _instance;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider()
+        public CommitManagerProvider(IThreadingContext threadingContext)
         {
+            _instance = new CommitManager(threadingContext);
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,14 +26,14 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.AsyncCompletion
 {
-    internal class ItemManager : IAsyncCompletionItemManager
+    internal class ItemManager : ForegroundThreadAffinitizedObject, IAsyncCompletionItemManager
     {
         private readonly CompletionHelper _completionHelper;
 
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
 
-        public ItemManager()
+        internal ItemManager(IThreadingContext threadingContext) : base(threadingContext)
         {
             _completionHelper = new CompletionHelper(isCaseSensitive: true);
         }
@@ -42,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
+            AssertIsBackground();
+
             SubscribeEvents(session);
             return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
         }
@@ -57,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             AsyncCompletionData.AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
         {
+            AssertIsBackground();
+
             SubscribeEvents(session);
             if (!session.Properties.TryGetProperty<bool>(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
             {
