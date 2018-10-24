@@ -14,9 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider
+        : AbstractMergeIfStatementsCodeRefactoringProvider
     {
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var isElseIfClause = ifSyntaxService.IsElseIfClause(ifStatement, out var parentIfStatement);
             var previousIfStatement = isElseIfClause ? parentIfStatement : GetPreviousStatement(syntaxFacts, ifStatement);
 
-            var newCondition = (TExpressionSyntax)generator.LogicalOrExpression(
+            var newCondition = generator.LogicalOrExpression(
                 ifSyntaxService.GetConditionOfIfLikeStatement(previousIfStatement),
                 ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
 

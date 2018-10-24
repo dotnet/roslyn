@@ -14,8 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected abstract bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode);
 

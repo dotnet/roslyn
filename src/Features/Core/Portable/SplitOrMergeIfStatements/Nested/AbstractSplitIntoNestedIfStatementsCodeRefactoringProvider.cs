@@ -10,9 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider
+        : AbstractSplitIfStatementCodeRefactoringProvider
     {
         protected sealed override int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds)
             => syntaxKinds.LogicalAndExpression;
@@ -24,14 +23,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             Document document,
             SyntaxNode root,
             SyntaxNode ifStatement,
-            TExpressionSyntax left,
-            TExpressionSyntax right,
+            SyntaxNode leftCondition,
+            SyntaxNode rightCondition,
             CancellationToken cancellationToken)
         {
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
 
-            var innerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.ToIfStatement(ifStatement), right);
-            var outerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.WithStatement(ifStatement, innerIfStatement), left);
+            var innerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.ToIfStatement(ifStatement), rightCondition);
+            var outerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.WithStatement(ifStatement, innerIfStatement), leftCondition);
 
             return Task.FromResult(
                 root.ReplaceNode(ifStatement, outerIfStatement.WithAdditionalAnnotations(Formatter.Annotation)));

@@ -2,7 +2,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
@@ -10,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SplitIntoNestedIfStatements), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InvertLogical, Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     internal sealed class CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider
-        : AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider<ExpressionSyntax>
+        : AbstractSplitIntoNestedIfStatementsCodeRefactoringProvider
     {
     }
 }

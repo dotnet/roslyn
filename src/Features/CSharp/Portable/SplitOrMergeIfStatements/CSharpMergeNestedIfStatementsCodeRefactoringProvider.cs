@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), Shared]
     internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider
-        : AbstractMergeNestedIfStatementsCodeRefactoringProvider<ExpressionSyntax>
+        : AbstractMergeNestedIfStatementsCodeRefactoringProvider
     {
         protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifStatementNode)
         {

@@ -14,9 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : AbstractMergeIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider
+        : AbstractMergeIfStatementsCodeRefactoringProvider
     {
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             Contract.ThrowIfFalse(IsFirstStatementOfIfStatement(syntaxFacts, ifSyntaxService, ifStatement, out var parentIfStatement));
 
-            var newCondition = (TExpressionSyntax)generator.LogicalAndExpression(
+            var newCondition = generator.LogicalAndExpression(
                 ifSyntaxService.GetConditionOfIfLikeStatement(parentIfStatement),
                 ifSyntaxService.GetConditionOfIfLikeStatement(ifStatement));
 

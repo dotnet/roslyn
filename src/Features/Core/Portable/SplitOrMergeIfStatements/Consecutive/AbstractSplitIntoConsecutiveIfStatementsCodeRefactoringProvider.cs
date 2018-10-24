@@ -13,9 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider<TExpressionSyntax>
-        : AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax>
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
+        : AbstractSplitIfStatementCodeRefactoringProvider
     {
         protected sealed override int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds)
             => syntaxKinds.LogicalOrExpression;
@@ -27,34 +26,34 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             Document document,
             SyntaxNode root,
             SyntaxNode ifStatement,
-            TExpressionSyntax left,
-            TExpressionSyntax right,
+            SyntaxNode leftCondition,
+            SyntaxNode rightCondition,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            left = left.WithAdditionalAnnotations(Formatter.Annotation);
-            right = right.WithAdditionalAnnotations(Formatter.Annotation);
+            leftCondition = leftCondition.WithAdditionalAnnotations(Formatter.Annotation);
+            rightCondition = rightCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.TrackNodes(ifStatement);
             root = root.ReplaceNode(
                 root.GetCurrentNode(ifStatement),
-                ifSyntaxService.WithCondition(root.GetCurrentNode(ifStatement), left));
+                ifSyntaxService.WithCondition(root.GetCurrentNode(ifStatement), leftCondition));
 
             var editor = new SyntaxEditor(root, generator);
 
             if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifStatement, cancellationToken).ConfigureAwait(false))
             {
-                var secondIfStatement = ifSyntaxService.WithCondition(ifStatement, right)
+                var secondIfStatement = ifSyntaxService.WithCondition(ifStatement, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
                 editor.InsertAfter(root.GetCurrentNode(ifStatement), secondIfStatement);
             }
             else
             {
-                var elseIfClause = ifSyntaxService.WithCondition(ifSyntaxService.ToElseIfClause(ifStatement), right);
+                var elseIfClause = ifSyntaxService.WithCondition(ifSyntaxService.ToElseIfClause(ifStatement), rightCondition);
 
                 ifSyntaxService.InsertElseIfClause(editor, root.GetCurrentNode(ifStatement), elseIfClause);
             }

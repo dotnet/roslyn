@@ -12,8 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
-    internal abstract class AbstractSplitIfStatementCodeRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
-        where TExpressionSyntax : SyntaxNode
+    internal abstract class AbstractSplitIfStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected abstract int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds);
 
@@ -23,8 +22,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             Document document,
             SyntaxNode root,
             SyntaxNode currentIfStatement,
-            TExpressionSyntax left,
-            TExpressionSyntax right,
+            SyntaxNode leftCondition,
+            SyntaxNode rightCondition,
             CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return current.IsNode;
         }
 
-        private static (TExpressionSyntax left, TExpressionSyntax right) SplitBinaryExpressionChain(
+        private static (SyntaxNode left, SyntaxNode right) SplitBinaryExpressionChain(
             SyntaxToken token, SyntaxNode rootExpression, ISyntaxFactsService syntaxFacts)
         {
             // We have a left-associative binary expression chain, e.g. `a && b && c && d`.
@@ -97,8 +96,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             syntaxFacts.GetPartsOfBinaryExpression(token.Parent, out var parentLeft, out _, out var parentRight);
 
-            var left = (TExpressionSyntax)parentLeft;
-            var right = (TExpressionSyntax)rootExpression.ReplaceNode(token.Parent, parentRight);
+            var left = parentLeft;
+            var right = rootExpression.ReplaceNode(token.Parent, parentRight);
 
             return (left, right);
         }
