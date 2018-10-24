@@ -10,14 +10,13 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using AnalyzerOptions = System.Collections.Immutable.ImmutableDictionary<string, string>;
+using static Microsoft.CodeAnalysis.AnalyzerConfig;
 using TreeOptions = System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>;
 
 namespace Microsoft.CodeAnalysis
@@ -252,218 +251,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Holds results from <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{AnalyzerConfig}, CommonMessageProvider, DiagnosticBag)"/>.
-        /// </summary>
-        internal readonly struct AnalyzerConfigOptionsResult
-        {
-            /// <summary>
-            /// Options that customize diagnostic severity as reported by the compiler. If there
-            /// are no options for a given source path, that entry in the array is null.
-            /// </summary>
-            /// <remarks>
-            /// The item index corresponds to the input source path to
-            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{AnalyzerConfig}, CommonMessageProvider, DiagnosticBag)"/>.
-            /// </remarks>
-            public ImmutableArray<TreeOptions> TreeOptions { get; }
-
-            /// <summary>
-            /// Options that do not have any special compiler behavior and are passed to analyzers as-is.
-            /// If there are no options for a given source path, that entry in the array is null.
-            /// </summary>
-            /// <remarks>
-            /// The item index corresponds to the input source path to
-            /// <see cref="GetAnalyzerConfigOptions(IReadOnlyList{string}, IReadOnlyList{AnalyzerConfig}, CommonMessageProvider, DiagnosticBag)"/>.
-            /// </remarks>
-            public ImmutableArray<AnalyzerOptions> AnalyzerOptions { get; }
-
-            public AnalyzerConfigOptionsResult(
-                ImmutableArray<TreeOptions> treeOptions,
-                ImmutableArray<AnalyzerOptions> analyzerOptions)
-            {
-                TreeOptions = treeOptions;
-                AnalyzerOptions = analyzerOptions;
-            }
-        }
-
-        /// <summary>
-        /// Takes a list of paths to source files and a list of AnalyzeConfigs and produces a
-        /// resultant dictionary of diagnostic configurations for each of the source paths.
-        /// Source paths are matched by checking if they are members of the language recognized by
-        /// <see cref="AnalyzerConfig.Section.Name"/>s.
-        /// </summary>
-        /// <param name="sourcePaths">
-        /// Absolute, normalized paths to source files. These paths are expected to be normalized
-        /// using the same mechanism used to normalize the path passed to the path paramater of 
-        /// <see cref="AnalyzerConfig.Parse(string, string)"/>. Source files will only be considered
-        /// applicable for a given <see cref="AnalyzerConfig"/> if the config path is an ordinal
-        /// prefix of the source path.
-        /// </param>
-        /// <param name="analyzerConfigs">
-        /// Parsed AnalyzerConfig files. The <see cref="AnalyzerConfig.NormalizedDirectory"/>
-        /// must be an ordinal prefix of a source file path to be considered applicable.
-        /// </param>
-        /// <param name="messageProvider">Used to produce diagnostics.</param>
-        /// <param name="diagnostics">Any produced diagnostics are added to this bag.</param>
-        /// <returns>
-        /// Diagnostic and analyzer option arrays, where the array indices correspond
-        /// to the options for the source path at the same index.
-        /// </returns>
-        internal static AnalyzerConfigOptionsResult GetAnalyzerConfigOptions(
-            IReadOnlyList<string> sourcePaths,
-            IReadOnlyList<AnalyzerConfig> analyzerConfigs,
-            CommonMessageProvider messageProvider,
-            DiagnosticBag diagnostics)
-        {
-            // Since paths are compared as ordinal string comparisons, the least nested
-            // file will always be the first in sort order
-            if (!analyzerConfigs.IsSorted(AnalyzerConfig.DirectoryLengthComparer))
-            {
-                throw new ArgumentException(
-                    "Analyzer config files must be sorted from shortest to longest path",
-                    nameof(analyzerConfigs));
-            }
-
-            var allTreeOptions = ArrayBuilder<TreeOptions>.GetInstance(sourcePaths.Count);
-            var allAnalyzerOptions = ArrayBuilder<AnalyzerOptions>.GetInstance(sourcePaths.Count);
-
-            var allRegexes = PooledDictionary<AnalyzerConfig, ImmutableArray<Regex>>.GetInstance();
-            foreach (var config in analyzerConfigs)
-            {
-                // Create an array of regexes with each entry corresponding to the same index
-                // in <see cref="EditorConfig.NamedSections"/>.
-                var builder = ArrayBuilder<Regex>.GetInstance(config.NamedSections.Length);
-                foreach (var section in config.NamedSections)
-                {
-                    string regex = AnalyzerConfig.TryCompileSectionNameToRegEx(section.Name);
-                    builder.Add(new Regex(regex, RegexOptions.Compiled));
-                }
-
-                Debug.Assert(builder.Count == config.NamedSections.Length);
-
-                allRegexes.Add(config, builder.ToImmutableAndFree());
-            }
-
-            Debug.Assert(allRegexes.Count == analyzerConfigs.Count);
-
-            var treeOptionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
-                CaseInsensitiveComparison.Comparer);
-            var analyzerOptionsBuilder = ImmutableDictionary.CreateBuilder<string, string>(
-                CaseInsensitiveComparison.Comparer);
-            foreach (var sourceFile in sourcePaths)
-            {
-                var normalizedPath = PathWithForwardSlashSeparators(sourceFile);
-                // The editorconfig paths are sorted from shortest to longest, so matches
-                // are resolved from most nested to least nested, where last setting wins
-                foreach (AnalyzerConfig config in analyzerConfigs)
-                {
-                    if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
-                    {
-                        int dirLength = config.NormalizedDirectory.Length;
-                        // Leave '/' if the normalized directory ends with a '/'. This can happen if
-                        // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
-                        // always expects that the relative path start with a '/'. 
-                        if (config.NormalizedDirectory[dirLength - 1] == '/')
-                        {
-                            dirLength--;
-                        }
-                        string relativePath = normalizedPath.Substring(dirLength);
-
-                        ImmutableArray<Regex> regexes = allRegexes[config];
-                        for (int sectionIndex = 0; sectionIndex < regexes.Length; sectionIndex++)
-                        {
-                            if (regexes[sectionIndex].IsMatch(relativePath))
-                            {
-                                var section = config.NamedSections[sectionIndex];
-                                addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, config.PathToFile);
-                            }
-                        }
-                    }
-                }
-
-                // Avoid extra allocations by using null.
-                allTreeOptions.Add(treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : null);
-                allAnalyzerOptions.Add(analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : null);
-                treeOptionsBuilder.Clear();
-                analyzerOptionsBuilder.Clear();
-            }
-
-            allRegexes.Free();
-            Debug.Assert(allTreeOptions.Count == allAnalyzerOptions.Count);
-            Debug.Assert(allTreeOptions.Count == sourcePaths.Count);
-
-            return new AnalyzerConfigOptionsResult(
-                allTreeOptions.ToImmutableAndFree(),
-                allAnalyzerOptions.ToImmutableAndFree());
-
-            void addOptions(
-                AnalyzerConfig.Section section,
-                TreeOptions.Builder treeBuilder,
-                AnalyzerOptions.Builder analyzerBuilder,
-                string analyzerConfigPath)
-            {
-                const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
-                const string DiagnosticOptionSuffix = ".severity";
-
-                foreach (var (key, value) in section.Properties)
-                {
-                    // Keys are lowercased in editorconfig parsing
-                    if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
-                        key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
-                    {
-                        var diagId = key.Substring(
-                            DiagnosticOptionPrefix.Length,
-                            key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length));
-
-                        ReportDiagnostic? severity;
-                        var comparer = StringComparer.OrdinalIgnoreCase;
-                        if (comparer.Equals(value, "default"))
-                        {
-                            severity = ReportDiagnostic.Default;
-                        }
-                        else if (comparer.Equals(value, "error"))
-                        {
-                            severity = ReportDiagnostic.Error;
-                        }
-                        else if (comparer.Equals(value, "warn"))
-                        {
-                            severity = ReportDiagnostic.Warn;
-                        }
-                        else if (comparer.Equals(value, "info"))
-                        {
-                            severity = ReportDiagnostic.Info;
-                        }
-                        else if (comparer.Equals(value, "hidden"))
-                        {
-                            severity = ReportDiagnostic.Hidden;
-                        }
-                        else if (comparer.Equals(value, "suppress"))
-                        {
-                            severity = ReportDiagnostic.Suppress;
-                        }
-                        else
-                        {
-                            severity = null;
-                            diagnostics.Add(Diagnostic.Create(
-                                messageProvider,
-                                messageProvider.WRN_InvalidSeverityInAnalyzerConfig,
-                                diagId,
-                                value,
-                                analyzerConfigPath));
-                        }
-
-                        if (severity.HasValue)
-                        {
-                            treeBuilder[diagId] = severity.GetValueOrDefault();
-                        }
-                    }
-                    else
-                    {
-                        analyzerBuilder[key] = value;
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Read all analyzer config files from the given paths and sort them from shortest to longest.
@@ -520,12 +307,6 @@ namespace Microsoft.CodeAnalysis
             analyzerConfigs = configs.ToImmutableAndFree();
             return true;
         }
-
-        // Takes a system-native path and turns it into one which has '/' for the directory separators.
-        private static string PathWithForwardSlashSeparators(string path)
-            => PathUtilities.DirectorySeparatorChar == '/'
-                ? path
-                : path.Replace(PathUtilities.DirectorySeparatorChar, '/');
 
         /// <summary>
         /// Read a UTF-8 encoded file and return the text as a string.
@@ -883,9 +664,8 @@ namespace Microsoft.CodeAnalysis
 
                 analyzerConfigOptions = GetAnalyzerConfigOptions(
                     Arguments.SourceFiles.SelectAsArray(f => f.Path),
-                    sortedAnalyzerConfigs,
-                    MessageProvider,
-                    diagnostics);
+                    sortedAnalyzerConfigs);
+                diagnostics.AddRange(analyzerConfigOptions.Diagnostics);
             }
 
             Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, analyzerConfigOptions.TreeOptions);
@@ -1028,11 +808,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     // PROTOTYPE: The compiler currently doesn't support configuring diagnostic reporting
                     // on additional text files individually.
-                    var additionalFileAnalyzerOptions = GetAnalyzerConfigOptions(
+                    AnalyzerConfigOptionsResult result = GetAnalyzerConfigOptions(
                         additionalTextFiles.SelectAsArray(f => f.Path),
-                        sortedAnalyzerConfigs,
-                        MessageProvider,
-                        diagnostics).AnalyzerOptions;
+                        sortedAnalyzerConfigs);
+                    diagnostics.AddRange(result.Diagnostics);
+                    var additionalFileAnalyzerOptions = result.AnalyzerOptions;
 
                     analyzerConfigProvider = CreateAnalyzerConfigOptionsProvider(
                         compilation.SyntaxTrees,
