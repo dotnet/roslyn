@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return;
             }
 
-            var ifSyntaxService = context.Document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = context.Document.GetLanguageService<IIfLikeStatementGenerator>();
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
             var syntaxKinds = context.Document.GetLanguageService<ISyntaxKindsService>();
 
             if (IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression) &&
-                ifSyntaxService.IsCondition(rootExpression, out _))
+                ifGenerator.IsCondition(rootExpression, out _))
             {
                 context.RegisterRefactoring(
                     CreateCodeAction(
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(span.Start);
 
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
 
             Contract.ThrowIfFalse(IsPartOfBinaryExpressionChain(token, GetLogicalExpressionKind(syntaxKinds), out var rootExpression));
-            Contract.ThrowIfFalse(ifSyntaxService.IsCondition(rootExpression, out var ifLikeStatement));
+            Contract.ThrowIfFalse(ifGenerator.IsCondition(rootExpression, out var ifLikeStatement));
 
             var (left, right) = SplitBinaryExpressionChain(token, rootExpression, document.GetLanguageService<ISyntaxFactsService>());
 

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
     /// An if-like statement is either an if statement or an else-if clause.
     /// When querying the syntax, C# else if chains are "flattened" and modeled to look like VB else-if clauses.
     /// </summary>
-    internal interface IIfStatementSyntaxService : ILanguageService
+    internal interface IIfLikeStatementGenerator : ILanguageService
     {
         bool IsIfLikeStatement(SyntaxNode node);
 

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
             leftCondition = leftCondition.WithAdditionalAnnotations(Formatter.Annotation);
@@ -40,22 +40,22 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             root = root.TrackNodes(ifLikeStatement);
             root = root.ReplaceNode(
                 root.GetCurrentNode(ifLikeStatement),
-                ifSyntaxService.WithCondition(root.GetCurrentNode(ifLikeStatement), leftCondition));
+                ifGenerator.WithCondition(root.GetCurrentNode(ifLikeStatement), leftCondition));
 
             var editor = new SyntaxEditor(root, generator);
 
             if (await CanBeSeparateStatementsAsync(document, syntaxFacts, ifLikeStatement, cancellationToken).ConfigureAwait(false))
             {
-                var secondIfStatement = ifSyntaxService.WithCondition(ifLikeStatement, rightCondition)
+                var secondIfStatement = ifGenerator.WithCondition(ifLikeStatement, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);
 
                 editor.InsertAfter(root.GetCurrentNode(ifLikeStatement), secondIfStatement);
             }
             else
             {
-                var elseIfClause = ifSyntaxService.WithCondition(ifSyntaxService.ToElseIfClause(ifLikeStatement), rightCondition);
+                var elseIfClause = ifGenerator.WithCondition(ifGenerator.ToElseIfClause(ifLikeStatement), rightCondition);
 
-                ifSyntaxService.InsertElseIfClause(editor, root.GetCurrentNode(ifLikeStatement), elseIfClause);
+                ifGenerator.InsertElseIfClause(editor, root.GetCurrentNode(ifLikeStatement), elseIfClause);
             }
 
             return editor.GetChangedRoot();
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
-            if (ifSyntaxService.GetElseLikeClauses(ifLikeStatement).Length > 0)
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
+            if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;
             }

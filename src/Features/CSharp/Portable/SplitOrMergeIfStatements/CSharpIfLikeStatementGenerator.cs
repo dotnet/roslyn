@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 {
-    [ExportLanguageService(typeof(IIfStatementSyntaxService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpIfStatementSyntaxService : IIfStatementSyntaxService
+    [ExportLanguageService(typeof(IIfLikeStatementGenerator), LanguageNames.CSharp), Shared]
+    internal sealed class CSharpIfLikeStatementGenerator : IIfLikeStatementGenerator
     {
         public bool IsIfLikeStatement(SyntaxNode node) => node is IfStatementSyntax;
 

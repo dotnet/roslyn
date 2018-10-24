@@ -23,37 +23,37 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override async Task<bool> CanBeMergedAsync(
             Document document, SyntaxNode ifLikeStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            return CanBeMergedWithParent(syntaxFacts, ifSyntaxService, ifLikeStatement) ||
+            return CanBeMergedWithParent(syntaxFacts, ifGenerator, ifLikeStatement) ||
                    await CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifLikeStatement, cancellationToken).ConfigureAwait(false);
         }
 
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifLikeStatement)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var isElseIfClause = ifSyntaxService.IsElseIfClause(ifLikeStatement, out var parentIfLikeStatement);
+            var isElseIfClause = ifGenerator.IsElseIfClause(ifLikeStatement, out var parentIfLikeStatement);
             var previousIfLikeStatement = isElseIfClause ? parentIfLikeStatement : GetPreviousStatement(syntaxFacts, ifLikeStatement);
 
             var newCondition = generator.LogicalOrExpression(
-                ifSyntaxService.GetCondition(previousIfLikeStatement),
-                ifSyntaxService.GetCondition(ifLikeStatement));
+                ifGenerator.GetCondition(previousIfLikeStatement),
+                ifGenerator.GetCondition(ifLikeStatement));
 
             newCondition = newCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.TrackNodes(previousIfLikeStatement, ifLikeStatement);
             root = root.ReplaceNode(
                 root.GetCurrentNode(previousIfLikeStatement),
-                ifSyntaxService.WithCondition(root.GetCurrentNode(previousIfLikeStatement), newCondition));
+                ifGenerator.WithCondition(root.GetCurrentNode(previousIfLikeStatement), newCondition));
 
             var editor = new SyntaxEditor(root, generator);
 
             if (isElseIfClause)
             {
-                ifSyntaxService.RemoveElseIfClause(editor, root.GetCurrentNode(ifLikeStatement));
+                ifGenerator.RemoveElseIfClause(editor, root.GetCurrentNode(ifLikeStatement));
             }
             else
             {
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private bool CanBeMergedWithParent(
             ISyntaxFactsService syntaxFacts,
-            IIfStatementSyntaxService ifSyntaxService,
+            IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifLikeStatement)
         {
-            return ifSyntaxService.IsElseIfClause(ifLikeStatement, out var parentIfLikeStatement) &&
+            return ifGenerator.IsElseIfClause(ifLikeStatement, out var parentIfLikeStatement) &&
                    ContainEquivalentStatements(syntaxFacts, ifLikeStatement, parentIfLikeStatement, out _);
         }
 
@@ -85,15 +85,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 return false;
             }
 
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
-            if (ifSyntaxService.GetElseLikeClauses(ifLikeStatement).Length > 0)
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
+            if (ifGenerator.GetElseLikeClauses(ifLikeStatement).Length > 0)
             {
                 return false;
             }
 
             var previousStatement = GetPreviousStatement(syntaxFacts, ifLikeStatement);
 
-            if (!ifSyntaxService.IsIfLikeStatement(previousStatement) || ifSyntaxService.GetElseLikeClauses(previousStatement).Length > 0)
+            if (!ifGenerator.IsIfLikeStatement(previousStatement) || ifGenerator.GetElseLikeClauses(previousStatement).Length > 0)
             {
                 return false;
             }

@@ -23,33 +23,33 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         protected sealed override async Task<bool> CanBeMergedAsync(
             Document document, SyntaxNode ifStatement, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            return IsFirstStatementOfIfLikeStatement(syntaxFacts, ifSyntaxService, ifStatement, out var outerIfLikeStatement) &&
+            return IsFirstStatementOfIfLikeStatement(syntaxFacts, ifGenerator, ifStatement, out var outerIfLikeStatement) &&
                    await CanBeMergedWithOuterAsync(document, syntaxFacts, outerIfLikeStatement, ifStatement, cancellationToken).ConfigureAwait(false);
         }
 
         protected sealed override SyntaxNode GetChangedRoot(Document document, SyntaxNode root, SyntaxNode ifStatement)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            Contract.ThrowIfFalse(IsFirstStatementOfIfLikeStatement(syntaxFacts, ifSyntaxService, ifStatement, out var outerIfLikeStatement));
+            Contract.ThrowIfFalse(IsFirstStatementOfIfLikeStatement(syntaxFacts, ifGenerator, ifStatement, out var outerIfLikeStatement));
 
             var newCondition = generator.LogicalAndExpression(
-                ifSyntaxService.GetCondition(outerIfLikeStatement),
-                ifSyntaxService.GetCondition(ifStatement));
+                ifGenerator.GetCondition(outerIfLikeStatement),
+                ifGenerator.GetCondition(ifStatement));
 
-            var newIfLikeStatement = ifSyntaxService.WithStatementsOf(
-                ifSyntaxService.WithCondition(outerIfLikeStatement, newCondition),
+            var newIfLikeStatement = ifGenerator.WithStatementsOf(
+                ifGenerator.WithCondition(outerIfLikeStatement, newCondition),
                 ifStatement);
 
             return root.ReplaceNode(outerIfLikeStatement, newIfLikeStatement.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private bool IsFirstStatementOfIfLikeStatement(
-            ISyntaxFactsService syntaxFacts, IIfStatementSyntaxService ifSyntaxService, SyntaxNode statement, out SyntaxNode ifLikeStatement)
+            ISyntaxFactsService syntaxFacts, IIfLikeStatementGenerator ifGenerator, SyntaxNode statement, out SyntaxNode ifLikeStatement)
         {
             // Check whether the statement is a first statement inside an if statement.
             // If it's inside a block, it has to be the first statement of the block.
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 if (statements.FirstOrDefault() == statement)
                 {
                     var rootStatements = WalkUpBlocks(syntaxFacts, statements);
-                    if (rootStatements.Count > 0 && ifSyntaxService.IsIfLikeStatement(rootStatements[0].Parent))
+                    if (rootStatements.Count > 0 && ifGenerator.IsIfLikeStatement(rootStatements[0].Parent))
                     {
                         ifLikeStatement = rootStatements[0].Parent;
                         return true;
@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode innerIfStatement,
             CancellationToken cancellationToken)
         {
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            if (!ifSyntaxService.GetElseLikeClauses(outerIfLikeStatement).SequenceEqual(
-                    ifSyntaxService.GetElseLikeClauses(innerIfStatement), (a, b) => IsElseLikeClauseEquivalent(syntaxFacts, ifSyntaxService, a, b)))
+            if (!ifGenerator.GetElseLikeClauses(outerIfLikeStatement).SequenceEqual(
+                    ifGenerator.GetElseLikeClauses(innerIfStatement), (a, b) => IsElseLikeClauseEquivalent(syntaxFacts, ifGenerator, a, b)))
             {
                 return false;
             }
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         private bool IsElseLikeClauseEquivalent(
             ISyntaxFactsService syntaxFacts,
-            IIfStatementSyntaxService ifSyntaxService,
+            IIfLikeStatementGenerator ifGenerator,
             SyntaxNode elseLikeClause1,
             SyntaxNode elseLikeClause2)
         {
             // Compare Else/ElseIf clauses for equality.
 
-            var isIfStatement = ifSyntaxService.IsIfLikeStatement(elseLikeClause1);
-            if (isIfStatement != ifSyntaxService.IsIfLikeStatement(elseLikeClause2))
+            var isIfStatement = ifGenerator.IsIfLikeStatement(elseLikeClause1);
+            if (isIfStatement != ifGenerator.IsIfLikeStatement(elseLikeClause2))
             {
                 // If we have one Else and one ElseIf, they're not equal.
                 return false;
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             if (isIfStatement)
             {
                 // If we have two ElseIf blocks, their conditions have to match.
-                var condition1 = ifSyntaxService.GetCondition(elseLikeClause1);
-                var condition2 = ifSyntaxService.GetCondition(elseLikeClause2);
+                var condition1 = ifGenerator.GetCondition(elseLikeClause1);
+                var condition2 = ifGenerator.GetCondition(elseLikeClause2);
 
                 if (!syntaxFacts.AreEquivalent(condition1, condition2))
                 {

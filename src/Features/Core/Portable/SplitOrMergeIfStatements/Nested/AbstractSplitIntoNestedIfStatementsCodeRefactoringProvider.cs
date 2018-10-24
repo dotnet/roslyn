@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             SyntaxNode rightCondition,
             CancellationToken cancellationToken)
         {
-            var ifSyntaxService = document.GetLanguageService<IIfStatementSyntaxService>();
+            var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
-            var innerIfStatement = ifSyntaxService.WithCondition(ifSyntaxService.ToIfStatement(ifLikeStatement), rightCondition);
-            var outerIfLikeStatement = ifSyntaxService.WithCondition(ifSyntaxService.WithStatement(ifLikeStatement, innerIfStatement), leftCondition);
+            var innerIfStatement = ifGenerator.WithCondition(ifGenerator.ToIfStatement(ifLikeStatement), rightCondition);
+            var outerIfLikeStatement = ifGenerator.WithCondition(ifGenerator.WithStatement(ifLikeStatement, innerIfStatement), leftCondition);
 
             return Task.FromResult(
                 root.ReplaceNode(ifLikeStatement, outerIfLikeStatement.WithAdditionalAnnotations(Formatter.Annotation)));
