@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (@using.NamespaceOrType.IsType)
                 {
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
-                    var corLibrary = typeSymbol.ContainingAssembly.CorLibrary;
+                    var corLibrary = _compilation.SourceAssembly.CorLibrary;
                     var conversions = new TypeConversions(corLibrary);
                     typeSymbol.CheckAllConstraints(conversions, @using.UsingDirective.Name.Location, semanticDiagnostics);
                 }
