@@ -3364,6 +3364,26 @@ static class Extension2
             Assert.False(symbols.Where(s => s.Name == "MathMax3").Any());
         }
 
+        [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
+        public void UsingStaticGenericConstraint()
+        {
+            var code = @"
+using static Test<System.String>;
+
+public static class Test<T> where T : struct
+{
+    public static void Run( T item ) { }
+}
+";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static Test<System.String>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Test<System.String>;").WithLocation(2, 1),
+                // (2,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // using static Test<System.String>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test<System.String>").WithArguments("Test<T>", "T", "string").WithLocation(2, 14));
+        }
+
         [Fact, WorkItem(8234, "https://github.com/dotnet/roslyn/issues/8234")]
         public void EventAccessInTypeNameContext()
         {
