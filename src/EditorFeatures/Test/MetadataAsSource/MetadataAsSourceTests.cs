@@ -1510,5 +1510,30 @@ public delegate void [|D|]<T>() where T : unmanaged;";
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
         }
+
+        [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestInt32MinValue()
+        {
+            var source = @"
+class C
+{
+    int Goo = int.[|MinValue|];
+}";
+
+            var expected = $"public const Int32 MinValue = {int.MinValue};";
+
+            using (var context = TestContext.Create(LanguageNames.CSharp, sourceWithSymbolReference: source))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                var document = context.GetDocument(metadataAsSourceFile);
+                var text = await document.GetTextAsync();
+                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
+                var lineText = line.ToString().Trim();
+
+                Assert.Equal(expected, lineText);
+            }
+        }
     }
 }
