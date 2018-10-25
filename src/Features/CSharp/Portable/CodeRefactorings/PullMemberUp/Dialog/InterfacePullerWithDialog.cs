@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                    setterOrGetter.Name,
                    setterOrGetter.TypeParameters,
                    setterOrGetter.Parameters,
-                   methodKind: setterOrGetter.MethodKind == MethodKind.PropertyGet ?
-                               MethodKind.PropertyGet : MethodKind.PropertySet);
+                   methodKind: setterOrGetter.MethodKind);
             }
         }
 
