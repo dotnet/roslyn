@@ -327,9 +327,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return taintedDataAbstractValue;
             }
 
-            private void TrackTaintedDataEnteringSink(ISymbol sinkSymbol, SyntaxNode sinkSyntax, IEnumerable<SymbolAccess> sources)
+            private void TrackTaintedDataEnteringSink(ISymbol sinkSymbol, Location sinkLocation, IEnumerable<SymbolAccess> sources)
             {
-                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkSyntax, this.OwningSymbol);
+                SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, this.OwningSymbol);
                 if (!this.TaintedSourcesBySink.TryGetValue(sink, out HashSet<SymbolAccess> sourceOrigins))
                 {
                     sourceOrigins = new HashSet<SymbolAccess>();
@@ -356,7 +356,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     foreach (IArgumentOperation taintedArgument in taintedArguments)
                     {
                         TaintedDataAbstractValue abstractValue = this.GetCachedAbstractValue(taintedArgument);
-                        this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax, abstractValue.SourceOrigins);
+                        this.TrackTaintedDataEnteringSink(targetMethod, originalOperation.Syntax.GetLocation(), abstractValue.SourceOrigins);
                     }
                 }
 
@@ -367,7 +367,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     {
                         this.TrackTaintedDataEnteringSink(
                             sourceSink.Sink.Symbol, 
-                            sourceSink.Sink.SyntaxNode, 
+                            sourceSink.Sink.Location, 
                             sourceSink.SourceOrigins);
                     }
                 }
@@ -381,7 +381,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     && assignmentOperation.Target is IPropertyReferenceOperation propertyReferenceOperation
                     && this.IsPropertyASink(propertyReferenceOperation))
                 {
-                    this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, assignmentValueAbstractValue.SourceOrigins);
+                    this.TrackTaintedDataEnteringSink(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax.GetLocation(), assignmentValueAbstractValue.SourceOrigins);
                 }
             }
 
