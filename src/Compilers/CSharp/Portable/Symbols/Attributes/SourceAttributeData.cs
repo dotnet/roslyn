@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
 
-                    TypeSymbol parameterType = parameters[k].Type;
+                    TypeSymbol parameterType = parameters[k].Type.TypeSymbol;
                     SpecialType specType = parameterType.SpecialType;
                     byte targetType = targetSignature[j];
 

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             var rules = new List<IFormattingRule>() { new PasteFormattingRule() };
             rules.AddRange(service.GetDefaultFormattingRules());
 
-            return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
+            return await Formatter.GetFormattedTextChangesAsync(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken).ConfigureAwait(false);
         }
 
         private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)

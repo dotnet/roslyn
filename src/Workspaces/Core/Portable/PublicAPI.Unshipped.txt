@@ -1,54 +1,15 @@
-*REMOVED*abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
-*REMOVED*abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption.DefaultValue.get -> object
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption.Feature.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption.IsPerLanguage.get -> bool
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption.Name.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-*REMOVED*Microsoft.CodeAnalysis.Options.IOption.Type.get -> System.Type
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.DefaultValue.get -> T
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.Feature.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.Name.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name) -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue) -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-*REMOVED*Microsoft.CodeAnalysis.Options.Option<T>.Type.get -> System.Type
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionKey
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionSet
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionStorageLocation
-*REMOVED*Microsoft.CodeAnalysis.Options.OptionStorageLocation.OptionStorageLocation() -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.DefaultValue.get -> T
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Feature.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Name.get -> string
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue) -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-*REMOVED*Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Type.get -> System.Type
-*REMOVED*override Microsoft.CodeAnalysis.Options.Option<T>.ToString() -> string
-*REMOVED*override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool
-*REMOVED*override Microsoft.CodeAnalysis.Options.OptionKey.GetHashCode() -> int
-*REMOVED*override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.ToString() -> string
-*REMOVED*static Microsoft.CodeAnalysis.Options.Option<T>.implicit operator Microsoft.CodeAnalysis.Options.OptionKey(Microsoft.CodeAnalysis.Options.Option<T> option) -> Microsoft.CodeAnalysis.Options.OptionKey
-*REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
-*REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.ProjectInfo
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object (forwarded, contained in Microsoft.CodeAnalysis)
-abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet (forwarded, contained in Microsoft.CodeAnalysis)
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAlternation = "regex - alternation" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAnchor = "regex - anchor" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexCharacterClass = "regex - character class" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexComment = "regex - comment" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexGrouping = "regex - grouping" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexOtherEscape = "regex - other escape" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexQuantifier = "regex - quantifier" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexSelfEscapedCharacter = "regex - self escaped character" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexText = "regex - text" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StringEscapeCharacter = "string - escape character" -> string
 const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
@@ -58,38 +19,14 @@ Microsoft.CodeAnalysis.FileTextLoader
 Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
 Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
 Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
-Microsoft.CodeAnalysis.Options.IOption (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.IOption.DefaultValue.get -> object (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.IOption.Feature.get -> string (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.IOption.IsPerLanguage.get -> bool (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.IOption.Name.get -> string (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.IOption.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation> (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.IOption.Type.get -> System.Type (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.Option<> (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionKey (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionSet (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionStorageLocation (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.OptionStorageLocation.OptionStorageLocation() -> void (forwarded, contained in Microsoft.CodeAnalysis)
-Microsoft.CodeAnalysis.Options.PerLanguageOption<> (forwarded, contained in Microsoft.CodeAnalysis)
 Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
+Microsoft.CodeAnalysis.Solution.AddDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnDocumentsAdded(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> void
 Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
-override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
-override Microsoft.CodeAnalysis.Options.OptionKey.GetHashCode() -> int (forwarded, contained in Microsoft.CodeAnalysis)
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
-static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
-static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Silent -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText

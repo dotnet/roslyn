@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -10,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <see cref="OptionSet"/> but remembers which language the <see cref="Document"/> is, so you don't have to
     /// pass that information redundantly when calling <see cref="GetOption{T}(PerLanguageOption{T})"/>.
     /// </summary>
-    public sealed class DocumentOptionSet : OptionSet, IInternalOptionSet
+    public sealed class DocumentOptionSet : OptionSet
     {
         private readonly OptionSet _backingOptionSet;
         private readonly string _language;
@@ -36,12 +35,9 @@ namespace Microsoft.CodeAnalysis.Options
             return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
         }
 
-        IEnumerable<OptionKey> IInternalOptionSet.GetChangedOptions(OptionSet optionSet)
+        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
-            if (!(_backingOptionSet is IInternalOptionSet otherOptionSet))
-                throw new NotSupportedException();
-
-            return otherOptionSet.GetChangedOptions(optionSet);
+            return _backingOptionSet.GetChangedOptions(optionSet);
         }
     }
 }

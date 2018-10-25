@@ -36,7 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
-                statement = statement.WithInitializer(initializer.equalsValue)
+                statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
+                    .WithInitializer(initializer.equalsValue) _
+                    .WithTrailingTrivia(statement.GetTrailingTrivia.Where(Function(x) x.Kind <> SyntaxKind.EndOfLineTrivia)) _
+                    .WithAppendedTrailingTrivia(initializer.equalsValue.GetTrailingTrivia())
             End If
 
             If initializer.asNewClause IsNot Nothing Then

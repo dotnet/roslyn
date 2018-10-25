@@ -66,10 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal OptionSet ApplyChangedOptions(OptionSet optionSet)
         {
-            if (!(this.Options is IInternalOptionSet internalOptions))
-                throw new NotSupportedException();
-
-            foreach (var optionKey in internalOptions.GetChangedOptions(_originalOptions))
+            foreach (var optionKey in this.Options.GetChangedOptions(_originalOptions))
             {
                 optionSet = optionSet.WithChangedOption(optionKey, this.Options.GetOption(optionKey));
             }

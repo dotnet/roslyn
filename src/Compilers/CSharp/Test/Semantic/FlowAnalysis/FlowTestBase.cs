@@ -83,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => model.AnalyzeDataFlow(stmt1, stmt2));
         }
 
-        protected Tuple<ControlFlowAnalysis, DataFlowAnalysis> CompileAndAnalyzeControlAndDataFlowStatements(string program)
+        protected (ControlFlowAnalysis controlFlowAnalysis, DataFlowAnalysis dataFlowAnalysis) CompileAndAnalyzeControlAndDataFlowStatements(string program)
         {
-            return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => Tuple.Create(model.AnalyzeControlFlow(stmt1, stmt2), model.AnalyzeDataFlow(stmt1, stmt2)));
+            return CompileAndGetModelAndStatements(program, (model, stmt1, stmt2) => (model.AnalyzeControlFlow(stmt1, stmt2), model.AnalyzeDataFlow(stmt1, stmt2)));
         }
 
         protected T CompileAndGetModelAndExpression<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate)
@@ -172,9 +172,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CompileAndGetModelAndMultipleExpressions(program, (model, expression) => model.AnalyzeDataFlow(expression), treeindex, which);
         }
 
-        protected Tuple<IEnumerable<ControlFlowAnalysis>, IEnumerable<DataFlowAnalysis>> CompileAndAnalyzeControlAndDataFlowMultipleStatements(string program, int treeindex = 0, int which = -1)
+        protected (IEnumerable<ControlFlowAnalysis>, IEnumerable<DataFlowAnalysis>) CompileAndAnalyzeControlAndDataFlowMultipleStatements(string program, int treeindex = 0, int which = -1)
         {
-            return Tuple.Create(CompileAndAnalyzeMultipleControlFlowStatements(program, treeindex, which), CompileAndAnalyzeMultipleDataFlowStatements(program, treeindex, which));
+            return (CompileAndAnalyzeMultipleControlFlowStatements(program, treeindex, which), CompileAndAnalyzeMultipleDataFlowStatements(program, treeindex, which));
         }
 
         protected IEnumerable<T> CompileAndGetModelAndMultipleExpressions<T>(string program, Func<SemanticModel, ExpressionSyntax, T> analysisDelegate, int treeindex = 0, int which = -1)

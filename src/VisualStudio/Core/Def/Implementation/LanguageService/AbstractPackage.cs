@@ -27,36 +27,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ForegroundObject = new ForegroundThreadAffinitizedObject(componentModel.GetService<IThreadingContext>());
         }
 
-        protected void LoadComponentsInUIContextOnceSolutionFullyLoaded(CancellationToken cancellationToken)
+        protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
-            {
-                // if we are already in the right UI context, load it right away
-                LoadComponentsInUIContext(cancellationToken);
-            }
-            else
-            {
-                // load them when it is a right context.
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged += OnSolutionExistsAndFullyLoadedContext;
-            }
+            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
+            await LoadComponentsAsync(cancellationToken);
         }
 
-        private void OnSolutionExistsAndFullyLoadedContext(object sender, UIContextChangedEventArgs e)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (e.Activated)
-            {
-                // unsubscribe from it
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContext;
-
-                // load components
-                LoadComponentsInUIContext(CancellationToken.None);
-            }
-        }
-
-        protected abstract void LoadComponentsInUIContext(CancellationToken cancellationToken);
+        protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);
     }
 }

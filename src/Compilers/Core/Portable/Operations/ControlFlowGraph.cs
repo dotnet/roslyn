@@ -171,11 +171,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
 
-            if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
-            }
-
             try
             {
                 ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);

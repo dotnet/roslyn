@@ -37,7 +37,7 @@ function Run-Build([string]$rootDir, [string]$logFile = $null) {
         Write-Host "Restoring the packages"
         Restore-Project $dotnet "Roslyn.sln"
 
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:DeveloperBuild=false /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:ContinuousIntegrationBuild=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
         if ($logFile -ne $null) {
             $logFile = Join-Path $logDir $logFile
             $args += " /bl:$logFile"

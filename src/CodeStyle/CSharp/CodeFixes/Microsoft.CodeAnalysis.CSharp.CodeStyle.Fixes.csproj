@@ -6,13 +6,51 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
+    <CopyLocalLockFileDependencies>true</CopyLocalLockFileDependencies>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <IsAnalyzer>true</IsAnalyzer>
+    <NuSpecPackageId>Microsoft.CodeAnalysis.CSharp.CodeStyle</NuSpecPackageId>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") code style analyzers for C#.
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+
+  <Target Name="_GetFilesToPackage">
+    <ItemGroup>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\Microsoft.CodeAnalysis.CodeStyle.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+
+      <!-- Workspace layer dependencies -->
+      <_WorkspaceFile Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.VisualStudio.CodingConventions.dll"/>
+      <_WorkspaceFile Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.CodeAnalysis.Workspaces.dll"/>
+      <_WorkspaceFile Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.Workspaces.resources.dll"/>
+      <_WorkspaceFile Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\Microsoft.CodeAnalysis.CSharp.Workspaces.dll"/>
+      <_WorkspaceFile Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\**\Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll"/>
+
+      <!-- .NET Standard dependencies of the workspace layer -->
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\System.Composition.AttributedModel.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\System.Composition.Hosting.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\System.Composition.Runtime.dll"/>
+      <_File Include="$(ArtifactsConfigurationDir)Dlls\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\System.Composition.TypedParts.dll"/>
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+      <TfmSpecificPackageFile Include="@(_WorkspaceFile)" PackagePath="analyzers/dotnet/workspace/%(_WorkspaceFile.RecursiveDir)%(_WorkspaceFile.FileName)%(_WorkspaceFile.Extension)" />
+    </ItemGroup>
+  </Target>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion)" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
@@ -20,7 +58,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.Tests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CSharpCodeStyleFixesResources.Designer.cs">

@@ -20,9 +20,23 @@ namespace Roslyn.Test.Utilities
         public const string NoPiaNeedsDesktop = "NoPia is only supported on desktop";
         public const string NetModulesNeedDesktop = "Net Modules are only supported on desktop";
         public const string RestrictedTypesNeedDesktop = "Restricted types are only supported on desktop";
-        public const string TestExecutionNeedsDesktopTypes = "Test execution depends on desktop types";
         public const string NativePdbRequiresDesktop = "Native PDB tests can only execute on windows desktop";
         public const string TestExecutionHasNewLineDependency = "Test execution depends on OS specific new lines";
+
+        /// <summary>
+        /// There are certain types which only appear in the desktop runtime and tests which depend on them 
+        /// can't be run on CoreClr.
+        /// </summary>
+        public const string TestExecutionNeedsDesktopTypes = "Test execution depends on desktop types";
+
+        /// <summary>
+        /// There are certain types, like PermissionSet, which are only available by default in runtimes that exist
+        /// on Windows. These types can be added using extra assemblies but that is not done in our unit tests.
+        /// </summary>
+        public const string TestExecutionNeedsWindowsTypes = "Test execution depends on windows only types";
+
+        public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
+        public const string TestHasWindowsPaths = "Test depends on Windows style paths";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -115,6 +129,7 @@ namespace Roslyn.Test.Utilities
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsWindowsDesktop => IsWindows && IsDesktop;
     }
 
     public class x86 : ExecutionCondition
@@ -166,7 +181,7 @@ namespace Roslyn.Test.Utilities
 
     public class WindowsDesktopOnly : ExecutionCondition
     {
-        public override bool ShouldSkip => !(ExecutionConditionUtil.IsWindows && ExecutionConditionUtil.IsDesktop);
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsWindowsDesktop;
         public override string SkipReason => "Test only supported on Windows desktop";
     }
 

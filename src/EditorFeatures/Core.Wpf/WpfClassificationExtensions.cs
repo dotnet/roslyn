@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             string classificationFormatMap = null,
             bool wrap = true)
         {
-
             var textBlock = new TextBlock
             {
                 TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap,
                 TextTrimming = wrap ? TextTrimming.None : TextTrimming.CharacterEllipsis
             };
+
             textBlock.SetDefaultTextProperties(formatMap);
             textBlock.Inlines.AddRange(inlines);
 

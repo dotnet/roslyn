@@ -58,5 +58,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public static bool operator !=(VirtualChar char1, VirtualChar char2)
             => !(char1 == char2);
+
+        public static implicit operator char(VirtualChar vc) => vc.Char;
     }
 }

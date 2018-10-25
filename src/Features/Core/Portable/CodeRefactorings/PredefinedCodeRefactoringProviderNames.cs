@@ -4,8 +4,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal static class PredefinedCodeRefactoringProviderNames
     {
+        public const string AddAwait = "Add Await Code Action Provider";
         public const string AddFileBanner = "Add Banner To File Code Action Provider";
         public const string AddConstructorParametersFromMembers = "Add Parameters From Members Code Action Provider";
+        public const string AddMissingImports = "Add Missing Imports On Paste Code Action Provider";
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string ConvertAnonymousTypeToClass = "Convert Anonymous Type to Class Code Action Provider";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";

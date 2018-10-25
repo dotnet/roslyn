@@ -110,54 +110,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void TestFlowAnalysisFeatureFlag()
-        {
-            var source = @"
-class C
-{
-    void M()
-    {
-    }
-}";
-            var tree = CSharpSyntaxTree.ParseText(source);            
-
-            void testFlowAnalysisFeatureFlagCore(bool expectException)
-            {
-                var compilation = CSharpCompilation.Create("c", new[] { tree });
-                var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
-                var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
-                var operation = (IMethodBodyOperation)model.GetOperation(methodBodySyntax);
-
-                if (expectException)
-                {
-                    Assert.Throws<InvalidOperationException>(() => ControlFlowGraph.Create(operation));
-                }
-                else
-                {
-                    ControlFlowGraph graph = ControlFlowGraph.Create(operation);
-                    Assert.NotNull(graph);
-                    Assert.NotEmpty(graph.Blocks);
-                }
-            }
-
-            // Test without feature flag.
-            testFlowAnalysisFeatureFlagCore(expectException: true);
-
-            // Test with feature flag.
-            tree = CSharpSyntaxTree.ParseText(source);
-            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
-            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
-            testFlowAnalysisFeatureFlagCore(expectException: false);
-
-            // Test with feature flag, case-insensitive.
-            tree = CSharpSyntaxTree.ParseText(source);
-            options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("Flow-Analysis", "true") });
-            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
-            testFlowAnalysisFeatureFlagCore(expectException: false);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
         public void TestGetFlowGraphNullArgument()
         {
             Assert.Throws<ArgumentNullException>(() => ControlFlowGraph.Create((IBlockOperation)null));
@@ -311,8 +263,6 @@ class C
     }
 }";
             var tree = CSharpSyntaxTree.ParseText(source);
-            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
-            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
             var compilation = CSharpCompilation.Create("c", new[] { tree });
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
             var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();

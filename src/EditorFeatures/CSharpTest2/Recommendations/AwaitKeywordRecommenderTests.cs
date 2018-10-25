@@ -59,6 +59,38 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestUsingStatement()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    void goo()
+    {
+        using $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestUsingDirective()
+        {
+            await VerifyAbsenceAsync("using $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestForeachStatement()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    void goo()
+    {
+        foreach $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInQuery()
         {
             await VerifyAbsenceAsync(@"

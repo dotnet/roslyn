@@ -783,10 +783,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.True(state.Contains(id) || isCaptureFromEnclosingGraph(id),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].");
 
+                    // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
+                    // or they should come from the enclosing region.
                     Assert.True(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
                                 ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
                                      isIncrementedNullableForToLoopControlVariable(reference) ||
-                                     isConditionalAccessReceiver(reference)) && 
+                                     isConditionalAccessReceiver(reference) ||
+                                     isCoalesceAssignmentTarget(reference)) &&
                                  block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?");
                 }
@@ -823,6 +826,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return false;
+            }
+
+            bool isCoalesceAssignmentTarget(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                CSharpSyntaxNode referenceSyntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)reference.Syntax);
+                return referenceSyntax.Parent is AssignmentExpressionSyntax conditionalAccess &&
+                       conditionalAccess.IsKind(CSharp.SyntaxKind.CoalesceAssignmentExpression) &&
+                       conditionalAccess.Left == referenceSyntax;
             }
 
             bool isFirstOperandOfDynamicOrUserDefinedLogicalOperator(IFlowCaptureReferenceOperation reference)
@@ -1664,6 +1680,7 @@ endRegion:
                 case OperationKind.AnonymousFunction:
                 case OperationKind.ObjectOrCollectionInitializer:
                 case OperationKind.LocalFunction:
+                case OperationKind.CoalesceAssignment:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -1747,6 +1764,8 @@ endRegion:
                 case OperationKind.CaughtException:
                 case OperationKind.StaticLocalInitializationSemaphore:
                 case OperationKind.Discard:
+                case OperationKind.ReDim:
+                case OperationKind.ReDimClause:
                     return true;
             }
 

@@ -623,7 +623,7 @@ x = nothing
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionHasCOMInterop)>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant()
 
             Dim libSource =
@@ -773,7 +773,7 @@ End Module
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionHasCOMInterop)>
         Public Sub OptionalWithMarshallAs()
             Dim libSource =
             <compilation>
@@ -2040,7 +2040,7 @@ End Module
 ")
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestHasWindowsPaths)>
         Public Sub TestCallerFilePath2()
             Dim source1 = "
 Imports System.Runtime.CompilerServices

@@ -238,7 +238,7 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal(
-$@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
+$@"warning CS8700: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
 
@@ -274,7 +274,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal(
-                $"error CS8501: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
+                $"error CS8701: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd());
         }
 
@@ -1466,7 +1466,8 @@ d.cs
         [Theory]
         [InlineData("iso-3")]
         [InlineData("iso1")]
-        [InlineData("8")]
+        [InlineData("8.1")]
+        [InlineData("9")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1517,11 +1518,11 @@ d.cs
         {
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
-            // - update the IDE drop-down for selecting Language Version
+            // - update the IDE drop-down for selecting Language Version (in project-systems repo)
             // - update all the tests that call this canary
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "latest" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
-            // For minor versions, the format should be "x.y", such as "7.1"
+            // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
 
         [Fact]
@@ -1532,7 +1533,8 @@ d.cs
                 .Except(new[] { LanguageVersion.Default, LanguageVersion.Latest })
                 .Select(v => v.GetErrorCode());
 
-            var errorCodes = new[] {
+            var errorCodes = new[]
+            {
                 ErrorCode.ERR_FeatureNotAvailableInVersion1,
                 ErrorCode.ERR_FeatureNotAvailableInVersion2,
                 ErrorCode.ERR_FeatureNotAvailableInVersion3,
@@ -1542,7 +1544,8 @@ d.cs
                 ErrorCode.ERR_FeatureNotAvailableInVersion7,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_1,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_2,
-                ErrorCode.ERR_FeatureNotAvailableInVersion7_3
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_3,
+                ErrorCode.ERR_FeatureNotAvailableInVersion8,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1551,22 +1554,26 @@ d.cs
             LanguageVersionAdded_Canary();
         }
 
-        [Fact]
-        public void LanguageVersion_MapSpecifiedToEffectiveVersion()
+        [Theory,
+            InlineData(LanguageVersion.CSharp1, LanguageVersion.CSharp1),
+            InlineData(LanguageVersion.CSharp2, LanguageVersion.CSharp2),
+            InlineData(LanguageVersion.CSharp3, LanguageVersion.CSharp3),
+            InlineData(LanguageVersion.CSharp4, LanguageVersion.CSharp4),
+            InlineData(LanguageVersion.CSharp5, LanguageVersion.CSharp5),
+            InlineData(LanguageVersion.CSharp6, LanguageVersion.CSharp6),
+            InlineData(LanguageVersion.CSharp7, LanguageVersion.CSharp7),
+            InlineData(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1),
+            InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
+            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.CSharp8),
+            InlineData(LanguageVersion.CSharp7, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.Latest)]
+        public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
-            Assert.Equal(LanguageVersion.CSharp1, LanguageVersion.CSharp1.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp2, LanguageVersion.CSharp2.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp3, LanguageVersion.CSharp3.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp4, LanguageVersion.CSharp4.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp5, LanguageVersion.CSharp5.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(expectedMappedVersion, input.MapSpecifiedToEffectiveVersion());
+            Assert.True(expectedMappedVersion.IsValid());
 
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            // https://github.com/dotnet/roslyn/issues/29819 Once we are ready to remove the beta tag from C# 8.0, we should update Default/Latest accordingly
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -1595,6 +1602,9 @@ d.cs
             InlineData("7.1", true, LanguageVersion.CSharp7_1),
             InlineData("7.2", true, LanguageVersion.CSharp7_2),
             InlineData("7.3", true, LanguageVersion.CSharp7_3),
+            InlineData("8", true, LanguageVersion.CSharp8),
+            InlineData("8.0", true, LanguageVersion.CSharp8),
+            InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
@@ -4233,6 +4243,88 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         }
 
         [Fact]
+        public void Nullable()
+        {
+            var parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'False' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "False", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.0. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.0", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:8", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:8", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:8", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable", "/langversion:8", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable-", "/langversion:8", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:8", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/nullable:"));
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.3", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable-", "/langversion:7.3", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'False' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "False", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.False(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:7.3", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS8630: Invalid 'nullable' value: 'True' for C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "True", "7.3", "8.0").WithLocation(1, 1)
+                );
+            Assert.True(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:8" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+
+            parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:7.3" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Null(parsedArgs.CompilationOptions.Nullable);
+        }
+
+        [Fact]
         public void Usings()
         {
             CSharpCommandLineArguments parsedArgs;
@@ -6699,7 +6791,7 @@ public class C
             // Bug#15021: breaking change - empty source no error with /nostdlib
             src.WriteAllText("namespace System { }");
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/langversion:8", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -6839,12 +6931,12 @@ namespace System
             src.WriteAllText(source + mslib);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
             string OriginalSource = src.Path;
@@ -6852,7 +6944,7 @@ namespace System
             src = Temp.CreateFile("NoStdLib02b.cs");
             src.WriteAllText(mslib);
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -9744,7 +9836,7 @@ public class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.cs" });
+                new[] { "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "/langversion:7", "a.cs" });
 
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9860,7 +9952,7 @@ class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.cs" });
+                new[] { "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/langversion:7", "/doc:doc.xml", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal("", outWriter.ToString());
             Assert.Equal(0, exitCode);

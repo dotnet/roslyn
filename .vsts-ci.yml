@@ -44,7 +44,7 @@ steps:
         /p:TreatWarningsAsErrors=true 
         /p:DeployExtension=false 
         /p:TrackFileAccess=false
-        /p:OfficialBuild=true 
+        /p:OfficialBuildId=$(BUILD.BUILDNUMBER)
         /p:VisualStudioVersion=14.0 
         /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log 
         /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn 
@@ -65,6 +65,7 @@ steps:
     logProjectEvents: false
 
 - task: PublishBuildArtifacts@1
+  displayName: Publish Logs
   inputs:
     PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
     ArtifactName: 'Build Diagnostic Files'
@@ -73,6 +74,7 @@ steps:
   condition: succeededOrFailed()
 
 - task: PublishTestResults@1
+  displayName: Publish Test Results
   inputs:
     testRunner: XUnit
     testResultsFiles: '**/xUnitResults/*.xml'
@@ -83,7 +85,7 @@ steps:
 - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
   displayName: Upload VSTS Drop
   inputs:
-    DropFolder: 'Binaries\$(BuildConfiguration)\Insertion'
+    DropFolder: 'Binaries\VSSetup\$(BuildConfiguration)\Insertion'
   condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
 
 - task: NuGetCommand@2
@@ -96,8 +98,10 @@ steps:
     allowPackageConflicts: true
   condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
 
+# Publish VSTS artifact that the RoslynInsertionTool is able to find by its name.
+# The backing storage of the artifact is a file share.
 - task: PublishBuildArtifacts@1
-  displayName: Publish Drop (parallel)
+  displayName: Publish Drop - Binaries
   inputs:
     PathtoPublish: 'Binaries\$(BuildConfiguration)'
     ArtifactName: '$(Build.BuildNumber)'
@@ -105,6 +109,14 @@ steps:
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
     Parallel: true
     ParallelCount: 64
+  condition: succeededOrFailed()
+
+# Copy additional files to the drop directory
+- task: PowerShell@2
+  displayName: Publish Drop - VSSetup
+  inputs:
+    arguments: '-Source Binaries\VSSetup\$(BuildConfiguration)\Insertion -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Insertion -ParallelCount 8'
+    filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
 - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1

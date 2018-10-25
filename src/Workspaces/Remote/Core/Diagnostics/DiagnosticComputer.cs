@@ -169,11 +169,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
         {
-            if (!(userOptions is IInternalOptionSet internalUserOptions))
-                throw new NotSupportedException();
-
             var newOptions = workspaceOptions;
-            foreach (var key in internalUserOptions.GetChangedOptions(workspaceOptions))
+            foreach (var key in userOptions.GetChangedOptions(workspaceOptions))
             {
                 newOptions = newOptions.WithChangedOption(key, userOptions.GetOption(key));
             }
