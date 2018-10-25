@@ -35,23 +35,4 @@
   <Import Project="OptimizationData.targets"/>
   <Import Project="SymStore.targets"/>
 
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.LocateDotNet" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
-
-  <Target Name="InitializeDotNetToolPath" Condition="'$(DotNetTool)' == ''">
-    <!-- Respect environment variable for the .NET install directory if set; otherwise, use the repo default location -->
-    <PropertyGroup>
-      <_DotNetRoot>$(DOTNET_INSTALL_DIR)</_DotNetRoot>
-      <_DotNetRoot Condition="'$(_DotNetRoot)' == ''">$(RepoRoot).dotnet\</_DotNetRoot>
-      <_DotNetRoot Condition="!HasTrailingSlash('$(_DotNetRoot)')">$(_DotNetRoot)\</_DotNetRoot>
-
-      <DotNetTool Condition="'$(OS)' == 'Windows_NT'">$(_DotNetRoot)dotnet.exe</DotNetTool>
-      <DotNetTool Condition="'$(OS)' != 'Windows_NT'">$(_DotNetRoot)dotnet</DotNetTool>
-    </PropertyGroup>
-
-    <!-- Find dotnet on PATHs -->
-    <Microsoft.DotNet.Arcade.Sdk.LocateDotNet RepositoryRoot="$(RepoRoot)" Condition="!Exists('$(DotNetTool)')">
-      <Output TaskParameter="DotNetPath" PropertyName="DotNetTool" />
-    </Microsoft.DotNet.Arcade.Sdk.LocateDotNet>
-  </Target>
-
 </Project>

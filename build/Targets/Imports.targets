@@ -118,17 +118,16 @@
           DestinationFolder="$(OutDir)" />
   </Target>
 
-  <!-- Guard against MSBuild picking the wrong SDK version. Its resolver does not always properly enforce
-       the SDK specified in global.json 
-       
-       https://github.com/dotnet/core-setup/issues/3805
-       -->
-  <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core'">
-    <ValidateBuildEnvironment
-      MSBuildBinPath="$(MSBuildBinPath)"
-      MSBuildMinimumFileVersion="15.7.0"
-      MSBuildMinimumDisplayVersion="MSBuild 15.7"
-      />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+
+  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild">
+    <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
+      <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
+    </CompareVersions>
+  
+    <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
+                 Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
 
   <Target Name="DisableAnalyzers"
