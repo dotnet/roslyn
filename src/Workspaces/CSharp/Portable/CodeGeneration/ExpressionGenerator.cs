@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -265,14 +264,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? negate(value)
                 : value;
 
-            var suffix = DetermineSuffix(type, value);
+            var suffix = DetermineSuffix(type, nonNegativeValue);
 
             var stringValue = negative && nonNegativeValue.Equals(value)
                 ? integerMinValueString
-                : ((IFormattable)value).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
+                : ((IFormattable)nonNegativeValue).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
 
             var literal = SyntaxFactory.LiteralExpression(
-               SyntaxKind.NumericLiteralExpression, tokenFactory(stringValue, value));
+               SyntaxKind.NumericLiteralExpression, tokenFactory(stringValue, nonNegativeValue));
 
             return negative
                 ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, literal)

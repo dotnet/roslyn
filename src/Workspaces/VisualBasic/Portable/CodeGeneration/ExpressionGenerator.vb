@@ -196,15 +196,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim typeSuffix As TypeCharacter = TypeCharacter.None
             Dim suffix As String = String.Empty
-            DetermineSuffix(type, value, typeSuffix, suffix)
+            DetermineSuffix(type, nonNegativeValue, typeSuffix, suffix)
 
             Dim literal = If(negative AndAlso nonNegativeValue.Equals(value),
                 integerMinValueString,
-                DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix)
+                DirectCast(nonNegativeValue, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix)
 
             Dim expression As ExpressionSyntax = SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
                     literal, LiteralBase.Decimal, typeSuffix,
-                    IntegerUtilities.ToUInt64(value)))
+                    IntegerUtilities.ToUInt64(nonNegativeValue)))
 
             If negative Then
                 expression = SyntaxFactory.UnaryMinusExpression(expression)
