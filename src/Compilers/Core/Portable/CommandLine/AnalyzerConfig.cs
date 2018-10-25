@@ -52,6 +52,42 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableHashSet<string> ReservedValues { get; }
             = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] { "unset" });
 
+        private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
+            = new DiagnosticDescriptor(
+                "InvalidSeverityInAnalyzerConfig",
+                CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig_Title,
+                CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig,
+                "AnalyzerConfig",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+        public Section GlobalSection { get; }
+
+        /// <summary>
+        /// The directory the editorconfig was contained in, with all directory separators
+        /// replaced with '/'.
+        /// </summary>
+        public string NormalizedDirectory { get; }
+
+        /// <summary>
+        /// The path passed to <see cref="AnalyzerConfig.Parse(string, string)"/> during construction.
+        /// </summary>
+        public string PathToFile { get; }
+
+        /// <summary>
+        /// Comparer for sorting <see cref="AnalyzerConfig"/> files by <see cref="NormalizedDirectory"/> path length.
+        /// </summary>
+        internal static Comparer<AnalyzerConfig> DirectoryLengthComparer { get; } = Comparer<AnalyzerConfig>.Create(
+            (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
+
+        public ImmutableArray<Section> NamedSections { get; }
+
+        /// <summary>
+        /// Gets whether this editorconfig is a topmost editorconfig.
+        /// </summary>
+        public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+
+
         /// <summary>
         /// Holds results from <see cref="GetAnalyzerConfigOptions{TStringList, TACList}(TStringList, TACList)"/>.
         /// </summary>
@@ -66,7 +102,6 @@ namespace Microsoft.CodeAnalysis
             /// <see cref="GetAnalyzerConfigOptions{TStringList, TACList}(TStringList, TACList)" />
             /// </remarks>
             public ImmutableArray<TreeOptions> TreeOptions { get; }
-
             /// <summary>
             /// Options that do not have any special compiler behavior and are passed to analyzers as-is.
             /// If there are no options for a given source path, that entry in the array is null.
@@ -158,10 +193,10 @@ namespace Microsoft.CodeAnalysis
                 CaseInsensitiveComparison.Comparer);
             foreach (var sourceFile in sourcePaths)
             {
-                var normalizedPath = pathWithForwardSlashSeparators(sourceFile);
+                var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourceFile);
                 // The editorconfig paths are sorted from shortest to longest, so matches
                 // are resolved from most nested to least nested, where last setting wins
-                foreach (AnalyzerConfig config in analyzerConfigs)
+                foreach (var config in analyzerConfigs)
                 {
                     if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
                     {
@@ -203,12 +238,6 @@ namespace Microsoft.CodeAnalysis
                 allAnalyzerOptions.ToImmutableAndFree(),
                 diagnosticBuilder.ToImmutableAndFree());
 
-            // Takes a system-native path and turns it into one which has '/' for the directory separators.
-            string pathWithForwardSlashSeparators(string path)
-                => PathUtilities.DirectorySeparatorChar == '/'
-                    ? path
-                    : path.Replace(PathUtilities.DirectorySeparatorChar, '/');
-
             void addOptions(
                 AnalyzerConfig.Section section,
                 TreeOptions.Builder treeBuilder,
@@ -221,12 +250,18 @@ namespace Microsoft.CodeAnalysis
                 foreach (var (key, value) in section.Properties)
                 {
                     // Keys are lowercased in editorconfig parsing
+                    int diagIdLength = -1;
                     if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
                         key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
                     {
+                        diagIdLength = key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length);
+                    }
+
+                    if (diagIdLength >= 0)
+                    {
                         var diagId = key.Substring(
                             DiagnosticOptionPrefix.Length,
-                            key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length));
+                            diagIdLength);
 
                         ReportDiagnostic? severity;
                         var comparer = StringComparer.OrdinalIgnoreCase;
@@ -278,36 +313,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
-            = new DiagnosticDescriptor(
-                "InvalidSeverityInAnalyzerConfig",
-                CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig_Title,
-                CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig,
-                "AnalyzerConfig",
-                DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-        public Section GlobalSection { get; }
-
-        /// <summary>
-        /// The directory the editorconfig was contained in, with all directory separators
-        /// replaced with '/'.
-        /// </summary>
-        public string NormalizedDirectory { get; }
-
-        /// <summary>
-        /// The path passed to <see cref="AnalyzerConfig.Parse(string, string)"/> during construction.
-        /// </summary>
-        public string PathToFile { get; }
-
-        /// <summary>
-        /// Comparer for sorting <see cref="AnalyzerConfig"/> files by <see cref="NormalizedDirectory"/> path length.
-        /// </summary>
-        internal static Comparer<AnalyzerConfig> DirectoryLengthComparer { get; } = Comparer<AnalyzerConfig>.Create(
-            (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
-
-        public ImmutableArray<Section> NamedSections { get; }
-
         private AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
@@ -319,15 +324,8 @@ namespace Microsoft.CodeAnalysis
 
             // Find the containing directory and normalize the path separators
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
-            NormalizedDirectory = PathUtilities.DirectorySeparatorChar == '/'
-                ? directory
-                : directory.Replace(PathUtilities.DirectorySeparatorChar, '/');
+            NormalizedDirectory = PathUtilities.NormalizeWithForwardSlash(directory);
         }
-
-        /// <summary>
-        /// Gets whether this editorconfig is a the topmost editorconfig.
-        /// </summary>
-        public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         /// <summary>
         /// Parses an editor config file text located at the given path. No parsing
@@ -371,17 +369,7 @@ namespace Microsoft.CodeAnalysis
                     var sectionMatches = s_sectionMatcher.Matches(line);
                     if (sectionMatches.Count > 0 && sectionMatches[0].Groups.Count > 0)
                     {
-                        // Close out the previous section
-                        var section = new Section(activeSectionName, activeSectionProperties.ToImmutable());
-                        if (activeSectionName == "")
-                        {
-                            // This is the global section
-                            globalSection = section;
-                        }
-                        else
-                        {
-                            namedSectionBuilder.Add(section);
-                        }
+                        addNewSection();
 
                         var sectionName = sectionMatches[0].Groups[1].Value;
                         Debug.Assert(!string.IsNullOrEmpty(sectionName));
@@ -414,26 +402,31 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // Close out the last section
-            var lastSection = new Section(activeSectionName, activeSectionProperties.ToImmutable());
-            if (activeSectionName == "")
-            {
-                // This is the global section
-                globalSection = lastSection;
-            }
-            else
-            {
-                namedSectionBuilder.Add(lastSection);
-            }
+            // Add the last section
+            addNewSection();
 
             return new AnalyzerConfig(globalSection, namedSectionBuilder.ToImmutable(), pathToFile);
+
+            void addNewSection()
+            {
+                // Close out the previous section
+                var previousSection = new Section(activeSectionName, activeSectionProperties.ToImmutable());
+                if (activeSectionName == "")
+                {
+                    // This is the global section
+                    globalSection = previousSection;
+                }
+                else
+                {
+                    namedSectionBuilder.Add(previousSection);
+                }
+            }
         }
 
         private static bool IsComment(string line)
         {
-            for (int i = 0; i < line.Length; i++)
+            foreach (char c in line)
             {
-                char c = line[i];
                 if (!char.IsWhiteSpace(c))
                 {
                     return c == '#' || c == ';';

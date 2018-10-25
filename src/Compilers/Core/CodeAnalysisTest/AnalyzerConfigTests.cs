@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
@@ -847,6 +848,66 @@ dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
             Assert.Throws<ArgumentException>(() => Parse("", "Z:"));
             Assert.Throws<ArgumentException>(() => Parse("", "Z:\\"));
             Assert.Throws<ArgumentException>(() => Parse("", ":\\.editorconfig"));
+        }
+
+        [Fact]
+        public void EmptyDiagnosticId()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic..severity = warn
+dotnet_diagnostic..some_key = some_val", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("", ReportDiagnostic.Warn)),
+            }, options.TreeOptions);
+
+            VerifyAnalyzerOptions(
+                new[]
+                {
+                    new[]
+                    {
+                        ("dotnet_diagnostic..some_key", "some_val")
+                    }
+                },
+                options);
+        }
+
+        [Fact]
+        public void NoDiagnosticId()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.severity = warn
+dotnet_diagnostic.some_key = some_val", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new ImmutableDictionary<string, ReportDiagnostic>[]
+            {
+                null
+            }, options.TreeOptions);
+
+            VerifyAnalyzerOptions(
+                new[]
+                {
+                    new[]
+                    {
+                        ("dotnet_diagnostic.severity", "warn"),
+                        ("dotnet_diagnostic.some_key", "some_val")
+                    }
+                },
+                options);
         }
     }
 }
