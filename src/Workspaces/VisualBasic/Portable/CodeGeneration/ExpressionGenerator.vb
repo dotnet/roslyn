@@ -65,13 +65,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ElseIf TypeOf value Is Char Then
                 Return GenerateCharLiteralExpression(DirectCast(value, Char))
             ElseIf TypeOf value Is SByte Then
-                Return GenerateSByteLiteralExpression(type, DirectCast(value, SByte), canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_SByte, DirectCast(value, SByte), canUseFieldReference, LiteralSpecialValues.SByteSpecialValues, Function(x) x < 0, Function(x) -x, Function(x) x = SByte.MinValue, "128")
             ElseIf TypeOf value Is Short Then
-                Return GenerateShortLiteralExpression(type, DirectCast(value, Short), canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int16, DirectCast(value, Short), canUseFieldReference, LiteralSpecialValues.Int16SpecialValues, Function(x) x < 0, Function(x) -x, Function(x) x = Short.MinValue, "32768")
             ElseIf TypeOf value Is Integer Then
-                Return GenerateIntegerLiteralExpression(type, DirectCast(value, Integer), canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int32, DirectCast(value, Integer), canUseFieldReference, LiteralSpecialValues.Int32SpecialValues, Function(x) x < 0, Function(x) -x, Function(x) x = Integer.MinValue, "2147483648")
             ElseIf TypeOf value Is Long Then
-                Return GenerateLongLiteralExpression(type, DirectCast(value, Long), canUseFieldReference)
+                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int64, DirectCast(value, Long), canUseFieldReference, LiteralSpecialValues.Int64SpecialValues, Function(x) x < 0, Function(x) -x, Function(x) x = Long.MinValue, "9223372036854775808")
             ElseIf TypeOf value Is Byte Then
                 Return GenerateNonNegativeIntegralLiteralExpression(type, SpecialType.System_Byte, DirectCast(value, Byte), canUseFieldReference, LiteralSpecialValues.ByteSpecialValues)
             ElseIf TypeOf value Is UShort Then
@@ -166,7 +166,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 type, specialType, value, canUseFieldReference, specialValues,
                 Function(v) False, Function(v)
                                        Throw New InvalidOperationException()
-                                   End Function)
+                                   End Function,
+                Function(v) False, Nothing)
         End Function
 
         Private Function GenerateIntegralLiteralExpression(Of TStructure)(
@@ -176,7 +177,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 canUseFieldReference As Boolean,
                 specialValues As IEnumerable(Of KeyValuePair(Of TStructure, String)),
                 isNegative As Func(Of TStructure, Boolean),
-                negate As Func(Of TStructure, TStructure)) As ExpressionSyntax
+                negate As Func(Of TStructure, TStructure),
+                isSignedIntegerMinValue As Func(Of TStructure, Boolean),
+                signedIntegerMinValueString As String) As ExpressionSyntax
 
             If canUseFieldReference Then
                 Dim field = GenerateFieldReference(specialType, value, specialValues)
@@ -185,8 +188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
             End If
 
+            Dim signedIntegerMinValue = isSignedIntegerMinValue(value)
             Dim negative = isNegative(value)
-            If negative Then
+
+            If negative AndAlso Not signedIntegerMinValue Then
                 value = negate(value)
             End If
 
@@ -194,7 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim suffix As String = String.Empty
             DetermineSuffix(type, value, typeSuffix, suffix)
 
-            Dim literal = DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix
+            Dim literal = If(signedIntegerMinValue,
+                signedIntegerMinValueString,
+                DirectCast(value, IFormattable).ToString(Nothing, CultureInfo.InvariantCulture) & suffix)
+
             Dim expression As ExpressionSyntax = SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
                     literal, LiteralBase.Decimal, typeSuffix,
                     IntegerUtilities.ToUInt64(value)))
@@ -210,58 +218,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return expression
-        End Function
-
-        Private Function GenerateSByteLiteralExpression(type As ITypeSymbol,
-                                                       value As SByte,
-                                                       canUseFieldReference As Boolean) As ExpressionSyntax
-            If canUseFieldReference OrElse value > SByte.MinValue Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_SByte, value, canUseFieldReference, LiteralSpecialValues.SByteSpecialValues, Function(t) t < 0, Function(t) -t)
-            End If
-
-            ' We have to special case how Short.MinValue is printed when we can't refer to the 
-            ' field directly.
-            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                "-128", LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUInt64(value)))
-        End Function
-
-        Private Function GenerateShortLiteralExpression(type As ITypeSymbol,
-                                                       value As Short,
-                                                       canUseFieldReference As Boolean) As ExpressionSyntax
-            If canUseFieldReference OrElse value > Short.MinValue Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int16, value, canUseFieldReference, LiteralSpecialValues.Int16SpecialValues, Function(t) t < 0, Function(t) -t)
-            End If
-
-            ' We have to special case how Short.MinValue is printed when we can't refer to the 
-            ' field directly.
-            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                "-32768", LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUInt64(value)))
-        End Function
-
-        Private Function GenerateIntegerLiteralExpression(type As ITypeSymbol,
-                                                       value As Integer,
-                                                       canUseFieldReference As Boolean) As ExpressionSyntax
-            If canUseFieldReference OrElse value > Integer.MinValue Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int32, value, canUseFieldReference, LiteralSpecialValues.Int32SpecialValues, Function(t) t < 0, Function(t) -t)
-            End If
-
-            ' We have to special case how Integer.MinValue is printed when we can't refer to the 
-            ' field directly.
-            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                "-2147483648", LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUInt64(value)))
-        End Function
-
-        Private Function GenerateLongLiteralExpression(type As ITypeSymbol,
-                                                       value As Long,
-                                                       canUseFieldReference As Boolean) As ExpressionSyntax
-            If canUseFieldReference OrElse value > Long.MinValue Then
-                Return GenerateIntegralLiteralExpression(type, SpecialType.System_Int64, value, canUseFieldReference, LiteralSpecialValues.Int64SpecialValues, Function(t) t < 0, Function(t) -t)
-            End If
-
-            ' We have to special case how Long.MinValue is printed when we can't refer to the 
-            ' field directly.
-            Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(
-                "-9223372036854775808", LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUInt64(value)))
         End Function
 
         Private Sub DetermineSuffix(type As ITypeSymbol,
