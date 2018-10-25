@@ -123,11 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        public void SetProperty(string name, object value)
-        {
-            // TODO
-        }
-
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
         {
             referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
