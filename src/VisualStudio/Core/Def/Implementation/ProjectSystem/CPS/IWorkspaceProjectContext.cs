@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -24,6 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Options.
         void SetOptions(string commandLineForOptions);
+
+        // Other project properties.
+        void SetProperty(string name, object value);
 
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
