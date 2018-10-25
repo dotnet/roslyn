@@ -43,32 +43,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return builder.ToImmutableArray();
             }
 
-            protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
-            {
-                if (operation is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.IsTaintedProperty(propertyReferenceOperation))
-                {
-                    return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
-                }
-
-                IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
-                if (referenceeOperation != null)
-                {
-                    TaintedDataAbstractValue referenceeAbstractValue = this.GetCachedAbstractValue(referenceeOperation);
-                    if (referenceeAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                    {
-                        return referenceeAbstractValue;
-                    }
-                }
-
-                if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
-                {
-                    return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
-                }
-
-                return defaultValue;
-            }
-
             protected override void AddTrackedEntities(ImmutableArray<AnalysisEntity>.Builder builder)
             {
                 this.CurrentAnalysisData.AddTrackedEntities(builder);
@@ -140,10 +114,72 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.CurrentAnalysisData.RemoveEntries(analysisEntity);
             }
 
+            public override TaintedDataAbstractValue DefaultVisit(IOperation operation, object argument)
+            {
+                List<TaintedDataAbstractValue> taintedValues = null;
+                foreach (IOperation childOperation in operation.Children)
+                {
+                    TaintedDataAbstractValue childValue = Visit(childOperation, argument);
+                    if (childValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                    {
+                        if (taintedValues == null)
+                        {
+                            taintedValues = new List<TaintedDataAbstractValue>();
+                        }
+
+                        taintedValues.Add(childValue);
+                    }
+                }
+
+                if (taintedValues != null)
+                {
+                    if (taintedValues.Count == 1)
+                    {
+                        return taintedValues[0];
+                    }
+                    else
+                    {
+                        return TaintedDataAbstractValue.MergeTainted(taintedValues);
+                    }
+                }
+                else
+                {
+                    return ValueDomain.UnknownOrMayBeValue;
+                }
+            }
+
+            protected override TaintedDataAbstractValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TaintedDataAbstractValue defaultValue)
+            {
+                // If the property reference itself is a tainted data source
+                if (operation is IPropertyReferenceOperation propertyReferenceOperation
+                    && this.IsTaintedProperty(propertyReferenceOperation))
+                {
+                    return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
+                }
+
+                // If we're accessing a property from a tainted object
+                IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
+                if (referenceeOperation != null)
+                {
+                    TaintedDataAbstractValue referenceeAbstractValue = this.GetCachedAbstractValue(referenceeOperation);
+                    if (referenceeAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                    {
+                        return referenceeAbstractValue;
+                    }
+                }
+
+                if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
+                {
+                    return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
+                }
+
+                return defaultValue;
+            }
+
             // So we can hook into constructor calls.
             public override TaintedDataAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
-                var value = base.VisitObjectCreation(operation, argument);
+                TaintedDataAbstractValue baseValue = base.VisitObjectCreation(operation, argument);
                 IEnumerable<IArgumentOperation> taintedArguments = operation.Arguments.Where(
                     a => this.GetCachedAbstractValue(a).Kind == TaintedDataAbstractValueKind.Tainted
                          && (a.Parameter.RefKind == RefKind.None
@@ -154,24 +190,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, taintedArguments, operation);
 
                     IEnumerable<TaintedDataAbstractValue> allTaintedValues = taintedArguments.Select(a => this.GetCachedAbstractValue(a));
-                    if (value.Kind == TaintedDataAbstractValueKind.Tainted)
+                    if (baseValue.Kind == TaintedDataAbstractValueKind.Tainted)
                     {
-                        allTaintedValues = allTaintedValues.Concat(value);
+                        allTaintedValues = allTaintedValues.Concat(baseValue);
                     }
 
                     return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
                 }
 
-                return value;
-            }
-
-            // TODO consider overriding DefaultVisit, and collecting tainted and merged datas
-            public override TaintedDataAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
-            {
-                TaintedDataAbstractValue leftAbstractValue = Visit(operation.LeftOperand, argument);
-                TaintedDataAbstractValue rightAbstractValue = Visit(operation.RightOperand, argument);
-
-                return TaintedDataAbstractValueDomain.Default.Merge(leftAbstractValue, rightAbstractValue);
+                return baseValue;
             }
 
             public override TaintedDataAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
@@ -286,7 +313,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
-            // TODO See if DefaultVisit override can replace this.
+            // So we can treat the array as tainted when it's passed to other object constructors.
             public override TaintedDataAbstractValue VisitArrayInitializer(IArrayInitializerOperation operation, object argument)
             {
                 HashSet<SymbolAccess> sourceOrigins = null;
@@ -315,11 +342,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
             }
 
-            protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TaintedDataAbstractValue value)
-            {
-                base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);
-            }
-
             protected override TaintedDataAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
             {
                 TaintedDataAbstractValue taintedDataAbstractValue = base.VisitAssignmentOperation(operation, argument);
@@ -340,7 +362,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             /// <summary>
-            /// Determines if tainted data is entering a sink as a method call argument, and if so, flags it.
+            /// Determines if tainted data is entering a sink as a method call or constructor argument, and if so, flags it.
             /// </summary>
             /// <param name="targetMethod">Method being invoked.</param>
             /// <param name="taintedArguments">Arguments with tainted data to the method.</param>

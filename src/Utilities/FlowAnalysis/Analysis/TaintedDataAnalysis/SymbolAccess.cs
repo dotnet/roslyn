@@ -42,7 +42,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public Location Location { get; }
 
         /// <summary>
-        /// What method has the code performing the access.
+        /// What method contains the code performing the access.
         /// </summary>
         public ISymbol AccessingMethod { get; }
 
