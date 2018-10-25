@@ -524,15 +524,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, caretPosition.Snapshot, endPoint: null);
-                return IsHardSelection(itemViewSpan.TextSpan, fullFilterText, model.Trigger.Kind, bestFilterMatch, caretPosition, completionHelper, filterReason, this.Controller.GetRecentItems(), model.UseSuggestionMode);
+                var textSpan = itemViewSpan.TextSpan;
+
+                // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
+                // This prevents commiting if user types a commit character at this position later, but 
+                // still has the list if user types filter character
+                // i.e. blah| -> |blah -> !|blah
+                // We want the filter span non-empty because we still want hard selection in the following case:
+                //
+                //  A a = new |
+                if (caretPosition == textSpan.Start && textSpan.Length > 0)
+                {
+                    return false;
+                }
+
+                return IsHardSelection(fullFilterText, model.Trigger.Kind, bestFilterMatch, completionHelper, filterReason, this.Controller.GetRecentItems(), model.UseSuggestionMode);
             }
 
             internal static bool IsHardSelection(
-                TextSpan textSpan,
                 string fullFilterText,
                 CompletionTriggerKind initialTriggerKind,
                 CompletionItem bestFilterMatch,
-                SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
                 CompletionFilterReason filterReason,
                 ImmutableArray<string> recentItems,
@@ -542,8 +554,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     return false;
                 }
-
-                var textSnapshot = caretPosition.Snapshot;
 
                 // We don't have a builder and we have a best match.  Normally this will be hard
                 // selected, except for a few cases.  Specifically, if no filter text has been
@@ -566,18 +576,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
                 if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, initialTriggerKind, filterReason, recentItems))
-                {
-                    return false;
-                }
-
-                // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
-                // This prevents commiting if user types a commit character at this position later, but 
-                // still has the list if user types filter character
-                // i.e. blah| -> |blah -> !|blah
-                // We want the filter span non-empty because we still want hard selection in the following case:
-                //
-                //  A a = new |
-                if (caretPosition == textSpan.Start && textSpan.Length > 0)
                 {
                     return false;
                 }

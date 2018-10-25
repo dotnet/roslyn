@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             EditorOperations.MoveToPreviousCharacter(extendSelection);
         }
 
-        public void SendDeleteWordToLeft()
+        public virtual void SendDeleteWordToLeft()
         {
             EditorOperations.DeleteWordToLeft();
         }

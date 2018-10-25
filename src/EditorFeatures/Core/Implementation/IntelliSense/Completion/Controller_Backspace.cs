@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
@@ -96,12 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if ((model == null && CaretHasLeftDefaultTrackingSpan(subjectBufferCaretPoint, documentBeforeDeletion)) ||
                     (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer())) ||
-                    (model != null && model.OriginalList.Rules.DismissIfLastCharacterDeleted && 
-                    AllFilterTextsEmpty(
-                        model.TotalItems, 
-                        model.GetViewBufferSpan, 
-                        (span, snapshot, endPoint) => model.GetCurrentTextInSnapshot(span, snapshot, endPoint), 
-                        GetCaretPointInViewBuffer())))
+                          (model != null && model.OriginalList.Rules.DismissIfLastCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
                     this.DismissSessionIfActive();
@@ -131,46 +125,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return !contextSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
         }
 
-        internal static bool AllFilterTextsEmpty(
-            ImmutableArray<CompletionItem> items,
-            Func<TextSpan, ViewTextSpan> getViewBufferSpan,
-            Func<TextSpan, ITextSnapshot, int?, string> getCurrentTextInSnapshot,
-            SnapshotPoint caretPoint)
+        internal bool AllFilterTextsEmpty(Model model, SnapshotPoint caretPoint)
         {
             var textSpanToTextCache = new Dictionary<TextSpan, string>();
             var textSpanToViewSpanCache = new Dictionary<TextSpan, ViewTextSpan>();
 
-            bool IsFilterTextEmpty(CompletionItem item)
+            foreach (var item in model.TotalItems)
             {
-                // Easy first check.  See if the caret point is before the start of the item.
-                if (!textSpanToViewSpanCache.TryGetValue(item.Span, out var filterSpanInViewBuffer))
-                {
-                    filterSpanInViewBuffer = getViewBufferSpan(item.Span);
-                    textSpanToViewSpanCache[item.Span] = filterSpanInViewBuffer;
-                }
-
-                if (caretPoint < filterSpanInViewBuffer.TextSpan.Start)
-                {
-                    return true;
-                }
-
-                var textSnapshot = caretPoint.Snapshot;
-
-                var currentText = Model.GetCurrentTextInSnapshot(item.Span, textSnapshot, textSpanToTextCache, getCurrentTextInSnapshot);
-                var currentTextSpan = new TextSpan(filterSpanInViewBuffer.TextSpan.Start, currentText.Length);
-
-                return currentText.Length == 0;
-            }
-
-            foreach (var item in items)
-            {
-                if (!IsFilterTextEmpty(item))
+                if (!IsFilterTextEmpty(model, caretPoint, item, textSpanToTextCache, textSpanToViewSpanCache))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        private bool IsFilterTextEmpty(
+           Model model,
+           SnapshotPoint caretPoint,
+           CompletionItem item,
+           Dictionary<TextSpan, string> textSpanToText,
+           Dictionary<TextSpan, ViewTextSpan> textSpanToViewSpan)
+        {
+            // Easy first check.  See if the caret point is before the start of the item.
+            if (!textSpanToViewSpan.TryGetValue(item.Span, out var filterSpanInViewBuffer))
+            {
+                filterSpanInViewBuffer = model.GetViewBufferSpan(item.Span);
+                textSpanToViewSpan[item.Span] = filterSpanInViewBuffer;
+            }
+
+            if (caretPoint < filterSpanInViewBuffer.TextSpan.Start)
+            {
+                return true;
+            }
+
+            var textSnapshot = caretPoint.Snapshot;
+
+            var currentText = model.GetCurrentTextInSnapshot(item.Span, textSnapshot, textSpanToText);
+            var currentTextSpan = new TextSpan(filterSpanInViewBuffer.TextSpan.Start, currentText.Length);
+
+            return currentText.Length == 0;
         }
     }
 }

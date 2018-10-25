@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var suggestionItemOptions = completionList.SuggestionModeItem != null
                     ? new AsyncCompletionData.SuggestionItemOptions(
                         completionList.SuggestionModeItem.DisplayText,
-                        (completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description)
+                        completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description)
                             ? description
-                            : string.Empty))
+                            : string.Empty)
                     : null;
 
             // This is a code supporting legacy completion scenarios:

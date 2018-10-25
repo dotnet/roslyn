@@ -4119,7 +4119,7 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Modern)> ' New test: fails in the legacy completion
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceInMiddleOfSelection(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -4143,7 +4143,7 @@ public class Program
 
                 state.SendInvokeCompletionList()
                 state.SendBackspace()
-                Await state.AssertSelectedCompletionItem(displayText:="aaa", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="aaa", isHardSelected:=True)
             End Using
         End Function
 

@@ -836,8 +836,7 @@ end class
         End Function
 
         <WorkItem(543669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543669")>
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/27441")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDeleteWordToLeft(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,

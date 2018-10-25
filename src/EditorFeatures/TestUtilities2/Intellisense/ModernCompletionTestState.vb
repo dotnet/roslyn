@@ -193,6 +193,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             compHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, buffer), AddressOf MyBase.SendDelete, TestCommandExecutionContext.Create())
         End Sub
 
+        Public Overrides Sub SendDeleteWordToLeft()
+            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of WordDeleteToStartCommandArgs))
+            MyBase.SendWordDeleteToStart(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDeleteWordToLeft)
+        End Sub
+
 #End Region
 
 #Region "Completion Operations"

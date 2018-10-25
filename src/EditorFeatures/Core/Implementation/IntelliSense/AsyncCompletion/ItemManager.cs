@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -169,57 +168,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             var completionRules = completionService.GetRules();
-            var caretPoint = session.TextView.GetCaretPoint(data.Snapshot.TextBuffer);
-            var caretPosition = caretPoint?.Position;
 
             var disconnectedBufferGraph = new DisconnectedBufferGraph(session.ApplicableToSpan.TextBuffer, session.TextView.TextBuffer);
             if (data.Trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Backspace &&
-                completionRules.DismissIfLastCharacterDeleted && 
-                Controller.AllFilterTextsEmpty(
-                    initialListOfItemsToBeIncluded.Select(i => i.FilterResult.CompletionItem).ToImmutableArray(),
-                    disconnectedBufferGraph.GetSubjectBufferTextSpanInViewBuffer,
-                    (textSpan, snapshot, endPoint) 
-                    => Model.GetCurrentTextInSnapshot(
-                        textSpan, 
-                        snapshot, 
-                        disconnectedBufferGraph, 
-                        snapshotForDocument.Version.CreateTrackingPoint(caretPosition.Value, PointTrackingMode.Positive)),
-                    caretPoint.Value))
+                completionRules.DismissIfLastCharacterDeleted &&
+                session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
             {
                 return null;
             }
 
             if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                return HandleAllItemsFilteredOut(reason, data.SelectedFilters, selectedFilters, completionRules);
+                return HandleAllItemsFilteredOut(reason, data.SelectedFilters, selectedFilters.Any(), completionRules);
             }
 
             var options = document.Project.Solution.Options;
             var highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language);
             var showCompletionItemFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language);
 
+            var updatedFilters = showCompletionItemFilters
+                ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
+                : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty;
+
+            var highlightedList = GetHighlightedList(initialListOfItemsToBeIncluded, filterText, highlightMatchingPortions).ToImmutableArray();
+
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTrigger.Kind == CompletionTriggerKind.Deletion)
             {
-                return HandleDeletionTrigger(data.InitialSortedList, reason, 
-                    data.SelectedFilters, reason, filterText, initialListOfItemsToBeIncluded, highlightMatchingPortions, showCompletionItemFilters);
+                return HandleDeletionTrigger(updatedFilters, filterText, initialListOfItemsToBeIncluded, highlightedList);
             }
 
             return HandleNormalFiltering(
-                data.InitialSortedList,
-                snapshotForDocument,
                 document,
                 completionService,
-                caretPoint,
                 filterText,
-                data.SelectedFilters,
+                updatedFilters,
                 initialRoslynTrigger.Kind,
                 filterReason,
-                data.Trigger,
+                data.Trigger.Character,
                 initialListOfItemsToBeIncluded,
-                hasSuggestedItemOptions,
-                highlightMatchingPortions,
-                showCompletionItemFilters);
+                highlightedList,
+                hasSuggestedItemOptions);
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -229,23 +218,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         }
 
         private AsyncCompletionData.FilteredCompletionModel HandleNormalFiltering(
-            ImmutableArray<VSCompletionItem> sortedList,
-            ITextSnapshot snapshot,
             Document document,
             CompletionService completionService,
-            SnapshotPoint? caretPoint,
             string filterText,
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
             CompletionTriggerKind initialRoslynTriggerKind,
             CompletionFilterReason filterReason,
-            AsyncCompletionData.CompletionTrigger completionTrigger,
+            char typeChar,
             List<ExtendedFilterResult> itemsInList,
-            bool hasSuggestedItemOptions,
-            bool highlightMatchingPortions,
-            bool showCompletionItemFilters)
+            ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> highlightedList,
+            bool hasSuggestedItemOptions)
         {
-            var highlightedList = GetHighlightedList(itemsInList, filterText, highlightMatchingPortions).ToImmutableArray();
-
             // Not deletion.  Defer to the language to decide which item it thinks best
             // matches the text typed so far.
 
@@ -260,7 +243,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             // Of the items the service returned, pick the one most recently committed
             var bestItem = Session.GetBestCompletionItemBasedOnMRU(chosenItems, recentItems);
-            var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText);
             VSCompletionItem uniqueItem = null;
             int selectedItemIndex = 0;
 
@@ -287,19 +269,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
 
             // Check that it is a filter symbol. We can be called for a non-filter symbol.
-            if (completionTrigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && 
-                !Controller.IsPotentialFilterCharacter(completionTrigger.Character) && 
+            if (filterReason == CompletionFilterReason.Insertion && 
+                !Controller.IsPotentialFilterCharacter(typeChar) && 
                 !string.IsNullOrEmpty(filterText))
             {
-                if (!Controller.IsFilterCharacter(bestOrFirstCompletionItem, completionTrigger.Character, filterText))
+                if (!Controller.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
                 {
                     return null;
                 }
             }
 
             var updateSelectionHint = Session.IsHardSelection(
-                        bestOrFirstCompletionItem.Span, filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
-                        caretPoint.Value, _completionHelper, filterReason, recentItems, hasSuggestedItemOptions)
+                        filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
+                        _completionHelper, filterReason, recentItems, hasSuggestedItemOptions)
                         ? AsyncCompletionData.UpdateSelectionHint.Selected
                         : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
 
@@ -309,20 +291,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
 
             return new AsyncCompletionData.FilteredCompletionModel(
-                highlightedList, selectedItemIndex, 
-                showCompletionItemFilters ? updatedFilters : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty,
+                highlightedList, selectedItemIndex, filters,
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
         private AsyncCompletionData.FilteredCompletionModel HandleDeletionTrigger(
-            ImmutableArray<VSCompletionItem> sortedList,
-            AsyncCompletionData.CompletionTriggerReason triggerReason,
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            AsyncCompletionData.CompletionTriggerReason filterReason,
             string filterText,
-            List<ExtendedFilterResult> filterResults, 
-            bool highlightMatchingPortions,
-            bool showCompletionItemFilters)
+            List<ExtendedFilterResult> filterResults,
+            ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> highlightedList)
         {
             ExtendedFilterResult? bestFilterResult = null;
             int matchCount = 0;
@@ -341,10 +318,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // choose that one to be hard selected.  If we had no actual matching items
             // (which can happen if the user deletes down to a single character and we
             // include everything), then we just soft select the first item.
-
-            var highlightedList = GetHighlightedList(filterResults, filterText, highlightMatchingPortions).ToImmutableArray();
-            var updatedFilters = GetUpdatedFilters(sortedList, filterResults, filters, filterText);
-
             if (bestFilterResult != null)
             {
                 // Only hard select this result if it's a prefix match
@@ -356,24 +329,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 var hardSelect = bestFilterResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
                 return new AsyncCompletionData.FilteredCompletionModel(
-                    highlightedList, filterResults.IndexOf(bestFilterResult.Value),
-                    showCompletionItemFilters ? updatedFilters : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty,
+                    highlightedList, filterResults.IndexOf(bestFilterResult.Value), filters,
                     hardSelect ? AsyncCompletionData.UpdateSelectionHint.Selected : AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
                     centerSelection: true, uniqueItem: null);
             }
             else
             {
                 return new AsyncCompletionData.FilteredCompletionModel(
-                    highlightedList, selectedItemIndex: 0,
-                    showCompletionItemFilters ? updatedFilters : ImmutableArray<AsyncCompletionData.CompletionFilterWithState>.Empty,
-                    AsyncCompletionData.UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
+                    highlightedList, selectedItemIndex: 0, filters,
+                    AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
+                    centerSelection: true, uniqueItem: null);
             }
         }
 
         private AsyncCompletionData.FilteredCompletionModel HandleAllItemsFilteredOut(
             AsyncCompletionData.CompletionTriggerReason triggerReason,
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            ImmutableArray<AsyncCompletionData.CompletionFilter> activeFilters,
+            bool hasActiveFilters,
             CompletionRules completionRules)
         {
             AsyncCompletionData.UpdateSelectionHint selection;
@@ -398,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 // If we are going to filter everything out, then just preserve the existing
                 // model (and all the previously filtered items), but switch over to soft
                 // selection.
-                selection = activeFilters.Length == 0 ? AsyncCompletionData.UpdateSelectionHint.SoftSelected : AsyncCompletionData.UpdateSelectionHint.NoChange;
+                selection = hasActiveFilters ? AsyncCompletionData.UpdateSelectionHint.NoChange : AsyncCompletionData.UpdateSelectionHint.SoftSelected;
             }
 
             return new AsyncCompletionData.FilteredCompletionModel(
@@ -423,11 +395,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return highlightedList;
         }
 
-        private ImmutableArray<AsyncCompletionData.CompletionFilterWithState> GetUpdatedFilters(
-            ImmutableArray<VSCompletionItem> originalList,
+        private static ImmutableArray<AsyncCompletionData.CompletionFilterWithState> GetUpdatedFilters(
             List<ExtendedFilterResult> filteredList,
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            string filterText)
+            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
             var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).Distinct();
@@ -456,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             }
         }
 
-        private bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<AsyncCompletionData.CompletionFilter> activeFilters)
+        private static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<AsyncCompletionData.CompletionFilter> activeFilters)
         {
             foreach (var itemFilter in item.Filters)
             {
