@@ -233,26 +233,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
+                else if (visitedInstance != null && this.IsTaintedMethod(visitedInstance, method))
+                {
+                    return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
+                }
 
-                // TODO check if baseVisit is tainted when interprocedural DFA reveals the method returns tainted...or not
+                if (this.TryGetInterproceduralAnalysisResult(originalOperation, out TaintedDataAnalysisResult subResult))
+                {
+                    // We performed interprocedural analysis on this invocation, so use its result, whatever it is.
+                    return baseVisit;
+                }
+
+                // No inteprocedural, so...
                 TaintedDataAbstractValue returnValue = baseVisit;
                 if (visitedInstance != null)
                 {
+                    // A method call on a tainted object returns tainted.
                     TaintedDataAbstractValue instanceAbstractValue = this.GetCachedAbstractValue(visitedInstance);
                     if (instanceAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
                     {
                         returnValue = instanceAbstractValue;
                     }
-                    else if (this.IsTaintedMethod(visitedInstance, method))
-                    {
-                        returnValue = TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
-                    }
                 }
 
-                // TODO paulming: This is too conservative, and should only apply for non-interprocedural analysis.
-                // E.g. tainted arguments are passed to a method that sanitizes the data.
                 if (taintedArguments.Any())
                 {
+                    // Since we didn't perform interprocedural, assume that any tainted arguments entering 
+                    // the method taint the return value.
                     IEnumerable<TaintedDataAbstractValue> allTaintedValues =
                         taintedArguments.Select(a => this.GetCachedAbstractValue(a));
                     if (returnValue.Kind == TaintedDataAbstractValueKind.Tainted)
@@ -352,6 +359,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             private void TrackTaintedDataEnteringSink(ISymbol sinkSymbol, Location sinkLocation, IEnumerable<SymbolAccess> sources)
             {
                 SymbolAccess sink = new SymbolAccess(sinkSymbol, sinkLocation, this.OwningSymbol);
+                this.TrackTaintedDataEnteringSink(sink, sources);
+            }
+
+            private void TrackTaintedDataEnteringSink(SymbolAccess sink, IEnumerable<SymbolAccess> sources)
+            {
                 if (!this.TaintedSourcesBySink.TryGetValue(sink, out HashSet<SymbolAccess> sourceOrigins))
                 {
                     sourceOrigins = new HashSet<SymbolAccess>();
@@ -387,10 +399,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     foreach (TaintedDataSourceSink sourceSink in subResult.TaintedDataSourceSinks)
                     {
-                        this.TrackTaintedDataEnteringSink(
-                            sourceSink.Sink.Symbol, 
-                            sourceSink.Sink.Location, 
-                            sourceSink.SourceOrigins);
+                        if (!this.TaintedSourcesBySink.TryGetValue(sourceSink.Sink, out HashSet<SymbolAccess> sourceOrigins))
+                        {
+                            sourceOrigins = new HashSet<SymbolAccess>();
+                            this.TaintedSourcesBySink.Add(sourceSink.Sink, sourceOrigins);
+                        }
+
+                        sourceOrigins.UnionWith(sourceSink.SourceOrigins);
                     }
                 }
             }
