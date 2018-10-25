@@ -7,5 +7,6 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideDependencyBindingRedirection("Microsoft.DiaSymReader.PortablePdb.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.Collections.Immutable.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.Reflection.Metadata.dll")]
-[assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Extensions.dll")]
+[assembly: ProvideDependencyBindingRedirection("System.Runtime.CompilerServices.Unsafe.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.CodePages.dll")]
+[assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Extensions.dll")]
