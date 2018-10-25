@@ -3401,6 +3401,25 @@ class A<T> where T : class
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "A<A<int>[]>.B").WithArguments("A<T>", "T", "int").WithLocation(2, 14));
         }
 
+        [Fact, WorkItem(30726, "https://github.com/dotnet/roslyn/issues/30726")]
+        public void UsingStaticMultipleGenericConstraints()
+        {
+            var code = @"
+using static A<int, string>;
+static class A<T, U> where T : class where U : struct { }
+";
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using static A<int, string>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<int, string>;").WithLocation(2, 1),
+                // (2,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'A<T, U>'
+                // using static A<int, string>;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "A<int, string>").WithArguments("A<T, U>", "T", "int").WithLocation(2, 14),
+                // (2,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'A<T, U>'
+                // using static A<int, string>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "A<int, string>").WithArguments("A<T, U>", "U", "string").WithLocation(2, 14));
+        }
+
         [Fact, WorkItem(8234, "https://github.com/dotnet/roslyn/issues/8234")]
         public void EventAccessInTypeNameContext()
         {
