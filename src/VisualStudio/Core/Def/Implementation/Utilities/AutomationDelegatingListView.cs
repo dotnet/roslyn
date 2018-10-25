@@ -88,6 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         public AutomationDelegatingListViewItemAutomationPeer(AutomationDelegatingListViewItem listViewItem)
             : base(listViewItem) 
         {
+            var x = this.GetChildren();
             checkBoxItem = this.GetChildren().OfType<CheckBoxAutomationPeer>().SingleOrDefault();
             if (checkBoxItem != null)
             {

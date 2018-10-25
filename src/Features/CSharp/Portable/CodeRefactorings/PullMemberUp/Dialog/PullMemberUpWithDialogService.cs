@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Text;
+﻿using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PullMemberUp.Dialog;

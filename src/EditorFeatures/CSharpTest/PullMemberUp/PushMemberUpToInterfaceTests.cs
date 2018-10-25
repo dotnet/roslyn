@@ -7,16 +7,16 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PushMemberUp
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
-    public class PushMemberUpToIntefaceTests : AbstractCSharpCodeActionTest
+    public class PullMemberUpViaQuickActionTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new PullMemberUpCodeRefactoringProvider();
 
         #region interface
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushMethodUpToInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullMethodUpToInterface()
         {
             var testText = @"
 using System;
@@ -54,8 +54,8 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushMultipleEventsToInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullMultipleEventsToInterface()
         {
             var testText = @"
 using System;
@@ -88,8 +88,8 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushPropertyToInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullPropertyToInterface()
         {
             var testText = @"
 using System;
@@ -123,8 +123,8 @@ namespace PushUpTest
         }
 
         
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushIndexerToInterface()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullIndexerToInterface()
         {
             var testText = @"
 using System;
@@ -139,7 +139,6 @@ namespace PushUpTest
         private int j;
         public int th[||]is[int i]
         {
-           get => j;
            set => j = value;
         }
     }
@@ -151,7 +150,7 @@ namespace PushUpTest
 {
     interface IInterface
     {
-        int this[int i] { get; set; }
+        int this[int i] { set; }
     }
 
     public class TestClass : IInterface
@@ -159,7 +158,6 @@ namespace PushUpTest
         private int j;
         public int this[int i]
         {
-           get => j;
            set => j = value;
         }
     }
@@ -169,8 +167,8 @@ namespace PushUpTest
         #endregion interface
 
         #region class
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushMethodToClass()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullMethodToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -203,12 +201,43 @@ namespace PushUpTest
     {
     }
 }";
-
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushFieldsToClass()
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullOneFieldsToClass()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class Base
+    {
+    }
+
+    public class TestClass : Base
+    {
+        public int yo[||]u = 10086;
+    }
+}";
+
+            var expected = @"
+namespace PushUpTest
+{
+    public class Base
+    {
+        public int you = 10086;
+    }
+
+    public class TestClass : Base
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullMultipleFieldsToClass()
         {
             var testText = @"
 namespace PushUpTest
@@ -239,8 +268,110 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushPropertyToClass()
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullMiddleFieldWithValueToClass()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class Base
+    {
+    }
+
+    public class TestClass : Base
+    {
+        public int you, a[||]nd = 4000, someone = 10086;
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class Base
+    {
+        public int and = 4000;
+    }
+
+    public class TestClass : Base
+    {
+        public int you, someone = 10086;
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullEventsToClass()
+        {
+var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+    }
+
+    public class Testclass2 : Base2
+    {
+        private static event EventHandler Event1, Eve[||]nt3, Event4;
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+        private static event EventHandler Event3;
+    }
+
+    public class Testclass2 : Base2
+    {
+        private static event EventHandler Event1, Event4;
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+            
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullEventToClass()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+    }
+
+    public class TestClass2 : Base2
+    {
+        private static event EventHandler Eve[||]nt3;
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    public class Base2
+    {
+        private static event EventHandler Event3;
+    }
+
+    public class TestClass2 : Base2
+    {
+    }
+}";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullPropertyToClass()
         {
             var testText = @"
 using System;
@@ -272,11 +403,11 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPushMemberUp)]
-        public async Task PushIndexerToClass()
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullIndexerToClass()
         {
             var testText = @"
-using System;
 namespace PushUpTest
 {
     public class Base 
@@ -295,10 +426,9 @@ namespace PushUpTest
 }";
 
             var expected = @"
-using System;
 namespace PushUpTest
 {
-    public class Base 
+    public class Base
     {
         public int this[int i]
         {

@@ -19,6 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public Dictionary<ISymbol, Lazy<List<ISymbol>>> LazyDependentsMap { get; }
         
+        public Dictionary<ISymbol, PullUpMemberSymbolView> SymbolToMemberView { get; }
+
         public MemberSymbolViewModelGraphNode SelectedTarget { get; set; }
         
         internal PullMemberUpViewModel(
@@ -36,7 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                     IsAbstractSelectable = member.Kind != SymbolKind.Field && !member.IsAbstract,
                     IsSelectable = true
                 }).ToList();
-                
+
+            SymbolToMemberView = SelectedMembersContainer.
+                ToDictionary(symbolView => symbolView.MemberSymbol);
+
             TargetMembersContainer = targetMembersContainer;
             LazyDependentsMap = lazyDependentsMap;
         }

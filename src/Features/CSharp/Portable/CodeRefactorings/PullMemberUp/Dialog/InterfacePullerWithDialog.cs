@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
             }
         }
 
-
-
         private async Task ChangeMembersToPublic(
             PullMemberDialogResult result,
             Document contextDocument,
@@ -138,6 +136,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                 cancellationToken);
         }
 
+        private IMethodSymbol CreatePublicGetterAndSetter(IMethodSymbol setterOrGetter)
+        {
+            if (setterOrGetter == null || setterOrGetter.DeclaredAccessibility == Accessibility.Public)
+            {
+                return setterOrGetter;
+            }
+            else
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                   setterOrGetter.GetAttributes(),
+                   Accessibility.Public,
+                   DeclarationModifiers.From(setterOrGetter),
+                   setterOrGetter.ReturnType,
+                   setterOrGetter.RefKind,
+                   setterOrGetter.ExplicitInterfaceImplementations,
+                   setterOrGetter.Name,
+                   setterOrGetter.TypeParameters,
+                   setterOrGetter.Parameters,
+                   methodKind: setterOrGetter.MethodKind == MethodKind.PropertyGet ?
+                               MethodKind.PropertyGet : MethodKind.PropertySet);
+            }
+        }
+
         private void AddMembersToTarget(
             PullMemberDialogResult result,
             DocumentEditor editor,
@@ -157,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                                 propertySymbol.ExplicitInterfaceImplementations,
                                 propertySymbol.Name,
                                 propertySymbol.IsIndexer,
-                                propertySymbol.GetMethod != null && propertySymbol.GetMethod.DeclaredAccessibility == Accessibility.Public ? propertySymbol.GetMethod : null,
-                                propertySymbol.SetMethod != null && propertySymbol.SetMethod.DeclaredAccessibility == Accessibility.Public ? propertySymbol.SetMethod : null);
+                                CreatePublicGetterAndSetter(propertySymbol.GetMethod),
+                                CreatePublicGetterAndSetter(propertySymbol.SetMethod));
                     }
                     else
                     {
@@ -167,8 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                 });
 
             var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-
-            editor.ReplaceNode(targetNode, codeGenerationService.AddMembers(targetNode, symbolsToPullUp, options:options)); 
+            editor.ReplaceNode(targetNode, codeGenerationService.AddMembers(targetNode, symbolsToPullUp, options: options));
         }
     }
 }

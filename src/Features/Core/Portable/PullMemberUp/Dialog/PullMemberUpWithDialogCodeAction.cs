@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 
         private Dictionary<ISymbol, Lazy<List<ISymbol>>> LazyDependentsMap { get; }
 
-        // TODO: Add this title to config file??
         public override string Title => "...";
 
         internal PullMemberUpWithDialogCodeAction(
@@ -101,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 
         private PullMemberDialogResult ValidateSelection(IValidator validator, PullMemberDialogResult result, CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested && !validator.AreModifiersValid(result.Target, result.SelectedMembers.Select(memberSelectionPair => memberSelectionPair.member)))
+            while (!cancellationToken.IsCancellationRequested &&
+                   !result.IsCanceled &&
+                   !validator.AreModifiersValid(result.Target, result.SelectedMembers.Select(memberSelectionPair => memberSelectionPair.member)))
             {
                 if (PullMemberUpService.CreateWarningDialog(validator.WarningMessageList))
                 {

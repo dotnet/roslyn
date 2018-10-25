@@ -10,12 +10,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     /// </summary>
     internal partial class PullMemberUpDialogWarningxaml : DialogWindow
     {
-        // TODO: Add these to Service resources
-        public string Back => "Back";
+        public string Back => ServicesVSResources.Back;
 
-        public string Finish => "Finish";
+        public string Finish => ServicesVSResources.Finish;
 
-        public string PullMembersUpTitle => "Pull Up Members";
+        public string PullMembersUpTitle => ServicesVSResources.Pull_Up_Members;
+
+        public string TextTitle => ServicesVSResources.Review_Problems;
+
+        public string FoundProblem => ServicesVSResources.Found_Problems;
 
         internal PullMemberUpDialogWarningxaml(PullMemberUpWarningViewModel viewModel)
         {

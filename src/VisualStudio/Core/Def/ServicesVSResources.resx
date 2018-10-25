@@ -1069,4 +1069,34 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_compound_assignments" xml:space="preserve">
     <value>Prefer compound assignments</value>
   </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Found_Problems" xml:space="preserve">
+    <value>Found Problems:</value>
+  </data>
+  <data name="Pull_Up_Description" xml:space="preserve">
+    <value>Select destination and members to pull up.</value>
+  </data>
+  <data name="Pull_Up_Members" xml:space="preserve">
+    <value>Pull Up Members</value>
+  </data>
+  <data name="Review_Problems" xml:space="preserve">
+    <value>Review problems below. Click Finish to proceed pull up.</value>
+  </data>
+  <data name="Select_Dependents" xml:space="preserve">
+    <value>Select dependents</value>
+  </data>
+  <data name="Select_Destination" xml:space="preserve">
+    <value>Select destination type:</value>
+  </data>
+  <data name="Select_Members" xml:space="preserve">
+    <value>Select members:</value>
+  </data>
+  <data name="Select_Public" xml:space="preserve">
+    <value>Select public</value>
+  </data>
 </root>

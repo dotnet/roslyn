@@ -17,8 +17,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public string Cancel => ServicesVSResources.Cancel;
 
-        // TODO: Add this to resources mananger
-        public string PullMembersUpTitle => "Pull Up Members";
+        public string PullMembersUpTitle => ServicesVSResources.Pull_Up_Members;
+
+        public string SelectMembers => ServicesVSResources.Select_Members;
+
+        public string SelectDestination => ServicesVSResources.Select_Destination;
+
+        public string PullUpDescription => ServicesVSResources.Pull_Up_Description;
+
+        public string SelectAll => ServicesVSResources.Select_All;
+
+        public string DeselectAll => ServicesVSResources.Deselect_All;
+
+        public string SelectPublic => ServicesVSResources.Select_Public;
+
+        public string SelectDependents => ServicesVSResources.Select_Dependents;
 
         private PullMemberUpViewModel ViewModel { get; }
 
@@ -114,7 +127,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             foreach (var member in checkedMembers)
             {
                 var dependents = ViewModel.LazyDependentsMap[member.MemberSymbol].Value;
-                SelectSymbols(dependents);
+
+                foreach (var symbol in dependents)
+                {
+                    var memberView = ViewModel.SymbolToMemberView[symbol];
+                    if (memberView.IsSelectable)
+                    {
+                        memberView.IsChecked = true;
+                    }
+                }
             }
         }
 
@@ -122,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             foreach (var member in members)
             {
-                // TODO: create a hash map to do the mapping
+                // TODO: maybe create a hash map to do the mapping
                 var index = ViewModel.SelectedMembersContainer.Select(symbolView => symbolView.MemberSymbol).ToList().IndexOf(member);
                 ViewModel.SelectedMembersContainer[index].IsChecked = true;
             }
@@ -143,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
-                if (member.MemberSymbol.DeclaredAccessibility == Accessibility.Public)
+                if (member.IsSelectable && member.MemberSymbol.DeclaredAccessibility == Accessibility.Public)
                 {
                     member.IsChecked = true;
                 }

@@ -10,7 +10,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp"
-             xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              mc:Ignorable="d" 
              SizeToContent="Width"
              WindowStartupLocation="CenterOwner"
@@ -50,11 +49,11 @@
             <Label
                 x:Uid="Description"
                 x:Name="Description"
-                Content="  Select destination and members to pull up"/>
+                Content="{Binding ElementName=dialog, Path=PullUpDescription}"/>
             <Separator/>
 
             <Label x:Name="TargetSelectionLabel"
-                   Content="Select destination type"/>
+                   Content="{Binding ElementName=dialog, Path=SelectDestination}"/>
 
             <TreeView x:Uid="PullTargetTreeView"
                       x:Name="TargetMembersContainer"
@@ -76,13 +75,13 @@
             </TreeView>
         </StackPanel>
 
-        <Label Grid.Row ="1" x:Uid="MemberSelectionLabel" Content="Select members:"/>
+        <Label Grid.Row ="1" x:Uid="MemberSelectionLabel" Content="{Binding ElementName=dialog, Path=SelectMembers}"/>
         <Grid Grid.Row="2" Margin="5,5,5,0" Height="Auto" Width="Auto">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="70*"/>
                 <ColumnDefinition Width="30*"/>
             </Grid.ColumnDefinitions>
-            <u:AutomationDelegatingListView
+            <ListView
                 Grid.Column="0"
                 x:Uid="MemberSelection"
                 x:Name="MemberSelection"
@@ -122,7 +121,7 @@
                         </GridViewColumn>
                     </GridView>
                 </ListView.View>
-            </u:AutomationDelegatingListView>
+            </ListView>
             <StackPanel Grid.Column="1"
                         Orientation="Vertical"
                         VerticalAlignment="Center"
@@ -131,27 +130,27 @@
                 <vs:DialogButton
                     x:Name="SelecDependentsButton"
                     Margin="{StaticResource ResourceKey=selectDependantsButton}"
-                    Content="Select dependents"
+                    Content="{Binding ElementName=dialog, Path=SelectDependents}"
                     Click="SelecDependentsButton_Click"
                     MinHeight="20"
                     MaxWidth="120"/>
                 <vs:DialogButton
                     x:Name="SelectAllButton"
-                    Content="Select all"
+                    Content="{Binding ElementName=dialog, Path=SelectAll}"
                     Margin="{StaticResource ResourceKey=selectDependantsButton}"
                     Click="SelectAllButton_Click"
                     MinHeight="20"
                     MaxWidth="120"/>
                 <vs:DialogButton
-                    x:Name="SelectPublic"
-                    Content="Select public"
+                    x:Name="SelectPublicButton"
+                    Content="{Binding ElementName=dialog, Path=SelectPublic}"
                     Click="SelectPublic_Click"
                     MinHeight="20"
                     MaxWidth="120"
                     Margin="{StaticResource ResourceKey=selectDependantsButton}"/>
                 <vs:DialogButton
                     x:Name="DeselectedAll"
-                    Content="Deselect all"
+                    Content="{Binding ElementName=dialog, Path=DeselectAll}"
                     Click="DeselectedAll_Click"
                     MinHeight="20"
                     MaxWidth="120"

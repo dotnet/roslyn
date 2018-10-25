@@ -28,4 +28,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
             IsCanceled = isCanceled;
         }
     }
+
 }

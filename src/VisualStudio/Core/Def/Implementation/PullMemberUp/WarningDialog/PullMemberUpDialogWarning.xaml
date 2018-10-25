@@ -31,10 +31,10 @@
             <Label
                 x:Uid="Description"
                 x:Name="Description"
-                Content="  Review problems below. Click Finish to proceed."/>
+                Content="{Binding ElementName=dialog, Path=TextTitle}"/>
             <Separator/>
             <Label x:Name="FoundProblemLabel"
-                   Content="Found Problems"/>
+                   Content="{Binding ElementName=dialog, Path=FoundProblem}"/>
             <u:AutomationDelegatingListView x:Name="WarningMessageList"
                       ItemsSource="{Binding WarningMessageContainer}"
                       ScrollViewer.VerticalScrollBarVisibility="Visible"
@@ -42,7 +42,7 @@
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <WrapPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding}"/>
+                            <TextBlock Text="{Binding Path=.}"/>
                         </WrapPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>

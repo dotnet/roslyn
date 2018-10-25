@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var result = true;
             foreach (var member in selectedMembers)
             {
-                result = result && IsAbstractModifiersMatch(targetSymbol, member);
+                result = IsAbstractModifiersMatch(targetSymbol, member) && result;
             }
             return result;
         }
@@ -96,9 +96,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var result = true;
             foreach (var member in selectedMembers)
             {
-                result = result &&
-                         IsStaticModifiersMatch(targetSymbol, member) &&
-                         IsAccessiblityModifiersMatch(targetSymbol, member);
+                // This is to make sure the all the checks will be run
+                // e.g. user will get two error warning messages if pull a
+                // private static method to an interface
+                result = IsAccessiblityModifiersMatch(targetSymbol, member) && result;
+                result = IsStaticModifiersMatch(targetSymbol, member) && result;
             }
             return result;
         }
