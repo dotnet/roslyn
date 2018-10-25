@@ -61,6 +61,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix misplaced usings.
+        /// </summary>
+        internal static string Fix_misplaced_usings {
+            get {
+                return ResourceManager.GetString("Fix_misplaced_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Misplaced using.
+        /// </summary>
+        internal static string Misplaced_using {
+            get {
+                return ResourceManager.GetString("Misplaced_using", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move misplaced using statements.
+        /// </summary>
+        internal static string Move_misplaced_using_statements {
+            get {
+                return ResourceManager.GetString("Move_misplaced_using_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to      (Press TAB to insert).
         /// </summary>
         internal static string Press_TAB_to_insert {
@@ -84,6 +111,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         internal static string Split_string {
             get {
                 return ResourceManager.GetString("Split_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using directives must be place inside a namespace declaration.
+        /// </summary>
+        internal static string Using_directives_must_be_placed_inside_a_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Using_directives_must_be_placed_inside_a_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using directives must be place outside a namespace declaration.
+        /// </summary>
+        internal static string Using_directives_must_be_placed_outside_a_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Using_directives_must_be_placed_outside_a_namespace_declaration", resourceCulture);
             }
         }
     }

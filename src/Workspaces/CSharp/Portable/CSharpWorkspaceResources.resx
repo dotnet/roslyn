@@ -168,4 +168,7 @@
   <data name="Wrapping_preferences" xml:space="preserve">
     <value>Wrapping preferences</value>
   </data>
+  <data name="using_preferences" xml:space="preserve">
+    <value>using preferences</value>
+  </data>
 </root>

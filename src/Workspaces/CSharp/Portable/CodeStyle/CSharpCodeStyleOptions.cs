@@ -187,6 +187,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
+        public static readonly CodeStyleOption<UsingPlacementPreference> NoPreferenceWithSilentEnforcement =
+            new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.NoPreference, NotificationOption.Silent);
+
+        public static readonly Option<CodeStyleOption<UsingPlacementPreference>> PreferredUsingPlacement = CreateOption(
+            CSharpCodeStyleOptionGroups.UsingPreferences, nameof(PreferredUsingPlacement),
+            defaultValue: NoPreferenceWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new EditorConfigStorageLocation<CodeStyleOption<UsingPlacementPreference>>(
+                    "csharp_preferred_using_placement",
+                    s => ParseUsingPlacementPreference(s, NoPreferenceWithSilentEnforcement),
+                    GetUsingPlacementPreferenceEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingPlacement)}") });
+
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -228,5 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
         public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpWorkspaceResources.Code_block_preferences, priority: 6);
         public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 7);
+        public static readonly OptionGroup UsingPreferences = new OptionGroup(CSharpWorkspaceResources.using_preferences, priority: 8);
     }
 }

@@ -76,7 +76,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string id, LocalizableString title, LocalizableString messageFormat,
             params string[] customTags)
         {
-            if (!_configurable)
+            return CreateDescriptorWithId(id, title, messageFormat, _configurable, customTags);
+        }
+
+        protected static DiagnosticDescriptor CreateDescriptorWithId(
+            string id, LocalizableString title, LocalizableString messageFormat, bool configurable,
+            params string[] customTags)
+        {
+            if (!configurable)
             {
                 customTags = customTags.Concat(new[] { WellKnownDiagnosticTags.NotConfigurable }).ToArray();
             }

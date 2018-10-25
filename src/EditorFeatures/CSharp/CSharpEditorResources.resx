@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Fix_misplaced_usings" xml:space="preserve">
+    <value>Fix misplaced usings</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Misplaced_using" xml:space="preserve">
+    <value>Misplaced using</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Move_misplaced_using_statements" xml:space="preserve">
+    <value>Move misplaced using statements</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
   <data name="Press_TAB_to_insert" xml:space="preserve">
     <value>     (Press TAB to insert)</value>
   </data>
@@ -125,5 +137,13 @@
   </data>
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
+  </data>
+  <data name="Using_directives_must_be_placed_inside_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be place inside a namespace declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Using_directives_must_be_placed_outside_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be place outside a namespace declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
   </data>
 </root>

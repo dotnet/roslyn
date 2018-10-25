@@ -646,6 +646,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inside namespace.
+        /// </summary>
+        internal static string Inside_namespace {
+            get {
+                return ResourceManager.GetString("Inside_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Label Indentation.
         /// </summary>
         internal static string Label_Indentation {
@@ -745,6 +754,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No preference.
+        /// </summary>
+        internal static string No_preference {
+            get {
+                return ResourceManager.GetString("No_preference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;null&apos; checking:.
         /// </summary>
         internal static string null_checking_colon {
@@ -768,6 +786,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Optimize_for_solution_size {
             get {
                 return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outside namespace.
+        /// </summary>
+        internal static string Outside_namespace {
+            get {
+                return ResourceManager.GetString("Outside_namespace", resourceCulture);
             }
         }
         
@@ -1069,6 +1096,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preferred usings placement.
+        /// </summary>
+        internal static string Preferred_usings_placement {
+            get {
+                return ResourceManager.GetString("Preferred_usings_placement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Qualify event access with &apos;this&apos;.
         /// </summary>
         internal static string Qualify_event_access_with_this {
@@ -1362,6 +1398,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Using_Directives {
             get {
                 return ResourceManager.GetString("Using_Directives", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using preferences:.
+        /// </summary>
+        internal static string using_preferences_colon {
+            get {
+                return ResourceManager.GetString("using_preferences_colon", resourceCulture);
             }
         }
         

@@ -198,6 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to using preferences.
+        /// </summary>
+        internal static string using_preferences {
+            get {
+                return ResourceManager.GetString("using_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to var preferences.
         /// </summary>
         internal static string var_preferences {

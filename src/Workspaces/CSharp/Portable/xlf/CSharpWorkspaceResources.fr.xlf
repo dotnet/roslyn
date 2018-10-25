@@ -82,6 +82,11 @@
         <target state="new">Wrapping preferences</target>
         <note />
       </trans-unit>
+      <trans-unit id="using_preferences">
+        <source>using preferences</source>
+        <target state="new">using preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
         <target state="new">var preferences</target>

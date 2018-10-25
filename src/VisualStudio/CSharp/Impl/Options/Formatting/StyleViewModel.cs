@@ -961,6 +961,46 @@ class Customer2
 }}
 ";
 
+        private static readonly string[] s_preferredUsingsPlacement = new[] { $@"
+//[
+        // {CSharpVSResources.No_preference}
+        using System;
+
+        namespace Namespace
+        {{
+            using System.Linq;
+
+            class Customer
+            {{
+            }}
+        }}
+//]", $@"
+//[
+        namespace Namespace
+        {{
+            // {CSharpVSResources.Inside_namespace}
+            using System;
+            using System.Linq;
+
+            class Customer
+            {{
+            }}
+        }}
+//]", $@"
+//[
+        // {CSharpVSResources.Outside_namespace}
+        using System;
+        using System.Linq;
+
+        namespace Namespace
+        {{
+            class Customer
+            {{
+            }}
+        }}
+//]
+" };
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -1116,6 +1156,7 @@ class C
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
             var fieldGroupTitle = ServicesVSResources.Field_preferences_colon;
+            var usingsGroupTitle = CSharpVSResources.using_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
@@ -1136,6 +1177,13 @@ class C
             {
                 new CodeStylePreference(CSharpVSResources.Prefer_var, isChecked: true),
                 new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
+            };
+
+            var usingPlacementPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.No_preference, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.Inside_namespace, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.Outside_namespace, isChecked: false),
             };
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, CSharpVSResources.Qualify_field_access_with_this, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
@@ -1185,6 +1233,12 @@ class C
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
+
+            // Using preferences.
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UsingPlacementPreference>(
+                CSharpCodeStyleOptions.PreferredUsingPlacement, CSharpVSResources.Preferred_usings_placement, 
+                new[] { UsingPlacementPreference.NoPreference, UsingPlacementPreference.InsideNamespace, UsingPlacementPreference.OutsideNamespace }, 
+                s_preferredUsingsPlacement, this, optionSet, usingsGroupTitle, usingPlacementPreferences));
         }
 
         private void AddParenthesesOptions(OptionSet optionSet)

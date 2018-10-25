@@ -14,10 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     internal abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
-        protected abstract string CodeActionTitle
-        {
-            get;
-        }
+        protected abstract string CodeActionTitle { get; }
 
         public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
         {
