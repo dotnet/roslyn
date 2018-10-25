@@ -80,17 +80,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case bool val: return GenerateBooleanLiteralExpression(val);
                 case string val: return GenerateStringLiteralExpression(val);
                 case char val: return GenerateCharLiteralExpression(val);
-                case sbyte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (sbyte)-x, x => x == sbyte.MinValue, "128");
-                case short val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (short)-x, x => x == short.MinValue, "32768");
-                case int val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, x => x == int.MinValue, "2147483648");
-                case long val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, x => x == long.MinValue, "9223372036854775808");
+                case sbyte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (sbyte)-x, "128");
+                case short val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (short)-x, "32768");
+                case int val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, "2147483648");
+                case long val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, "9223372036854775808");
                 case byte val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
                 case ushort val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v));
                 case uint val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
                 case ulong val: return GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
                 case float val: return GenerateSingleLiteralExpression(type, val, canUseFieldReference);
                 case double val: return GenerateDoubleLiteralExpression(type, val, canUseFieldReference);
-                case decimal val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, x => false, null);
+                case decimal val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, null);
             }
 
             return type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return GenerateLiteralExpression(
                 type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference, 
-                SyntaxFactory.Literal, x => x < 0, x => -x, x => false, null);
+                SyntaxFactory.Literal, x => x < 0, x => -x, null);
         }
 
         private static ExpressionSyntax GenerateSingleLiteralExpression(ITypeSymbol type, float value, bool canUseFieldReference)
@@ -228,18 +228,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return GenerateLiteralExpression(
                 type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference, 
-                SyntaxFactory.Literal, x => x < 0, x => -x, x => false, null);
+                SyntaxFactory.Literal, x => x < 0, x => -x, null);
         }
 
         private static ExpressionSyntax GenerateNonNegativeLiteralExpression<T>(
             ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants,
             string formatString, bool canUseFieldReference,
             Func<string, T, SyntaxToken> tokenFactory)
+            where T : IEquatable<T>
         {
             return GenerateLiteralExpression(
                 type, value, constants, formatString, canUseFieldReference,
-                tokenFactory, isNegative: x => false, negate: t => throw new InvalidOperationException(),
-                x => false, null);
+                tokenFactory, isNegative: x => false, negate: t => throw new InvalidOperationException(), null);
         }
 
         private static ExpressionSyntax GenerateLiteralExpression<T>(
@@ -247,7 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             string formatString, bool canUseFieldReference,
             Func<string, T, SyntaxToken> tokenFactory,
             Func<T, bool> isNegative, Func<T, T> negate,
-            Func<T, bool> isSignedIntegerMinValue, string signedIntegerMinValueString)
+            string integerMinValueString)
+            where T : IEquatable<T>
         {
             if (canUseFieldReference)
             {
@@ -257,19 +258,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return result;
                 }
             }
-
-            var signedIntegerMinValue = isSignedIntegerMinValue(value);
+            
             var negative = isNegative(value);
 
-            if (negative && !signedIntegerMinValue)
-            {
-                value = negate(value);
-            }
+            var nonNegativeValue = negative
+                ? negate(value)
+                : value;
 
             var suffix = DetermineSuffix(type, value);
 
-            var stringValue = signedIntegerMinValue
-                ? signedIntegerMinValueString
+            var stringValue = negative && nonNegativeValue.Equals(value)
+                ? integerMinValueString
                 : ((IFormattable)value).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
 
             var literal = SyntaxFactory.LiteralExpression(
