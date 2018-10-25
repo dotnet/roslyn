@@ -1523,17 +1523,7 @@ class C
 
             var expected = "public const SByte MinValue = -128;";
 
-            using (var context = TestContext.Create(LanguageNames.CSharp, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1547,17 +1537,7 @@ End Class";
 
             var expected = "Public Const MinValue As [SByte] = -128";
 
-            using (var context = TestContext.Create(LanguageNames.VisualBasic, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1572,17 +1552,7 @@ class C
 
             var expected = $"public const Int16 MinValue = -32768;";
 
-            using (var context = TestContext.Create(LanguageNames.CSharp, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1596,17 +1566,7 @@ End Class";
 
             var expected = $"Public Const MinValue As Int16 = -32768";
 
-            using (var context = TestContext.Create(LanguageNames.VisualBasic, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1621,17 +1581,7 @@ class C
 
             var expected = $"public const Int32 MinValue = -2147483648;";
 
-            using (var context = TestContext.Create(LanguageNames.CSharp, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1645,17 +1595,7 @@ End Class";
 
             var expected = $"Public Const MinValue As Int32 = -2147483648";
 
-            using (var context = TestContext.Create(LanguageNames.VisualBasic, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1670,17 +1610,7 @@ class C
 
             var expected = $"public const Int64 MinValue = -9223372036854775808;";
 
-            using (var context = TestContext.Create(LanguageNames.CSharp, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]
@@ -1694,17 +1624,7 @@ End Class";
 
             var expected = $"Public Const MinValue As Int64 = -9223372036854775808";
 
-            using (var context = TestContext.Create(LanguageNames.VisualBasic, sourceWithSymbolReference: source))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                var document = context.GetDocument(metadataAsSourceFile);
-                var text = await document.GetTextAsync();
-                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
-                var lineText = line.ToString().Trim();
-
-                Assert.Equal(expected, lineText);
-            }
+            await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
     }
 }
