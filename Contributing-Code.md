@@ -11,7 +11,7 @@ For now, the team has set the following limits on pull requests:
 - Pull requests that do not merge easily with the tip of the master branch will be declined. The author will be asked to merge with tip and update the pull request.
 - Submissions must meet functional and performance expectations, including scenarios for which the team doesn’t yet have open source tests. This means you may be asked to fix and resubmit your pull request against a new open test case if it fails one of these tests.
 - Submissions must follow the [.editorconfig](http://editorconfig.org/) settings for each directory. For the most part, these follow the rules stated in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md) with the exception that most Roslyn projects prefer to use 'var' everywhere.
-- Contributors must sign the [.NET CLA](https://cla2.dotnetfoundation.org/)
+- Contributors must sign the [.NET CLA](https://cla.dotnetfoundation.org/)
 
 
 When you are ready to proceed with making a change, get set up to [[build|Building Testing and Debugging]] the code and familiarize yourself with our workflow and our coding conventions. These two blogs posts on contributing code to open source projects are good too: Open Source Contribution Etiquette by Miguel de Icaza and Don’t “Push” Your Pull Requests by Ilya Grigorik.
