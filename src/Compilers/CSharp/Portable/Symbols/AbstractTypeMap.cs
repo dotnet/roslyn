@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            // https://github.com/dotnet/roslyn/issues/30072: we're dropping annotation and context
-            return TypeSymbolWithAnnotations.Create(result);
+            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, result);
         }
 
         internal TypeSymbolWithAnnotations SubstituteType(TypeSymbolWithAnnotations previous)
@@ -198,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual TypeSymbolWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
-            return TypeSymbolWithAnnotations.Create(typeParameter);
+            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, typeParameter);
         }
 
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)

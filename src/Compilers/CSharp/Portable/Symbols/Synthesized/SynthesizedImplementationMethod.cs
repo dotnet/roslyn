@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // alpha-rename to get the implementation's type parameters
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, nonNullTypesContext: this, out _typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            _interfaceMethod = interfaceMethod.ConstructIfGeneric(GetTypeParametersAsTypeArguments(nonNullTypesContext: this));
+            _interfaceMethod = interfaceMethod.ConstructIfGeneric(TypeArguments);
             _parameters = SynthesizedParameterSymbol.DeriveParameters(_interfaceMethod, this);
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return GetTypeParametersAsTypeArguments(nonNullTypesContext: this); }
+            get { return GetTypeParametersAsTypeArguments(); }
         }
 
         public override RefKind RefKind

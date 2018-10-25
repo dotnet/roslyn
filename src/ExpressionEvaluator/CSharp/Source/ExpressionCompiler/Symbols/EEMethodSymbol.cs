@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
             _allTypeParameters = container.TypeParameters.Concat(_typeParameters);
-            this.TypeMap = new TypeMap(NonNullTypesFalseContext.Instance, allSourceTypeParameters, _allTypeParameters);
+            this.TypeMap = new TypeMap(allSourceTypeParameters, _allTypeParameters);
 
             EENamedTypeSymbol.VerifyTypeParameters(this, _typeParameters);
 
