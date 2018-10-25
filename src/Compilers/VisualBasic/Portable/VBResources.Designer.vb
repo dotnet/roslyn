@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -13815,24 +13815,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_InvalidOverrideDueToTupleNames2_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_InvalidOverrideDueToTupleNames2_Title", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file at &apos;{2}&apos;..
-        '''</summary>
-        Friend ReadOnly Property WRN_InvalidSeverityInAnalyzerConfig() As String
-            Get
-                Return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Invalid severity in analyzer config file..
-        '''</summary>
-        Friend ReadOnly Property WRN_InvalidSeverityInAnalyzerConfig_Title() As String
-            Get
-                Return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture)
             End Get
         End Property
         

@@ -355,7 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                 case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
                 case ErrorCode.WRN_NoBestNullabilityArrayElements:
-                case ErrorCode.WRN_InvalidSeverityInAnalyzerConfig:
                     return 1;
                 default:
                     return 0;

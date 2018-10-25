@@ -87,16 +87,6 @@
         <target state="translated">类型参数不能是任何内容</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
-        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
-        <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
         <source>Wrong number of type arguments</source>
         <target state="translated">类型参数的数目不正确</target>

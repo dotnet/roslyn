@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
-        public override int WRN_InvalidSeverityInAnalyzerConfig => (int)ErrorCode.WRN_InvalidSeverityInAnalyzerConfig;
         public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;
 
         // command line:

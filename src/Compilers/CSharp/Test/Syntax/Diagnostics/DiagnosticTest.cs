@@ -246,7 +246,6 @@ class X
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                         case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
-                        case ErrorCode.WRN_InvalidSeverityInAnalyzerConfig:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

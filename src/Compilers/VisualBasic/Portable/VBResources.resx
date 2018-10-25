@@ -5536,12 +5536,6 @@
   <data name="FEATURE_UnconstrainedTypeParameterInConditional" xml:space="preserve">
     <value>unconstrained type parameters in binary conditional expressions</value>
   </data>
-  <data name="WRN_InvalidSeverityInAnalyzerConfig" xml:space="preserve">
-    <value>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</value>
-  </data>
-  <data name="WRN_InvalidSeverityInAnalyzerConfig_Title" xml:space="preserve">
-    <value>Invalid severity in analyzer config file.</value>
-  </data>
   <data name="ERR_MultipleAnalyzerConfigsInSameDir" xml:space="preserve">
     <value>Multiple analyzer config files cannot be in the same directory ('{0}').</value>
   </data>
