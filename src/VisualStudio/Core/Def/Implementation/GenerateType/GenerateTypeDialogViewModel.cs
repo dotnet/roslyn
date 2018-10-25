@@ -671,9 +671,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             {
                 if (_areFoldersValidIdentifiers)
                 {
+                    /*
                     var workspace = this.SelectedProject.Solution.Workspace as VisualStudioWorkspaceImpl;
                     var project = workspace?.GetHostProject(this.SelectedProject.Id) as AbstractProject;
                     return !(project?.IsWebSite == true);
+                    */
+                    return false;
                 }
 
                 return false;

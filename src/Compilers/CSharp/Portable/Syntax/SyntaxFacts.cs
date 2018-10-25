@@ -381,6 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExclusiveOrAssignmentExpression:
                 case LeftShiftAssignmentExpression:
                 case RightShiftAssignmentExpression:
+                case CoalesceAssignmentExpression:
                 case PostIncrementExpression:
                 case PostDecrementExpression:
                 case PreIncrementExpression:

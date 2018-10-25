@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         localSymbol,
                         null,
-                        localSymbol.Type
+                        localSymbol.Type.TypeSymbol
                     ),
                     rewrittenInitializer,
-                    localSymbol.Type,
+                    localSymbol.Type.TypeSymbol,
                     localSymbol.IsRef),
                 hasErrors);
 

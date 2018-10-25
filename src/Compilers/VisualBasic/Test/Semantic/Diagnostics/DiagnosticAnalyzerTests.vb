@@ -1535,5 +1535,31 @@ Block[B2] - Exit
                 ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph)
             Next
         End Sub
+
+        <Fact, WorkItem(30309, "https://github.com/dotnet/roslyn/issues/30309")>
+        Public Sub TestSymbolStartAnalyzer_MyApplication()
+
+            Dim sources = <compilation>
+                              <file name="a.vb"><![CDATA[
+Namespace My
+    Friend Partial Class MyApplication
+    End Class
+End Namespace
+]]></file>
+                          </compilation>
+
+            Dim defines = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
+            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("WindowsForms")))
+
+            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources, {SystemWindowsFormsRef}, options:=compilationOptions)
+            compilation.VerifyDiagnostics()
+
+            Dim analyzers = New DiagnosticAnalyzer() {New SymbolStartAnalyzer(topLevelAction:=False, SymbolKind.NamedType)}
+            compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
+                Diagnostic("SymbolStartRuleId").WithArguments("MyApplication", "Analyzer1").WithLocation(1, 1))
+        End Sub
     End Class
 End Namespace

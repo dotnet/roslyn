@@ -2457,7 +2457,8 @@ BC30109: 'Form2' is a class type and cannot be used as an expression.
             compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemRef},
                                                                                  TestOptions.ReleaseDll.WithRootNamespace("WindowsApplication1"))
 
-            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource))
+            ' https://github.com/dotnet/roslyn/issues/29819 remove explicit options when VB 16 is latest
+            compilation = compilation.AddSyntaxTrees(VisualBasicSyntaxTree.ParseText(WindowsFormsMyTemplateSource, options:=TestOptions.Regular))
 
             compilation.MyTemplate = Nothing
 

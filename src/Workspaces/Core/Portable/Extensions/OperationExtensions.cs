@@ -60,30 +60,37 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(parenthesizedOperation.Language == LanguageNames.VisualBasic);
 
                 return parenthesizedOperation.GetValueUsageInfo() &
-                    ~(ValueUsageInfo.Write | ValueUsageInfo.WritableRef);
+                    ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
             else if (operation.Parent is INameOfOperation ||
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NonReadWriteRef;
+                return ValueUsageInfo.NameOnly;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
                 switch (argumentOperation.Parameter.RefKind)
                 {
                     case RefKind.RefReadOnly:
-                        return ValueUsageInfo.ReadableRef;
+                        return ValueUsageInfo.ReadableReference;
 
                     case RefKind.Out:
-                        return ValueUsageInfo.WritableRef;
+                        return ValueUsageInfo.WritableReference;
 
                     case RefKind.Ref:
-                        return ValueUsageInfo.ReadableWritableRef;
+                        return ValueUsageInfo.ReadableWritableReference;
 
                     default:
                         return ValueUsageInfo.Read;
                 }
+            }
+            else if (operation.Parent is IReDimClauseOperation reDimClauseOperation &&
+                reDimClauseOperation.Operand == operation)
+            {
+                return (reDimClauseOperation.Parent as IReDimOperation)?.Preserve == true
+                    ? ValueUsageInfo.ReadWrite
+                    : ValueUsageInfo.Write;
             }
             else if (IsInLeftOfDeconstructionAssignment(operation))
             {

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
+        public static ControlFlowGraph Create(IOperation body, ControlFlowGraph parent = null, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
             Debug.Assert(((Operation)body).OwningSemanticModel != null);
@@ -71,10 +71,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.PropertyInitializer ||
                     body.Kind == OperationKind.ParameterInitializer,
                     $"Unexpected root operation kind: {body.Kind}");
+                Debug.Assert(parent == null);
             }
             else
             {
                 Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
+                Debug.Assert(parent != null);
             }
 #endif
 
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
@@ -2835,6 +2837,83 @@ oneMoreTime:
             return result;
         }
 
+        public override IOperation VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            // If we're in a statement context, we elide the capture of the result of the assignment, as it will
+            // just be wrapped in an expression statement that isn't used anywhere and isn't observed by anything.
+            bool isStatement = _currentStatement == operation || operation?.Parent.Kind == OperationKind.ExpressionStatement;
+            Debug.Assert(captureIdForResult == null || !isStatement);
+
+            RegionBuilder resultCaptureRegion = _currentRegion;
+
+            EvalStackFrame frame = PushStackFrame();
+
+            PushOperand(Visit(operation.Target));
+            SpillEvalStack();
+            IOperation locationCapture = PopOperand();
+
+            // Capture the value, as it will only be evaluated once. The location will be used separately later for
+            // the null case
+            EvalStackFrame valueFrame = PushStackFrame();
+            SpillEvalStack();
+            int valueCaptureId = GetNextCaptureId(valueFrame.RegionBuilderOpt);
+            AddStatement(new FlowCapture(valueCaptureId, locationCapture.Syntax, locationCapture));
+            IOperation valueCapture = GetCaptureReference(valueCaptureId, locationCapture);
+
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+            var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
+
+            int resultCaptureId = isStatement ? -1 : captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+
+            LinkBlocks(CurrentBasicBlock,
+                       Operation.SetParentOperation(MakeIsNullOperation(valueCapture), null),
+                       jumpIfTrue: true,
+                       RegularBranch(whenNull));
+
+            if (!isStatement)
+            {
+                _currentBasicBlock = null;
+
+                AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, OperationCloner.CloneOperation(valueCapture)));
+            }
+
+            PopStackFrameAndLeaveRegion(valueFrame);
+
+            LinkBlocks(CurrentBasicBlock, afterCoalesce);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(whenNull);
+
+            // The return of Visit(operation.WhenNull) can be a flow capture that wasn't used in the non-null branch. We want to create a
+            // region around it to ensure that the scope of the flow capture is as narrow as possible. If there was no flow capture, region
+            // packing will take care of removing the empty region.
+            EvalStackFrame whenNullFrame = PushStackFrame();
+
+            IOperation whenNullValue = Visit(operation.Value);
+            IOperation whenNullAssignment = new SimpleAssignmentExpression(OperationCloner.CloneOperation(locationCapture), isRef: false, whenNullValue, semanticModel: null,
+                                                                           operation.Syntax, operation.Type, constantValue: operation.ConstantValue, isImplicit: true);
+
+            if (isStatement)
+            {
+                AddStatement(whenNullAssignment);
+            }
+            else
+            {
+                AddStatement(new FlowCapture(resultCaptureId, operation.Syntax, whenNullAssignment));
+            }
+
+            PopStackFrameAndLeaveRegion(whenNullFrame);
+
+            PopStackFrame(frame);
+
+            LeaveRegionsUpTo(resultCaptureRegion);
+            AppendNewBlock(afterCoalesce);
+
+            return isStatement ? null : GetCaptureReference(resultCaptureId, operation);
+        }
+
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
         {
             return new BasicBlockBuilder.Branch() { Destination = destination, Kind = ControlFlowBranchSemantics.Regular };
@@ -3068,7 +3147,7 @@ oneMoreTime:
 
             if (underlying == null)
             {
-                Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
+                Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess || operation.Operation.Kind == OperationKind.CoalesceAssignment);
                 return FinishVisitingStatement(operation);
             }
             else if (operation.Operation.Kind == OperationKind.Throw)
@@ -6421,6 +6500,43 @@ oneMoreTime:
                                      new InvalidOperation(VisitArray(invalidOperation.Children.ToImmutableArray()), semanticModel: null,
                                                                  invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation)));
             }
+        }
+
+        public override IOperation VisitReDim(IReDimOperation operation, int? argument)
+        {
+            StartVisitingStatement(operation);
+
+            // We split the ReDim clauses into separate ReDim operations to ensure that we preserve the evaluation order,
+            // i.e. each ReDim clause operand is re-allocated prior to evaluating the next clause.
+
+            // Mark the split ReDim operations as implicit if we have more than one ReDim clause.
+            bool isImplicit = operation.Clauses.Length > 1 || IsImplicit(operation);
+
+            foreach (var clause in operation.Clauses)
+            {
+                EvalStackFrame frame = PushStackFrame();
+                var visitedReDimClause = visitReDimClause(clause);
+                var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit);
+                AddStatement(visitedReDimOperation);
+                PopStackFrameAndLeaveRegion(frame);
+            }
+
+            return FinishVisitingStatement(operation);
+
+            IReDimClauseOperation visitReDimClause(IReDimClauseOperation clause)
+            {
+                PushOperand(Visit(clause.Operand));
+                var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
+                var visitedOperand = PopOperand();
+                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null,
+                    clause.Syntax, clause.Type, clause.ConstantValue, IsImplicit(clause));
+            }
+        }
+
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)

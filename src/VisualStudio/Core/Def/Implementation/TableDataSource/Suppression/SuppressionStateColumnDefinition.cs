@@ -19,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         public const string ColumnName = "suppressionstate";
         private static readonly string[] s_defaultFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable, ServicesVSResources.Suppressed };
-        private static readonly string[] s_defaultCheckedFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable };
-
+        
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Suppression_State;
         public override string HeaderName => ServicesVSResources.Suppression_State;
