@@ -5832,6 +5832,27 @@ namespace System
             CreateCompilation(text).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvert()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+                Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
+        }
+
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
