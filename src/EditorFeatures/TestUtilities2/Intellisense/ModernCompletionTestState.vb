@@ -220,8 +220,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return
             End If
 
-            Dim completionItems = session.GetComputedItems(CancellationToken.None)
-            Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+            ' If completionItems cannot be calculated in 5 seconds, no session exists.
+            If Not block Then
+                Dim task1 = New Task(Sub()
+                                         Thread.Sleep(5000)
+                                     End Sub)
+                task1.Start()
+
+                Dim task2 = New Task(Sub()
+                                         Dim completionItems = session.GetComputedItems(CancellationToken.None)
+                                         ' In the non blocking mode, we are not interested for a session appeared later than in 5 seconds.
+                                         If task1.Status = TaskStatus.Running Then
+                                             Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+                                         End If
+                                     End Sub)
+                task2.Start()
+
+                Task.WaitAny(task1, task2)
+            Else
+                Dim completionItems = session.GetComputedItems(CancellationToken.None)
+                Assert.True(session.IsDismissed OrElse completionItems.Items.Count() = 0)
+            End If
         End Function
 
         Public Overrides Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task

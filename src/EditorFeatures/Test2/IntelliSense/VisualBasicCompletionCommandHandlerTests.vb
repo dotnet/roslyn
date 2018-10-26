@@ -415,8 +415,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation(completionImplementation As CompletionImplementation) As Task
             ' Simulate a very slow completionImplementation provider.
@@ -454,8 +453,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation(completionImplementation As CompletionImplementation) As Task
             ' Simulate a very slow completionImplementation provider.
@@ -484,13 +482,19 @@ End Class
                 ' allow the provider to continue
                 e.Set()
 
-                ' We should not have a session since we tear things down if we see a caret move
-                ' before the providers have returned.
-                Await state.AssertNoCompletionSession()
+                If completionImplementation = CompletionImplementation.Legacy Then
+                    ' We should not have a session since we tear things down if we see a caret move
+                    ' before the providers have returned.
+                    Await state.AssertNoCompletionSession()
+                Else
+                    ' Async provider can handle keys pressed while waiting for providers.
+                    Await state.AssertCompletionSession()
+                End If
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigateOutOfItemChangeSpan(completionImplementation As CompletionImplementation) As Task
             ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,

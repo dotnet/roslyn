@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // If this was deletion, then we control the entire behavior of deletion ourselves.
             if (initialRoslynTrigger.Kind == CompletionTriggerKind.Deletion)
             {
-                return HandleDeletionTrigger(updatedFilters, filterText, initialListOfItemsToBeIncluded, highlightedList);
+                return HandleDeletionTrigger(initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
             }
 
             return HandleNormalFiltering(
@@ -246,9 +246,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             VSCompletionItem uniqueItem = null;
             int selectedItemIndex = 0;
 
-            // TODO: Can we get away with less complexity here by only doing hard select on preselection and not on regular filter text matching / etc...
-            // https://github.com/dotnet/roslyn/issues/29108
-
             // Determine if we should consider this item 'unique' or not.  A unique item
             // will be automatically committed if the user hits the 'invoke completion' 
             // without bringing up the completion list.  An item is unique if it was the
@@ -271,12 +268,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // Check that it is a filter symbol. We can be called for a non-filter symbol.
             if (filterReason == CompletionFilterReason.Insertion && 
                 !Controller.IsPotentialFilterCharacter(typeChar) && 
-                !string.IsNullOrEmpty(filterText))
+                !string.IsNullOrEmpty(filterText) && 
+                !Controller.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
             {
-                if (!Controller.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
-                {
-                    return null;
-                }
+                return null;
             }
 
             var updateSelectionHint = Session.IsHardSelection(
@@ -296,9 +291,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         }
 
         private AsyncCompletionData.FilteredCompletionModel HandleDeletionTrigger(
-            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
-            string filterText,
             List<ExtendedFilterResult> filterResults,
+            string filterText,
+            ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
             ImmutableArray<AsyncCompletionData.CompletionItemWithHighlight> highlightedList)
         {
             ExtendedFilterResult? bestFilterResult = null;
@@ -314,6 +309,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 }
             }
 
+            int index;
+            bool hardSelect;
+
             // If we had a matching item, then pick the best of the matching items and
             // choose that one to be hard selected.  If we had no actual matching items
             // (which can happen if the user deletes down to a single character and we
@@ -326,20 +324,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 //   text that originally appeared before the dot
                 // * deleting through a word from the end keeps that word selected
                 // This also preserves the behavior the VB had through Dev12.
-                var hardSelect = bestFilterResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
-
-                return new AsyncCompletionData.FilteredCompletionModel(
-                    highlightedList, filterResults.IndexOf(bestFilterResult.Value), filters,
-                    hardSelect ? AsyncCompletionData.UpdateSelectionHint.Selected : AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
-                    centerSelection: true, uniqueItem: null);
+                hardSelect = bestFilterResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
+                index = filterResults.IndexOf(bestFilterResult.Value);
             }
             else
             {
-                return new AsyncCompletionData.FilteredCompletionModel(
-                    highlightedList, selectedItemIndex: 0, filters,
-                    AsyncCompletionData.UpdateSelectionHint.SoftSelected, 
-                    centerSelection: true, uniqueItem: null);
+                index = 0;
+                hardSelect = false;
             }
+
+            return new AsyncCompletionData.FilteredCompletionModel(
+                highlightedList, index, filters,
+                hardSelect ? AsyncCompletionData.UpdateSelectionHint.Selected : AsyncCompletionData.UpdateSelectionHint.SoftSelected,
+                centerSelection: true, uniqueItem: null);
         }
 
         private AsyncCompletionData.FilteredCompletionModel HandleAllItemsFilteredOut(

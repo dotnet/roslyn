@@ -172,7 +172,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 }
             }
 
-            if (includesCommitCharacter) return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+            if (includesCommitCharacter)
+            {
+                return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+            }
 
             if (commitCharacter == '\n' && Controller.SendEnterThroughToEditor(rules, roslynItem, filterText))
             {
