@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedExpressionsAndParameters
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedExpressions), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedExpressionsAndParameters), Shared]
     internal class CSharpRemoveUnusedExpressionsAndParametersCodeFixProvider:
         AbstractRemoveUnusedExpressionsAndParametersCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax, 
                                                                     ExpressionStatementSyntax, LocalDeclarationStatementSyntax,

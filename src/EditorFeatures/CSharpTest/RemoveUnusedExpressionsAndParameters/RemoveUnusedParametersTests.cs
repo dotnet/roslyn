@@ -331,7 +331,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UnusedLambdaParameter()
         {
-            await TestDiagnosticsAsync(
+            await TestDiagnosticMissingAsync(
 @"using System;
 
 class C
@@ -344,8 +344,7 @@ class C
 
         myLambda(y);
     }
-}",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]

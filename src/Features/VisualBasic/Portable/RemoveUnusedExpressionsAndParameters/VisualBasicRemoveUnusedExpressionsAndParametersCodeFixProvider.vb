@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedExpressionsAndParameters
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedExpressions), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedExpressionsAndParameters), [Shared]>
     Friend Class VisualBasicRemoveUnusedExpressionsAndParametersCodeFixProvider
         Inherits AbstractRemoveUnusedExpressionsAndParametersCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
                                                                                 ExpressionStatementSyntax, LocalDeclarationStatementSyntax,

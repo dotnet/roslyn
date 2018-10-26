@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             private bool IsUnusedParameterCandidate(IParameterSymbol parameter)
             {
                 // Ignore implicitly declared parameters and methods, extern methods, abstract methods,
-                // virtual methods, overrides, interface implementations and accessors.
+                // virtual methods, overrides, interface implementations, accessors and lambdas.
                 if (parameter.IsImplicitlyDeclared ||
                     parameter.Name == "_" ||
                     !(parameter.ContainingSymbol is IMethodSymbol method) ||
@@ -310,7 +310,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                     method.IsVirtual ||
                     method.IsOverride ||
                     !method.ExplicitOrImplicitInterfaceImplementations().IsEmpty ||
-                    method.IsAccessor())
+                    method.IsAccessor() ||
+                    method.IsAnonymousFunction())
                 {
                     return false;
                 }
