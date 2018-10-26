@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
-            else if (!this.ReturnType.TypeSymbol.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+            else if (!this.ReturnType.TypeSymbol.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, TypeCompareKind.IgnoreTupleNames, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
