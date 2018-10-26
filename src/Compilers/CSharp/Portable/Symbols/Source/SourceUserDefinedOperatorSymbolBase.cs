@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol same;
             TypeSymbol different;
 
-            if (source0 == this.ContainingType)
+            if (source0.Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames))
             {
                 same = source;
                 different = target;
