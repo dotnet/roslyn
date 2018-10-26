@@ -85,7 +85,7 @@
       <trans-unit id="using_preferences">
         <source>using preferences</source>
         <target state="new">using preferences</target>
-        <note />
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>

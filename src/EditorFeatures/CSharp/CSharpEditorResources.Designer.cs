@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpEditorResources {
@@ -61,15 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fix misplaced usings.
-        /// </summary>
-        internal static string Fix_misplaced_usings {
-            get {
-                return ResourceManager.GetString("Fix_misplaced_usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Misplaced using.
         /// </summary>
         internal static string Misplaced_using {
@@ -79,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move misplaced using statements.
+        ///   Looks up a localized string similar to Move misplaced using directives.
         /// </summary>
         internal static string Move_misplaced_using_statements {
             get {
@@ -115,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using directives must be place inside a namespace declaration.
+        ///   Looks up a localized string similar to Using directives must be placed inside a namespace declaration.
         /// </summary>
         internal static string Using_directives_must_be_placed_inside_a_namespace_declaration {
             get {
@@ -124,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using directives must be place outside a namespace declaration.
+        ///   Looks up a localized string similar to Using directives must be placed outside a namespace declaration.
         /// </summary>
         internal static string Using_directives_must_be_placed_outside_a_namespace_declaration {
             get {

@@ -2,19 +2,14 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpEditorResources.resx">
     <body>
-      <trans-unit id="Fix_misplaced_usings">
-        <source>Fix misplaced usings</source>
-        <target state="new">Fix misplaced usings</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Misplaced_using">
         <source>Misplaced using</source>
         <target state="new">Misplaced using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_misplaced_using_statements">
-        <source>Move misplaced using statements</source>
-        <target state="new">Move misplaced using statements</target>
+        <source>Move misplaced using directives</source>
+        <target state="new">Move misplaced using directives</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -33,13 +28,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_a_namespace_declaration">
-        <source>Using directives must be place inside a namespace declaration</source>
-        <target state="new">Using directives must be place inside a namespace declaration</target>
+        <source>Using directives must be placed inside a namespace declaration</source>
+        <target state="new">Using directives must be placed inside a namespace declaration</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_outside_a_namespace_declaration">
-        <source>Using directives must be place outside a namespace declaration</source>
-        <target state="new">Using directives must be place outside a namespace declaration</target>
+        <source>Using directives must be placed outside a namespace declaration</source>
+        <target state="new">Using directives must be placed outside a namespace declaration</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

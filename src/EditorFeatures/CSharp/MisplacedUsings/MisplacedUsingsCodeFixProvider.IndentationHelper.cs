@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 {
@@ -17,17 +18,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <summary>
             /// Generate a new indentation string.
             /// </summary>
-            /// <param name="indentationSettings">The indentation settings to use.</param>
+            /// <param name="options">The settings to use.</param>
             /// <param name="indentationSteps">The number of indentation steps.</param>
             /// <returns>A string containing the amount of whitespace needed for the given indentation steps.</returns>
-            public static string GenerateIndentationString(IndentationSettings indentationSettings, int indentationSteps)
+            public static string GenerateIndentationString(OptionSet options, int indentationSteps)
             {
+                var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp);
+                var indentationSize = options.GetOption(FormattingOptions.IndentationSize, LanguageNames.CSharp);
+                var useTabs = options.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp);
+
                 string result;
-                var indentationCount = indentationSteps * indentationSettings.IndentationSize;
-                if (indentationSettings.UseTabs)
+
+                var indentationCount = indentationSteps * indentationSize;
+                if (useTabs)
                 {
-                    var tabCount = indentationCount / indentationSettings.TabSize;
-                    var spaceCount = indentationCount % indentationSettings.TabSize;
+                    var tabCount = indentationCount / tabSize;
+                    var spaceCount = indentationCount % tabSize;
                     result = new string('\t', tabCount) + new string(' ', spaceCount);
                 }
                 else
@@ -41,11 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <summary>
             /// Gets the number of steps that the given node is indented.
             /// </summary>
-            /// <param name="indentationSettings">The indentation settings to use.</param>
+            /// <param name="options">The settings to use.</param>
             /// <param name="node">The node to inspect.</param>
             /// <returns>The number of steps that the node is indented.</returns>
-            public static int GetIndentationSteps(IndentationSettings indentationSettings, SyntaxNode node)
+            public static int GetIndentationSteps(OptionSet options, SyntaxNode node)
             {
+                var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp);
+                var indentationSize = options.GetOption(FormattingOptions.IndentationSize, LanguageNames.CSharp);
+
                 var syntaxTree = node.SyntaxTree;
                 var leadingTrivia = node.GetLeadingTrivia();
                 var triviaSpan = syntaxTree.GetLineSpan(leadingTrivia.FullSpan);
@@ -58,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
                 var builder = StringBuilderPool.Allocate();
 
-                foreach (SyntaxTrivia trivia in leadingTrivia.Reverse())
+                foreach (var trivia in leadingTrivia.Reverse())
                 {
                     if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                     {
@@ -68,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     builder.Insert(0, trivia.ToFullString());
                 }
 
-                var tabSize = indentationSettings.TabSize;
                 var indentationCount = 0;
                 for (var i = 0; i < builder.Length; i++)
                 {
@@ -77,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
                 StringBuilderPool.ReturnAndFree(builder);
 
-                return (indentationCount + (indentationSettings.IndentationSize / 2)) / indentationSettings.IndentationSize;
+                return (indentationCount + (indentationSize / 2)) / indentationSize;
             }
         }
     }

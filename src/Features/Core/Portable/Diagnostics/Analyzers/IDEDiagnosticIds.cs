@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string FormattingDiagnosticId = "IDE0054";
 
-        public const string MoveMisplacedUsingsDiagnosticId = "IDE0055";
+        public const string MoveMisplacedUsingsDiagnosticId = "IDE0056";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

@@ -106,6 +106,9 @@ csharp_prefer_braces = true:silent
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 
+# using preferences
+csharp_preferred_using_placement = no_preference:silent
+
 #### C# Formatting Rules ####
 
 # New line preferences
@@ -254,6 +257,9 @@ csharp_prefer_braces = true:silent
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
+
+# using preferences
+csharp_preferred_using_placement = no_preference:silent
 
 #### C# Formatting Rules ####
 

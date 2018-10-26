@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -41,49 +40,49 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
             public UsingsSorter(OptionSet options, SemanticModel semanticModel, CompilationUnitSyntax compilationUnit, ImmutableArray<SyntaxTrivia> fileHeader)
             {
-                this._separateSystemDirectives = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, semanticModel.Language);
-                this._insertBlankLinesBetweenGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, semanticModel.Language);
+                _separateSystemDirectives = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, semanticModel.Language);
+                _insertBlankLinesBetweenGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, semanticModel.Language);
 
-                this._semanticModel = semanticModel;
-                this._fileHeader = fileHeader;
+                _semanticModel = semanticModel;
+                _fileHeader = fileHeader;
 
-                this.sourceMap = SourceMap.FromCompilationUnit(compilationUnit);
+                sourceMap = SourceMap.FromCompilationUnit(compilationUnit);
 
-                this.ProcessUsingDirectives(compilationUnit.Usings);
-                this.ProcessMembers(compilationUnit.Members);
+                ProcessUsingDirectives(compilationUnit.Usings);
+                ProcessMembers(compilationUnit.Members);
             }
 
             public TreeTextSpan ConditionalRoot
             {
-                get { return this.sourceMap.ConditionalRoot; }
+                get { return sourceMap.ConditionalRoot; }
             }
 
             public List<UsingDirectiveSyntax> GetContainedUsings(TreeTextSpan directiveSpan)
             {
-                List<UsingDirectiveSyntax> result = new List<UsingDirectiveSyntax>();
+                var result = new List<UsingDirectiveSyntax>();
                 List<UsingDirectiveSyntax> usingsList;
 
-                if (this._systemUsings.TryGetValue(directiveSpan, out usingsList))
+                if (_systemUsings.TryGetValue(directiveSpan, out usingsList))
                 {
                     result.AddRange(usingsList);
                 }
 
-                if (this._namespaceUsings.TryGetValue(directiveSpan, out usingsList))
+                if (_namespaceUsings.TryGetValue(directiveSpan, out usingsList))
                 {
                     result.AddRange(usingsList);
                 }
 
-                if (this._aliases.TryGetValue(directiveSpan, out usingsList))
+                if (_aliases.TryGetValue(directiveSpan, out usingsList))
                 {
                     result.AddRange(usingsList);
                 }
 
-                if (this._systemStaticImports.TryGetValue(directiveSpan, out usingsList))
+                if (_systemStaticImports.TryGetValue(directiveSpan, out usingsList))
                 {
                     result.AddRange(usingsList);
                 }
 
-                if (this._staticImports.TryGetValue(directiveSpan, out usingsList))
+                if (_staticImports.TryGetValue(directiveSpan, out usingsList))
                 {
                     result.AddRange(usingsList);
                 }
@@ -94,13 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             public SyntaxList<UsingDirectiveSyntax> GenerateGroupedUsings(TreeTextSpan directiveSpan, string indentation, bool withTrailingBlankLine, bool qualifyNames)
             {
                 var usingList = new List<UsingDirectiveSyntax>();
-                List<SyntaxTrivia> triviaToMove = new List<SyntaxTrivia>();
+                var triviaToMove = new List<SyntaxTrivia>();
 
-                usingList.AddRange(this.GenerateUsings(this._systemUsings, directiveSpan, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._namespaceUsings, directiveSpan, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._systemStaticImports, directiveSpan, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._staticImports, directiveSpan, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._aliases, directiveSpan, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_systemUsings, directiveSpan, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_namespaceUsings, directiveSpan, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_systemStaticImports, directiveSpan, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_staticImports, directiveSpan, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_aliases, directiveSpan, indentation, triviaToMove, qualifyNames));
 
                 if (triviaToMove.Count > 0)
                 {
@@ -120,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             public SyntaxList<UsingDirectiveSyntax> GenerateGroupedUsings(List<UsingDirectiveSyntax> usingsList, string indentation, bool withTrailingBlankLine, bool qualifyNames)
             {
                 var usingList = new List<UsingDirectiveSyntax>();
-                List<SyntaxTrivia> triviaToMove = new List<SyntaxTrivia>();
+                var triviaToMove = new List<SyntaxTrivia>();
 
-                usingList.AddRange(this.GenerateUsings(this._systemUsings, usingsList, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._namespaceUsings, usingsList, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._systemStaticImports, usingsList, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._staticImports, usingsList, indentation, triviaToMove, qualifyNames));
-                usingList.AddRange(this.GenerateUsings(this._aliases, usingsList, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_systemUsings, usingsList, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_namespaceUsings, usingsList, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_systemStaticImports, usingsList, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_staticImports, usingsList, indentation, triviaToMove, qualifyNames));
+                usingList.AddRange(GenerateUsings(_aliases, usingsList, indentation, triviaToMove, qualifyNames));
 
                 if (triviaToMove.Count > 0)
                 {
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
             private List<UsingDirectiveSyntax> GenerateUsings(Dictionary<TreeTextSpan, List<UsingDirectiveSyntax>> usingsGroup, TreeTextSpan directiveSpan, string indentation, List<SyntaxTrivia> triviaToMove, bool qualifyNames)
             {
-                List<UsingDirectiveSyntax> result = new List<UsingDirectiveSyntax>();
+                var result = new List<UsingDirectiveSyntax>();
                 List<UsingDirectiveSyntax> usingsList;
 
                 if (!usingsGroup.TryGetValue(directiveSpan, out usingsList))
@@ -153,12 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     return result;
                 }
 
-                return this.GenerateUsings(usingsList, indentation, triviaToMove, qualifyNames);
+                return GenerateUsings(usingsList, indentation, triviaToMove, qualifyNames);
             }
 
             private List<UsingDirectiveSyntax> GenerateUsings(List<UsingDirectiveSyntax> usingsList, string indentation, List<SyntaxTrivia> triviaToMove, bool qualifyNames)
             {
-                List<UsingDirectiveSyntax> result = new List<UsingDirectiveSyntax>();
+                var result = new List<UsingDirectiveSyntax>();
 
                 if (!usingsList.Any())
                 {
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     List<SyntaxTrivia> leadingTrivia;
                     if ((i == 0) && IsMissingOrDefault(currentUsing.GetFirstToken().GetPreviousToken()))
                     {
-                        leadingTrivia = currentUsing.GetLeadingTrivia().Except(this._fileHeader).ToList();
+                        leadingTrivia = currentUsing.GetLeadingTrivia().Except(_fileHeader).ToList();
                     }
                     else
                     {
@@ -182,14 +181,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
                     // when there is a directive trivia, add it (and any trivia before it) to the triviaToMove collection.
                     // when there are leading blank lines for the first entry, add them to the triviaToMove collection.
-                    int triviaToMoveCount = triviaToMove.Count;
+                    var triviaToMoveCount = triviaToMove.Count;
                     var previousIsEndOfLine = false;
                     for (var m = leadingTrivia.Count - 1; m >= 0; m--)
                     {
                         if (leadingTrivia[m].IsDirective)
                         {
                             // When a directive is followed by a blank line, keep the blank line with the directive.
-                            int takeCount = previousIsEndOfLine ? m + 2 : m + 1;
+                            var takeCount = previousIsEndOfLine ? m + 2 : m + 1;
                             triviaToMove.InsertRange(0, leadingTrivia.Take(takeCount));
                             break;
                         }
@@ -214,10 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     var newLeadingTrivia = leadingTrivia.Except(triviaToMove).ToList();
 
                     // indent the triviaToMove if necessary so it behaves correctly later
-                    bool atStartOfLine = triviaToMoveCount == 0 || HasBuiltinEndLine(triviaToMove.Last());
-                    for (int m = triviaToMoveCount; m < triviaToMove.Count; m++)
+                    var atStartOfLine = triviaToMoveCount == 0 || HasBuiltinEndLine(triviaToMove.Last());
+                    for (var m = triviaToMoveCount; m < triviaToMove.Count; m++)
                     {
-                        bool currentAtStartOfLine = atStartOfLine;
+                        var currentAtStartOfLine = atStartOfLine;
                         atStartOfLine = HasBuiltinEndLine(triviaToMove[m]);
                         if (!currentAtStartOfLine)
                         {
@@ -312,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                         newTrailingTrivia = newTrailingTrivia.Add(SyntaxFactory.CarriageReturnLineFeed);
                     }
 
-                    var processedUsing = (qualifyNames ? this.QualifyUsingDirective(currentUsing) : currentUsing)
+                    var processedUsing = (qualifyNames ? QualifyUsingDirective(currentUsing) : currentUsing)
                         .WithLeadingTrivia(newLeadingTrivia)
                         .WithTrailingTrivia(newTrailingTrivia)
                         .WithAdditionalAnnotations(s_usingPlacementCodeFixAnnotation);
@@ -320,12 +319,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     result.Add(processedUsing);
                 }
 
-                result.Sort(this.CompareUsings);
+                result.Sort(CompareUsings);
 
-                if (this._insertBlankLinesBetweenGroups)
+                if (_insertBlankLinesBetweenGroups)
                 {
                     var last = result[result.Count - 1];
 
+                    // Only separate subgroups of non-alias, non-static using declarations.
                     if (last.Alias == null &&
                         !last.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                     {
@@ -343,8 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 var previousUsing = usingsList[0];
                 var root = GetNamespaceRoot(previousUsing.Name);
 
-                // We prime with the first using's Namespace root and the last using will always get a blank line.
-                for (var i = 1; i < usingsList.Count - 1; i++)
+                // We have already processed the first using's Namespace root.
+                for (var i = 1; i < usingsList.Count; i++)
                 {
                     var currentUsing = usingsList[i];
                     var currentRoot = GetNamespaceRoot(currentUsing.Name);
@@ -363,15 +363,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 string GetNamespaceRoot(NameSyntax name)
                 {
                     // Since the Using statement has already been qualified we can get the
-                    // root without getting the Symbol, which is good because this Node
-                    // isn't part of the SyntaxTree yet.
+                    // root without getting the Symbol.
                     return name.ToString().Split('.')[0];
                 }
             }
 
             private UsingDirectiveSyntax QualifyUsingDirective(UsingDirectiveSyntax usingDirective)
             {
-                NameSyntax originalName = usingDirective.Name;
+                var originalName = usingDirective.Name;
                 NameSyntax rewrittenName;
                 switch (originalName.Kind())
                 {
@@ -381,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                         if (originalName.Parent.IsKind(SyntaxKind.UsingDirective)
                             || originalName.Parent.IsKind(SyntaxKind.TypeArgumentList))
                         {
-                            var symbol = this._semanticModel.GetSymbolInfo(originalName, cancellationToken: CancellationToken.None).Symbol;
+                            var symbol = _semanticModel.GetSymbolInfo(originalName, cancellationToken: CancellationToken.None).Symbol;
                             if (symbol == null)
                             {
                                 rewrittenName = originalName;
@@ -391,8 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                             if (symbol is INamespaceSymbol)
                             {
                                 // TODO: Preserve inner trivia
-                                string fullName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                                NameSyntax replacement = SyntaxFactory.ParseName(fullName);
+                                var fullName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                                var replacement = SyntaxFactory.ParseName(fullName);
                                 if (!originalName.DescendantNodesAndSelf().OfType<AliasQualifiedNameSyntax>().Any())
                                 {
                                     replacement = replacement.ReplaceNodes(
@@ -417,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                                     fullName = symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                                 }
 
-                                NameSyntax replacement = SyntaxFactory.ParseName(fullName);
+                                var replacement = SyntaxFactory.ParseName(fullName);
                                 if (!originalName.DescendantNodesAndSelf().OfType<AliasQualifiedNameSyntax>().Any())
                                 {
                                     replacement = replacement.ReplaceNodes(
@@ -467,23 +466,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
             private bool IsSeparatedStaticSystemUsing(UsingDirectiveSyntax syntax)
             {
-                if (!this._separateSystemDirectives)
+                if (!_separateSystemDirectives)
                 {
                     return false;
                 }
 
-                return this.StartsWithSystemUsingDirectiveIdentifier(syntax.Name);
+                return StartsWithSystemUsingDirectiveIdentifier(syntax.Name);
             }
 
             private bool IsSeparatedSystemUsing(UsingDirectiveSyntax syntax)
             {
-                if (!this._separateSystemDirectives
+                if (!_separateSystemDirectives
                     || HasNamespaceAliasQualifier(syntax))
                 {
                     return false;
                 }
 
-                return this.StartsWithSystemUsingDirectiveIdentifier(syntax.Name);
+                return StartsWithSystemUsingDirectiveIdentifier(syntax.Name);
             }
 
             private bool StartsWithSystemUsingDirectiveIdentifier(NameSyntax name)
@@ -503,8 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             {
                 foreach (var namespaceDeclaration in members.OfType<NamespaceDeclarationSyntax>())
                 {
-                    this.ProcessUsingDirectives(namespaceDeclaration.Usings);
-                    this.ProcessMembers(namespaceDeclaration.Members);
+                    ProcessUsingDirectives(namespaceDeclaration.Usings);
+                    ProcessMembers(namespaceDeclaration.Members);
                 }
             }
 
@@ -512,30 +511,30 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             {
                 foreach (var usingDirective in usingDirectives)
                 {
-                    TreeTextSpan containingSpan = this.sourceMap.GetContainingSpan(usingDirective);
+                    var containingSpan = sourceMap.GetContainingSpan(usingDirective);
 
                     if (usingDirective.Alias != null)
                     {
-                        this.AddUsingDirective(this._aliases, usingDirective, containingSpan);
+                        AddUsingDirective(_aliases, usingDirective, containingSpan);
                     }
                     else if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                     {
-                        if (this.IsSeparatedStaticSystemUsing(usingDirective))
+                        if (IsSeparatedStaticSystemUsing(usingDirective))
                         {
-                            this.AddUsingDirective(this._systemStaticImports, usingDirective, containingSpan);
+                            AddUsingDirective(_systemStaticImports, usingDirective, containingSpan);
                         }
                         else
                         {
-                            this.AddUsingDirective(this._staticImports, usingDirective, containingSpan);
+                            AddUsingDirective(_staticImports, usingDirective, containingSpan);
                         }
                     }
-                    else if (this.IsSeparatedSystemUsing(usingDirective))
+                    else if (IsSeparatedSystemUsing(usingDirective))
                     {
-                        this.AddUsingDirective(this._systemUsings, usingDirective, containingSpan);
+                        AddUsingDirective(_systemUsings, usingDirective, containingSpan);
                     }
                     else
                     {
-                        this.AddUsingDirective(this._namespaceUsings, usingDirective, containingSpan);
+                        AddUsingDirective(_namespaceUsings, usingDirective, containingSpan);
                     }
                 }
             }
@@ -555,9 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
             private List<UsingDirectiveSyntax> GenerateUsings(Dictionary<TreeTextSpan, List<UsingDirectiveSyntax>> usingsGroup, List<UsingDirectiveSyntax> usingsList, string indentation, List<SyntaxTrivia> triviaToMove, bool qualifyNames)
             {
-                var filteredUsingsList = this.FilterRelevantUsings(usingsGroup, usingsList);
+                var filteredUsingsList = FilterRelevantUsings(usingsGroup, usingsList);
 
-                return this.GenerateUsings(filteredUsingsList, indentation, triviaToMove, qualifyNames);
+                return GenerateUsings(filteredUsingsList, indentation, triviaToMove, qualifyNames);
             }
 
             private List<UsingDirectiveSyntax> FilterRelevantUsings(Dictionary<TreeTextSpan, List<UsingDirectiveSyntax>> usingsGroup, List<UsingDirectiveSyntax> usingsList)

@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 {
@@ -41,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             s_localizableOutsideMessage,
             configurable: true);
 
-        private readonly ICodingConventionsManager _conventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
-
         public MisplacedUsingsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId, s_localizableTitle)
         {
@@ -50,77 +44,49 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.CompilationUnit);
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnitNode, SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)
         {
-            var statement = context.Node;
-            var cancellationToken = context.CancellationToken;
-
             var option = GetPreferredPlacementOption(context);
-            if (option.Value == UsingPlacementPreference.NoPreference)
+            var compilationUnit = (CompilationUnitSyntax)context.Node;
+
+            if (option.Value != UsingPlacementPreference.InsideNamespace
+                || ShouldSuppressDiagnostic(compilationUnit))
             {
                 return;
             }
 
-            if (statement is CompilationUnitSyntax compilationUnit
-                && option.Value == UsingPlacementPreference.InsideNamespace
-                && !ShouldSurpressDiagnostic(compilationUnit))
+            ReportDiagnostics(context, _insideDescriptor, compilationUnit.Usings, option);
+        }
+
+        private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
+        {
+            var option = GetPreferredPlacementOption(context);
+            if (option.Value != UsingPlacementPreference.OutsideNamespace)
             {
-                ReportDiagnostics(context, _insideDescriptor, compilationUnit.Usings, option);
+                return;
             }
-            else if (statement is NamespaceDeclarationSyntax namespaceDeclaration
-                && option.Value == UsingPlacementPreference.OutsideNamespace)
-            {
-                ReportDiagnostics(context, _outsideDescriptor, namespaceDeclaration.Usings, option);
-            }
+
+            var namespaceDeclaration = (NamespaceDeclarationSyntax)context.Node;
+            ReportDiagnostics(context, _outsideDescriptor, namespaceDeclaration.Usings, option);
         }
 
         private CodeStyleOption<UsingPlacementPreference> GetPreferredPlacementOption(SyntaxNodeAnalysisContext context)
         {
-            var statement = context.Node;
-            var cancellationToken = context.CancellationToken;
-
-            // While running in VisualStudio this should always return an OptionSet.
-            var optionSet = context.Options.GetDocumentOptionSetAsync(statement.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet != null)
-            {
-                return optionSet.GetOption(CSharpCodeStyleOptions.PreferredUsingPlacement);
-            }
-
-            // This code path is for tests only. It relies on the test creating a .editorconfig in the current working directory.
-            var filePath = context.SemanticModel.SyntaxTree.FilePath;
-            var fullPath = string.IsNullOrEmpty(Path.GetDirectoryName(filePath))
-                ? Path.Combine(Environment.CurrentDirectory, filePath)
-                : filePath;
-
-            // Find the correct key name from the .editorconfig storage location
-            var storageLocation = CSharpCodeStyleOptions.PreferredUsingPlacement.StorageLocations
-                .OfType<EditorConfigStorageLocation<CodeStyleOption<UsingPlacementPreference>>>()
-                .FirstOrDefault();
-
-            var conventionContext = _conventionsManager.GetConventionContextAsync(fullPath, cancellationToken).GetAwaiter().GetResult();
-            if (conventionContext.CurrentConventions.TryGetConventionValue(storageLocation.KeyName, out string usingPlacementPreference))
-            {
-                return CSharpCodeStyleOptions.ParseUsingPlacementPreference(usingPlacementPreference, s_noPreferenceOption);
-            }
-
-            return s_noPreferenceOption;
+            return context.GetOptionOrDefaultAsync(
+                CSharpCodeStyleOptions.PreferredUsingPlacement, CSharpCodeStyleOptions.ParseUsingPlacementPreference,
+                s_noPreferenceOption).GetAwaiter().GetResult();
         }
 
-        private bool ShouldSurpressDiagnostic(CompilationUnitSyntax compilationUnit)
+        private bool ShouldSuppressDiagnostic(CompilationUnitSyntax compilationUnit)
         {
-            // Surpress if file contains a type declaration in the global namespace
-            // or if an attribute is used in the global namespace.
-            return compilationUnit.ChildNodes().Any(node =>
-                node.IsKind(SyntaxKind.ClassDeclaration)
-                || node.IsKind(SyntaxKind.InterfaceDeclaration)
-                || node.IsKind(SyntaxKind.EnumDeclaration)
-                || node.IsKind(SyntaxKind.StructDeclaration)
-                || node.IsKind(SyntaxKind.DelegateDeclaration)
-                || node.IsKind(SyntaxKind.AttributeList));
+            // Suppress if there are nodes other than usings and namespaces in the compilation unit.
+            return !compilationUnit.ChildNodes().All(node =>
+                node.IsKind(SyntaxKind.UsingDirective)
+                || node.IsKind(SyntaxKind.NamespaceDeclaration));
         }
 
         private void ReportDiagnostics(

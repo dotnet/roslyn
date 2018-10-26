@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
             private SourceMap(TreeTextSpan conditionalRoot, TreeTextSpan regionRoot, TreeTextSpan pragmaWarningRoot)
             {
-                this.ConditionalRoot = conditionalRoot;
-                this._regionRoot = regionRoot;
-                this._pragmaWarningRoot = pragmaWarningRoot;
+                ConditionalRoot = conditionalRoot;
+                _regionRoot = regionRoot;
+                _pragmaWarningRoot = pragmaWarningRoot;
             }
 
             /// <summary>
@@ -68,18 +68,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             {
                 var textSpan = node.GetLocation().SourceSpan;
 
-                var containingSpans = this._pragmaWarningRoot.Children
+                var containingSpans = _pragmaWarningRoot.Children
                     .Where(child => (textSpan.Start >= child.Start) && (textSpan.End <= child.End))
                     .ToList();
 
-                var containingConditionalSpan = this.ConditionalRoot.GetContainingSpan(textSpan);
-                if (containingConditionalSpan != this.ConditionalRoot)
+                var containingConditionalSpan = ConditionalRoot.GetContainingSpan(textSpan);
+                if (containingConditionalSpan != ConditionalRoot)
                 {
                     containingSpans.Add(containingConditionalSpan);
                 }
 
-                var containingRegionSpan = this._regionRoot.GetContainingSpan(textSpan);
-                if (containingRegionSpan != this._regionRoot)
+                var containingRegionSpan = _regionRoot.GetContainingSpan(textSpan);
+                if (containingRegionSpan != _regionRoot)
                 {
                     containingSpans.Add(containingRegionSpan);
                 }

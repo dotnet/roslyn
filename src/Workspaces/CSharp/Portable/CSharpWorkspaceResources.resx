@@ -170,5 +170,6 @@
   </data>
   <data name="using_preferences" xml:space="preserve">
     <value>using preferences</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
 </root>

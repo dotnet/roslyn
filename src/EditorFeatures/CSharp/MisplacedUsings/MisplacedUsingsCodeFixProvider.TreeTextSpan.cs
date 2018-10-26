@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <param name="children">The children of the span.</param>
             internal TreeTextSpan(int start, int end, ImmutableArray<TreeTextSpan> children)
             {
-                this.Start = start;
-                this.End = end;
-                this.Children = children;
+                Start = start;
+                End = end;
+                Children = children;
             }
 
             internal static TreeTextSpan Empty { get; } = new TreeTextSpan(0, 0, ImmutableArray<TreeTextSpan>.Empty);
@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <inheritdoc/>
             public bool Equals(TreeTextSpan other)
             {
-                return (this.Start == other.Start) && (this.End == other.End);
+                return (Start == other.Start) && (End == other.End);
             }
 
             /// <inheritdoc/>
             public override bool Equals(object obj)
             {
-                return (obj is TreeTextSpan) && this.Equals((TreeTextSpan)obj);
+                return (obj is TreeTextSpan) && Equals((TreeTextSpan)obj);
             }
 
             /// <inheritdoc/>
@@ -90,17 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             {
                 unchecked
                 {
-                    return this.Start + (this.End << 16);
+                    return Start + (End << 16);
                 }
             }
 
             /// <inheritdoc/>
             public int CompareTo(TreeTextSpan other)
             {
-                var diff = this.Start - other.Start;
+                var diff = Start - other.Start;
                 if (diff == 0)
                 {
-                    diff = this.End - other.End;
+                    diff = End - other.End;
                 }
 
                 return diff;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <returns>True if the given <paramref name="span"/> is contained.</returns>
             internal bool Contains(TreeTextSpan span)
             {
-                return (span.Start >= this.Start) && (span.End <= this.End);
+                return (span.Start >= Start) && (span.End <= End);
             }
 
             /// <summary>
@@ -134,12 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <returns>The <see cref="TreeTextSpan"/> that is the best match, or null if there is no match.</returns>
             internal TreeTextSpan GetContainingSpan(TextSpan textSpan)
             {
-                if ((textSpan.Start < this.Start) || (textSpan.End > this.End))
+                if ((textSpan.Start < Start) || (textSpan.End > End))
                 {
                     return Empty;
                 }
 
-                foreach (var span in this.Children)
+                foreach (var span in Children)
                 {
                     var childSpan = span.GetContainingSpan(textSpan);
                     if (childSpan != Empty)
@@ -166,13 +166,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 /// <param name="start">The start of the span.</param>
                 internal Builder(int start)
                 {
-                    this._start = start;
+                    _start = start;
                 }
 
                 private Builder(int start, int end)
                 {
-                    this._start = start;
-                    this._end = end;
+                    _start = start;
+                    _end = end;
                 }
 
                 /// <summary>
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 /// <param name="end">The end of the span.</param>
                 internal void SetEnd(int end)
                 {
-                    this._end = end;
+                    _end = end;
                 }
 
                 /// <summary>
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 internal Builder AddChild(int start)
                 {
                     var childBuilder = new Builder(start);
-                    this._children.Add(childBuilder);
+                    _children.Add(childBuilder);
 
                     return childBuilder;
                 }
@@ -205,20 +205,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 {
                     Builder newFiller;
 
-                    if (this._children.Count == 0)
+                    if (_children.Count == 0)
                     {
                         return;
                     }
 
                     var previousEnd = int.MaxValue;
-                    for (var i = 0; i < this._children.Count; i++)
+                    for (var i = 0; i < _children.Count; i++)
                     {
-                        var child = this._children[i];
+                        var child = _children[i];
 
                         if (child._start > previousEnd)
                         {
                             newFiller = new Builder(previousEnd, child._start);
-                            this._children.Insert(i, newFiller);
+                            _children.Insert(i, newFiller);
                             i++;
                         }
 
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                         previousEnd = child._end;
                     }
 
-                    if (previousEnd < this._end)
+                    if (previousEnd < _end)
                     {
-                        newFiller = new Builder(previousEnd, this._end);
-                        this._children.Add(newFiller);
+                        newFiller = new Builder(previousEnd, _end);
+                        _children.Add(newFiller);
                     }
                 }
 
@@ -240,9 +240,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 /// <returns>The created <see cref="TreeTextSpan"/> object.</returns>
                 internal TreeTextSpan ToSpan()
                 {
-                    var children = this._children.Select(x => x.ToSpan()).ToImmutableArray();
+                    var children = _children.Select(x => x.ToSpan()).ToImmutableArray();
 
-                    return new TreeTextSpan(this._start, this._end, children);
+                    return new TreeTextSpan(_start, _end, children);
                 }
             }
         }
