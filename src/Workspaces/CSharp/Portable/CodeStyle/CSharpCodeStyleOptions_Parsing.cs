@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             }
         }
 
-        public static CodeStyleOption<UsingPlacementPreference> ParseUsingPlacementPreference(
-            string optionString, CodeStyleOption<UsingPlacementPreference> @default)
+        public static CodeStyleOption<UsingDirectivesPlacement> ParseUsingDirectivesPlacement(
+            string optionString, CodeStyleOption<UsingDirectivesPlacement> @default)
         {
             // optionString must be similar to outside_namespace:error or inside_namespace:suggestion.
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 {
                     switch (value)
                     {
-                        case "no_preference":
-                            return new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.NoPreference, notificationOpt);
+                        case "preserve":
+                            return new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.Preserve, notificationOpt);
                         case "inside_namespace":
-                            return new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.InsideNamespace, notificationOpt);
+                            return new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.InsideNamespace, notificationOpt);
                         case "outside_namespace":
-                            return new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.OutsideNamespace, notificationOpt);
+                            return new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.OutsideNamespace, notificationOpt);
                         default:
                             throw new NotSupportedException();
                     }
@@ -78,16 +78,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             return @default;
         }
 
-        public static string GetUsingPlacementPreferenceEditorConfigString(CodeStyleOption<UsingPlacementPreference> value)
+        public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption<UsingDirectivesPlacement> value)
         {
             Debug.Assert(value.Notification != null);
 
             var notificationString = value.Notification.ToEditorConfigString();
             switch (value.Value)
             {
-                case UsingPlacementPreference.NoPreference: return $"no_preference:{notificationString}";
-                case UsingPlacementPreference.InsideNamespace: return $"inside_namespace:{notificationString}";
-                case UsingPlacementPreference.OutsideNamespace: return $"outside_namespace:{notificationString}";
+                case UsingDirectivesPlacement.Preserve: return $"preserve:{notificationString}";
+                case UsingDirectivesPlacement.InsideNamespace: return $"inside_namespace:{notificationString}";
+                case UsingDirectivesPlacement.OutsideNamespace: return $"outside_namespace:{notificationString}";
                 default:
                     throw new NotSupportedException();
             }

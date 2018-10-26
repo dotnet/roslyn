@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // This code path is for tests only. It relies on the test creating a .editorconfig in the current working directory.
             var conventionContext = await GetConventionContextAsync(statement.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false);
-            return GetOptionFromConventionContextOrDefault(conventionContext, option, valueParser, @default);
+            return GetOptionFromConventionContextOrDefault(conventionContext, option, conventionValueParser, @default);
         }
 
         private static async Task<ICodingConventionContext> GetConventionContextAsync(string filePath, CancellationToken cancellationToken)

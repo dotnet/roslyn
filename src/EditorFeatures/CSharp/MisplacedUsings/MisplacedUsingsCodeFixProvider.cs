@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         {
             var fileHeader = GetFileHeader(syntaxRoot);
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
-            var usingPlacementPreference = DeterminePlacement(compilationUnit, options);
+            var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var usingsHelper = new UsingsSorter(options, semanticModel, compilationUnit, fileHeader);
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken);
-            var usingsIndentation = DetermineIndentation(compilationUnit, options, usingPlacementPreference);
+            var usingsIndentation = DetermineIndentation(compilationUnit, options, usingDirectivesPlacement);
 
             // - The strategy is to strip all using directive that are not inside a conditional directive and replace them later with a sorted list at the correct spot
             // - The using directives that are inside a conditional directive are replaced (in sorted order) on the spot.
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             var replaceMap = new Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax>();
 
             // When there are multiple namespaces, do not move using statements outside of them, only sort.
-            if (usingPlacementPreference == UsingPlacementPreference.NoPreference)
+            if (usingDirectivesPlacement == UsingDirectivesPlacement.Preserve)
             {
                 BuildReplaceMapForNamespaces(usingsHelper, replaceMap, options, false);
                 stripList = new List<UsingDirectiveSyntax>();
@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             var usingSyntaxRewriter = new UsingSyntaxRewriter(stripList, replaceMap, fileHeader);
             var newSyntaxRoot = usingSyntaxRewriter.Visit(syntaxRoot);
 
-            if (usingPlacementPreference == UsingPlacementPreference.InsideNamespace)
+            if (usingDirectivesPlacement == UsingDirectivesPlacement.InsideNamespace)
             {
                 newSyntaxRoot = AddUsingsToNamespace(newSyntaxRoot, usingsHelper, usingsIndentation, replaceMap.Any());
             }
-            else if (usingPlacementPreference == UsingPlacementPreference.OutsideNamespace)
+            else if (usingDirectivesPlacement == UsingDirectivesPlacement.OutsideNamespace)
             {
                 newSyntaxRoot = AddUsingsToCompilationRoot(newSyntaxRoot, usingsHelper, usingsIndentation, replaceMap.Any());
             }
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return newDocument;
         }
 
-        private static string DetermineIndentation(CompilationUnitSyntax compilationUnit, OptionSet options, UsingPlacementPreference usingPlacementPreference)
+        private static string DetermineIndentation(CompilationUnitSyntax compilationUnit, OptionSet options, UsingDirectivesPlacement usingDirectivesPlacement )
         {
             string usingsIndentation;
 
-            if (usingPlacementPreference == UsingPlacementPreference.InsideNamespace)
+            if (usingDirectivesPlacement  == UsingDirectivesPlacement.InsideNamespace)
             {
                 var rootNamespace = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
                 var indentationLevel = IndentationHelper.GetIndentationSteps(options, rootNamespace);
@@ -132,38 +132,38 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return usingsIndentation;
         }
 
-        private static UsingPlacementPreference DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
+        private static UsingDirectivesPlacement DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
         {
-            switch (options.GetOption(CSharpCodeStyleOptions.PreferredUsingPlacement).Value)
+            switch (options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement).Value)
             {
-                case UsingPlacementPreference.InsideNamespace:
+                case UsingDirectivesPlacement.InsideNamespace:
                     var namespaceCount = CountNamespaces(compilationUnit.Members);
 
                     // Only move using declarations inside the namespace when
                     // - There are no global attributes
                     // - There is only a single namespace declared at the top level
-                    // - OrderingSettings.UsingPlacementPreference is set to InsideNamespace
+                    // - OrderingSettings.usingDirectivesPlacement  is set to InsideNamespace
                     if (compilationUnit.AttributeLists.Any()
                         || compilationUnit.Members.Count > 1
                         || namespaceCount > 1)
                     {
                         // Override the user's setting with a more conservative one
-                        return UsingPlacementPreference.NoPreference;
+                        return UsingDirectivesPlacement.Preserve;
                     }
 
                     if (namespaceCount == 0)
                     {
-                        return UsingPlacementPreference.OutsideNamespace;
+                        return UsingDirectivesPlacement.OutsideNamespace;
                     }
 
-                    return UsingPlacementPreference.InsideNamespace;
+                    return UsingDirectivesPlacement.InsideNamespace;
 
-                case UsingPlacementPreference.OutsideNamespace:
-                    return UsingPlacementPreference.OutsideNamespace;
+                case UsingDirectivesPlacement.OutsideNamespace:
+                    return UsingDirectivesPlacement.OutsideNamespace;
 
-                case UsingPlacementPreference.NoPreference:
+                case UsingDirectivesPlacement.Preserve:
                 default:
-                    return UsingPlacementPreference.NoPreference;
+                    return UsingDirectivesPlacement.Preserve;
             }
         }
 
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         {
             public static FixAllProvider Instance { get; } = new FixAll();
 
-            protected override string CodeActionTitle => CSharpEditorResources.Move_misplaced_using_statements;
+            protected override string CodeActionTitle => CSharpEditorResources.Move_misplaced_using_directives;
 
             /// <inheritdoc/>
             protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public override string Title => CSharpEditorResources.Move_misplaced_using_statements;
+            public override string Title => CSharpEditorResources.Move_misplaced_using_directives;
 
             public MoveMisplacedUsingsCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
             {

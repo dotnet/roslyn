@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Move misplaced using directives.
         /// </summary>
-        internal static string Move_misplaced_using_statements {
+        internal static string Move_misplaced_using_directives {
             get {
-                return ResourceManager.GetString("Move_misplaced_using_statements", resourceCulture);
+                return ResourceManager.GetString("Move_misplaced_using_directives", resourceCulture);
             }
         }
         

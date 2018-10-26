@@ -121,7 +121,7 @@
     <value>Misplaced using</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Move_misplaced_using_statements" xml:space="preserve">
+  <data name="Move_misplaced_using_directives" xml:space="preserve">
     <value>Move misplaced using directives</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
   </data>

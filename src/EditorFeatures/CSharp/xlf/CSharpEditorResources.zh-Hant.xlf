@@ -7,7 +7,7 @@
         <target state="new">Misplaced using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Move_misplaced_using_statements">
+      <trans-unit id="Move_misplaced_using_directives">
         <source>Move misplaced using directives</source>
         <target state="new">Move misplaced using directives</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>

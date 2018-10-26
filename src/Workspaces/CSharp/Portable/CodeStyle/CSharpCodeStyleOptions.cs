@@ -187,18 +187,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
-        public static readonly CodeStyleOption<UsingPlacementPreference> NoPreferenceWithSilentEnforcement =
-            new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.NoPreference, NotificationOption.Silent);
+        public static readonly CodeStyleOption<UsingDirectivesPlacement> PreservePlacementWithSilentEnforcement =
+            new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.Preserve, NotificationOption.Silent);
 
-        public static readonly Option<CodeStyleOption<UsingPlacementPreference>> PreferredUsingPlacement = CreateOption(
-            CSharpCodeStyleOptionGroups.UsingPreferences, nameof(PreferredUsingPlacement),
-            defaultValue: NoPreferenceWithSilentEnforcement,
+        public static readonly Option<CodeStyleOption<UsingDirectivesPlacement>> PreferredUsingDirectivesPlacement = CreateOption(
+            CSharpCodeStyleOptionGroups.UsingPreferences, nameof(PreferredUsingDirectivesPlacement),
+            defaultValue: PreservePlacementWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation<CodeStyleOption<UsingPlacementPreference>>(
-                    "csharp_preferred_using_placement",
-                    s => ParseUsingPlacementPreference(s, NoPreferenceWithSilentEnforcement),
-                    GetUsingPlacementPreferenceEditorConfigString),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingPlacement)}") });
+                new EditorConfigStorageLocation<CodeStyleOption<UsingDirectivesPlacement>>(
+                    "csharp_using_directive_placement",
+                    s => ParseUsingDirectivesPlacement(s, PreservePlacementWithSilentEnforcement),
+                    GetUsingDirectivesPlacementEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingDirectivesPlacement)}") });
 
         static CSharpCodeStyleOptions()
         {

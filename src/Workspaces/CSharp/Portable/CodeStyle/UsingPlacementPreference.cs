@@ -2,21 +2,24 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
-    internal enum UsingPlacementPreference
+    /// <summary>
+    /// Specifies the desired placement of using directives.
+    /// </summary>
+    internal enum UsingDirectivesPlacement
     {
-        ///<summary>
-        /// No preference whether usings should be placed inside or outside namespaces.
-        ///</summary>
-        NoPreference,
+        /// <summary>
+        /// Allow using directives inside or outside the namespace definition.
+        /// </summary>
+        Preserve,
 
-        ///<summary>
-        /// Prefer usings placed inside namespaces.
-        ///</summary>
+        /// <summary>
+        /// Place using directives inside the namespace definition.
+        /// </summary>
         InsideNamespace,
 
-        ///<summary>
-        /// Prefer usings placed outside namespaces.
-        ///</summary>
+        /// <summary>
+        /// Place using directives outside the namespace definition.
+        /// </summary>
         OutsideNamespace
     }
 }

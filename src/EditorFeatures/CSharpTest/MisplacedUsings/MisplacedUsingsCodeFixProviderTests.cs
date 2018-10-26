@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsings
     /// </summary>
     public class MisplacedUsingsCodeFixProviderTests
     {
-        private static readonly CodeStyleOption<UsingPlacementPreference> s_noPreferenceOption =
-           new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.NoPreference, NotificationOption.None);
+        private static readonly CodeStyleOption<UsingDirectivesPlacement> s_preservePlacementOption =
+           new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.Preserve, NotificationOption.None);
 
-        private static readonly CodeStyleOption<UsingPlacementPreference> s_insidePreferenceOption =
-            new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.InsideNamespace, NotificationOption.Error);
+        private static readonly CodeStyleOption<UsingDirectivesPlacement> s_insideNamespaceOption =
+            new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.InsideNamespace, NotificationOption.Error);
 
-        private static readonly CodeStyleOption<UsingPlacementPreference> s_outsidePreferenceOption =
-            new CodeStyleOption<UsingPlacementPreference>(UsingPlacementPreference.OutsideNamespace, NotificationOption.Error);
+        private static readonly CodeStyleOption<UsingDirectivesPlacement> s_outsideNamespaceOption =
+            new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.OutsideNamespace, NotificationOption.Error);
 
 
         private const string ClassDefinition = @"public class TestClass
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsings
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_noPreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_preservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsings
 {typeDefinition}
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_noPreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_preservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_noPreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_preservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_noPreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_preservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_noPreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_preservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         #endregion
@@ -163,7 +163,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_insidePreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_insideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -183,7 +183,7 @@ namespace TestNamespace
 {typeDefinition}
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_insidePreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_insideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_insidePreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_insideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(9, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(10, 1),
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(7, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(8, 1),
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
         }
 
         /// <summary>
@@ -373,7 +373,7 @@ namespace NamespaceName
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(9, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(10, 1),
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -430,7 +430,7 @@ namespace NamespaceName
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(7, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(8, 1),
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -502,7 +502,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -543,7 +543,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
 
@@ -582,7 +582,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(6, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -614,7 +614,7 @@ namespace TestNamespace1
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1)
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -640,7 +640,7 @@ namespace TestNamespace2
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1)
             };
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expected, fixedSource: testCode, remaining: expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedSource: testCode, remaining: expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -672,7 +672,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -706,7 +706,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -740,7 +740,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insidePreferenceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         #endregion
@@ -762,7 +762,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_outsidePreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_outsideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -782,7 +782,7 @@ namespace TestNamespace
 {typeDefinition}
 ";
 
-            return VerifyAnalyzerAsync(testCode, s_outsidePreferenceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, s_outsideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -811,7 +811,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
             };
 
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
 
@@ -845,7 +845,7 @@ namespace System
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(5, 5),
             };
 
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
 
@@ -881,7 +881,7 @@ namespace System.MyExtension
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(6, 5),
             };
 
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -918,7 +918,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(8, 5),
             };
 
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -952,7 +952,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(6, 5),
             };
 
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         [Fact]
@@ -990,7 +990,7 @@ namespace TestNamespace
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
             };
 
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         [Fact]
@@ -1043,7 +1043,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(11, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(12, 5),
             };
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         [Fact]
@@ -1097,7 +1097,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(9, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
             };
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
         }
 
         [Fact]
@@ -1150,7 +1150,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(11, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(12, 5),
             };
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
         [Fact]
@@ -1204,7 +1204,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(9, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
             };
-            return VerifyCodeFixAsync(testCode, s_outsidePreferenceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
         }
 
         #endregion
@@ -1214,17 +1214,17 @@ namespace Foo
             return Verify.Diagnostic(descriptor);
         }
 
-        private static Task VerifyAnalyzerAsync(string source, CodeStyleOption<UsingPlacementPreference> placementPreference, DiagnosticResult[] expected)
+        private static Task VerifyAnalyzerAsync(string source, CodeStyleOption<UsingDirectivesPlacement> usingPlacement, DiagnosticResult[] expected)
         {
-            return VerifyCodeFixAsync(source, placementPreference, expected, fixedSource: null, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(source, usingPlacement, expected, fixedSource: null, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
-        private static Task VerifyCodeFixAsync(string source, CodeStyleOption<UsingPlacementPreference> placementPreference, DiagnosticResult[] expected, string fixedSource, bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
+        private static Task VerifyCodeFixAsync(string source, CodeStyleOption<UsingDirectivesPlacement> usingPlacement, DiagnosticResult[] expected, string fixedSource, bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
         {
-            return VerifyCodeFixAsync(source, placementPreference, expected, fixedSource, remaining: DiagnosticResult.EmptyDiagnosticResults, placeSystemNamespaceFirst, separateImportDirectiveGroups);
+            return VerifyCodeFixAsync(source, usingPlacement, expected, fixedSource, remaining: DiagnosticResult.EmptyDiagnosticResults, placeSystemNamespaceFirst, separateImportDirectiveGroups);
         }
 
-        private static async Task VerifyCodeFixAsync(string source, CodeStyleOption<UsingPlacementPreference> placementPreference, DiagnosticResult[] expected, string fixedSource, DiagnosticResult[] remaining, bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
+        private static async Task VerifyCodeFixAsync(string source, CodeStyleOption<UsingDirectivesPlacement> usingPlacement, DiagnosticResult[] expected, string fixedSource, DiagnosticResult[] remaining, bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
         {
             // Create the .editorconfig with the necessary code style settings.
             var editorConfig = $@"
@@ -1233,7 +1233,7 @@ root = true
 [*.cs]
 dotnet_sort_system_directives_first = {placeSystemNamespaceFirst}
 dotnet_separate_import_directive_groups = {separateImportDirectiveGroups}
-csharp_preferred_using_placement = {CSharpCodeStyleOptions.GetUsingPlacementPreferenceEditorConfigString(placementPreference)}
+csharp_using_directive_placement = {CSharpCodeStyleOptions.GetUsingDirectivesPlacementEditorConfigString(usingPlacement)}
 ";
 
             // Capture the working directory so it can be restored after the test runs.
@@ -1269,16 +1269,16 @@ csharp_preferred_using_placement = {CSharpCodeStyleOptions.GetUsingPlacementPref
                 test.OptionsTransforms.Add(
                     optionsSet => optionsSet.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, placeSystemNamespaceFirst)
                         .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateImportDirectiveGroups)
-                        .WithChangedOption(CSharpCodeStyleOptions.PreferredUsingPlacement, placementPreference));
+                        .WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, usingPlacement));
 
                 // Fix the severity of expected diagnostics.
                 var fixedExpectedResults = expected.Select(
-                    result => result.WithSeverity(placementPreference.Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
+                    result => result.WithSeverity(usingPlacement.Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
                 test.ExpectedDiagnostics.AddRange(fixedExpectedResults);
 
                 // Fix the severity of remaining diagnostics.
                 var fixedRemainingResults = remaining.Select(
-                    result => result.WithSeverity(placementPreference.Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
+                    result => result.WithSeverity(usingPlacement.Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
                 test.FixedState.ExpectedDiagnostics.AddRange(fixedRemainingResults);
 
                 await test.RunAsync();

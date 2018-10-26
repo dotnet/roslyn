@@ -1235,9 +1235,9 @@ class C
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
 
             // Using preferences.
-            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UsingPlacementPreference>(
-                CSharpCodeStyleOptions.PreferredUsingPlacement, CSharpVSResources.Preferred_usings_placement, 
-                new[] { UsingPlacementPreference.NoPreference, UsingPlacementPreference.InsideNamespace, UsingPlacementPreference.OutsideNamespace }, 
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UsingDirectivesPlacement>(
+                CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpVSResources.Preferred_usings_placement, 
+                new[] { UsingDirectivesPlacement.Preserve, UsingDirectivesPlacement.InsideNamespace, UsingDirectivesPlacement.OutsideNamespace }, 
                 s_preferredUsingsPlacement, this, optionSet, usingsGroupTitle, usingPlacementPreferences));
         }
 
