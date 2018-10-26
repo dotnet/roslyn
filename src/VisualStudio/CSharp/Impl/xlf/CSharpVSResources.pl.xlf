@@ -37,11 +37,6 @@
         <target state="new">Inside namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="No_preference">
-        <source>No preference</source>
-        <target state="new">No preference</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="new">Outside namespace</target>
@@ -57,10 +52,10 @@
         <target state="translated">Preferuj wyrażenie „is null” w przypadku sprawdzeń odwołań pod kątem równości</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Preferred_usings_placement">
-        <source>Preferred usings placement</source>
-        <target state="new">Preferred usings placement</target>
-        <note>'using' is a C# keyword and should not be localized</note>
+      <trans-unit id="Preserve">
+        <source>Preserve</source>
+        <target state="new">Preserve</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
@@ -547,6 +542,11 @@
         <target state="translated">W innych miejscach</target>
         <note />
       </trans-unit>
+      <trans-unit id="Using_directives_placement">
+        <source>Using directives placement</source>
+        <target state="new">Using directives placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
         <source>When variable type is apparent</source>
         <target state="translated">Gdy typ zmiennej jest oczywisty</target>
@@ -593,8 +593,8 @@
         <note />
       </trans-unit>
       <trans-unit id="using_preferences_colon">
-        <source>using preferences:</source>
-        <target state="new">using preferences:</target>
+        <source>'using' preferences:</source>
+        <target state="new">'using' preferences:</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">

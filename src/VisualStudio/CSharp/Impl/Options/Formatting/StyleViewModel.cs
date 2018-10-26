@@ -961,14 +961,14 @@ class Customer2
 }}
 ";
 
-        private static readonly string[] s_preferredUsingsPlacement = new[] { $@"
+        private static readonly string[] s_usingDirectivesPlacement = new[] { $@"
 //[
-        // {CSharpVSResources.No_preference}
+        // {CSharpVSResources.Preserve}
         using System;
 
         namespace Namespace
         {{
-            using System.Linq;
+            using Linq;
 
             class Customer
             {{
@@ -1179,9 +1179,9 @@ class C
                 new CodeStylePreference(CSharpVSResources.Prefer_explicit_type, isChecked: false),
             };
 
-            var usingPlacementPreferences = new List<CodeStylePreference>
+            var usingDirectivesPlacementPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.No_preference, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.Preserve, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Inside_namespace, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Outside_namespace, isChecked: false),
             };
@@ -1236,9 +1236,9 @@ class C
 
             // Using preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UsingDirectivesPlacement>(
-                CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpVSResources.Preferred_usings_placement, 
+                CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpVSResources.Using_directives_placement, 
                 new[] { UsingDirectivesPlacement.Preserve, UsingDirectivesPlacement.InsideNamespace, UsingDirectivesPlacement.OutsideNamespace }, 
-                s_preferredUsingsPlacement, this, optionSet, usingsGroupTitle, usingPlacementPreferences));
+                s_usingDirectivesPlacement, this, optionSet, usingsGroupTitle, usingDirectivesPlacementPreferences));
         }
 
         private void AddParenthesesOptions(OptionSet optionSet)

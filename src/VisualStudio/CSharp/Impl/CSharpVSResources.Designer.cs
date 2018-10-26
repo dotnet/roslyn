@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpVSResources {
@@ -754,15 +754,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No preference.
-        /// </summary>
-        internal static string No_preference {
-            get {
-                return ResourceManager.GetString("No_preference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;null&apos; checking:.
         /// </summary>
         internal static string null_checking_colon {
@@ -1096,11 +1087,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preferred usings placement.
+        ///   Looks up a localized string similar to Preserve.
         /// </summary>
-        internal static string Preferred_usings_placement {
+        internal static string Preserve {
             get {
-                return ResourceManager.GetString("Preferred_usings_placement", resourceCulture);
+                return ResourceManager.GetString("Preserve", resourceCulture);
             }
         }
         
@@ -1402,7 +1393,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to using preferences:.
+        ///   Looks up a localized string similar to Using directives placement.
+        /// </summary>
+        internal static string Using_directives_placement {
+            get {
+                return ResourceManager.GetString("Using_directives_placement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; preferences:.
         /// </summary>
         internal static string using_preferences_colon {
             get {

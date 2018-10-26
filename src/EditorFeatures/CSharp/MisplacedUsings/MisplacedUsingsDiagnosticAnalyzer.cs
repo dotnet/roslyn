@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             nameof(CSharpEditorResources.Misplaced_using), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
-            nameof(CSharpEditorResources.Using_directives_must_be_placed_inside_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
+            nameof(CSharpEditorResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
 
         private static readonly LocalizableResourceString s_localizableOutsideMessage = new LocalizableResourceString(
-            nameof(CSharpEditorResources.Using_directives_must_be_placed_outside_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
+            nameof(CSharpEditorResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
 
         internal static readonly DiagnosticDescriptor _insideDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId,

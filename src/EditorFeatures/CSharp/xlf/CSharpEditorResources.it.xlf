@@ -27,14 +27,14 @@
         <target state="translated">Dividi stringa</target>
         <note />
       </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_a_namespace_declaration">
-        <source>Using directives must be placed inside a namespace declaration</source>
-        <target state="new">Using directives must be placed inside a namespace declaration</target>
+      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
+        <source>Using directives must be placed inside of a namespace declaration</source>
+        <target state="new">Using directives must be placed inside of a namespace declaration</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_a_namespace_declaration">
-        <source>Using directives must be placed outside a namespace declaration</source>
-        <target state="new">Using directives must be placed outside a namespace declaration</target>
+      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
+        <source>Using directives must be placed outside of a namespace declaration</source>
+        <target state="new">Using directives must be placed outside of a namespace declaration</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

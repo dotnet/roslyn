@@ -134,12 +134,12 @@
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
   </data>
-  <data name="Using_directives_must_be_placed_inside_a_namespace_declaration" xml:space="preserve">
-    <value>Using directives must be placed inside a namespace declaration</value>
+  <data name="Using_directives_must_be_placed_inside_of_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be placed inside of a namespace declaration</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="Using_directives_must_be_placed_outside_a_namespace_declaration" xml:space="preserve">
-    <value>Using directives must be placed outside a namespace declaration</value>
+  <data name="Using_directives_must_be_placed_outside_of_a_namespace_declaration" xml:space="preserve">
+    <value>Using directives must be placed outside of a namespace declaration</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
   </data>
 </root>

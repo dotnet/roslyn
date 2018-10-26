@@ -106,20 +106,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using directives must be placed inside a namespace declaration.
+        ///   Looks up a localized string similar to Using directives must be placed inside of a namespace declaration.
         /// </summary>
-        internal static string Using_directives_must_be_placed_inside_a_namespace_declaration {
+        internal static string Using_directives_must_be_placed_inside_of_a_namespace_declaration {
             get {
-                return ResourceManager.GetString("Using_directives_must_be_placed_inside_a_namespace_declaration", resourceCulture);
+                return ResourceManager.GetString("Using_directives_must_be_placed_inside_of_a_namespace_declaration", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using directives must be placed outside a namespace declaration.
+        ///   Looks up a localized string similar to Using directives must be placed outside of a namespace declaration.
         /// </summary>
-        internal static string Using_directives_must_be_placed_outside_a_namespace_declaration {
+        internal static string Using_directives_must_be_placed_outside_of_a_namespace_declaration {
             get {
-                return ResourceManager.GetString("Using_directives_must_be_placed_outside_a_namespace_declaration", resourceCulture);
+                return ResourceManager.GetString("Using_directives_must_be_placed_outside_of_a_namespace_declaration", resourceCulture);
             }
         }
     }
