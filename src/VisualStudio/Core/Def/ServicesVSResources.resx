@@ -1078,4 +1078,10 @@ I agree to all of the foregoing:</value>
   <data name="Kind" xml:space="preserve">
     <value>Kind</value>
   </data>
+  <data name="Prefer_index_operator" xml:space="preserve">
+    <value>Prefer index operator</value>
+  </data>
+  <data name="Prefer_range_operator" xml:space="preserve">
+    <value>Prefer range operator</value>
+  </data>
 </root>

@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -9,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
-    <[UseExportProvider]>
+    <UseExportProvider>
     Public Class CSharpEditorConfigGeneratorTests
         Inherits TestBase
 
@@ -105,6 +104,8 @@ csharp_prefer_braces = true:silent
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
+csharp_style_prefer_index_operator = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
 
 #### C# Formatting Rules ####
 
@@ -254,6 +255,8 @@ csharp_prefer_braces = true:silent
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
+csharp_style_prefer_index_operator = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
 
 #### C# Formatting Rules ####
 
