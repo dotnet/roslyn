@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new PropertySubpatternCompletionProvider();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern()
         {
             var markup =
@@ -42,7 +42,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_WithPositional()
         {
             var markup =
@@ -63,7 +63,7 @@ public class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_WithPositional_UsingStaticType()
         {
             var markup =
@@ -84,7 +84,7 @@ public class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_WithEscapedKeyword()
         {
             var markup =
@@ -122,7 +122,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_WithDerivedType()
         {
             var markup =
@@ -144,7 +144,7 @@ class Derived
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_WithOtherType()
         {
             var markup =
@@ -187,7 +187,7 @@ class Derived : Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_WithDerivedType_WithPrivateMember()
         {
             var markup =
@@ -208,7 +208,7 @@ class Derived : Program
             await VerifyItemExistsAsync(markup, "P1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_UseStaticTypeFromIs()
         {
             var markup =
@@ -229,7 +229,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_InSwitchStatement()
         {
             var markup =
@@ -253,7 +253,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_UseStaticTypeFromSwitchStatement()
         {
             var markup =
@@ -277,7 +277,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_InSwitchExpression()
         {
             var markup =
@@ -297,7 +297,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_NestedInProperty()
         {
             var markup =
@@ -324,7 +324,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P4");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_NestedInField()
         {
             var markup =
@@ -351,7 +351,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P4");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_Nested_WithFields()
         {
             var markup =
@@ -440,7 +440,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_SecondProperty()
         {
             var markup =
@@ -589,7 +589,7 @@ public class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_InPositional_Complete_BeforeComma()
         {
             var markup =
@@ -609,7 +609,7 @@ public class Program
             await VerifyItemExistsAsync(markup, "P1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_InPositional_Complete_AfterComma()
         {
             var markup =
@@ -648,7 +648,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern_NotForEditorUnbrowsable()
         {
             var markup =

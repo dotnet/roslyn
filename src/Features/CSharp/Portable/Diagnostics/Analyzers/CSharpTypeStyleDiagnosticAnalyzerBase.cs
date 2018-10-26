@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
     internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         protected abstract CSharpTypeStyleHelper Helper { get; }
 

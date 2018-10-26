@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(EmitContext context)
         {
-            var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
-            if (this.CustomModifiers.Length == 0)
+            if (this.PointedAtType.CustomModifiers.Length == 0)
             {
                 return type;
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, this.CustomModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, this.PointedAtType.CustomModifiers.As<Cci.ICustomModifier>());
             }
         }
 

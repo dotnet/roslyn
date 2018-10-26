@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         TSyntaxKind,
         TExpressionSyntax,
         TConditionalExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractCodeStyleDiagnosticAnalyzer
+        TBinaryExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax

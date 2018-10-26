@@ -92,8 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // start remote host
                 EnableRemoteHostClientService();
-
-                Workspace.AdviseSolutionEvents(solution);
             }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();

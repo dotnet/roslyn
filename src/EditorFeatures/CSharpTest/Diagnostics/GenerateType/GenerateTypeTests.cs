@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1509,6 +1511,40 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters2_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new T(out d);
+    }
+}
+
+internal class T
+{
+    public T(out DateTime d)
+    {
+        d = default(DateTime);
+    }
+}",
+index: 1,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -1535,7 +1571,7 @@ internal class T
 {
     public T(out DateTime d)
     {
-        d = default;
+        d = default(DateTime);
     }
 }",
 index: 1);
@@ -1633,6 +1669,36 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters6_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new T(out d);
+    }
+
+    private class T
+    {
+        public T(out X d)
+        {
+            d = default(X);
+        }
+    }
+}",
+index: 2,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithOutParameters6()
         {
             await TestInRegularAndScriptAsync(
@@ -1654,7 +1720,7 @@ index: 1);
     {
         public T(out X d)
         {
-            d = default;
+            d = default(X);
         }
     }
 }",
@@ -5152,9 +5218,9 @@ class C
 
 internal class Class
 {{
-    private global::System.Object method;
+    private System.Object method;
 
-    public Class(global::System.Object method)
+    public Class(System.Object method)
     {{
         this.method = method;
     }}

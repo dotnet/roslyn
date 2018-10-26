@@ -455,14 +455,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundPattern pattern = recursive.Deconstruction[i].Pattern;
                         SyntaxNode syntax = pattern.Syntax;
-                        var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
+                        var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type.TypeSymbol, evaluation, i);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
                 else if (inputType.IsTupleType)
                 {
                     ImmutableArray<FieldSymbol> elements = inputType.TupleElements;
-                    ImmutableArray<TypeSymbol> elementTypes = inputType.TupleElementTypes;
+                    ImmutableArray<TypeSymbolWithAnnotations> elementTypes = inputType.TupleElementTypes;
                     int count = Math.Min(elementTypes.Length, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         FieldSymbol field = elements[i];
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
                         tests.Add(evaluation);
-                        var output = new BoundDagTemp(syntax, field.Type, evaluation, index: 0);
+                        var output = new BoundDagTemp(syntax, field.Type.TypeSymbol, evaluation, index: 0);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     tests.Add(evaluation);
-                    var output = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType(), evaluation, index: 0);
+                    var output = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().TypeSymbol, evaluation, index: 0);
                     MakeTestsAndBindings(output, pattern, tests, bindings);
                 }
             }

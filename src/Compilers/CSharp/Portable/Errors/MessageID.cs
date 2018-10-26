@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureBinaryLiteral = MessageBase + 12706,
         IDS_FeatureDigitSeparator = MessageBase + 12707,
         IDS_FeatureLocalFunctions = MessageBase + 12708,
+        IDS_FeatureNullableReferenceTypes = MessageBase + 12709,
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
@@ -162,7 +163,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
 
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
-        IDS_FeatureRecursivePatterns = MessageBase + 12746,
+        IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
+        IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator = MessageBase + 12747,
+        IDS_InjectedDeclaration = MessageBase + 12748,
+        IDS_FeatureObjectGenericTypeConstraint = MessageBase + 12749,
+        IDS_FeatureIndexOperator = MessageBase + 12750,
+        IDS_FeatureRangeOperator = MessageBase + 12751,
+        IDS_FeatureAsyncStreams = MessageBase + 12752,
+        IDS_FeatureRecursivePatterns = MessageBase + 12753,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -204,10 +212,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
         internal static string RequiredFeature(this MessageID feature)
         {
+            // Check for current experimental features, if any, in the current branch.
             switch (feature)
             {
                 default:
                     return null;
+            }
+        }
+
+        internal static void CheckFeatureAvailability(this MessageID feature, LanguageVersion availableVersion, DiagnosticBag diagnostics, Location errorLocation)
+        {
+            LanguageVersion requiredVersion = feature.RequiredVersion();
+            if (requiredVersion > availableVersion)
+            {
+                diagnostics.Add(availableVersion.GetErrorCode(), errorLocation, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
             }
         }
 
@@ -221,6 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
+                case MessageID.IDS_FeatureCoalesceAssignmentExpression:
+                case MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator:
+                case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check
+                case MessageID.IDS_FeatureObjectGenericTypeConstraint:   // semantic check
+                case MessageID.IDS_FeatureIndexOperator: // semantic check
+                case MessageID.IDS_FeatureRangeOperator: // semantic check
+                case MessageID.IDS_FeatureAsyncStreams:
                 case MessageID.IDS_FeatureRecursivePatterns:
                     return LanguageVersion.CSharp8;
 

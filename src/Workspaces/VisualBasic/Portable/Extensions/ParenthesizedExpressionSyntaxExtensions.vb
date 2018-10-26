@@ -42,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Optional cancellationToken As CancellationToken = Nothing
         ) As Boolean
 
+            If node.OpenParenToken.IsMissing OrElse node.CloseParenToken.IsMissing Then
+                ' Cases:
+                '   (3
+                Return False
+            End If
+
             Dim expression = node.Expression
 
             ' Cases:

@@ -104,11 +104,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return info;
         }
 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsConsiderEverything = new TypeSymbolComparer(TypeCompareKind.ConsiderEverything);
+
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNames = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames);
 
         /// <summary>
         /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
+
+        /// <summary>
+        /// A comparator that pays attention to nullable modifiers in addition to default behavior.
+        /// </summary>
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
+
+        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
+                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions |
+                                                                                         TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                                         TypeCompareKind.UnknownNullableModifierMatchesAny);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -302,13 +315,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        internal sealed class TypeSymbolComparer : EqualityComparer<TypeSymbol>
         {
-            public static EqualsIgnoringComparer InstanceIgnoringTupleNames { get; } = new EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames);
-
             private readonly TypeCompareKind _comparison;
 
-            public EqualsIgnoringComparer(TypeCompareKind comparison)
+            public TypeSymbolComparer(TypeCompareKind comparison)
             {
                 _comparison = comparison;
             }
@@ -349,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringTupleNames);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
@@ -594,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this symbol represents a tuple type, get the types of the tuple's elements.
         /// </summary>
-        public virtual ImmutableArray<TypeSymbol> TupleElementTypes => default(ImmutableArray<TypeSymbol>);
+        public virtual ImmutableArray<TypeSymbolWithAnnotations> TupleElementTypes => default(ImmutableArray<TypeSymbolWithAnnotations>);
 
         /// <summary>
         /// If this symbol represents a tuple type, get the names of the tuple's elements.
@@ -615,6 +626,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// See Type::computeManagedType.
         /// </remarks>
         internal abstract bool IsManagedType { get; }
+
+        internal bool ContainsNullableReferenceTypes()
+        {
+            return TypeSymbolWithAnnotations.ContainsNullableReferenceTypes(typeWithAnnotationsOpt: default, typeOpt: this);
+        }
+
+        internal bool ContainsAnnotatedUnconstrainedTypeParameter()
+        {
+            return TypeSymbolWithAnnotations.ContainsAnnotatedUnconstrainedTypeParameter(typeWithAnnotationsOpt: default, typeOpt: this);
+        }
+
+        internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
+
+        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result);
+
+        internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
+
+        /// <summary>
+        /// Merges nested nullability from an otherwise identical type.
+        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
+        /// merging nullability and warning should be reported by the caller.
+        /// </summary>
+        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch);
 
         /// <summary>
         /// Returns true if the type may contain embedded references
@@ -1010,8 +1044,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // In Dev10, as long as the corresponding properties have an implementation relationship,
                 // then the accessor can be considered an implementation, even though the name is different.
                 // Later on, when we check that implementation signatures match exactly
-                // (in SourceNamedTypeSymbol.ImplementInterfaceMember), they won't (because of the names)
-                // and an explicit implementation method will be synthesized.
+                // (in SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation),
+                // they won't (because of the names) and an explicit implementation method will be synthesized.
 
                 MethodSymbol interfaceAccessorWithImplementationName = new SignatureOnlyMethodSymbol(
                     correspondingImplementingAccessor.Name,
@@ -1022,7 +1056,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.Parameters,
                     interfaceMethod.RefKind,
                     interfaceMethod.ReturnType,
-                    interfaceMethod.ReturnTypeCustomModifiers,
                     interfaceMethod.RefCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
 
@@ -1040,6 +1073,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static void ReportImplicitImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, DiagnosticBag diagnostics)
         {
+            bool reportedAnError = false;
+
             if (interfaceMember.Kind == SymbolKind.Method)
             {
                 var interfaceMethod = (MethodSymbol)interfaceMember;
@@ -1063,9 +1098,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
                         diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
-                    else
+                    else if(ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics))
                     {
-                        ReportAnyMismatchedConstraints(interfaceMethod, implementingType, implicitImplMethod, diagnostics);
+                        reportedAnError = true;
                     }
                 }
             }
@@ -1074,12 +1109,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // it is ok to implement implicitly with no tuple names, for compatibility with C# 6, but otherwise names should match
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMember);
+                reportedAnError = true;
+            }
+
+            if (!reportedAnError)
+            {
+                CheckNullableReferenceTypeMismatchOnImplementingMember(implicitImpl, interfaceMember, false, diagnostics);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
             // Now that we know which member will implement the interface member, confirm that it is the only
             // such member.
-            if (!implicitImpl.ContainingType.IsDefinition)
+                if (!implicitImpl.ContainingType.IsDefinition)
             {
                 foreach (Symbol member in implicitImpl.ContainingType.GetMembers(implicitImpl.Name))
                 {
@@ -1091,6 +1132,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // CONSIDER: Dev10 does not seem to report this for indexers or their accessors.
                         diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, member), member, interfaceMember, implementingType);
+                    }
+                }
+            }
+        }
+
+        internal static void CheckNullableReferenceTypeMismatchOnImplementingMember(Symbol implementingMember, Symbol interfaceMember, bool isExplicit, DiagnosticBag diagnostics)
+        {
+            CSharpCompilation compilation;
+
+            if (((CSharpParseOptions)implementingMember.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
+                !implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor() &&
+                (compilation = implementingMember.DeclaringCompilation) != null)
+            {
+                Symbol implementedMember;
+                MethodSymbol implementedMethod;
+
+                if (implementingMember.Kind == SymbolKind.Method && (implementedMethod = (MethodSymbol)interfaceMember).IsGenericMethod)
+                {
+                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeArguments);
+                }
+                else
+                {
+                    implementedMember = interfaceMember;
+                }
+
+                TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
+                TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
+
+                if (!implementingMemberType.Equals(implementedMemberType, 
+                                                   TypeCompareKind.AllIgnoreOptions | 
+                                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                       TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                    implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
+                                        (isExplicit ? 
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation : 
+                                            ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation) :
+                                        (isExplicit ? 
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation : 
+                                            ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation),
+                                    implementingMember.Locations[0], new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                }
+
+                ImmutableArray<ParameterSymbol> implementingParameters = implementingMember.GetParameters();
+                ImmutableArray<ParameterSymbol> implementedParameters = implementedMember.GetParameters();
+
+                for (int i = 0; i < implementingParameters.Length; i++)
+                {
+                    var implementedParameterType = implementedParameters[i].Type;
+
+                    if (!implementingParameters[i].Type.Equals(implementedParameterType,
+                                                               TypeCompareKind.AllIgnoreOptions |
+                                                                   TypeCompareKind.CompareNullableModifiersForReferenceTypes |
+                                                                   TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                        implementingParameters[i].Type.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        diagnostics.Add(isExplicit ?
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
+                                            ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, 
+                                        implementingMember.Locations[0],
+                                        new FormattedSymbol(implementingParameters[i], SymbolDisplayFormat.ShortFormat),
+                                        new FormattedSymbol(interfaceMember, SymbolDisplayFormat.MinimallyQualifiedFormat));
                     }
                 }
             }
@@ -1132,15 +1236,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SymbolKind.Method:
                         var method = (MethodSymbol)interfaceMember;
                         interfaceMemberRefKind = method.RefKind;
-                        interfaceMemberReturnType = method.ReturnType;
+                        interfaceMemberReturnType = method.ReturnType.TypeSymbol;
                         break;
                     case SymbolKind.Property:
                         var property = (PropertySymbol)interfaceMember;
                         interfaceMemberRefKind = property.RefKind;
-                        interfaceMemberReturnType = property.Type;
+                        interfaceMemberReturnType = property.Type.TypeSymbol;
                         break;
                     case SymbolKind.Event:
-                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
+                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type.TypeSymbol;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
@@ -1176,10 +1280,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)
+        private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, DiagnosticBag diagnostics)
         {
             Debug.Assert(interfaceMethod.Arity == implicitImpl.Arity);
 
+            bool result = false;
             var arity = interfaceMethod.Arity;
 
             if (arity > 0)
@@ -1188,8 +1293,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typeParameters2 = implicitImpl.TypeParameters;
                 var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
 
-                var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
-                var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
+                var typeMap1 = new TypeMap(nonNullTypesContext: interfaceMethod.OriginalDefinition, typeParameters1, indexedTypeParameters, allowAlpha: true);
+                var typeMap2 = new TypeMap(nonNullTypesContext: implicitImpl.OriginalDefinition, typeParameters2, indexedTypeParameters, allowAlpha: true);
 
                 // Report any mismatched method constraints.
                 for (int i = 0; i < arity; i++)
@@ -1209,8 +1314,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // error on B if the match to I.M is in a base class.)
                         diagnostics.Add(ErrorCode.ERR_ImplBadConstraints, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl), typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
                     }
+                    else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl),
+                                        typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
+                    }
                 }
             }
+
+            return result;
         }
 
         internal static Location GetImplicitImplementationDiagnosticLocation(Symbol interfaceMember, TypeSymbol implementingType, Symbol member)
@@ -1292,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// type because they will be copied into the bridge property that explicitly
         /// implements the interface property (or they would be, if we created such
         /// a bridge property).  Bridge *methods* (not properties) are inserted in 
-        /// SourceNamedTypeSymbol.ImplementInterfaceMember.
+        /// SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation.
         ///
         /// CONSIDER: The spec for interface mapping (13.4.4) could be interpreted to mean that this
         /// property is not an implementation unless it has an accessor for each accessor of the
@@ -1314,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // We're specifically ignoring custom modifiers for source types because that's what Dev10 does.
                 // Inexact matches are acceptable because we'll just generate bridge members - explicit implementations
                 // with exact signatures that delegate to the inexact match.  This happens automatically in
-                // SourceNamedTypeSymbol.ImplementInterfaceMember.
+                // SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation.
                 return MemberSignatureComparer.CSharpImplicitImplementationComparer.Equals(interfaceMember, candidateMember);
             }
             else
@@ -1442,10 +1554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion Abstract base type checks
 
-        [Obsolete("Use TypeWithModifiers.Is method.", true)]
-        internal bool Equals(TypeWithModifiers other)
+        [Obsolete("Use TypeSymbolWithAnnotations.Is method.", true)]
+        internal bool Equals(TypeSymbolWithAnnotations other)
         {
-            return other.Is(this);
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

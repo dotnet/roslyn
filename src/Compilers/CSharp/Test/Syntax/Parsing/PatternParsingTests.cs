@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternParsingTests : ParsingTests
     {
+        private new void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            UsingStatement(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8), expectedErrors);
+        }
+
         public PatternParsingTests(ITestOutputHelper output) : base(output)
         {
         }
