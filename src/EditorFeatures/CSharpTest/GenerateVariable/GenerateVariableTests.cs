@@ -8758,7 +8758,8 @@ class C
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
             await TestInRegularAndScriptAsync(
@@ -8800,7 +8801,8 @@ class C
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern2()
         {
             await TestInRegularAndScriptAsync(

@@ -1600,7 +1600,7 @@ class C
         End Function
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/30795"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                         <Workspace>
