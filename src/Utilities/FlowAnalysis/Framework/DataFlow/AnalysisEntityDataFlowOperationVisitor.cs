@@ -344,18 +344,5 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected IDictionary<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
             => new Dictionary<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
-
-        #region Visitor methods
-        protected override TAbstractAnalysisValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
-        {
-            var value = base.VisitAssignmentOperation(operation, argument);
-            if (AnalysisEntityFactory.TryCreate(operation.Target, out AnalysisEntity targetEntity))
-            {
-                value = GetAbstractValue(targetEntity);
-            }
-
-            return value;
-        }
-        #endregion
     }
 }
