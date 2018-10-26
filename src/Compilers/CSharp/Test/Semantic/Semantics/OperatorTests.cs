@@ -5814,6 +5814,24 @@ class B : A
             CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorIncrement()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static (T1 fst, T2 snd) operator ++((T1 one, T2 two) tuple)
+        {
+            return tuple;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
