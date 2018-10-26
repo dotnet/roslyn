@@ -10,6 +10,7 @@
 
   <UsingTask TaskName="RoslynTools.GetAssemblyFullName" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
   <UsingTask TaskName="RoslynTools.Unzip" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+  <UsingTask TaskName="RoslynTools.Unsign" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
   <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
@@ -37,11 +38,12 @@
   <!-- 
     List of dependencies that are expected to be inserted into VS by Roslyn Insertion Tool.
     DevEnvLib is the relative path within the package of the binary that's used by devenv process.
-    This binary will get IBC data embedded if they are available for it.
+    This binary will get IBC data embedded if they are available for it and Optimize is not false.
+    Note - optimizing Authenticode-signed 3rd party libraries would invalidate their signature.
   -->
   <ItemGroup>
-    <ExpectedDependency Include="Humanizer.Core" DevEnvLib="lib/netstandard2.0/Humanizer.dll"/>
-    <ExpectedDependency Include="ICSharpCode.Decompiler" DevEnvLib="lib/netstandard2.0/ICSharpCode.Decompiler.dll"/>
+    <ExpectedDependency Include="Humanizer.Core" DevEnvLib="lib/netstandard2.0/Humanizer.dll" Optimize="false" />
+    <ExpectedDependency Include="ICSharpCode.Decompiler" DevEnvLib="lib/netstandard2.0/ICSharpCode.Decompiler.dll" Optimize="false" />
     <ExpectedDependency Include="Microsoft.DiaSymReader" DevEnvLib="lib/netstandard1.1/Microsoft.DiaSymReader.dll"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie" DevEnvLib="lib/net46/Microsoft.CodeAnalysis.Elfie.dll"/>
     <ExpectedDependency Include="System.Collections.Immutable" DevEnvLib="lib/netstandard2.0/System.Collections.Immutable.dll"/>
@@ -125,7 +127,7 @@
         <_PreviousOptimizedFile>$([System.IO.Path]::Combine($(IbcOptimizationDataDir), '$([System.IO.Path]::GetFileNameWithoutExtension(%(_DependencyWithExpectedMetadata.DevEnvLib))).pgo'))</_PreviousOptimizedFile>
       </_DependencyWithExpectedMetadata>
 
-      <_DependencyWithOptimizationData Include="@(_DependencyWithExpectedMetadata)" Condition="Exists(%(_DependencyWithExpectedMetadata._PreviousOptimizedFile))" />
+      <_DependencyWithOptimizationData Include="@(_DependencyWithExpectedMetadata)" Condition="'%(_DependencyWithExpectedMetadata.Optimize)' != 'false' and Exists(%(_DependencyWithExpectedMetadata._PreviousOptimizedFile))" />
       <_DependencyWithoutOptimizationData Include="@(_Dependency)" Exclude="@(_DependencyWithOptimizationData)"/>
 
       <OptimizeAssembly Include="%(_DependencyWithOptimizationData._OptimizeAssembly)" PreviousOptimizedFile="%(_DependencyWithOptimizationData._PreviousOptimizedFile)" />
@@ -157,6 +159,8 @@
 
     <RoslynTools.Unzip SourceFiles="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)" 
                        DestinationFolder="%(_DependencyWithOptimizationData._UnpackDir)" />
+
+    <RoslynTools.Unsign FilePath="%(_DependencyWithOptimizationData._OptimizeAssembly)" />
   </Target>
 
   <!--
