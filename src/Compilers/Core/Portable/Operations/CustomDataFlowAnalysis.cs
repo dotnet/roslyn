@@ -232,10 +232,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             var mergedAnalysisData = analyzer.Merge(currentDestinationData, currentAnalsisData, cancellationToken);
                             // We need to analyze the destination block if both the following conditions are met:
                             //  1. Either the current block is reachable both destination and current are non-reachable
-                            //  2. Either the new analysis data for destination has changed or destination is the last block,
-                            //     in which case we need to analyze it so we can return the result data at end of the block.
+                            //  2. Either the new analysis data for destination has changed or destination block hasn't
+                            //     been processed.
                             if ((current.IsReachable || !destination.IsReachable) &&
-                                (!analyzer.IsEqual(currentDestinationData, mergedAnalysisData) || destination.Ordinal == lastBlockOrdinal))
+                                (!analyzer.IsEqual(currentDestinationData, mergedAnalysisData) || !processedBlocks.Contains(destination)))
                             {
                                 analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData);
                                 toVisit.Add(branch.Destination.Ordinal);
