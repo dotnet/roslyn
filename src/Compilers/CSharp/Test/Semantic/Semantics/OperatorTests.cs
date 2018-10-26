@@ -5853,6 +5853,30 @@ namespace System
                 Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
         }
 
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvertToBaseType()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator ValueType(ValueTuple<T1, T2> s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,51): warning CS0436: The type 'ValueTuple<T1, T2>' in '' conflicts with the imported type 'ValueTuple<T1, T2>' in 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. Using the type defined in ''.
+                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ValueTuple<T1, T2>").WithArguments("", "System.ValueTuple<T1, T2>", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51", "System.ValueTuple<T1, T2>").WithLocation(6, 51),
+                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+        }
+
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
