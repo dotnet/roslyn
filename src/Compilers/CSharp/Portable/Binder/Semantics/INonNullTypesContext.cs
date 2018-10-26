@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool? NonNullTypes => true;
     }
 
-    internal sealed class NonNullTypesFalseContext : INonNullTypesContext
+    internal sealed class NonNullTypesNullContext : INonNullTypesContext
     {
-        public static readonly INonNullTypesContext Instance = new NonNullTypesFalseContext();
-        public bool? NonNullTypes => false;
+        public static readonly INonNullTypesContext Instance = new NonNullTypesNullContext();
+        public bool? NonNullTypes => null;
     }
 }
