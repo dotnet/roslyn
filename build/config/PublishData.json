@@ -29,7 +29,7 @@
             "channels": [ "dev15.9p1"]
         },
         "dev16.0.x-vs-deps": {
-            "nugetKind": "PerBuildPreRelease",
+            "nugetKind": ["Shipping", "NonShipping"],
             "version": "2.11.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
