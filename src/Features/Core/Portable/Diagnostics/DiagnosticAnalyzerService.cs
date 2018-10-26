@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
@@ -65,7 +66,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
 
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt)
+        public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
+        {
+            var map = _hostAnalyzerManager.CreateDiagnosticAnalyzersPerReference(project);
+            return map.Values.SelectMany(v => v).ToImmutableArray();
+        }
+
+        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project projectOpt)
         {
             if (projectOpt == null)
             {
@@ -226,6 +233,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
         {
             return _hostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer);
+        }
+
+        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        {
+            if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
+            {
+                return analyzer.IsCompilationEndAnalyzer(diagnosticAnalyzer, project, compilation);
+            }
+
+            return false;
         }
 
         public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()

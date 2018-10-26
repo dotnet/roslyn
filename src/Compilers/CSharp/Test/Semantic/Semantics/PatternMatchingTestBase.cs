@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
                         var local = ((SourceLocalSymbol)symbol);
-                        var type = local.Type;
+                        var type = local.Type.TypeSymbol;
                         if (type.IsErrorType())
                         {
                             Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var type = ((LocalSymbol)symbol).Type;
+            var type = ((LocalSymbol)symbol).Type.TypeSymbol;
             switch (designation.Parent)
             {
                 case DeclarationPatternSyntax decl:
@@ -230,16 +230,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-                    if (typeSyntax.IsVar && local.Type.IsErrorType())
+                    var type = local.Type.TypeSymbol;
+                    if (typeSyntax.IsVar && type.IsErrorType())
                     {
                         Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
                     }
                     else
                     {
-                        Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
+                        Assert.Equal(type, model.GetSymbolInfo(typeSyntax).Symbol);
                     }
 
-                    AssertTypeInfo(model, decl.Type, local.Type);
+                    AssertTypeInfo(model, decl.Type, type);
                     break;
                 case var parent:
                     Assert.True(parent is VarPatternSyntax);
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(designation.Identifier.ValueText));
@@ -340,8 +341,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 if ((object)symbol != null)
                 {
-                    Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.Type);
-                    Assert.Equal(symbol.GetTypeOrReturnType(), typeInfo.ConvertedType);
+                    var type = symbol.GetTypeOrReturnType().TypeSymbol;
+                    Assert.Equal(type, typeInfo.Type);
+                    Assert.Equal(type, typeInfo.ConvertedType);
                 }
                 else
                 {

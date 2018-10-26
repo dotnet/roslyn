@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             // FAR on the Delegate type and use those results to find Invoke calls
 
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodes = root.DescendantNodes();
@@ -104,7 +105,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
-                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None)));
+                n => new FinderLocation(n, new ReferenceLocation(document, null, n.GetLocation(), isImplicit: false,
+                    valueUsageInfo: semanticModel.GetValueUsageInfo(n, semanticFactsService, cancellationToken), candidateReason: CandidateReason.None)));
         }
     }
 }

@@ -12038,7 +12038,7 @@ var y, y1(Dummy(3 is var x1, x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
+            Assert.True(((LocalSymbol)y1).Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]
@@ -12092,7 +12092,7 @@ public class X
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
-            Assert.True(symbol.Type.IsErrorType());
+            Assert.True(symbol.Type.TypeSymbol.IsErrorType());
         }
 
         [Fact]

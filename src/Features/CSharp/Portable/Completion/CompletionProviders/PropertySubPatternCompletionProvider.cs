@@ -57,8 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             foreach (var untestedMember in untestedMembers)
             {
+                const string ColonString = ":";
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: untestedMember.Name.EscapeIdentifier(),
+                    displayTextSuffix: ColonString,
                     insertionText: null,
                     symbols: ImmutableArray.Create(untestedMember),
                     contextPosition: token.GetLocation().SourceSpan.Start,

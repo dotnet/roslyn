@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(hasErrors);
                 convertedExpression = new BoundConversion(
-                    convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, @checked: false,
-                    explicitCastInCode: false, constantValueOpt: constantValueOpt, CreateErrorType(), hasErrors: true)
+                    convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
+                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
                     { WasCompilerGenerated = true };
             }
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!isVar);
             TypeSymbol declType = boundDeclType.Type;
             inputValEscape = GetValEscape(declType, inputValEscape);
-            BindPatternDesignation(node, node.Designation, declType, inputValEscape, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
+            BindPatternDesignation(node, node.Designation, boundDeclType.Type, inputValEscape, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, hasErrors);
         }
 
@@ -397,20 +397,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(inputType != (object)null);
 
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
-                declType = inputType;
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, inputType);
             }
 
-            if (declType == (object)null)
+            if (declType.IsNull)
             {
                 Debug.Assert(hasErrors);
-                declType = this.CreateErrorType("var");
+                declType = TypeSymbolWithAnnotations.Create(NonNullTypesContext, this.CreateErrorType("var"));
             }
 
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
-            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType,
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType.TypeSymbol);
+            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.TypeSymbol,
                                                isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             return boundDeclType;
         }
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                         }
 
-                        localSymbol.SetType(declType);
+                        localSymbol.SetType(TypeSymbolWithAnnotations.Create(declType));
                         localSymbol.SetValEscape(GetValEscape(declType, inputValEscape));
 
                         // Check for variable declaration errors.
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
                         GlobalExpressionVariable expressionVariableField = LookupDeclaredField(singleVariableDesignation);
                         DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
-                        expressionVariableField.SetType(declType, tempDiagnostics);
+                        expressionVariableField.SetType(TypeSymbolWithAnnotations.Create(declType), tempDiagnostics);
                         tempDiagnostics.Free();
                         BoundExpression receiver = SynthesizeReceiver(node, expressionVariableField, diagnostics);
 
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declType.IsTupleType)
             {
                 // It is a tuple type. Work according to its elements
-                ImmutableArray<TypeSymbol> elementTypes = declType.TupleElementTypes;
+                ImmutableArray<TypeSymbolWithAnnotations> elementTypes = declType.TupleElementTypes;
                 if (elementTypes.Length != node.Subpatterns.Count && !hasErrors)
                 {
                     var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(node.OpenParenToken.SpanStart, node.CloseParenToken.Span.End - node.OpenParenToken.SpanStart));
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var subpatternSyntax = node.Subpatterns[i];
                     bool isError = i >= elementTypes.Length;
-                    TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
+                    TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].TypeSymbol;
                     FieldSymbol foundField = null;
                     if (subpatternSyntax.NameColon != null)
                     {
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (inputType.IsTupleType)
                         {
                             // It is a tuple type. Work according to its elements
-                            ImmutableArray<TypeSymbol> elementTypes = inputType.TupleElementTypes;
+                            ImmutableArray<TypeSymbolWithAnnotations> elementTypes = inputType.TupleElementTypes;
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
                                 var location = new SourceLocation(node.SyntaxTree, 
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var variable = tupleDesignation.Variables[i];
                                 bool isError = i >= elementTypes.Length;
-                                TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
+                                TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].TypeSymbol;
                                 BoundPattern pattern = BindVarDesignation(node, variable, elementType, GetValEscape(elementType, inputValEscape), isError, diagnostics);
                                 subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
                             }
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                memberType = symbol.GetTypeOrReturnType();
+                memberType = symbol.GetTypeOrReturnType().TypeSymbol;
             }
 
             return symbol;
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rightName: name,
                 rightArity: 0,
                 typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
-                typeArguments: default(ImmutableArray<TypeSymbol>),
+                typeArguments: default(ImmutableArray<TypeSymbolWithAnnotations>),
                 invoked: false,
                 indexed: false,
                 diagnostics: diagnostics);

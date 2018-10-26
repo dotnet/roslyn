@@ -36,12 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         private static ContainedDocument GetContainedDocument(Document document)
         {
             var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
-            {
-                return null;
-            }
-
-            return visualStudioWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+            return visualStudioWorkspace?.TryGetContainedDocument(document.Id);
         }
     }
 }

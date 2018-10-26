@@ -3,9 +3,11 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Win32;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -37,6 +39,12 @@ namespace Roslyn.Test.Utilities
 
         public const string TestExecutionHasCOMInterop = "Test execution depends on COM Interop";
         public const string TestHasWindowsPaths = "Test depends on Windows style paths";
+        public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
+
+        /// <summary>
+        /// Edit and continue is only supported on desktop at the moment.
+        /// </summary>
+        public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
     }
 
     public class ConditionalFactAttribute : FactAttribute
@@ -46,7 +54,7 @@ namespace Roslyn.Test.Utilities
         /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
-        [Obsolete("ConditionalFact should use Reason or AlwaysSkip")]
+        [Obsolete("ConditionalFact should use Reason or AlwaysSkip", error: true)]
         public new string Skip
         {
             get { return base.Skip; }
@@ -128,10 +136,12 @@ namespace Roslyn.Test.Utilities
     public static class ExecutionConditionUtil
     {
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
+        public static bool IsUnix => !IsWindows;
         public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsCoreClr => !IsDesktop;
+        public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
     }
 
     public class x86 : ExecutionCondition
@@ -205,6 +215,12 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on CoreCLR";
     }
 
+    public class DesktopClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => MonoHelpers.IsRunningOnMono() || !ExecutionConditionUtil.IsDesktop;
+        public override string SkipReason => "Test not supported on Mono or CoreCLR";
+    }
+
     public class NoIOperationValidation : ExecutionCondition
     {
         public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
@@ -215,5 +231,52 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !OSVersion.IsWin8;
         public override string SkipReason => "Window Version is not at least Win8 (build:9200)";
+    }
+
+    public class Framework35Installed : ExecutionCondition
+    {
+        public override bool ShouldSkip
+        {
+            get
+            {
+#if NET46
+                try
+                {
+                    const string RegistryPath = @"Software\Microsoft\NET Framework Setup\NDP\v3.5";
+                    var key = Registry.LocalMachine.OpenSubKey(RegistryPath);
+                    if (key == null)
+                    {
+                        return true;
+                    }
+
+                    var value = Convert.ToInt32(key.GetValue("Install", 0) ?? 0);
+                    return value == 0;
+                }
+                catch
+                {
+                    return true;
+                }
+#else
+                return false;
+#endif
+            }
+        }
+
+        public override string SkipReason => ".NET Framework 3.5 is not installed";
+    }
+
+    public class NotFramework45 : ExecutionCondition
+    {
+        public override bool ShouldSkip
+        {
+            get
+            {
+                // On Framework 4.5, ExtensionAttribute lives in mscorlib...
+                return typeof(System.Runtime.CompilerServices.ExtensionAttribute).GetTypeInfo().Assembly ==
+                    typeof(object).GetTypeInfo().Assembly;
+            }
+        }
+
+        public override string SkipReason => "Test currently not supported on Framework 4.5";
     }
 }

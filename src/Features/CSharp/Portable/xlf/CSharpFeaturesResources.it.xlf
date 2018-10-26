@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Aggiungi modificatori di accessibilità</target>
+        <target state="new">Add accessibility modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_await">
@@ -17,39 +17,54 @@
         <target state="new">Add await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="new">Add missing usings</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_remove_braces_for_single_line_control_statements">
         <source>Add/remove braces for single-line control statements</source>
-        <target state="translated">Aggiungi/rimuovi le parentesi graffe per le istruzioni di controllo a riga singola</target>
+        <target state="new">Add/remove braces for single-line control statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
-        <target state="translated">Applica le preferenze relative al corpo di espressioni/blocchi</target>
+        <target state="new">Apply expression/block body preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
         <source>Apply implicit/explicit type preferences</source>
-        <target state="translated">Applica le preferenze relative al tipo implicito/esplicito</target>
+        <target state="new">Apply implicit/explicit type preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
-        <target state="translated">Applica le preferenze relative alle variabili 'out' inline</target>
+        <target state="new">Apply inline 'out' variables preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_language_framework_type_preferences">
         <source>Apply language/framework type preferences</source>
-        <target state="translated">Applica le preferenze relative al tipo di linguaggio/framework</target>
+        <target state="new">Apply language/framework type preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
         <source>Apply object/collection initialization preferences</source>
-        <target state="translated">Applica le preferenze di inizializzazione di oggetti/raccolte</target>
+        <target state="new">Apply object/collection initialization preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
-        <target state="translated">Applica le preferenze relative alla qualificazione 'this.'</target>
+        <target state="new">Apply 'this.' qualification preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="new">Convert to method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="new">Declare as nullable</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -64,17 +79,17 @@
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
-        <target state="translated">Imposta i campi privati come di sola lettura quando possibile</target>
+        <target state="new">Make private fields readonly when possible</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
-        <target state="translated">Rimuovi cast non necessari</target>
+        <target state="new">Remove unnecessary casts</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
-        <target state="translated">Rimuovi variabili non usate</target>
+        <target state="new">Remove unused variables</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -94,12 +109,12 @@
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
-        <target state="translated">Ordina i modificatori di accessibilità</target>
+        <target state="new">Sort accessibility modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="translated">L'istruzione 'if' può essere semplificata</target>
+        <target state="new">'if' statement can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -704,12 +719,7 @@
       </trans-unit>
       <trans-unit id="Invert_if">
         <source>Invert if</source>
-        <target state="translated">Inverti if</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_method">
-        <source>Convert to method</source>
-        <target state="new">Convert to method</target>
+        <target state="new">Invert if</target>
         <note />
       </trans-unit>
     </body>

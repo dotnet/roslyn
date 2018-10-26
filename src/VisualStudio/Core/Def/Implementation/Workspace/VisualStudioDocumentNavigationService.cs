@@ -331,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
+            var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;

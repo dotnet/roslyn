@@ -3,9 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -17,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// </summary>
     internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
     {
-        private CustomModifiersTuple _lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -35,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get;
         }
 
-        public sealed override TypeSymbol Type
+        public sealed override TypeSymbolWithAnnotations Type
         {
             get
             {
@@ -43,29 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public sealed override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return CustomModifiersTuple.TypeCustomModifiers;
-            }
-        }
-
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return CustomModifiersTuple.RefCustomModifiers;
-            }
-        }
-
-        private CustomModifiersTuple CustomModifiersTuple
-        {
-            get
-            {
-                return RetargetingModule.RetargetingTranslator.RetargetModifiers(
-                    _underlyingParameter.CustomModifiers, _underlyingParameter.RefCustomModifiers,
-                    ref _lazyCustomModifiers);
+                return RetargetingModule.RetargetingTranslator.RetargetModifiers(_underlyingParameter.RefCustomModifiers, ref _lazyRefCustomModifiers);
             }
         }
 

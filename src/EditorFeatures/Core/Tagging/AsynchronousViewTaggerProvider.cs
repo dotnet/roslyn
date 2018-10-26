@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
+        // TypeScript still is moving to calling the new constructor that takes an IThreadingContext. Until then, we can fetch one from another service of ours that
+        // already does. When TypeScript moves calling the new constructor, this should be deleted.
+        [Obsolete("This overload exists for TypeScript compatibility only and should not be used in new code.")]
+        protected AsynchronousViewTaggerProvider(
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService)
+                : this(((Implementation.ForegroundNotification.ForegroundNotificationService)notificationService).ThreadingContext, asyncListener, notificationService)
+        {
+        }
+
         public IAccurateTagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (textView == null)

@@ -4244,7 +4244,7 @@ class Program
         }
 
         [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
         public void OrderOfDelegateMembers()
         {
             var source = @"

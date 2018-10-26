@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol ReturnType
+            public override TypeSymbolWithAnnotations ReturnType
             {
                 get { return _property.Type; }
             }

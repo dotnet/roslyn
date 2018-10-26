@@ -3466,9 +3466,9 @@ class C
 
 internal class Class
 {{
-    private global::System.Object method;
+    private System.Object method;
 
-    public Class(global::System.Object method)
+    public Class(System.Object method)
     {{
         this.method = method;
     }}

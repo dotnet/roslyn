@@ -22,6 +22,11 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_dot_editorconfig_file_from_settings">
+        <source>Generate .editorconfig file from settings</source>
+        <target state="new">Generate .editorconfig file from settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
@@ -35,6 +40,11 @@
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">すべてのかっこを保持:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind">
+        <source>Kind</source>
+        <target state="new">Kind</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -65,6 +75,11 @@
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Visual Studio の既定のキーマップをリセットします</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="new">Save .editorconfig file</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">

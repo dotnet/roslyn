@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities; 
+using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.Desktop
 {
@@ -77,7 +77,7 @@ namespace Roslyn.Test.Utilities.Desktop
         }
 
         /// <summary>
-        /// Profiling demonstrates the creation of AppDomains take up a significant amount of time in the 
+        /// Profiling demonstrates the creation of AppDomains take up a significant amount of time in the
         /// test run time.  Hence we re-use them so long as there are no conflicts with the existing loaded
         /// modules.
         /// </summary>
@@ -106,7 +106,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             var runtimeData = GetOrCreateRuntimeData(allModules);
 
-            // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only 
+            // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only
             // add in the delta values to reduce serialization overhead going across AppDomains.
             var manager = runtimeData.Manager;
             var missingList = manager
@@ -152,7 +152,7 @@ namespace Roslyn.Test.Utilities.Desktop
                     if (data.ConflictCount > 5)
                     {
                         // Once a RuntimeAssemblyManager is proven to have conflicts it's likely subsequent runs
-                        // will also have conflicts.  Take it out of the cache. 
+                        // will also have conflicts.  Take it out of the cache.
                         data.Dispose();
                         s_runtimeDataCache.RemoveAt(i);
                     }
@@ -303,9 +303,9 @@ namespace Roslyn.Test.Utilities.Desktop
             }
 
             var shouldSucceed = verification == Verification.Passes;
+            var emitData = GetEmitData();
             try
             {
-                var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
                 emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
                 if (!shouldSucceed)
@@ -313,11 +313,11 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw new Exception("Verification succeeded unexpectedly");
                 }
             }
-            catch (RuntimePeVerifyException)
+            catch (RuntimePeVerifyException ex)
             {
                 if (shouldSucceed)
                 {
-                    throw new Exception("Verification failed");
+                    throw new Exception("Verification failed", ex);
                 }
             }
         }

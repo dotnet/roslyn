@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -23,14 +23,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
-        private readonly string _windowTitle;
+        private readonly Guid _windowId;
         private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
-        protected InteractiveWindow_InProc(string viewCommand, string windowTitle)
+        protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
             _viewCommand = viewCommand;
-            _windowTitle = windowTitle;
+            _windowId = windowId;
             _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
@@ -163,16 +163,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void CloseWindow()
         {
-            var dte = GetDTE();
-
-            foreach (EnvDTE.Window window in dte.Windows)
+            InvokeOnUIThread(() =>
             {
-                if (window.Caption == _windowTitle)
+                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                if (ErrorHandler.Succeeded(shell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFrameOnly, _windowId, out var windowFrame)))
                 {
-                    window?.Close();
-                    break;
+                    ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
                 }
-            }
+            });
         }
 
         public void ShowWindow(bool waitForPrompt = true)
