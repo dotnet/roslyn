@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
@@ -30,13 +31,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
             ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
             ImmutableStack<IOperation> callStack,
-            ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed)
+            ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed,
+            Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller)
         {
             Debug.Assert(initialAnalysisData != null);
             Debug.Assert(!arguments.IsDefault);
             Debug.Assert(addressSharedEntities != null);
             Debug.Assert(callStack != null);
             Debug.Assert(methodsBeingAnalyzed != null);
+            Debug.Assert(getCachedAbstractValueFromCaller != null);
 
             InitialAnalysisData = initialAnalysisData;
             InvocationInstanceOpt = invocationInstanceOpt;
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AddressSharedEntities = addressSharedEntities;
             CallStack = callStack;
             MethodsBeingAnalyzed = methodsBeingAnalyzed;
+            GetCachedAbstractValueFromCaller = getCachedAbstractValueFromCaller;
         }
 
         public TAnalysisData InitialAnalysisData { get; }
@@ -54,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; }
         public ImmutableStack<IOperation> CallStack { get; }
         public ImmutableHashSet<TAnalysisContext> MethodsBeingAnalyzed { get; }
+        public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
 
         protected sealed override int ComputeHashCode()
         {

@@ -645,13 +645,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            TAbstractAnalysisValue state;
-            if (!_valueCacheBuilder.TryGetValue(operation, out state))
+            if (_valueCacheBuilder.TryGetValue(operation, out var state))
             {
-                throw new InvalidOperationException();
+                return state;
             }
 
-            return state;
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
+            {
+                return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.GetCachedAbstractValueFromCaller(operation);
+            }
+
+            throw new InvalidOperationException();
         }
 
         protected void CacheAbstractValue(IOperation operation, TAbstractAnalysisValue value)
@@ -1541,7 +1545,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     GetCapturedVariablesMap(),
                     _addressSharedEntitiesBuilder.ToImmutable(),
                     ImmutableStack.CreateRange(_interproceduralCallStack),
-                    newMethodsBeingAnalyzed);
+                    newMethodsBeingAnalyzed,
+                    getCachedAbstractValueFromCaller: GetCachedAbstractValue);
 
                 (AnalysisEntity, PointsToAbstractValue)? GetInvocationInstance()
                 {
