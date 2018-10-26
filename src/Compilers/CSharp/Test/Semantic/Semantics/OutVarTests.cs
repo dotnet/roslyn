@@ -34493,6 +34493,32 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
 ");
             Assert.Null(model.GetOperation(node3).Parent);
         }
+
+        [Fact]
+        public void OutVarInConstructorUsedInInitializer()
+        {
+            var source =
+@"
+public class C
+{
+    public int Number{ get; set; }
+    
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { Number = i };
+        System.Console.WriteLine(c.Number);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput: @"1");
+        }
+
     }
 
     internal static class OutVarTestsExtensions
