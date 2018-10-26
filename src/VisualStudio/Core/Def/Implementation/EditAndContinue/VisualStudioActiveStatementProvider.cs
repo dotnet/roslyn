@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 // No exception should be thrown in case of errors on the debugger side. 
                 // The debugger is responsible to provide telemetry for error cases.
+                // The callback should not be called, but it's there to guarantee that the task completes and a hang is avoided.
                 var workList = DkmWorkList.Create(_ => { completion.TrySetResult(ImmutableArray<ActiveStatementDebugInfo>.Empty); });
 
                 void CancelWork()
