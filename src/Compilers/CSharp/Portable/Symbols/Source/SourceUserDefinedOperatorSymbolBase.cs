@@ -292,7 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: * S0 and T0 are different types:
 
-            if ((ContainingType.SpecialType == SpecialType.System_Nullable_T) ? source == target : source0 == target0)
+            if ((ContainingType.SpecialType == SpecialType.System_Nullable_T)
+                    ? source.Equals(target, TypeCompareKind.IgnoreTupleNames)
+                    : source0.Equals(target0, TypeCompareKind.IgnoreTupleNames))
             {
                 // CS0555: User-defined operator cannot take an object of the enclosing type 
                 // and convert to an object of the enclosing type
