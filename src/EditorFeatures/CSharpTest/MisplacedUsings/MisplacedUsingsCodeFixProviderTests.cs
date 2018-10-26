@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsings
 
         private const string DelegateDefinition = @"public delegate void TestDelegate();";
 
-        #region Test NoPreference
+        #region Test Preserve
 
         /// <summary>
         /// Verifies that valid using statements in a namespace does not produce any diagnostics.
         /// </summary>
         [Fact]
-        public Task WhenNoPreference_UsingsInNamespace_ValidUsingStatements()
+        public Task WhenPreserve_UsingsInNamespace_ValidUsingStatements()
         {
             var testCode = @"namespace TestNamespace
 {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsings
         [InlineData(InterfaceDefinition)]
         [InlineData(EnumDefinition)]
         [InlineData(DelegateDefinition)]
-        public Task WhenNoPreference_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
+        public Task WhenPreserve_UsingsInCompilationUnitWithTypeDefinition_ValidUsingStatements(string typeDefinition)
         {
             var testCode = $@"using System;
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsings
         /// Verifies that having using statements in the compilation unit will not produce any diagnostics when there are attributes present.
         /// </summary>
         [Fact]
-        public Task WhenNoPreference_UsingsInCompilationUnitWithAttributes_ValidUsingStatements()
+        public Task WhenPreserve_UsingsInCompilationUnitWithAttributes_ValidUsingStatements()
         {
             var testCode = @"using System.Reflection;
 
@@ -115,7 +115,7 @@ namespace TestNamespace
         /// moved inside a namespace.
         /// </summary>
         [Fact]
-        public Task WhenNoPreference_UsingsInCompilationUnit_ValidUsingStatements()
+        public Task WhenPreserve_UsingsInCompilationUnit_ValidUsingStatements()
         {
             var testCode = @"using System;
 using System.Threading;
@@ -133,7 +133,7 @@ namespace TestNamespace
         /// having using statements inside a namespace.
         /// </summary>
         [Fact]
-        public Task WhenNoPreference_UsingsInCompilationUnitAndNamespace_ValidUsingStatements()
+        public Task WhenPreserve_UsingsInCompilationUnitAndNamespace_ValidUsingStatements()
         {
             var testCode = @"using System;
 
@@ -248,7 +248,7 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(2, 1),
@@ -259,6 +259,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(9, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(10, 1),
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
@@ -306,7 +307,7 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(2, 1),
@@ -317,6 +318,7 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(7, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(8, 1),
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
         }
 
@@ -362,7 +364,7 @@ namespace NamespaceName
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(2, 1),
@@ -373,6 +375,7 @@ namespace NamespaceName
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(9, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(10, 1),
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
@@ -419,7 +422,7 @@ namespace NamespaceName
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(2, 1),
@@ -430,6 +433,7 @@ namespace NamespaceName
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(7, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(8, 1),
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
         }
 
@@ -456,13 +460,13 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expectedResults =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(2, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -497,11 +501,12 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
@@ -538,11 +543,12 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
@@ -576,13 +582,13 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expectedResults =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(5, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(6, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -610,10 +616,11 @@ namespace TestNamespace1
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1)
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
@@ -636,10 +643,11 @@ namespace TestNamespace2
 {
 }
 ";
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1)
             };
+
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedSource: testCode, remaining: expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
@@ -666,13 +674,13 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expectedResults =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(2, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -700,13 +708,13 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expectedResults =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         /// <summary>
@@ -734,13 +742,13 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expectedResults =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
             };
 
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expectedResults, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         #endregion
@@ -805,7 +813,7 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -838,7 +846,7 @@ namespace System
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -873,7 +881,7 @@ namespace System.MyExtension
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -912,7 +920,7 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(7, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(8, 5),
@@ -947,7 +955,7 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(6, 5),
             };
@@ -984,7 +992,7 @@ namespace TestNamespace
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(8, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
@@ -994,7 +1002,7 @@ namespace TestNamespace
         }
 
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInCompilationUnit_UsingsMovedWithSystemPlacedFirst()
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedWithSystemPlacedFirst()
         {
             var testCode = @"namespace Foo
 {
@@ -1032,7 +1040,7 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -1043,11 +1051,12 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(11, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(12, 5),
             };
+
             return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
         }
 
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInCompilationUnit_UsingsMovedWithSystemPlacedFirstInGroups()
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedWithSystemPlacedFirstInGroups()
         {
             var testCode = @"namespace Foo
 {
@@ -1086,7 +1095,7 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -1097,11 +1106,12 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(9, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
             };
+
             return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
         }
 
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInCompilationUnit_UsingsMovedWithAlphaSort()
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedWithAlphaSort()
         {
             var testCode = @"namespace Foo
 {
@@ -1139,7 +1149,7 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -1150,11 +1160,12 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(11, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(12, 5),
             };
+
             return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
         }
 
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInCompilationUnit_UsingsMovedWithAlphaSortInGroups()
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedWithAlphaSortInGroups()
         {
             var testCode = @"namespace Foo
 {
@@ -1193,7 +1204,7 @@ namespace Foo
 }
 ";
 
-            DiagnosticResult[] expected =
+            var expected = new DiagnosticResult[]
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
@@ -1204,7 +1215,67 @@ namespace Foo
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(9, 5),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
             };
+
             return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
+        }
+
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedEmptyLineBetweenUsingSubGroups()
+        {
+            var testCode = @"namespace Foo
+{
+    using Microsoft.CodeAnalysis;
+    using SystemAction = System.Action;
+    using static System.Math;
+    using System;
+    using static System.String;
+    using MyFunc = System.Func<int,bool>;
+    using System.Collections.Generic;
+    using Roslyn;
+    using System.Collections;
+
+    public class Bar
+    {
+    }
+}
+";
+
+            var fixedTestCode = @"using System;
+using System.Collections;
+using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
+
+using Roslyn;
+
+using static System.Math;
+using static System.String;
+
+using MyFunc = System.Func<int, bool>;
+using SystemAction = System.Action;
+
+namespace Foo
+{
+    public class Bar
+    {
+    }
+}
+";
+
+            var expected = new DiagnosticResult[]
+            {
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(3, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(4, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(5, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(6, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(7, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(8, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(9, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(10, 5),
+                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._outsideDescriptor).WithLocation(11, 5),
+            };
+
+            return VerifyCodeFixAsync(testCode, s_outsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
         }
 
         #endregion
