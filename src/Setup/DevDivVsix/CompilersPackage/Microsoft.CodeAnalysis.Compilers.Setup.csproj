@@ -54,7 +54,7 @@ vs.dependencies
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"
 
-folder InstallDir:\MSBuild\15.0\Bin\Roslyn
+folder InstallDir:\MSBuild\Current\Bin\Roslyn
   @(_FileEntries, '%0d%0a  ')
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext

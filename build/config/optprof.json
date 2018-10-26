@@ -6,18 +6,41 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "VSLanguages",
+          "testCases": [
+            "VSLanguages.Managed.vs_perf_DesignTime_editor_navigate_NavigateTo_cs"
           ]
         },
         {
           "container": "VSPE",
           "testCases": [
-            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
-            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
+            "VSPE.OptProfTests.vs_env_npd_open",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwin",
+            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment",
             "VSPE.OptProfTests.vs_asl_cs_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
-            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp"
+            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest"
+          ]
+        },
+        {
+          "container": "WinForms",
+          "testCases": [
+            "WinForms.OptProfTests.winforms_largeform_cs",
+            "WinForms.OptProfTests.winforms_largeform_vb"
+          ]
+        },
+        {
+          "container": "XamlOptProf",
+          "testCases": [
+            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
           ]
         }
       ]
@@ -30,6 +53,15 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "TeamEng",
+          "testCases": [
+            "TeamEng.OptProfTest.vs_debugger_interop_managedclient",
+            "TeamEng.OptProfTest.vs_debugger_remote_cslaunch",
+            "TeamEng.OptProfTest.vs_debugger_EE_Managed_CSLambda",
+            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
+          ]
         }
       ]
     },
@@ -41,6 +73,13 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc"
+          ]
         }
       ]
     },
@@ -50,7 +89,41 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "VSLanguages",
+          "testCases": [
+            "VSLanguages.Managed.vs_perf_DesignTime_editor_navigate_NavigateTo_cs"
+          ]
+        },
+        {
+          "container": "VSPE",
+          "testCases": [
+            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
+            "VSPE.OptProfTests.vs_env_npd_open",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwin",
+            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_asl_cs_scenario",
+            "VSPE.OptProfTests.vs_asl_vb_scenario",
+            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest"
+          ]
+        },
+        {
+          "container": "WinForms",
+          "testCases": [
+            "WinForms.OptProfTests.winforms_largeform_cs",
+            "WinForms.OptProfTests.winforms_largeform_vb"
+          ]
+        },
+        {
+          "container": "XamlOptProf",
+          "testCases": [
+            "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated"
           ]
         }
       ]
@@ -71,6 +144,29 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "VSPE",
+          "testCases": [
+            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwin",
+            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_asl_cs_scenario",
+            "VSPE.OptProfTests.vs_asl_vb_scenario",
+            "VSPE.OptProfTests.vs_perf_designtime_editor_open_text_largetxtemptyide",
+            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
+          ]
         }
       ]
     },
@@ -88,6 +184,29 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "VSPE",
+          "testCases": [
+            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwin",
+            "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment",
+            "VSPE.OptProfTests.vs_asl_cs_scenario",
+            "VSPE.OptProfTests.vs_asl_vb_scenario",
+            "VSPE.OptProfTests.vs_perf_designtime_editor_open_text_largetxtemptyide",
+            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
+          ]
         }
       ]
     },
@@ -95,7 +214,7 @@
       "assembly": "Microsoft.Build.Conversion.Core.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -104,6 +223,14 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
           ]
         }
       ]
@@ -112,7 +239,7 @@
       "assembly": "Microsoft.Build.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -121,6 +248,14 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
           ]
         }
       ]
@@ -129,7 +264,7 @@
       "assembly": "Microsoft.Build.Engine.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -138,6 +273,14 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
           ]
         }
       ]
@@ -146,7 +289,7 @@
       "assembly": "Microsoft.Build.Framework.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -155,6 +298,14 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
           ]
         }
       ]
@@ -163,7 +314,7 @@
       "assembly": "Microsoft.Build.Tasks.Core.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -172,6 +323,14 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
           ]
         }
       ]
@@ -180,7 +339,7 @@
       "assembly": "Microsoft.Build.Utilities.Core.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -190,6 +349,14 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
+          ]
         }
       ]
     },
@@ -197,7 +364,7 @@
       "assembly": "System.Threading.Tasks.Dataflow.dll",
       "instrumentationArguments": [
         {
-          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
           "instrumentationExecutable" : "Common7/IDE/vsn.exe"
         }
       ],
@@ -206,6 +373,64 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "System.IO.Compression.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "System.Runtime.InteropServices.RuntimeInformation.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/Current/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "MSBuild",
+          "testCases": [
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild",
+            "MSBuild.Managed.vs_perf_designtime_commandline_msbuild_cs_mstv_fullbuild_4proc",
+            "MSBuild.Managed.vs_cps_launch1"
           ]
         }
       ]
