@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert(type.ConstructedFrom != type);
+            Debug.Assert(!type.ConstructedFrom.Equals(type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
             return true;
         }
 

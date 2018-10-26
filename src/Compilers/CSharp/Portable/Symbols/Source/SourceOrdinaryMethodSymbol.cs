@@ -1116,8 +1116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var typeParameters2 = part2.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
-            var typeMap1 = new TypeMap(nonNullTypesContext: part1, typeParameters1, indexedTypeParameters, allowAlpha: true);
-            var typeMap2 = new TypeMap(nonNullTypesContext: part1, typeParameters2, indexedTypeParameters, allowAlpha: true);
+            var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
+            var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
             return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
         }

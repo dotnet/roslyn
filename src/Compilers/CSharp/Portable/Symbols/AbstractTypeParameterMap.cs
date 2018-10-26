@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
 
-            return TypeSymbolWithAnnotations.Create(typeParameter);
+            return TypeSymbolWithAnnotations.Create(NonNullTypesNullContext.Instance, typeParameter);
         }
 
         private string GetDebuggerDisplay()
