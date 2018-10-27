@@ -21,9 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal sealed partial class ContainedDocument
     {
+        // this is to support old venus/razor case. all new razor should use thier own implementation not ours
         public class DocumentServiceProvider : IDocumentServiceProvider
         {
-            public static readonly IDocumentServiceProvider Instace = new DocumentServiceProvider();
+            public static readonly DocumentServiceProvider Instace = new DocumentServiceProvider();
 
             private readonly SpanMapper _spanMapper;
             private readonly DocumentExcerpter _excerpter;
@@ -55,20 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return sourceText.FindCorrespondingEditorTextSnapshot() as IProjectionSnapshot;
             }
 
-            private static void VerifyDocument(Document document)
-            {
-                // only internal people should use this. so throw when mis-used
-                var containedDocument = TryGetContainedDocument(document.Id);
-                Contract.ThrowIfNull(containedDocument);
-            }
-
             private class SpanMapper : ISpanMappingService
             {
                 public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.
-
-                    VerifyDocument(document);
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     var projectionSnapshot = GetProjectSnapshot(sourceText);
@@ -83,6 +75,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         var result = default(MappedSpanResult?);
                         foreach (var primarySpan in projectionSnapshot.MapToSourceSnapshots(span.ToSpan()))
                         {
+                            // it got mapped to wrong source snapshot. return default
+                            if (primarySpan.Snapshot.ContentType.TypeName == "inert")
+                            {
+                                result = default(MappedSpanResult);
+                                break;
+                            }
+
                             // this is from http://index/?query=MapSecondaryToPrimarySpan&rightProject=Microsoft.VisualStudio.Editor.Implementation&file=VsTextBufferCoordinatorAdapter.cs&line=177
                             // make sure we only consider one that's not split
                             if (primarySpan.Length != span.Length)
@@ -111,9 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken)
                 {
-                    VerifyDocument(document);
-
-                    // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.
+                    // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new DocumentExcerpter for every char user types.
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     var projectionSnapshot = GetProjectSnapshot(sourceText);

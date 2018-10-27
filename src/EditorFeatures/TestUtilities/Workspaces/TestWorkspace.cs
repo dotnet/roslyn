@@ -366,7 +366,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <param name="baseDocuments">The set of documents from which the projection buffer 
         /// document will be composed.</param>
         /// <returns></returns>
-        public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
+        public TestHostDocument CreateProjectionBufferDocument(
+            string markup, 
+            IList<TestHostDocument> baseDocuments, 
+            string languageName, 
+            string path = "projectionbufferdocumentpath", 
+            ProjectionBufferOptions options = ProjectionBufferOptions.None, 
+            IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
                 out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
@@ -400,8 +406,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     foreach (var span in kvp.Value)
                     {
                         var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
-                        var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
+                        var spans = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan);
+                        if (spans.Count == 0)
+                        {
+                            // not all span on subject buffer needs to exist on surface buffer
+                            continue;
+                        }
+
+                        // but if they do, it must be only 1
+                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(spans.Single().ToTextSpan());
                     }
                 }
             }

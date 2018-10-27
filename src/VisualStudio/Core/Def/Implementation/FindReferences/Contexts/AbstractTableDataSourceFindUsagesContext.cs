@@ -253,10 +253,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
                 // when we have another type of workspace.  This means we will show results, but
                 // certain features (like filtering) may not work in that context.
-                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
+                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
 
                 var projectName = document.Project.Name;
-                var guid = workspace.GetProjectGuid(document.Project.Id);
+                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
                 return (guid, projectName, sourceText);
