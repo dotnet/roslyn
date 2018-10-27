@@ -17,6 +17,9 @@
     <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TestReferenceAssembly\TestReferenceAssembly.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Web" />
   </ItemGroup>
   <Import Project="..\Utilities\Analyzer.Utilities.projitems" Label="Shared" />

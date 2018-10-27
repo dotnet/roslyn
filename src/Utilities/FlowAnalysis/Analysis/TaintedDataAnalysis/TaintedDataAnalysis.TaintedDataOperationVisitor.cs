@@ -189,13 +189,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, taintedArguments, operation);
 
-                    IEnumerable<TaintedDataAbstractValue> allTaintedValues = taintedArguments.Select(a => this.GetCachedAbstractValue(a));
-                    if (baseValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                    {
-                        allTaintedValues = allTaintedValues.Concat(baseValue);
-                    }
+                    // TODO baseVisit seems to be right, maybe cuz of the DefaultVisit fix?  So no need for the nonsense below...
+                    //IEnumerable<TaintedDataAbstractValue> allTaintedValues = taintedArguments.Select(a => this.GetCachedAbstractValue(a));
+                    //if (baseValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                    //{
+                    //    allTaintedValues = allTaintedValues.Concat(baseValue);
+                    //}
 
-                    return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
+                    //return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
                 }
 
                 return baseValue;
@@ -238,41 +239,44 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
 
-                if (this.TryGetInterproceduralAnalysisResult(originalOperation, out TaintedDataAnalysisResult subResult))
-                {
-                    // We performed interprocedural analysis on this invocation, so use its result, whatever it is.
-                    return baseVisit;
-                }
+                return baseVisit;
 
-                // No inteprocedural, so...
-                TaintedDataAbstractValue returnValue = baseVisit;
-                if (visitedInstance != null)
-                {
-                    // A method call on a tainted object returns tainted.
-                    TaintedDataAbstractValue instanceAbstractValue = this.GetCachedAbstractValue(visitedInstance);
-                    if (instanceAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                    {
-                        returnValue = instanceAbstractValue;
-                    }
-                }
+                // TODO baseVisit seems to be right, maybe cuz of the DefaultVisit fix?  So no need for the nonsense below...
+                //if (this.TryGetInterproceduralAnalysisResult(originalOperation, out TaintedDataAnalysisResult subResult))
+                //{
+                //    // We performed interprocedural analysis on this invocation, so use its result, whatever it is.
+                //    return baseVisit;
+                //}
 
-                if (taintedArguments.Any())
-                {
-                    // Since we didn't perform interprocedural, assume that any tainted arguments entering 
-                    // the method taint the return value.
-                    IEnumerable<TaintedDataAbstractValue> allTaintedValues =
-                        taintedArguments.Select(a => this.GetCachedAbstractValue(a));
-                    if (returnValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                    {
-                        allTaintedValues = allTaintedValues.Concat(returnValue);
-                    }
+                //// No inteprocedural, so...
+                //TaintedDataAbstractValue returnValue = baseVisit;
+                //if (visitedInstance != null)
+                //{
+                //    // A method call on a tainted object returns tainted.
+                //    TaintedDataAbstractValue instanceAbstractValue = this.GetCachedAbstractValue(visitedInstance);
+                //    if (instanceAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                //    {
+                //        returnValue = instanceAbstractValue;
+                //    }
+                //}
 
-                    return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
-                }
-                else
-                {
-                    return returnValue;
-                }
+                //if (taintedArguments.Any())
+                //{
+                //    // Since we didn't perform interprocedural, assume that any tainted arguments entering 
+                //    // the method taint the return value.
+                //    IEnumerable<TaintedDataAbstractValue> allTaintedValues =
+                //        taintedArguments.Select(a => this.GetCachedAbstractValue(a));
+                //    if (returnValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                //    {
+                //        allTaintedValues = allTaintedValues.Concat(returnValue);
+                //    }
+
+                //    return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
+                //}
+                //else
+                //{
+                //    return returnValue;
+                //}
             }
 
             public override TaintedDataAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)

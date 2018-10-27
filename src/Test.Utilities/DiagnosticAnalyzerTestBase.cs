@@ -26,7 +26,8 @@ namespace Test.Utilities
             None = 0b000,
             RemoveCodeAnalysis = 0b001,
             RemoveImmutable = 0b010,
-            RemoveSystemData = 0b100
+            RemoveSystemData = 0b100,
+            AddTestReferenceAssembly = 0b1000,
         }
 
         private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
@@ -42,6 +43,7 @@ namespace Test.Utilities
         private static readonly MetadataReference s_systemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         private static readonly MetadataReference s_systemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
         private static readonly MetadataReference s_systemWebReference = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
+        private static readonly MetadataReference s_testReferenceAssembly = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         protected static readonly CompilationOptions s_CSharpUnsafeCodeDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true);
         protected static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -472,6 +474,11 @@ namespace Test.Utilities
             {
                 project = project.AddMetadataReference(s_systemDataReference)
                     .AddMetadataReference(s_systemXmlDataReference);
+            }
+
+            if ((referenceFlags & ReferenceFlags.AddTestReferenceAssembly) == ReferenceFlags.AddTestReferenceAssembly)
+            {
+                project = project.AddMetadataReference(s_testReferenceAssembly);
             }
 
             if (language == LanguageNames.VisualBasic)
