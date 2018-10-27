@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             {
                 case AsyncCompletionData.CompletionTriggerReason.Invoke:
                 case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
+                case AsyncCompletionData.CompletionTriggerReason.FilterChange:
                     roslynTrigger = RoslynTrigger.Invoke;
                     return true;
                 case AsyncCompletionData.CompletionTriggerReason.Insertion:
