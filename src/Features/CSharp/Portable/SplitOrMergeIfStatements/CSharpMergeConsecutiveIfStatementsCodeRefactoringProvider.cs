@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             if (node is IfStatementSyntax ifStatement)
             {
                 // Cases:
-                // 1. Position is at a direct token child of an if statement with no selection (e.g. 'if' keyword, a parenthesis)
+                // 1. Position is at a child token of an if statement with no selection (e.g. 'if' keyword, a parenthesis)
                 // 2. Selection around the 'if' keyword
                 // 3. Selection around the header - from 'if' keyword to the end of the condition
                 // 4. Selection around the whole if statement *excluding* its else clause - from 'if' keyword to the end of its statement
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
 
             if (node is ElseClauseSyntax elseClause && elseClause.Statement is IfStatementSyntax elseIfStatement)
             {
-                // 5. Position is at a direct token child of an else clause with no selection ('else' keyword)
+                // 5. Position is at a child token of an else clause with no selection ('else' keyword)
                 // 6. Selection around the header including the 'else' keyword - from 'else' keyword to the end of the condition
                 // 7. Selection from the 'else' keyword to the end of the if statement's statement
                 if (span.Length == 0 ||

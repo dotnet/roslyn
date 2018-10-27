@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             If TypeOf node Is IfStatementSyntax And TypeOf node.Parent Is MultiLineIfBlockSyntax Then
                 Dim ifStatement = DirectCast(node, IfStatementSyntax)
                 ' Cases:
-                ' 1. Position is at a direct token child of an if statement with no selection (e.g. 'If' keyword, 'Then' keyword)
+                ' 1. Position is at a child token of an if statement with no selection (e.g. 'If' keyword, 'Then' keyword)
                 ' 2. Selection around the 'If' keyword
                 ' 3. Selection around the if statement - from 'If' keyword to 'Then' keyword
                 If span.Length = 0 OrElse
