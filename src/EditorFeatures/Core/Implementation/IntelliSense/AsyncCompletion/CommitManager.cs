@@ -24,18 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 {
     internal sealed class CommitManager : ForegroundThreadAffinitizedObject, IAsyncCompletionCommitManager
     {
-        private static readonly IEnumerable<char> s_commitChars = ImmutableArray.Create(
-            ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
-            ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
-            '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
-
         private static readonly AsyncCompletionData.CommitResult CommitResultUnhandled =
             new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.None);
 
-        public IEnumerable<char> PotentialCommitCharacters => s_commitChars;
+        public IEnumerable<char> PotentialCommitCharacters { get; }
 
-        internal CommitManager(IThreadingContext threadingContext) : base(threadingContext)
+        internal CommitManager(ImmutableArray<char> potentialCommitCharacters, IThreadingContext threadingContext) : base(threadingContext)
         {
+            PotentialCommitCharacters = potentialCommitCharacters;
         }
 
         /// <summary>
@@ -50,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
-            return s_commitChars.Contains(typedChar);
+            return PotentialCommitCharacters.Contains(typedChar);
         }
 
         public AsyncCompletionData.CommitResult TryCommit(

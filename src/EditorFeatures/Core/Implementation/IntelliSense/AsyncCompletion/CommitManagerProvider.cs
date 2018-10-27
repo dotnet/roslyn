@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,18 +16,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class CommitManagerProvider : IAsyncCompletionCommitManagerProvider
     {
-        private readonly IAsyncCompletionCommitManager _instance;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommitManagerProvider(IThreadingContext threadingContext)
         {
-            _instance = new CommitManager(threadingContext);
+            _threadingContext = threadingContext;
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
-            return _instance;
+            if (!textView.TextBuffer.Properties.TryGetProperty<ImmutableArray<char>>(CompletionSource.PotentialCommitCharacters, out var potentialCommitCharacters))
+            {
+                // If we were not initialized with CompletionService or are called for a wrong textView, we should not make a commit.
+                potentialCommitCharacters = ImmutableArray<char>.Empty;
+            }
+
+            return new CommitManager(potentialCommitCharacters, _threadingContext);
         }
     }
 }

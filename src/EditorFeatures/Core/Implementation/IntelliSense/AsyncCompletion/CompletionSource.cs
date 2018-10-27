@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
         internal const string InitialTrigger = nameof(InitialTrigger);
+        internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
@@ -58,11 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
+            triggerLocation.Snapshot.TextBuffer.Properties.RemoveProperty(PotentialCommitCharacters);
+            triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.PotentialCommitCharacters);
+
             if (!Helpers.TryGetRoslynTrigger(trigger, triggerLocation, out var roslynTrigger))
             {
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
-
+            
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
             if (trigger.Reason != AsyncCompletionData.CompletionTriggerReason.Invoke &&
