@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters;
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, nonNullTypesContext: OriginalDefinition, out typeParameters);
+            var newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, out typeParameters);
 
             var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)

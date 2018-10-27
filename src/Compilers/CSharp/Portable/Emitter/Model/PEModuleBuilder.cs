@@ -953,17 +953,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
+            if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_injectedNonNullTypesAttribute))
+            {
+                EnsureNonNullTypesAttributeExists();
+            }
+
             // NoPia: See if this is a type, which definition we should copy into our assembly.
             Debug.Assert(namedTypeSymbol.IsDefinition);
 
             if (_embeddedTypesManagerOpt != null)
             {
                 return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics);
-            }
-
-            if (!InjectedSymbolsAreFrozen && namedTypeSymbol.Equals(_injectedNonNullTypesAttribute))
-            {
-                EnsureNonNullTypesAttributeExists();
             }
 
             return namedTypeSymbol;
