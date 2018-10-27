@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             throw new Exception("Insufficient resources to process new connection.");
         }
 
-        // HACK
+        // HACK to identify whether we are running on mono, see https://github.com/dotnet/roslyn/pull/30810
         private static bool IsRunningOnMono {
             get {
                 try
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 security.SetOwner(identifier);
             } else {
                 // HACK: Pipe security and additional access rights are not supported by Mono 
+                // https://github.com/dotnet/roslyn/pull/30810
                 security = null;
             }
 
