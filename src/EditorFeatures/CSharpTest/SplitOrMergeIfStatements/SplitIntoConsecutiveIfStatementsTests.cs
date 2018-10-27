@@ -169,6 +169,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task NotSplitOnIfKeyword()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        [||]if (a || b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotSplitOnAndOperator()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -406,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task SplitWithMixedAndOrExpressions1()
+        public async Task SplitWithMixedAndExpression1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -433,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task SplitWithMixedAndOrExpressions2()
+        public async Task SplitWithMixedAndExpression2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -450,6 +465,90 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     void M(bool a, bool b, bool c)
     {
         if (a && b)
+        {
+        }
+        else if (c)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotSplitWithMixedConditionalExpression1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a [||]|| b ? c : c)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotSplitWithMixedConditionalExpression2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a ? b : b [||]|| c)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SplitWithMixedConditionalExpressionInsideParentheses1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a [||]|| (b ? c : c))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a)
+        {
+        }
+        else if ((b ? c : c))
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SplitWithMixedConditionalExpressionInsideParentheses2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if ((a ? b : b) [||]|| c)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if ((a ? b : b))
         {
         }
         else if (c)

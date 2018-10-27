@@ -123,6 +123,17 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotSplitOnIfKeyword() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        [||]if a andalso b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function NotSplitOnOrElseOperator() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
@@ -305,7 +316,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotSplitWithMixedAndAlsoOrElseExpressions1() As Task
+        Public Async Function NotSplitWithMixedOrElseExpression1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
@@ -316,7 +327,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotSplitWithMixedAndAlsoOrElseExpressions2() As Task
+        Public Async Function NotSplitWithMixedOrElseExpression2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
@@ -327,7 +338,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithOrElseExpressionInsideParentheses1() As Task
+        Public Async Function SplitWithMixedOrElseExpressionInsideParentheses1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
@@ -346,7 +357,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithOrElseExpressionInsideParentheses2() As Task
+        Public Async Function SplitWithMixedOrElseExpressionInsideParentheses2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
@@ -357,6 +368,44 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean)
         if (a orelse b) then
+            if c then
+            end if
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function SplitWithMixedEqualsExpression1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean)
+        if a [||]andalso b = c then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean, c as boolean)
+        if a then
+            if b = c then
+            end if
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function SplitWithMixedEqualsExpression2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean)
+        if a = b [||]andalso c then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean, c as boolean)
+        if a = b then
             if c then
             end if
         end if

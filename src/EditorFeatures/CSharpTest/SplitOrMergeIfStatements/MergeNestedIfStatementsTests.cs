@@ -259,6 +259,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task MergedOnNestedIfFullSelectionWithElseClause()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            [|if (b)
+            {
+            }
+            else
+            {
+            }|]
+        }
+        else
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a && b)
+        {
+        }
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NotMergedOnNestedIfFullSelectionWithoutElseClause()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a)
+        {
+            [|if (b)
+            {
+            }|]
+            else
+            {
+            }
+        }
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotMergedOnNestedIfParenthesisSelection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -581,6 +641,61 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     void M(bool a, bool b, bool c, bool d)
     {
         if (a && b && (c || d))
+        {
+        }
+    }
+}");
+        }
+
+
+        [Fact]
+        public async Task MergedWithBitwiseOrExpressionNotParenthesized1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c, bool d)
+    {
+        if (a | b)
+        {
+            [||]if (c && d)
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b, bool c, bool d)
+    {
+        if (a | b && c && d)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedWithBitwiseOrExpressionNotParenthesized2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c, bool d)
+    {
+        if (a && b)
+        {
+            [||]if (c | d)
+            {
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b, bool c, bool d)
+    {
+        if (a && b && c | d)
         {
         }
     }
@@ -2240,6 +2355,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
                 continue;
             else
                 break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        while (a != b)
+        {
+            System.Console.WriteLine();
+
+            if (a)
+            {
+                [||]if (b)
+                    System.Console.WriteLine(a && b);
+                else
+                    System.Console.WriteLine(a);
+
+                switch (a)
+                {
+                    default:
+                        continue;
+                }
+            }
+            else
+                System.Console.WriteLine(a);
+
+            switch (a)
+            {
+                default:
+                    continue;
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        while (a != b)
+        {
+            System.Console.WriteLine();
+
+            if (a && b)
+                System.Console.WriteLine(a && b);
+            else
+                System.Console.WriteLine(a);
+
+            switch (a)
+            {
+                default:
+                    continue;
+            }
         }
     }
 }");

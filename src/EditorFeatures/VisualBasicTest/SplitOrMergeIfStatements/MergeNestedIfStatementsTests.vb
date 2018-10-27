@@ -185,6 +185,46 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function MergedOnNestedIfFullSelectionWithElseClause() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            [|if b then
+                System.Console.WriteLine()
+            else
+            end if|]
+        else
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a AndAlso b then
+            System.Console.WriteLine()
+        else
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnNestedIfFullSelectionWithoutElseClause() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            [|if b then
+                System.Console.WriteLine()|]
+            else
+            end if
+        else
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function NotMergedOnNestedIfThenKeywordSelection() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
@@ -390,6 +430,44 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b AndAlso (c orelse d) then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithEqualsExpressionNotParenthesized1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a = b then
+            [||]if c andalso d then
+            end if
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a = b AndAlso c andalso d then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedWithEqualsExpressionNotParenthesized2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a andalso b then
+            [||]if c = d then
+            end if
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a andalso b AndAlso c = d then
         end if
     end sub
 end class")

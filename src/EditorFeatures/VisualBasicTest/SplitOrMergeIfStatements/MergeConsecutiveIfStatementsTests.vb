@@ -158,23 +158,78 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedOnElseIfFullSelection() As Task
+        Public Async Function MergedOnElseIfFullSelectionWithoutElseClause1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a then
-            return
-[|        elseif b then
-            return
-|]        end if
+            System.Console.WriteLine()
+        [|elseif b then
+            System.Console.WriteLine()|]
+        else
+        end if
     end sub
 end class",
 "class C
     sub M(a as boolean, b as boolean)
         if a OrElse b then
-            return
+            System.Console.WriteLine()
+        else
         end if
     end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedOnElseIfFullSelectionWithoutElseClause2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine()
+[|        elseif b then
+            System.Console.WriteLine()
+|]        else
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            System.Console.WriteLine()
+        else
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnElseIfFullSelectionWithElseClause1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine()
+        [|elseif b then
+            System.Console.WriteLine()
+        else
+        end if|]
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedOnElseIfFullSelectionWithElseClause2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            System.Console.WriteLine()
+[|        elseif b then
+            System.Console.WriteLine()
+        else
+        end if
+|]    end sub
 end class")
         End Function
 
@@ -402,7 +457,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithParentWithStatements() As Task
+        Public Async Function MergedIntoParentWithStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -426,7 +481,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithParentWithUnmatchingStatements1() As Task
+        Public Async Function NotMergedIntoParentWithUnmatchingStatements1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -442,7 +497,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithParentWithUnmatchingStatements2() As Task
+        Public Async Function NotMergedIntoParentWithUnmatchingStatements2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -457,7 +512,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithParentWithUnmatchingStatements3() As Task
+        Public Async Function NotMergedIntoParentWithUnmatchingStatements3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -472,7 +527,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithParentWithUnmatchingStatements4() As Task
+        Public Async Function NotMergedIntoParentWithUnmatchingStatements4() As Task
             ' Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
             Await TestMissingInRegularAndScriptAsync(
 "class C
@@ -489,7 +544,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithParentWithElseStatements() As Task
+        Public Async Function MergedIntoParentWithElseStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -516,7 +571,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithParentWithElseNestedIfStatements() As Task
+        Public Async Function MergedIntoParentWithElseNestedIfStatements() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -543,7 +598,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithParentWithElseIfElse() As Task
+        Public Async Function MergedIntoParentWithElseIfElse() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -572,7 +627,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithParentPartOfElseIf() As Task
+        Public Async Function MergedIntoParentPartOfElseIf() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -601,7 +656,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIfControlFlowQuits1() As Task
+        Public Async Function MergedIntoPreviousStatementIfControlFlowQuits1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -624,7 +679,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIfControlFlowQuits2() As Task
+        Public Async Function MergedIntoPreviousStatementIfControlFlowQuits2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -647,7 +702,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIfControlFlowQuits3() As Task
+        Public Async Function MergedIntoPreviousStatementIfControlFlowQuits3() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -674,7 +729,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIfControlFlowQuits4() As Task
+        Public Async Function MergedIntoPreviousStatementIfControlFlowQuits4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -713,7 +768,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIfControlFlowQuitsInCaseBlock() As Task
+        Public Async Function MergedIntoPreviousStatementIfControlFlowQuitsInCaseBlock() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -746,7 +801,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIncludingElseClauseIfControlFlowQuits() As Task
+        Public Async Function MergedIntoPreviousStatementIncludingElseClauseIfControlFlowQuits() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -773,7 +828,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function MergedWithPreviousStatementIncludingElseIfClauseIfControlFlowQuits() As Task
+        Public Async Function MergedIntoPreviousStatementIncludingElseIfClauseIfControlFlowQuits() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -800,7 +855,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues1() As Task
+        Public Async Function NotMergedIntoPreviousStatementIfControlFlowContinues1() As Task
             ' Even though there are no statements inside, we still can't merge these into one statement
             ' because it would change the semantics from always evaluating the second condition to short-circuiting.
             Await TestMissingInRegularAndScriptAsync(
@@ -816,7 +871,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues2() As Task
+        Public Async Function NotMergedIntoPreviousStatementIfControlFlowContinues2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -832,7 +887,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues3() As Task
+        Public Async Function NotMergedIntoPreviousStatementIfControlFlowContinues3() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -852,7 +907,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues4() As Task
+        Public Async Function NotMergedIntoPreviousStatementIfControlFlowContinues4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -872,7 +927,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementIfControlFlowContinues5() As Task
+        Public Async Function NotMergedIntoPreviousStatementIfControlFlowContinues5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -894,7 +949,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementWithUnmatchingStatementsIfControlFlowQuits() As Task
+        Public Async Function NotMergedIntoPreviousStatementWithUnmatchingStatementsIfControlFlowQuits() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -910,7 +965,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits1() As Task
+        Public Async Function NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -928,7 +983,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementThatHasElseIfClauseIfControlFlowQuits1() As Task
+        Public Async Function NotMergedIntoPreviousStatementThatHasElseIfClauseIfControlFlowQuits1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -946,7 +1001,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits2() As Task
+        Public Async Function NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -966,7 +1021,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementThatHasElseIfClauseIfControlFlowQuits2() As Task
+        Public Async Function NotMergedIntoPreviousStatementThatHasElseIfClauseIfControlFlowQuits2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -986,7 +1041,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementAsPartOfElseIfIfControlFlowQuits() As Task
+        Public Async Function NotMergedIntoPreviousStatementAsPartOfElseIfIfControlFlowQuits() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -1003,7 +1058,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedSingleLineIfWithPreviousStatementIfControlFlowQuits() As Task
+        Public Async Function NotMergedSingleLineIfIntoPreviousStatementIfControlFlowQuits() As Task
             Await TestMissingAsync(
 "class C
     sub M(a as boolean, b as boolean)
@@ -1017,7 +1072,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function NotMergedWithPreviousStatementSingleLineIfIfControlFlowQuits() As Task
+        Public Async Function NotMergedIntoPreviousStatementSingleLineIfIfControlFlowQuits() As Task
             Await TestMissingAsync(
 "class C
     sub M(a as boolean, b as boolean)

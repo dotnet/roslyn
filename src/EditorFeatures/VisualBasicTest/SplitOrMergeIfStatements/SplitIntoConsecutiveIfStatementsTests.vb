@@ -119,6 +119,17 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function NotSplitOnIfKeyword() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        [||]if a orelse b then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function NotSplitOnAndAlsoOperator() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
@@ -296,7 +307,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithMixedAndAlsoOrElseExpressions1() As Task
+        Public Async Function SplitWithMixedAndAlsoExpression1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
@@ -314,7 +325,7 @@ end class")
         End Function
 
         <Fact>
-        Public Async Function SplitWithMixedAndAlsoOrElseExpressions2() As Task
+        Public Async Function SplitWithMixedAndAlsoExpression2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
@@ -325,6 +336,64 @@ end class",
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b then
+        ElseIf c then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotSplitWithMixedExclusiveOrExpression1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a [||]orelse b xor c then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotSplitWithMixedExclusiveOrExpression2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a xor b [||]orelse c then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function SplitWithMixedExclusiveOrExpressionInsideParentheses1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a [||]orelse (b xor c) then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if a then
+        ElseIf (b xor c) then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function SplitWithMixedExclusiveOrExpressionInsideParentheses2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if (a xor b) [||]orelse c then
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean, c as boolean, d as boolean)
+        if (a xor b) then
         ElseIf c then
         end if
     end sub

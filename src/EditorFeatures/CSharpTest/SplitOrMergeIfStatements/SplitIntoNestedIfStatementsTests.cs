@@ -169,6 +169,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task NotSplitOnIfKeyword()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        [||]if (a && b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
         public async Task NotSplitOnOrOperator()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -406,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotSplitWithMixedAndOrExpressions1()
+        public async Task NotSplitWithMixedOrExpression1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -421,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotSplitWithMixedAndOrExpressions2()
+        public async Task NotSplitWithMixedOrExpression2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -436,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task SplitWithOrExpressionInsideParentheses1()
+        public async Task SplitWithMixedOrExpressionInsideParentheses1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -463,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task SplitWithOrExpressionInsideParentheses2()
+        public async Task SplitWithMixedOrExpressionInsideParentheses2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -480,6 +495,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     void M(bool a, bool b, bool c)
     {
         if ((a || b))
+        {
+            if (c)
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SplitWithMixedBitwiseOrExpression1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a [||]&& b | c)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a)
+        {
+            if (b | c)
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task SplitWithMixedBitwiseOrExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a | b [||]&& c)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b, bool c)
+    {
+        if (a | b)
         {
             if (c)
             {

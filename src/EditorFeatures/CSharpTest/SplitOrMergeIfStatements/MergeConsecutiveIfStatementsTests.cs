@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedOnElseIfFullSelection1()
+        public async Task MergedOnElseIfFullSelectionWithoutElseClause1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedOnElseIfFullSelection2()
+        public async Task MergedOnElseIfFullSelectionWithoutElseClause2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithStatementInsideBlock()
+        public async Task MergedIntoParentWithStatementInsideBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithStatementWithoutBlock()
+        public async Task MergedIntoParentWithStatementWithoutBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithDifferenceInBlocks1()
+        public async Task MergedIntoParentWithDifferenceInBlocks1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithDifferenceInBlocks2()
+        public async Task MergedIntoParentWithDifferenceInBlocks2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithDifferenceInBlocks3()
+        public async Task MergedIntoParentWithDifferenceInBlocks3()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithParentWithUnmatchingStatements1()
+        public async Task NotMergedIntoParentWithUnmatchingStatements1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithParentWithUnmatchingStatements2()
+        public async Task NotMergedIntoParentWithUnmatchingStatements2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithParentWithUnmatchingStatements3()
+        public async Task NotMergedIntoParentWithUnmatchingStatements3()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithParentWithUnmatchingStatements4()
+        public async Task NotMergedIntoParentWithUnmatchingStatements4()
         {
             // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
             await TestMissingInRegularAndScriptAsync(
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithElseStatementInsideBlock()
+        public async Task MergedIntoParentWithElseStatementInsideBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithElseStatementWithoutBlock()
+        public async Task MergedIntoParentWithElseStatementWithoutBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithElseNestedIfStatement()
+        public async Task MergedIntoParentWithElseNestedIfStatement()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentWithElseIfElse()
+        public async Task MergedIntoParentWithElseIfElse()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithParentPartOfElseIf()
+        public async Task MergedIntoParentPartOfElseIf()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuits1()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuits1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuits2()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuits2()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuits3()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuits3()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1265,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuits4()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuits4()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuits5()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuits5()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuitsInSwitchSection()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuitsInSwitchSection()
         {
             // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
             await TestInRegularAndScriptAsync(
@@ -1389,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIfControlFlowQuitsWithDifferenceInBlocks()
+        public async Task MergedIntoPreviousStatementIfControlFlowQuitsWithDifferenceInBlocks()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIncludingElseClauseIfControlFlowQuits()
+        public async Task MergedIntoPreviousStatementIncludingElseClauseIfControlFlowQuits()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1450,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedWithPreviousStatementIncludingElseIfClauseIfControlFlowQuits()
+        public async Task MergedIntoPreviousStatementIncludingElseIfClauseIfControlFlowQuits()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1478,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementIfControlFlowContinues1()
+        public async Task NotMergedIntoPreviousStatementIfControlFlowContinues1()
         {
             // Even though there are no statements inside, we still can't merge these into one statement
             // because it would change the semantics from always evaluating the second condition to short-circuiting.
@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementIfControlFlowContinues2()
+        public async Task NotMergedIntoPreviousStatementIfControlFlowContinues2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementIfControlFlowContinues3()
+        public async Task NotMergedIntoPreviousStatementIfControlFlowContinues3()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementIfControlFlowContinues4()
+        public async Task NotMergedIntoPreviousStatementIfControlFlowContinues4()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1561,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementIfControlFlowContinues5()
+        public async Task NotMergedIntoPreviousStatementIfControlFlowContinues5()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementWithUnmatchingStatementsIfControlFlowQuits()
+        public async Task NotMergedIntoPreviousStatementWithUnmatchingStatementsIfControlFlowQuits()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1605,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits1()
+        public async Task NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1624,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementThatHasElseClauseIfControlFlowQuits2()
+        public async Task NotMergedIntoPreviousStatementThatHasElseClauseIfControlFlowQuits2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1645,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementAsEmbeddedStatementIfControlFlowQuits1()
+        public async Task NotMergedIntoPreviousStatementAsEmbeddedStatementIfControlFlowQuits1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1663,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedWithPreviousStatementAsEmbeddedStatementIfControlFlowQuits2()
+        public async Task NotMergedIntoPreviousStatementAsEmbeddedStatementIfControlFlowQuits2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
