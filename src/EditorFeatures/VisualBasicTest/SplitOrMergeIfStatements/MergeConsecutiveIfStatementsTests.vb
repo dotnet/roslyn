@@ -1084,5 +1084,370 @@ end class")
     end sub
 end class")
         End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfCaret1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [||]if b then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfCaret2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        i[||]f b then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfCaret3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if[||] b then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfCaret4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if b [||]then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfCaret5() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if b then[||]
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfIfKeywordSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if|] b then
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfStatementSelection1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if b then|]
+            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfStatementSelection2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+[|        if b then
+|]            return
+        end if
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfFullSelection1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if b then
+            return
+        end if|]
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfFullSelection2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+[|        if b then
+            return
+        end if
+|]    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function MergedIntoPreviousStatementOnIfFullSelectionWithElseClause() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if b then
+            return
+        else if a then
+        end if|]
+    end sub
+end class",
+"class C
+    sub M(a as boolean, b as boolean)
+        if a OrElse b then
+            return
+        else if a then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfFullSelectionWithoutElseClause() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if b then
+            return|]
+        else if a then
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfThenKeywordSelection() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if b [|then|]
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfIfKeywordPartialSelection() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|i|]f b then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfOverreachingSelection1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if b|] then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfOverreachingSelection2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        [|if b then
+        |]    return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfConditionSelection() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if [|b|] then
+            return
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfBodyStatementSelection() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if b then
+            [|return|]
+        end if
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function NotMergedIntoPreviousStatementOnIfConditionCaret() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class C
+    sub M(a as boolean, b as boolean)
+        if a then
+            return
+        end if
+        if [||]b then
+            return
+        end if
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
