@@ -6,7 +6,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -51,7 +51,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -71,7 +71,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -89,7 +89,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -142,7 +142,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -182,7 +182,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -222,7 +222,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -247,7 +247,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -272,7 +272,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -297,7 +297,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -322,7 +322,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -347,7 +347,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -372,7 +372,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -397,7 +397,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
@@ -422,7 +422,7 @@
         {
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
-            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
           ]
         },
         {
