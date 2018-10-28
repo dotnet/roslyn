@@ -235,6 +235,72 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckValue(result, valueKind, diagnostics);
         }
 
+        /// <summary>
+        /// Attempts to compute the type of the field for an auto property
+        /// with an initializer.
+        /// </summary>
+        /// <remarks>
+        /// Attempts to change the type of the backing field to be a more
+        /// specific type than the property. The JIT can use this
+        /// type information when inlining to potentially devirtualize calls.
+        /// </remarks>
+        internal static TypeSymbolWithAnnotations BindBackingFieldTypeOfAutoPropWithInitializer(
+            Binder binder,
+            PropertySymbol propertySymbol,
+            TypeSymbolWithAnnotations propertyType,
+            EqualsValueClauseSyntax initializerOpt,
+            DiagnosticBag diagnostics)
+        {
+            binder = new ExecutableCodeBinder(initializerOpt, propertySymbol, new LocalScopeBinder(binder));
+            return binder.BindAutoPropBackingFieldType(propertyType, initializerOpt, diagnostics);
+        }
+
+        internal TypeSymbolWithAnnotations BindAutoPropBackingFieldType(
+            TypeSymbolWithAnnotations propertyType,
+            EqualsValueClauseSyntax initializerOpt,
+            DiagnosticBag diagnostics)
+        {
+            if (!propertyType.IsReferenceType || propertyType.IsDynamic())
+            {
+                //If the property is a reference type, no casting is possible,
+                //so don't change the field type.
+                return propertyType;
+            }
+
+            Binder initializerBinder = this.GetBinder(initializerOpt);
+            Debug.Assert(initializerBinder != null);
+
+            BindValueKind valueKind;
+            ExpressionSyntax value;
+            IsInitializerRefKindValid(initializerOpt, initializerOpt, RefKind.None, diagnostics, out valueKind, out value);
+            BoundExpression initializer = BindPossibleArrayInitializer(value, propertyType.TypeSymbol, valueKind, diagnostics);
+
+            if (initializer.IsLiteralNull())
+            {
+                //Conversion from literal null to reference types is an implicit reference conversion.
+                return propertyType;
+            }
+
+            if (!initializer.Type.IsReferenceType || propertyType.IsDynamic())
+            {
+                //If it is not a reference type, it can't be an implicit reference conversion.
+                return propertyType;
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var conversion = this.Conversions.ClassifyConversionFromExpression(initializer, propertyType.TypeSymbol, ref useSiteDiagnostics);
+            diagnostics.Add(initializer.Syntax, useSiteDiagnostics);
+
+            if (conversion.Kind != ConversionKind.NoConversion && conversion.Kind != ConversionKind.ImplicitReference)
+            {
+                //If the conversion is anything other than an implicit reference conversion,
+                //such as boxing, don't change the field type.
+                return propertyType;
+            }
+
+            return TypeSymbolWithAnnotations.Create(initializer.Type);
+        }
+
         internal BoundFieldEqualsValue BindFieldInitializer(
             FieldSymbol field,
             EqualsValueClauseSyntax initializerOpt,

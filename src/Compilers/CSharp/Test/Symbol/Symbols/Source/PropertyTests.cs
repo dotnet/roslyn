@@ -193,6 +193,165 @@ struct S
         }
 
         [Fact]
+        public void AutoWithInitializerWithTypeConversion()
+        {
+            string text;
+
+            //no conversion
+            text = @"class C
+{
+    Int32 P { get; } = 2;
+}";
+            BackingFieldChecker(text, "Int32");
+
+            //no conversion
+            text = @"
+class A { }
+class C
+{
+    A P { get; } = new A();
+}";
+            BackingFieldChecker(text, "A");
+
+            //boxing conversion
+            text = @"
+class C
+{
+    Object P { get; } = 2;
+}";
+            BackingFieldChecker(text, "Object");
+
+            //---- Implicit reference conversions ----
+
+            //"From any reference_type to object and dynamic."
+            text = @"
+class A { }
+class C
+{
+    dynamic P { get; } = new A();
+}";
+            BackingFieldChecker(text, "dynamic");
+
+            //"From any class_type S to any class_type T, provided S is derived from T."
+            text = @"
+class A { }
+class B : A { }
+class C
+{
+    A P { get; } = new B();
+}";
+            BackingFieldChecker(text, "A", "B");
+
+            //"From any class_type S to any interface_type T, provided S implements T."
+            text = @"
+interface A { }
+class B : A { }
+class C
+{
+    A P { get; } = new B();
+}";
+            BackingFieldChecker(text, "A", "B");
+
+            //"From an array_type S with an element type SE to an array_type T with an element type TE, provided ..."
+            text = @"
+class A { }
+class B : A { }
+class C
+{
+    A[] P { get; } = new B[0];
+}";
+            BackingFieldChecker(text, "A[]", "B[]");
+
+            //"From any array_type to System.Array and the interfaces it implements."
+            text = @"
+class A { }
+class C
+{
+    Array P { get; } = new A[0];
+}";
+            BackingFieldChecker(text, "Array", "A[]");
+
+            //"From a single-dimensional array type S[] to System.Collections.Generic.IList<T> and its base interfaces..."
+            text = @"
+class A { }
+class C
+{
+    IList<A> P { get; } = new A[0];
+}";
+            BackingFieldChecker(text, "IList<A>", "A[]");
+
+            //"From a single-dimensional array type S[] to System.Collections.Generic.IList<T> and its base interfaces..."
+            text = @"
+delegate A();
+class C
+{
+    Delegate P { get; } = new A(() => {});
+}";
+            BackingFieldChecker(text, "Delegate", "A");
+
+            //"From the null literal to any reference_type."
+            text = @"
+class A { }
+class C
+{
+    A P { get; } = null;
+}";
+            BackingFieldChecker(text, "A");
+
+            //Variance conversion
+            text = @"
+class A { }
+class B : A { }
+interface I<out T> { }
+class C
+{
+    I<A> P { get; } = CreateB();
+    static I<B> CreateB() => null;
+}";
+            BackingFieldChecker(text, "I<A>", "I<B>");
+
+            //"Implicit conversions involving type parameters that are known to be reference types."
+            text = @"
+interface I { }
+class C<T> where T : class, I, new()
+{
+    I P { get; } = new T();
+}";
+            BackingFieldChecker(text, "I", "T");
+
+
+            void BackingFieldChecker(string source, string expectedPropertyType, string expectedFieldType = null)
+            {
+                Assert.NotNull(source);
+                Assert.NotNull(expectedPropertyType);
+
+                //If no field type, assume it is the same as the property type.
+                if (expectedFieldType == null)
+                    expectedFieldType = expectedPropertyType;
+
+                var comp = CreateCompilation(source);
+                var global = comp.GlobalNamespace;
+                var c = global.GetTypeMember("C");
+
+                var p = c.GetMember<PropertySymbol>("P");
+                Assert.Equal(expectedPropertyType, p.Type.ToString());
+
+                //find the field without depending on the exact name
+                FieldSymbol fieldSym = null;
+                foreach (var mem in c.GetMembers())
+                {
+                    if (mem.Kind == SymbolKind.Field)
+                    {
+                        fieldSym = mem as FieldSymbol;
+                        break;
+                    }
+                }
+                Assert.NotNull(fieldSym);
+                Assert.Equal(expectedFieldType, fieldSym.Type.ToString());
+            }
+        }
+
+        [Fact]
         public void AutoWithInitializerInStruct1()
         {
             var text = @"

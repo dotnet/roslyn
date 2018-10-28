@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         internal bool HasInitializer { get; }
         protected override DeclarationModifiers Modifiers { get; }
+        private TypeSymbolWithAnnotations.Builder _lazyType;
 
         public SynthesizedBackingFieldSymbol(
             SourcePropertySymbol property,
@@ -54,7 +55,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _property.Locations;
 
         internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-            => _property.Type;
+        {
+            if (!_lazyType.IsNull)
+                return _lazyType.ToType();
+
+
+            var propType = _property.Type;
+            if (!HasInitializer || !IsReadOnly)
+            {
+                _lazyType.InterlockedInitialize(propType);
+            }
+            else
+            {
+                //Attempt to make the type of the backing field the same as the expression.
+                //A more specific field type can enable the CLR to devirtualize method calls
+                //while inlining the accessor method.
+
+                var diagnostics = DiagnosticBag.GetInstance();
+                var syntax = (PropertyDeclarationSyntax)_property.SyntaxReference.GetSyntax();
+                var binderFactory = this.DeclaringCompilation.GetBinderFactory(_property.SyntaxTree);
+                var binder = binderFactory.GetBinder(syntax.Initializer);
+                var result = Binder.BindBackingFieldTypeOfAutoPropWithInitializer(binder, _property, propType, syntax.Initializer, diagnostics);
+                if (result.IsNull)
+                {
+                    result = propType;
+                }
+                if (_lazyType.InterlockedInitialize(result))
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
+            }
+
+            return _lazyType.ToType();
+        }
 
         internal override bool HasPointerType
             => _property.HasPointerType;
