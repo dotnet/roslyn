@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 (tp, i, arg) => (TypeParameterSymbol)new EETypeParameterSymbol(this, tp, i, getTypeMap),
                 (object)null);
 
-            typeMap = new TypeMap(nonNullTypesContext: NonNullTypesFalseContext.Instance, this.SourceTypeParameters, _typeParameters);
+            typeMap = new TypeMap(this.SourceTypeParameters, _typeParameters);
 
             VerifyTypeParameters(this, _typeParameters);
 

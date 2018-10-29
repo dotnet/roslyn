@@ -1069,7 +1069,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
-                return (int)type.SpecialType == typeId;
+                if ((int)type.OriginalDefinition.SpecialType == typeId)
+                {
+                    if (type.IsDefinition)
+                    {
+                        return true;
+                    }
+
+                    return type == type.OriginalDefinition;
+                }
+
+                return false;
             }
         }
 
