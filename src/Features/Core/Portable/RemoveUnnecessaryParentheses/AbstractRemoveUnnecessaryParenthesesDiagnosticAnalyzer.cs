@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var option = GetLanguageOption(precedence);
             var preference = optionSet.GetOption(option, parenthesizedExpression.Language);
 
-            if (preference.Value == ParenthesesPreference.Ignore)
+            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // User doesn't care about these parens.  So nothing for us to do.
                 return;
@@ -105,13 +105,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             Debug.Assert(preference.Value == ParenthesesPreference.NeverIfUnnecessary ||
                          !clarifiesPrecedence);
 
-            var severity = preference.Notification.Value;
+            var severity = preference.Notification.Severity;
 
             var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
 
-            context.ReportDiagnostic(Diagnostic.Create(
-                CreateUnnecessaryDescriptor(severity),
-                parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                UnnecessaryWithSuggestionDescriptor,
+                parenthesizedExpression.GetFirstToken().GetLocation(),
+                severity,
+                additionalLocations,
+                properties: null));
 
             context.ReportDiagnostic(Diagnostic.Create(
                 UnnecessaryWithoutSuggestionDescriptor,

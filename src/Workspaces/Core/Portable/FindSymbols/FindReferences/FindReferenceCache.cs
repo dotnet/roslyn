@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static void Start(SemanticModel model)
         {
-            Contract.Requires(model != null);
+            Debug.Assert(model != null);
 
             using (s_gate.DisposableWrite())
             {

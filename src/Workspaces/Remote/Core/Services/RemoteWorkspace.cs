@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -26,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Remote
             var exportProvider = (IMefHostExportProvider)Services.HostServices;
             var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
             primaryWorkspace.Register(this);
+
+            foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())
+            {
+                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Value.Create(this));
+            }
 
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 

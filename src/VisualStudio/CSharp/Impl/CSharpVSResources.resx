@@ -538,7 +538,7 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Generate Event Subscription" xml:space="preserve">
+  <data name="Generate_Event_Subscription" xml:space="preserve">
     <value>Generate Event Subscription</value>
   </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
@@ -550,49 +550,19 @@
   <data name="Format_document_settings" xml:space="preserve">
     <value>Format Document Settings (Experiment) </value>
   </data>
-  <data name="All_csharp_formatting_rules" xml:space="preserve">
-    <value>All C# Formatting Rules (indentation, wrapping and spacing)</value>
-  </data>
-  <data name="Fix_accessibility_modifiers" xml:space="preserve">
-    <value>Fix accessibility modifiers</value>
-  </data>
-  <data name="Fix_add_remove_braces" xml:space="preserve">
-    <value>Fix add/remove braces</value>
-  </data>
-  <data name="Fix_framework_types" xml:space="preserve">
-    <value>Fix framework types (int vs Int32)</value>
-  </data>
-  <data name="Fix_implicit_explicit_type" xml:space="preserve">
-    <value>Fix implicit/explicit type</value>
-  </data>
-  <data name="Fix_this_qualification" xml:space="preserve">
-    <value>Fix this. qualification</value>
-  </data>
-  <data name="Sort_accessibility_modifiers" xml:space="preserve">
-    <value>Sort accessibility modifiers</value>
-  </data>
-  <data name="Fix_expression_bodied_members" xml:space="preserve">
-    <value>Fix expression-bodied members</value>
-  </data>
-  <data name="Fix_inline_variable_declarations" xml:space="preserve">
-    <value>Fix inline variable declarations</value>
-  </data>
-  <data name="Fix_language_features" xml:space="preserve">
-    <value>Fix language features</value>
-  </data>
-  <data name="Fix_object_collection_initialization" xml:space="preserve">
-    <value>Fix object/collection initialization</value>
-  </data>
-  <data name="Make_readonly" xml:space="preserve">
-    <value>Make readonly</value>
-  </data>
-  <data name="Remove_unnecessary_casts" xml:space="preserve">
-    <value>Remove unnecessary casts</value>
-  </data>
-  <data name="Remove_unused_variables" xml:space="preserve">
-    <value>Remove unused variables</value>
+  <data name="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing" xml:space="preserve">
+    <value>Apply all C# formatting rules (indentation, wrapping, spacing)</value>
   </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
+  </data>
+  <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
+    <value>Perform additional code cleanup during formatting</value>
+  </data>
+  <data name="CSharp_Coding_Conventions" xml:space="preserve">
+    <value>C# Coding Conventions</value>
+  </data>
+  <data name="CSharp_Formatting_Rules" xml:space="preserve">
+    <value>C# Formatting Rules</value>
   </data>
 </root>

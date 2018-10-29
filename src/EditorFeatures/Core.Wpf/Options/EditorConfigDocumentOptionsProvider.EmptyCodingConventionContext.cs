@@ -15,9 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             public ICodingConventionsSnapshot CurrentConventions { get; } = EmptyCodingConventionsSnapshot.Instance;
 
-#pragma warning disable CS0067
-            public event CodingConventionsChangedAsyncEventHandler CodingConventionsChangedAsync;
-#pragma warning restore CS0067
+            event CodingConventionsChangedAsyncEventHandler ICodingConventionContext.CodingConventionsChangedAsync
+            {
+                add { }
+                remove { }
+            }
 
             public void Dispose() { }
 

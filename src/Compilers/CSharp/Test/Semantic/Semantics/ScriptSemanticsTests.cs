@@ -288,7 +288,7 @@ this[1]
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void NoReferences()
         {
             var submission = CSharpCompilation.CreateScriptCompilation("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
@@ -367,7 +367,7 @@ namespace Goo
 
             var global = compilation.GlobalNamespace;
 
-            var goo = global.GetMembers().Single() as NamespaceSymbol;
+            var goo = global.GetMembers("Goo").Single() as NamespaceSymbol;
             Assert.Equal("Goo", goo.Name);
 
             var script = goo.GetTypeMembers("Script").Single();
@@ -397,7 +397,7 @@ G();
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
-            var members = global.GetMembers();
+            var members = global.GetMembers().Where(m => !m.IsImplicitlyDeclared).AsImmutable();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
@@ -785,7 +785,7 @@ public E e4;
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void CompilationChain_Fields()
         {
             var c0 = CreateSubmission(@"
@@ -897,7 +897,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Z").WithArguments("Z"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28001")]
         public void HostObjectBinding_InStaticContext()
         {
             var source = @"

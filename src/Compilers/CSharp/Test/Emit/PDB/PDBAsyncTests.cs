@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBAsyncTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         [WorkItem(631350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631350")]
         [WorkItem(643501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/643501")]
@@ -333,7 +333,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")]
         public void TestAsyncDebug2()
         {
@@ -509,7 +509,7 @@ namespace ConsoleApplication1
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         [WorkItem(690180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690180")]
         public void TestAsyncDebug3()
@@ -582,7 +582,7 @@ class TestCase
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestAsyncDebug4()
         {
             var text = @"
@@ -715,7 +715,7 @@ sequencePoints: "C.F");
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_InBetweenSuspensionPoints_Release()
         {
             string source = @"
@@ -803,7 +803,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_InBetweenSuspensionPoints_Debug()
         {
             string source = @"
@@ -906,7 +906,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_AcrossSuspensionPoints_Release()
         {
             string source = @"
@@ -993,7 +993,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
             string source = @"
@@ -1094,7 +1094,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void LocalReuse_Release()
         {
             string source = @"
@@ -1198,7 +1198,7 @@ class C
 </symbols>");        
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void LocalReuse_Debug()
         {
             string source = @"
@@ -1324,7 +1324,7 @@ class C
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
             string source = @"
@@ -1419,7 +1419,7 @@ class C
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
         [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
         [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DynamicLocal_InBetweenSuspensionPoints_Release()
         {
             string source = @"
@@ -1502,7 +1502,7 @@ class C
         }
 
         [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DynamicLocal_InBetweenSuspensionPoints_Debug()
         {
             string source = @"
@@ -1595,7 +1595,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void VariableScopeNotContainingSuspensionPoint()
         {
             string source = @"
@@ -1638,7 +1638,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void AwaitInFinally()
         {
             string source = @"
@@ -1891,7 +1891,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void HoistedSpilledVariables()
         {
             string source = @"
@@ -1968,7 +1968,8 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
+        [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void PartialKickoffMethod()
         {
             string src = @"
@@ -2032,7 +2033,7 @@ MethodDebugInformation (index: 0x31, size: 20):
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CatchInAsyncStateMachine()
         {
             string src = @"

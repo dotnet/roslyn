@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
@@ -4781,6 +4783,208 @@ namespace A
     {
         public static void Bar()
         {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExactMatchNoGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+@"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Other|] b;
+    }
+}
+", ImmutableArray<string>.Empty);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestFuzzyMatchGlyph()
+        {
+            await TestSmartTagGlyphTagsAsync(
+@"namespace VS
+{
+    interface Other
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        [|Otter|] b;
+    }
+}
+", WellKnownTagArrays.Namespace);
+        }
+
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod1()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        async Task M() => await [|Goo|];
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        async Task M() => await Goo;
+
+        C Goo { get; set; }
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(29313, "https://github.com/dotnet/roslyn/issues/29313")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestGetAwaiterExtensionMethod2()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        async Task M() => await [|GetC|]();
+
+        C GetC() => null;
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
+        }
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        async Task M() => await GetC();
+
+        C GetC() => null;
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Awaiter GetAwaiter(this C scheduler) => null;
+
+        public class Awaiter : INotifyCompletion
+        {
+            public object GetResult() => null;
+
+            public void OnCompleted(Action continuation) { }
+
+            public bool IsCompleted => true;
         }
     }
 }");

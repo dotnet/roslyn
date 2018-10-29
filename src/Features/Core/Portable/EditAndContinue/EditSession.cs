@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // A document id is added whenever any analysis reports rude edits.
         // We collect a set of document ids that contained a rude edit
         // at some point in time during the lifespan of an edit session.
-        // At the end of the session we aks the diagnostic analyzer to reanalyze 
+        // At the end of the session we ask the diagnostic analyzer to reanalyze 
         // the documents to clean up the diagnostics.
         // An id may be present in this set even if the document doesn't have a rude edit anymore.
         private readonly object _documentsWithReportedRudeEditsGuard = new object();

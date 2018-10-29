@@ -2,9 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpVSResources.resx">
     <body>
-      <trans-unit id="All_csharp_formatting_rules">
-        <source>All C# Formatting Rules (indentation, wrapping and spacing)</source>
-        <target state="new">All C# Formatting Rules (indentation, wrapping and spacing)</target>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="translated">Aplicar todas las reglas de formato de C# (sangría, ajuste, espaciado)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -12,94 +12,44 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_accessibility_modifiers">
-        <source>Fix accessibility modifiers</source>
-        <target state="new">Fix accessibility modifiers</target>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="new">C# Coding Conventions</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_add_remove_braces">
-        <source>Fix add/remove braces</source>
-        <target state="new">Fix add/remove braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_expression_bodied_members">
-        <source>Fix expression-bodied members</source>
-        <target state="new">Fix expression-bodied members</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_framework_types">
-        <source>Fix framework types (int vs Int32)</source>
-        <target state="new">Fix framework types (int vs Int32)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_implicit_explicit_type">
-        <source>Fix implicit/explicit type</source>
-        <target state="new">Fix implicit/explicit type</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_inline_variable_declarations">
-        <source>Fix inline variable declarations</source>
-        <target state="new">Fix inline variable declarations</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_language_features">
-        <source>Fix language features</source>
-        <target state="new">Fix language features</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_object_collection_initialization">
-        <source>Fix object/collection initialization</source>
-        <target state="new">Fix object/collection initialization</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_this_qualification">
-        <source>Fix this. qualification</source>
-        <target state="new">Fix this. qualification</target>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="new">C# Formatting Rules</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="new">Format Document Settings (Experiment) </target>
+        <target state="translated">Configuración de “Dar formato al documento” (experimento) </target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="new">In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <target state="translated">En operadores relacionales:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly">
-        <source>Make readonly</source>
-        <target state="new">Make readonly</target>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="translated">Realizar limpieza de código adicional durante la aplicación de formato</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <target state="translated">Preferir “is null” para comprobaciones de igualdad de referencias</target>
         <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="new">Remove unnecessary casts</target>
-        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="new">Remove unused variables</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_accessibility_modifiers">
-        <source>Sort accessibility modifiers</source>
-        <target state="new">Sort accessibility modifiers</target>
+        <target state="translated">Quitar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="new">Sort usings</target>
+        <target state="translated">Ordenar instrucciones Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -782,19 +732,19 @@
         <target state="translated">Mostrar s_ugerencias de nombres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generar suscripción de eventos</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
-        <target state="new">In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <target state="translated">En operadores aritméticos:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="new">In other binary operators:  &amp;&amp;   ||   ??</target>
+        <target state="translated">En otros operadores binarios:  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>

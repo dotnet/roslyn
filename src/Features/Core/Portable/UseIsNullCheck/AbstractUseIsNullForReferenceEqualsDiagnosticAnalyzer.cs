@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
     internal abstract class AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer<
         TLanguageKindEnum>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
@@ -141,10 +141,11 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.Negated, "");
             }
 
-            var severity = option.Notification.Value;
+            var severity = option.Notification.Severity;
             context.ReportDiagnostic(
-                Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity), nameNode.GetLocation(),
+                DiagnosticHelper.Create(
+                    Descriptor, nameNode.GetLocation(),
+                    severity,
                     additionalLocations, properties));
         }
 

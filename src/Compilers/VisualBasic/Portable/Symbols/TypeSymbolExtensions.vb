@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function IsNullableType(this As TypeSymbol) As Boolean
-            Dim original = TryCast(this.OriginalDefinition, TypeSymbol)
-
-            Return original IsNot Nothing AndAlso original.SpecialType = SpecialType.System_Nullable_T
+            Return this.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T
         End Function
 
         <Extension()>

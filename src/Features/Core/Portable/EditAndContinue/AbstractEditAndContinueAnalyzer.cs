@@ -508,7 +508,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (ReportFatalErrorAnalyzeDocumentAsync(baseActiveStatements, e))
             {
-                throw ExceptionUtilities.Unreachable;
+                // The same behavior as if there was a syntax error - we are unable to analyze the document. 
+                return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
+                    new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { document.FilePath, e.ToString() })));
             }
         }
 
@@ -523,7 +525,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 s_fatalErrorBaseActiveStatements = baseActiveStatements.ToArray();
             }
 
-            return FatalError.ReportUnlessCanceled(e);
+            return FatalError.ReportWithoutCrashUnlessCanceled(e);
         }
 
         internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
@@ -1397,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         lazyKnownMatches = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
                     }
 
-                    lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNodeOpt));
+                    lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNodeOpt));
                 }
             }
         }
@@ -1421,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 for (int i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
                 {
-                    lazyKnownMatches.Add(KeyValuePair.Create(oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]));
+                    lazyKnownMatches.Add(KeyValuePairUtil.Create(oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]));
                 }
             }
             else
@@ -1435,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == EditKind.Update)
                     {
-                        lazyKnownMatches.Add(KeyValuePair.Create(oldStateMachineSuspensionPoints[edit.OldIndex], newStateMachineSuspensionPoints[edit.NewIndex]));
+                        lazyKnownMatches.Add(KeyValuePairUtil.Create(oldStateMachineSuspensionPoints[edit.OldIndex], newStateMachineSuspensionPoints[edit.NewIndex]));
                     }
                     else
                     {

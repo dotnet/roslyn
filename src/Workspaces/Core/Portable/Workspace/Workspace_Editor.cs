@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// 
         /// </summary>
-        protected void OnDocumentContextUpdated(DocumentId documentId)
+        protected internal void OnDocumentContextUpdated(DocumentId documentId)
         {
             // TODO: remove linear search
 
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// 
         /// </summary>
-        internal void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
+        private void OnDocumentContextUpdated(DocumentId documentId, SourceTextContainer container)
         {
             if (_isProjectUnloading.Value)
             {
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
+        private void OnDocumentContextUpdated_NoSerializationLock(DocumentId documentId, SourceTextContainer container)
         {
             DocumentId oldActiveContextDocumentId;
 
@@ -724,6 +724,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newSolution.GetProject(oldProject.Id);
+        }
+
+        /// <summary>
+        /// Update a project as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly move current solution forward when such event happened
+        /// </summary>
+        internal void OnProjectOptionsChanged(ProjectId projectId)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOptionsChanged(projectId));
+
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
         }
     }
 }

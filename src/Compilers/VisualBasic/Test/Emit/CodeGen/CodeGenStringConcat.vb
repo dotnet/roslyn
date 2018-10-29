@@ -232,7 +232,7 @@ expectedOutput:=<![CDATA[Start
 A
 B
 End
-]]>.Value.Replace(vbLf, vbCrLf))
+]]>)
 
             result.VerifyIL("Program.Main", <![CDATA[
 {

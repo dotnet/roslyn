@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
                 analyzerActions?.SyntaxTreeActionsCount ?? 0,
                 analyzerActions?.SemanticModelActionsCount ?? 0,
                 analyzerActions?.SymbolActionsCount ?? 0,
+                analyzerActions?.SymbolStartActionsCount ?? 0,
+                analyzerActions?.SymbolEndActionsCount ?? 0,
                 analyzerActions?.SyntaxNodeActionsCount ?? 0,
                 analyzerActions?.CodeBlockStartActionsCount ?? 0,
                 analyzerActions?.CodeBlockEndActionsCount ?? 0,
@@ -36,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             int syntaxTreeActionsCount,
             int semanticModelActionsCount,
             int symbolActionsCount,
+            int symbolStartActionsCount,
+            int symbolEndActionsCount,
             int syntaxNodeActionsCount,
             int codeBlockStartActionsCount,
             int codeBlockEndActionsCount,
@@ -52,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             SyntaxTreeActionsCount = syntaxTreeActionsCount;
             SemanticModelActionsCount = semanticModelActionsCount;
             SymbolActionsCount = symbolActionsCount;
+            SymbolStartActionsCount = symbolStartActionsCount;
+            SymbolEndActionsCount = symbolEndActionsCount;
             SyntaxNodeActionsCount = syntaxNodeActionsCount;
             CodeBlockStartActionsCount = codeBlockStartActionsCount;
             CodeBlockEndActionsCount = codeBlockEndActionsCount;
@@ -67,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
                 SyntaxNodeActionsCount > 0 ||
                 OperationActionsCount > 0 ||
                 OperationBlockActionsCount > 0 ||
-                OperationBlockStartActionsCount > 0;
+                OperationBlockStartActionsCount > 0 ||
+                SymbolStartActionsCount > 0;
         }
 
         /// <summary>
@@ -99,6 +106,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         /// Count of registered symbol actions.
         /// </summary>
         public int SymbolActionsCount { get; }
+
+        /// <summary>
+        /// Count of registered symbol start actions.
+        /// </summary>
+        public int SymbolStartActionsCount { get; }
+
+        /// <summary>
+        /// Count of registered symbol end actions.
+        /// </summary>
+        public int SymbolEndActionsCount { get; }
 
         /// <summary>
         /// Count of registered syntax node actions.

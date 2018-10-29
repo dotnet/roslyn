@@ -92,9 +92,13 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _language = token1.Language;
             }
 
-            // set synchronous task executor if it is debug mode or if there is not many things to format
-            this.TaskExecutor = optionSet.GetOption(FormattingOptions.DebugMode, _language) ? TaskExecutor.Synchronous :
-                                    (SpanToFormat.Length < ConcurrentThreshold) ? TaskExecutor.Synchronous : executor;
+            // set synchronous task executor if it is enabled (explicitly or as part of debug mode) or if there is not
+            // many things to format
+            var synchronousExecutorAllowed =
+                !optionSet.GetOption(FormattingOptions.AllowConcurrent)
+                || optionSet.GetOption(FormattingOptions.DebugMode, _language);
+            var useSynchronousExecutor = synchronousExecutorAllowed || SpanToFormat.Length < ConcurrentThreshold;
+            TaskExecutor = useSynchronousExecutor ? TaskExecutor.Synchronous : executor;
         }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
@@ -169,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
                 {
-                    return AddOperations<IndentBlockOperation>(task.Result, (l, n) => _formattingRules.AddIndentBlockOperations(l, n, _token2), cancellationToken);
+                    return AddOperations<IndentBlockOperation>(task.Result, (l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
                 }
             },
             cancellationToken);
@@ -178,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
                 {
-                    return AddOperations<SuppressOperation>(task.Result, (l, n) => _formattingRules.AddSuppressOperations(l, n, _token2), cancellationToken);
+                    return AddOperations<SuppressOperation>(task.Result, (l, n) => _formattingRules.AddSuppressOperations(l, n), cancellationToken);
                 }
             },
             cancellationToken);
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
                 {
-                    var operations = AddOperations<AlignTokensOperation>(task.Result, (l, n) => _formattingRules.AddAlignTokensOperations(l, n, _token2), cancellationToken);
+                    var operations = AddOperations<AlignTokensOperation>(task.Result, (l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
 
                     // make sure we order align operation from left to right
                     operations.Sort((o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
@@ -201,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
                 {
-                    return AddOperations<AnchorIndentationOperation>(task.Result, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n, _token2), cancellationToken);
+                    return AddOperations<AnchorIndentationOperation>(task.Result, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
                 }
             },
             cancellationToken);

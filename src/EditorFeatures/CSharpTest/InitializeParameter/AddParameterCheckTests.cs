@@ -374,7 +374,7 @@ class C
         S = s;
     }
 }", parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1223,7 +1223,7 @@ class C
     }
 }",
     parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
@@ -1401,6 +1401,35 @@ class C
         array.Where(x => x > 3)
             .OrderBy(x => x)
             .Count();
+    }
+}");
+        }
+
+        [WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceTypeWithParameterNameSelected1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string [|s|])
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
     }
 }");
         }

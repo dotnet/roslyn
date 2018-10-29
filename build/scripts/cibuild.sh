@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
-# Copyright (c) .NET Foundation and contributors. All rights reserved.
-# Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-set -e
-set -u
+source="${BASH_SOURCE[0]}"
 
-root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# resolve $SOURCE until the file is no longer a symlink
+while [[ -h $source ]]; do
+  scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
+  source="$(readlink "$source")"
+
+  # if $source was a relative symlink, we need to resolve it relative to the path where 
+  # the symlink file was located
+  [[ $source != /* ]] && source="$scriptroot/$source"
+done
+scriptroot="$( cd -P "$( dirname "$source" )" && pwd)"
 
 # $HOME is unset when running the mac unit tests.
 if [[ -z "${HOME+x}" ]]
@@ -16,7 +22,7 @@ then
     export HOME="$(cd ~ && pwd)"
 fi
 
-# There's no reason to send telemetry or prime a local package cach when building
+# There's no reason to send telemetry or prime a local package cache when building
 # in CI.
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
@@ -24,4 +30,5 @@ export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 echo "Building this commit:"
 git show --no-patch --pretty=raw HEAD
 
-"${root_path}"/build.sh --restore --bootstrap --build --packall --stop-vbcscompiler --test "$@"
+
+. "$scriptroot/build.sh" --restore --bootstrap --build --pack --stop-vbcscompiler --test --ci "$@"

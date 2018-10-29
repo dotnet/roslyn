@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
     }
 }

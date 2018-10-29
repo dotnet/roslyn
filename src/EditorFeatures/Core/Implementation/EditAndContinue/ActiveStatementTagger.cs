@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private IActiveStatementTrackingService _trackingServiceOpt;
 
-        public ActiveStatementTagger(ITextBuffer buffer)
+        public ActiveStatementTagger(IThreadingContext threadingContext, ITextBuffer buffer)
+            : base(threadingContext)
         {
             // A buffer can switch between workspaces (from misc files workspace to primary workspace, etc.).
             // The following code handles such transitions.

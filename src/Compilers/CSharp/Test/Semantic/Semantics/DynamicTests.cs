@@ -972,6 +972,58 @@ public class C
             TestOperatorKinds(source);
         }
 
+        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800")]
+        public void TestDynamicCompoundOperatorOrdering()
+        {
+            CompileAndVerify(@"
+using System;
+class DynamicTest
+{
+    public int Property
+    {
+        get {
+            Console.WriteLine(""get_Property"");
+            return 0;
+        }
+        set {
+            Console.WriteLine(""set_Property"");
+        }
+    }
+
+    static dynamic GetDynamic()
+    {
+        Console.WriteLine(""GetDynamic"");
+        return new DynamicTest();
+    }
+
+    static int GetInt()
+    {
+        Console.WriteLine(""GetInt"");
+        return 1;
+    }
+
+    public static void Main()
+    {
+        Console.WriteLine(""Compound Add"");
+        GetDynamic().Property += GetInt();
+        Console.WriteLine(""Compound And"");
+        GetDynamic().Property &= GetInt();
+    }
+}", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
+Compound Add
+GetDynamic
+get_Property
+GetInt
+set_Property
+Compound And
+GetDynamic
+get_Property
+GetInt
+set_Property
+");
+        }
+
+
         #endregion
 
         #region Conditional, Coalescing Expression
@@ -1829,7 +1881,7 @@ unsafe public class C<X>
             var c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
             var f = c.GetMember<FieldSymbol>("F");
             var eraser = new DynamicTypeEraser(compilation.GetSpecialType(SpecialType.System_Object));
-            var erasedType = eraser.EraseDynamic(f.Type);
+            var erasedType = eraser.EraseDynamic(f.Type.TypeSymbol);
 
             Assert.Equal("System.Func<A<System.Object, A<System.Object, System.Boolean>.E*[]>.B<X>, System.Collections.Generic.Dictionary<System.Object[], System.Int32>>", erasedType.ToTestDisplayString());
         }
@@ -2399,18 +2451,27 @@ IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'ne
         Initializers(2):
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'a = 1')
               Left: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'a')
+                IDynamicMemberReferenceOperation (Member Name: ""a"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'a')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'a')
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic, IsInvalid) (Syntax: 'b = ... }')
               InitializedMember: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'b')
+                IDynamicMemberReferenceOperation (Member Name: ""b"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'b')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'b')
               Initializer: 
                 IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic, IsInvalid) (Syntax: '{ ... }')
                   Initializers(1):
                       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic, IsInvalid) (Syntax: 'c = f()')
                         Left: 
-                          IOperation:  (OperationKind.None, Type: null) (Syntax: 'c')
+                          IDynamicMemberReferenceOperation (Member Name: ""c"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'c')
+                            Type Arguments(0)
+                            Instance Receiver: 
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'c')
                         Right: 
                           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'f()')
                             Children(1):
@@ -2566,11 +2627,13 @@ class C : List<int>
 		var z = new C()         //-typeExpression: C
 		{
 			{ d },              //-fieldAccess: dynamic
+                                //-implicitReceiver: C
                                 //-dynamicCollectionElementInitializer: dynamic
 
 			{ d, d, d },        //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
+                                //-implicitReceiver: C
                                 //-dynamicCollectionElementInitializer: dynamic
 
 		};                      //-collectionInitializerExpression: C
@@ -3687,10 +3750,10 @@ class Program
             var typeObject = comp.GetSpecialType(SpecialType.System_Object);
             var typeGConstructed = typeG.Construct(typeObject, typeObject);
 
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type.TypeSymbol);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

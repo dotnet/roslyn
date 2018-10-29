@@ -120,21 +120,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="ConversionsILGenTestBaseline" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>codegen\conversionsilgentestbaseline.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="ConversionsILGenTestBaseline1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>codegen\conversionsilgentestbaseline1.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="ConversionsILGenTestSource" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>codegen\conversionsilgentestsource.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="ConversionsILGenTestSource1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>codegen\conversionsilgentestsource1.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="ConversionsILGenTestSource2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>codegen\conversionsilgentestsource2.vb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
   <data name="EmitSimpleBaseLine1" xml:space="preserve">
     <value>&lt;Global&gt;
             &lt;type name="&amp;lt;Module&amp;gt;" /&gt;

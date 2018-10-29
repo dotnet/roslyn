@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' associated symbol).
     ''' </summary>
     Public Structure Conversion
-        Implements IEquatable(Of Conversion)
+        Implements IEquatable(Of Conversion), IConvertibleConversion
 
         Private ReadOnly _convKind As ConversionKind
         Private ReadOnly _method As MethodSymbol
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
         ''' from the <see cref="CommonConversion"/> struct.
         ''' </remarks>
-        Public Function ToCommonConversion() As CommonConversion
+        Public Function ToCommonConversion() As CommonConversion Implements IConvertibleConversion.ToCommonConversion
             Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, MethodSymbol)
         End Function
 

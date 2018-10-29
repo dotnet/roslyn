@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
 
         #endregion
 
-        public AsynchronousSerialWorkQueue(IAsynchronousOperationListener asyncListener)
-            : base(assertIsForeground: false)
+        public AsynchronousSerialWorkQueue(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, assertIsForeground: false)
         {
             Contract.ThrowIfNull(asyncListener);
             _asyncListener = asyncListener;
 
             // Initialize so we don't have to check for null below. Force the background task to run
             // on the threadpool. 
-            _currentBackgroundTask = SpecializedTasks.EmptyTask;
+            _currentBackgroundTask = Task.CompletedTask;
         }
 
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;

@@ -1021,7 +1021,8 @@ class D
 </Workspace>
 ", exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
             {
-                _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+                _provider = new NavigateToItemProvider(
+                    workspace, AsynchronousOperationListenerProvider.NullListener, documentTrackingService: null);
                 _aggregator = new NavigateToTestAggregator(_provider);
 
                 var items = await _aggregator.GetItemsAsync("VisibleMethod");

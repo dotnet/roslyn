@@ -968,9 +968,6 @@ Additional information: {1}</value>
   <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
     <value>Keep all parentheses in:</value>
   </data>
-  <data name="Ignore" xml:space="preserve">
-    <value>Ignore</value>
-  </data>
   <data name="In_other_operators" xml:space="preserve">
     <value>In other operators</value>
   </data>
@@ -1007,11 +1004,8 @@ Additional information: {1}</value>
   <data name="Sync_Class_View" xml:space="preserve">
     <value>Sync Class View</value>
   </data>
-  <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
-    <value>Restore Visual Studio keybindings</value>
-  </data>
-  <data name="Use_Keybindings_for_extensions" xml:space="preserve">
-    <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
+  <data name="Reset_Visual_Studio_default_keymapping" xml:space="preserve">
+    <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1030,9 +1024,17 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
-  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
-    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
-    <comment>0 is an extension name</comment>
+  <data name="Colorize_regular_expressions" xml:space="preserve">
+    <value>Colorize regular expressions</value>
+  </data>
+  <data name="Highlight_related_components_under_cursor" xml:space="preserve">
+    <value>Highlight related components under cursor</value>
+  </data>
+  <data name="Regular_Expressions" xml:space="preserve">
+    <value>Regular Expressions</value>
+  </data>
+  <data name="Report_invalid_regular_expressions" xml:space="preserve">
+    <value>Report invalid regular expressions</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
@@ -1054,5 +1056,32 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
+  <data name="Apply_0_keymapping_scheme" xml:space="preserve">
+    <value>Apply '{0}' keymapping scheme</value>
+  </data>
+  <data name="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor" xml:space="preserve">
+    <value>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</value>
+  </data>
+  <data name="Use_expression_body_for_lambdas" xml:space="preserve">
+    <value>Use expression body for lambdas</value>
+  </data>
+  <data name="Prefer_compound_assignments" xml:space="preserve">
+    <value>Prefer compound assignments</value>
+  </data>
+  <data name="Generate_dot_editorconfig_file_from_settings" xml:space="preserve">
+    <value>Generate .editorconfig file from settings</value>
+  </data>
+  <data name="Save_dot_editorconfig_file" xml:space="preserve">
+    <value>Save .editorconfig file</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+  <data name="Prefer_index_operator" xml:space="preserve">
+    <value>Prefer index operator</value>
+  </data>
+  <data name="Prefer_range_operator" xml:space="preserve">
+    <value>Prefer range operator</value>
   </data>
 </root>

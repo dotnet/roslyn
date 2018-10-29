@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var language in documentsFromAffectedProjects.Select(d => d.Project.Language).Distinct())
                     {
                         solution.Workspace.Services.GetLanguageServices(language).GetService<IRenameRewriterLanguageService>()
-                            .TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
+                            ?.TryAddPossibleNameConflicts(symbol, _replacementText, _possibleNameConflicts);
                     }
 
                     await AddDocumentsWithPotentialConflicts(documentsFromAffectedProjects).ConfigureAwait(false);

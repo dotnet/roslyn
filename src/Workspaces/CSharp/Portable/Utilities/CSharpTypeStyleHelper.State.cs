@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     {
         protected class State
         {
-            private readonly Dictionary<TypeStylePreference, DiagnosticSeverity> _styleToSeverityMap;
+            private readonly Dictionary<TypeStylePreference, ReportDiagnostic> _styleToSeverityMap;
 
             public TypeStylePreference TypeStylePreference { get; private set; }
             public bool IsInIntrinsicTypeContext { get; private set; }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             private State(bool isVariableDeclarationContext)
             {
                 this.IsInVariableDeclarationContext = isVariableDeclarationContext;
-                _styleToSeverityMap = new Dictionary<TypeStylePreference, DiagnosticSeverity>();
+                _styleToSeverityMap = new Dictionary<TypeStylePreference, ReportDiagnostic>();
             }
 
             public static State Generate(
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return state;
             }
 
-            public DiagnosticSeverity GetDiagnosticSeverityPreference()
+            public ReportDiagnostic GetDiagnosticSeverityPreference()
             {
                 if (IsInIntrinsicTypeContext)
                 {
@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
                 var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
 
-                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Value);
-                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Value);
-                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Value);
+                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Severity);
+                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Severity);
+                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Severity);
 
                 if (styleForIntrinsicTypes.Value)
                 {

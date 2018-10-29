@@ -2086,6 +2086,7 @@ BC42024: Unused local variable: 'ccc'.
             Assert.Equal("ccc", varSymbol7.Name)
             Assert.Equal(SymbolKind.Local, varSymbol7.Kind)
             Assert.Equal("System.String", DirectCast(varSymbol7, LocalSymbol).Type.ToTestDisplayString())
+            Assert.False(DirectCast(varSymbol7, ILocalSymbol).IsFixed)
             Assert.Equal(1, varSymbol7.Locations.Length())
             Assert.True(syntax.SpanStart = varSymbol7.Locations.Item(0).SourceSpan.Start OrElse
                         syntax.SpanStart = varSymbol7.Locations.Item(1).SourceSpan.Start,
@@ -2279,6 +2280,7 @@ End Module
             Dim expressionSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 0)
             Dim local = DirectCast(model.GetDeclaredSymbol(expressionSyntax), LocalSymbol)
             Assert.True(local.IsConst)
+            Assert.False(DirectCast(local, ILocalSymbol).IsFixed)
             Assert.True(local.HasConstantValue)
             Assert.Equal(100, CType(local.ConstantValue, Integer))
 

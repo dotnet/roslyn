@@ -20,6 +20,8 @@ namespace AnalyzerRunner
             analyzerTelemetryInfo.OperationBlockStartActionsCount += addendum.OperationBlockStartActionsCount;
             analyzerTelemetryInfo.SemanticModelActionsCount += addendum.SemanticModelActionsCount;
             analyzerTelemetryInfo.SymbolActionsCount += addendum.SymbolActionsCount;
+            analyzerTelemetryInfo.SymbolStartActionsCount += addendum.SymbolStartActionsCount;
+            analyzerTelemetryInfo.SymbolEndActionsCount += addendum.SymbolEndActionsCount;
             analyzerTelemetryInfo.SyntaxNodeActionsCount += addendum.SyntaxNodeActionsCount;
             analyzerTelemetryInfo.SyntaxTreeActionsCount += addendum.SyntaxTreeActionsCount;
         }

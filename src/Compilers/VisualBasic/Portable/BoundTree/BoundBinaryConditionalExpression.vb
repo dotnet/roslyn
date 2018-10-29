@@ -14,6 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If ConvertedTestExpression Is Nothing Then
                 Debug.Assert(TestExpressionPlaceholder Is Nothing)
+            ElseIf ConvertedTestExpression.Kind <> BoundKind.Conversion Then
+                Debug.Assert(HasErrors)
+                Debug.Assert(ConvertedTestExpression.Kind = BoundKind.BadExpression)
             End If
 
             If Not HasErrors Then

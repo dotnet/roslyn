@@ -185,9 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ModuleMetadata GetMetadata() => null;
+
+        public override bool? NonNullTypes => false;
     }
 
-    internal class MissingModuleSymbolWithName : MissingModuleSymbol
+    internal sealed class MissingModuleSymbolWithName : MissingModuleSymbol
     {
         private readonly string _name;
 

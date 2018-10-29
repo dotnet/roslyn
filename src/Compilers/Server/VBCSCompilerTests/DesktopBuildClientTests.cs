@@ -16,6 +16,7 @@ using Roslyn.Test.Utilities;
 using System.Threading;
 using System.IO.Pipes;
 using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -154,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     Assert.True(createdNew);
                     var mutexSecurity = outer.GetAccessControl();
-                    var user = Environment.UserDomainName + "\\" + Environment.UserName;
-                    mutexSecurity.AddAccessRule(new MutexAccessRule(user, MutexRights.FullControl, AccessControlType.Deny));
+                    mutexSecurity.AddAccessRule(new MutexAccessRule(WindowsIdentity.GetCurrent().Owner, MutexRights.FullControl, AccessControlType.Deny));
                     outer.SetAccessControl(mutexSecurity);
 
                     var ranLocal = false;

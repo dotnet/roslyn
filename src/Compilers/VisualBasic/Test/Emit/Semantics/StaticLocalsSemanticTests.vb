@@ -1414,7 +1414,7 @@ End Module
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Semantic_InFinalizer()
             'The Use of Static Locals within Finalizer - No Problems
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(

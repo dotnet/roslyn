@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBNamespaceScopes
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ProjectLevelXmlImportsWithoutRootNamespace()
             Dim source =
 <compilation>
@@ -181,7 +181,7 @@ End Namespace
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ProjectLevelXmlImportsWithRootNamespace()
             Dim source =
 <compilation>
@@ -356,7 +356,7 @@ End Namespace
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmittingPdbVsNot()
             Dim source =
 <compilation name="EmittingPdbVsNot">
@@ -387,7 +387,7 @@ End Class
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportedNoPiaTypes()
             Dim sourceLib =
 <compilation name="ImportedNoPiaTypesAssemblyName">
@@ -497,7 +497,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ImportedTypeWithUnknownBase()
             Dim sourceLib1 =
 <compilation>

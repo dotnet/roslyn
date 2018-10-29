@@ -508,24 +508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return !SymbolsAreCompatible(originalSymbol, newSymbol);
         }
 
-        protected override bool IsInvocableExpression(SyntaxNode node)
+        protected override bool ExpressionMightReferenceMember(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.InvocationExpression) ||
-                node.IsKind(SyntaxKind.ObjectCreationExpression) ||
-                node.IsKind(SyntaxKind.ElementAccessExpression))
-            {
-                return true;
-            }
-
-            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !node.IsParentKind(SyntaxKind.InvocationExpression) &&
-                !node.IsParentKind(SyntaxKind.ObjectCreationExpression) &&
-                !node.IsParentKind(SyntaxKind.ElementAccessExpression))
-            {
-                return true;
-            }
-
-            return false;
+            return node.IsKind(SyntaxKind.InvocationExpression) ||
+                node.IsKind(SyntaxKind.ElementAccessExpression) ||
+                node.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
+                node.IsKind(SyntaxKind.ImplicitElementAccess);
         }
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
@@ -533,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var argumentsList = GetArgumentList(expression);
             return argumentsList != null ?
                 argumentsList.Arguments.AsImmutableOrEmpty() :
-                ImmutableArray.Create<ArgumentSyntax>();
+                default;
         }
 
         private static BaseArgumentListSyntax GetArgumentList(ExpressionSyntax expression)

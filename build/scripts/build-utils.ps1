@@ -27,18 +27,14 @@ function Exec-Block([scriptblock]$cmd) {
     } 
 }
 
-function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
+# This will exec a process using the console and return it's exit code. This will not 
+# throw when the process fails.
+function Exec-Process([string]$command, [string]$commandArgs) {
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command
     $startInfo.Arguments = $commandArgs
-
     $startInfo.UseShellExecute = $false
     $startInfo.WorkingDirectory = Get-Location
-
-    if (-not $useConsole) {
-       $startInfo.RedirectStandardOutput = $true
-       $startInfo.CreateNoWindow = $true
-    }
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
@@ -46,17 +42,55 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
     $finished = $false
     try {
-        if (-not $useConsole) { 
-            # The OutputDataReceived event doesn't fire as events are sent by the 
-            # process in powershell.  Possibly due to subtlties of how Powershell
-            # manages the thread pool that I'm not aware of.  Using blocking
-            # reading here as an alternative which is fine since this blocks 
-            # on completion already.
-            $out = $process.StandardOutput
-            while (-not $out.EndOfStream) {
-                $line = $out.ReadLine()
-                Write-Output $line
-            }
+        while (-not $process.WaitForExit(100)) { 
+            # Non-blocking loop done to allow ctr-c interrupts
+        }
+
+        $finished = $true
+        $process.ExitCode
+    }
+    finally {
+        # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+        # way kill the process
+        if (-not $finished) {
+            $process.Kill()
+        }
+    }
+}
+
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
+    if ($useConsole) {
+        $exitCode = Exec-Process $command $commandArgs
+        if ($exitCode -ne 0) { 
+            throw "Command failed to execute with exit code $($process.ExitCode): $command $commandArgs" 
+        }
+        return
+    }
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $command
+    $startInfo.Arguments = $commandArgs
+
+    $startInfo.UseShellExecute = $false
+    $startInfo.WorkingDirectory = Get-Location
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.CreateNoWindow = $true
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    $process.Start() | Out-Null
+
+    $finished = $false
+    try {
+        # The OutputDataReceived event doesn't fire as events are sent by the 
+        # process in powershell.  Possibly due to subtlties of how Powershell
+        # manages the thread pool that I'm not aware of.  Using blocking
+        # reading here as an alternative which is fine since this blocks 
+        # on completion already.
+        $out = $process.StandardOutput
+        while (-not $out.EndOfStream) {
+            $line = $out.ReadLine()
+            Write-Output $line
         }
 
         while (-not $process.WaitForExit(100)) { 
@@ -65,7 +99,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
         $finished = $true
         if ($process.ExitCode -ne 0) { 
-            throw "Command failed to execute: $command $commandArgs" 
+            throw "Command failed to execute with exit code $($process.ExitCode): $command $commandArgs" 
         }
     }
     finally {
@@ -148,6 +182,7 @@ function Ensure-DotnetSdk() {
         Create-Directory $cliDir
         Create-Directory $toolsDir
         $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
@@ -324,7 +359,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
     $p = Ensure-BasicTool "RoslynTools.MSBuild"
-    $p = Join-Path $p "tools\msbuild"
+    $p = Join-Path $p "tools\MSBuild\15.0\Bin"
     return $p
 }
 
@@ -353,7 +388,7 @@ function Test-SupportedVisualStudioVersion([string]$version) {
 # meets our minimal requirements for the Roslyn repo.
 function Get-VisualStudioDirAndId() {
     $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
-    $output = Exec-Command $vswhere "-requires Microsoft.Component.MSBuild -format json" | Out-String
+    $output = Exec-Command $vswhere "-prerelease -requires Microsoft.Component.MSBuild -format json" | Out-String
     $j = ConvertFrom-Json $output
     foreach ($obj in $j) { 
 

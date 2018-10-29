@@ -119,7 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            New BoundMethodGroup(typeNode, Nothing,
                                                              ImmutableArray.Create(constructorSymbol), LookupResultKind.Good, Nothing,
                                                              QualificationKind.QualifiedViaTypeName)),
-                                        ImmutableArray(Of BoundExpression).Empty,
+                                        arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                        defaultArguments:=BitVector.Null,
                                         BindObjectCollectionOrMemberInitializer(node,
                                                                                 type0,
                                                                                 asNewVariablePlaceholderOpt,
@@ -459,7 +460,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim methodResult = results.BestResult.Value
 
-                    boundArguments = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
+                    Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
+                    boundArguments = argumentInfo.Arguments
 
                     ReportDiagnosticsIfObsolete(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
 
@@ -491,6 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol),
                                                                              constructorsGroup,
                                                                              boundArguments,
+                                                                             argumentInfo.DefaultArguments,
                                                                              objectInitializerExpressionOpt,
                                                                              type0)
                     End If
@@ -901,6 +904,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           diagnostics,
                                                           callerInfoOpt:=topLevelInitializer)
                 invocation.SetWasCompilerGenerated()
+
+                If invocation.Kind = BoundKind.LateInvocation Then
+                    invocation = DirectCast(invocation, BoundLateInvocation).SetLateBoundAccessKind(LateBoundAccessKind.Call)
+                End If
 
                 Return invocation
             Else

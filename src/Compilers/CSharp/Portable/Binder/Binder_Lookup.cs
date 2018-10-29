@@ -1211,7 +1211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unwrappedSymbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
                     && !options.IsAttributeTypeLookup())
                 {
-                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName);
+                    var assemblyName = this.Compilation.AssemblyName;
+                    if (assemblyName == null)
+                    {
+                        return false;
+                    }
+                    var keys = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(assemblyName);
                     if (!keys.Any())
                     {
                         return false;
@@ -1423,11 +1428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound);
+                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).TypeSymbol;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).Type;
+                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
                     break;
             }
 

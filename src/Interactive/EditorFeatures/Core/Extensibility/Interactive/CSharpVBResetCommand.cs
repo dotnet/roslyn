@@ -4,14 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Editor.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.Editor.Interactive;
 
-namespace Microsoft.VisualStudio.InteractiveWindow.Commands
+namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     /// <summary>
     /// Represents a reset command which can be run from a REPL window.
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     [ContentType(CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName)]
     internal sealed class ResetCommand : IInteractiveWindowCommand
     {
-        internal const string CommandName = "reset";
+        private const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
         private static readonly int s_noConfigParameterNameLength = NoConfigParameterName.Length;
         private readonly IStandardClassificationService _registry;
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public string CommandLine
         {
-            get { return "[" + NoConfigParameterName + "]"; }
+            get { return "[" + NoConfigParameterName + "] [32|64]"; }
         }
 
         public IEnumerable<KeyValuePair<string, string>> ParametersDescription
@@ -56,18 +58,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get
             {
                 yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveEditorFeaturesResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
+                yield return new KeyValuePair<string, string>("32|64", $"Interactive host process bitness.");
             }
         }
 
         public Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
-            bool initialize;
-            if (!TryParseArguments(arguments, out initialize))
+            if (!TryParseArguments(arguments, out bool initialize, out bool? is64bit))
             {
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }
 
+            var evaluator = (InteractiveEvaluator)window.Evaluator;
+            evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(is64bit);
             return window.Operations.ResetAsync(initialize);
         }
 
@@ -105,24 +109,55 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         /// <remarks>
         /// Accessibility is internal for testing.
         /// </remarks>
-        internal static bool TryParseArguments(string arguments, out bool initialize)
+        internal static bool TryParseArguments(string arguments, out bool initialize, out bool? is64bit)
         {
-            var trimmed = arguments.Trim();
-            if (trimmed.Length == 0)
+            is64bit = null;
+            initialize = true;
+
+            var noConfigSpecified = false;
+
+            foreach (var argument in arguments.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                initialize = true;
-                return true;
-            }
-            else if (string.Equals(trimmed, NoConfigParameterName, StringComparison.Ordinal))
-            {
-                initialize = false;
-                return true;
+                switch (argument)
+                {
+                    case "32":
+                        if (is64bit != null)
+                        {
+                            return false;
+                        }
+
+                        is64bit = false;
+                        break;
+
+                    case "64":
+                        if (is64bit != null)
+                        {
+                            return false;
+                        }
+
+                        is64bit = true;
+                        break;
+                        
+                    case NoConfigParameterName:
+                        if (noConfigSpecified)
+                        {
+                            return false;
+                        }
+
+                        noConfigSpecified = true;
+                        initialize = false;
+                        break;
+
+                    default:
+                        return false;
+                }
             }
 
-            initialize = false;
-            return false;
+            return true;
         }
 
+        internal static string GetCommandLine(bool initialize, bool? is64bit)
+            => CommandName + (initialize ? "" : " " + NoConfigParameterName) + (is64bit == null ? "" : is64bit.Value ? " 64" : " 32");
 
         private void ReportInvalidArguments(IInteractiveWindow window)
         {

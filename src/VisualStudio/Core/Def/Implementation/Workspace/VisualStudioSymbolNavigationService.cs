@@ -42,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
             VisualStudio14StructureTaggerProvider outliningTaggerProvider)
+            : base(outliningTaggerProvider.ThreadingContext)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;
@@ -311,7 +312,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace)
             {
                 hierarchy = visualStudioWorkspace.GetHierarchy(document.Project.Id);
-                if (ErrorHandler.Succeeded(hierarchy.ParseCanonicalName(document.FilePath, out itemID)))
+                itemID = hierarchy.TryGetItemId(document.FilePath);
+
+                if (itemID != VSConstants.VSITEMID_NIL)
                 {
                     return true;
                 }

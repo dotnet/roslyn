@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             get
             {
-                Contract.Assert(_accessListMap.ContainsKey(SelectedAccessibilityString), "The Accessibility Key String not present");
+                Debug.Assert(_accessListMap.ContainsKey(SelectedAccessibilityString), "The Accessibility Key String not present");
                 return _accessListMap[SelectedAccessibilityString];
             }
         }
@@ -132,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         {
             get
             {
-                Contract.Assert(_typeKindMap.ContainsKey(SelectedTypeKindString), "The TypeKind Key String not present");
+                Debug.Assert(_typeKindMap.ContainsKey(SelectedTypeKindString), "The TypeKind Key String not present");
                 return _typeKindMap[SelectedTypeKindString];
             }
         }
@@ -165,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
             else
             {
-                Contract.Assert(languageName == LanguageNames.VisualBasic, "Currently only C# and VB are supported");
+                Debug.Assert(languageName == LanguageNames.VisualBasic, "Currently only C# and VB are supported");
                 _visualBasicAccessList.Add(key);
             }
 
@@ -198,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
         private void PopulateTypeKind()
         {
-            Contract.Assert(_generateTypeDialogOptions.TypeKindOptions != TypeKindOptions.None);
+            Debug.Assert(_generateTypeDialogOptions.TypeKindOptions != TypeKindOptions.None);
 
             if (TypeKindOptionsHelper.IsClass(_generateTypeDialogOptions.TypeKindOptions))
             {
@@ -430,7 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 var previousProject = _selectedProject;
                 if (SetProperty(ref _selectedProject, value))
                 {
-                    NotifyPropertyChanged("DocumentList");
+                    NotifyPropertyChanged(nameof(DocumentList));
                     this.DocumentSelectIndex = 0;
                     this.ProjectSelectIndex = this.ProjectList.FindIndex(p => p.Project == _selectedProject);
                     if (_selectedProject != _document.Project)
@@ -439,7 +440,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                         // 3 in the list represent the Public. 1-based array.
                         this.AccessSelectIndex = this.AccessList.IndexOf("public") == -1 ?
                             this.AccessList.IndexOf("Public") : this.AccessList.IndexOf("public");
-                        Contract.Assert(this.AccessSelectIndex != -1);
+                        Debug.Assert(this.AccessSelectIndex != -1);
                         this.IsAccessListEnabled = false;
                     }
                     else
@@ -509,42 +510,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private Project _previouslyPopulatedProject = null;
         private List<DocumentSelectItem> _previouslyPopulatedDocumentList = null;
 
-        public IEnumerable<DocumentSelectItem> GetDocumentList(CancellationToken cancellationToken)
+        public IEnumerable<DocumentSelectItem> DocumentList
         {
-            if (_previouslyPopulatedProject == _selectedProject)
+            get
             {
+                if (_previouslyPopulatedProject == _selectedProject)
+                {
+                    return _previouslyPopulatedDocumentList;
+                }
+
+                _previouslyPopulatedProject = _selectedProject;
+                _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
+
+                // Check for the current project
+                if (_selectedProject == _document.Project)
+                {
+                    // populate the current document
+                    _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
+
+                    // Set the initial selected Document
+                    this.SelectedDocument = _document;
+
+                    // Populate the rest of the documents for the project
+                    _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
+                        .Where(d => d != _document && !d.IsGeneratedCode(CancellationToken.None))
+                        .Select(d => new DocumentSelectItem(d)));
+                }
+                else
+                {
+                    _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
+                        .Where(d => !d.IsGeneratedCode(CancellationToken.None))
+                        .Select(d => new DocumentSelectItem(d)));
+
+                    this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
+                }
+
+                this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
+                this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
                 return _previouslyPopulatedDocumentList;
             }
-
-            _previouslyPopulatedProject = _selectedProject;
-            _previouslyPopulatedDocumentList = new List<DocumentSelectItem>();
-
-            // Check for the current project
-            if (_selectedProject == _document.Project)
-            {
-                // populate the current document
-                _previouslyPopulatedDocumentList.Add(new DocumentSelectItem(_document, "<Current File>"));
-
-                // Set the initial selected Document
-                this.SelectedDocument = _document;
-
-                // Populate the rest of the documents for the project
-                _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
-                    .Where(d => d != _document && !d.IsGeneratedCode(cancellationToken))
-                    .Select(d => new DocumentSelectItem(d)));
-            }
-            else
-            {
-                _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
-                    .Where(d => !d.IsGeneratedCode(cancellationToken))
-                    .Select(d => new DocumentSelectItem(d)));
-
-                this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
-            }
-
-            this.IsExistingFileEnabled = _previouslyPopulatedDocumentList.Count == 0 ? false : true;
-            this.IsNewFile = this.IsExistingFileEnabled ? this.IsNewFile : true;
-            return _previouslyPopulatedDocumentList;
         }
 
         private bool _isExistingFileEnabled = true;
@@ -667,9 +671,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             {
                 if (_areFoldersValidIdentifiers)
                 {
+                    /*
                     var workspace = this.SelectedProject.Solution.Workspace as VisualStudioWorkspaceImpl;
                     var project = workspace?.GetHostProject(this.SelectedProject.Id) as AbstractProject;
                     return !(project?.IsWebSite == true);
+                    */
+                    return false;
                 }
 
                 return false;

@@ -373,6 +373,24 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferCompoundAssignments As String = $"
+Imports System
+
+Class Customer
+    Sub M1(value as integer)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        value += 10
+//]
+    End Sub
+    Sub M2(value as integer)
+//[
+        ' {ServicesVSResources.Over_colon}
+        value = value + 10
+//]
+    End Sub
+End Class"
+
 #Region "arithmetic binary parentheses"
 
         Private Shared ReadOnly s_arithmeticBinaryAlwaysForClarity As String = $"
@@ -407,7 +425,7 @@ end class
 
 #Region "relational binary parentheses"
 
-        Private Shared ReadOnly s_relationalBinaryIgnore As String = $"
+        Private Shared ReadOnly s_relationalBinaryAlwaysForClarity As String = $"
 class C
     sub M()
 //[
@@ -468,7 +486,7 @@ end class
 
 #Region "other parentheses"
 
-        Private Shared ReadOnly s_otherParenthesesIgnore As String = $"
+        Private Shared ReadOnly s_otherParenthesesAlwaysForClarity As String = $"
 class C
     sub M()
 //[
@@ -561,6 +579,8 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCompoundAssignment, ServicesVSResources.Prefer_compound_assignments, s_preferCompoundAssignments, s_preferCompoundAssignments, Me, optionSet, expressionPreferencesGroupTitle))
+
             ' nothing preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
@@ -575,25 +595,25 @@ End Class"
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 BasicVSResources.In_arithmetic_binary_operators,
                 {s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary},
-                isIgnoreOption:=False)
+                defaultAddForClarity:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherBinaryParentheses,
                 BasicVSResources.In_other_binary_operators,
                 {s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary},
-                isIgnoreOption:=False)
+                defaultAddForClarity:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
                 BasicVSResources.In_relational_binary_operators,
-                {s_relationalBinaryIgnore, s_relationalBinaryNeverIfUnnecessary},
-                isIgnoreOption:=True)
+                {s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary},
+                defaultAddForClarity:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherParentheses,
                 ServicesVSResources.In_other_operators,
-                {s_otherParenthesesIgnore, s_otherParenthesesNeverIfUnnecessary},
-                isIgnoreOption:=True)
+                {s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary},
+                defaultAddForClarity:=False)
         End Sub
     End Class
 End Namespace

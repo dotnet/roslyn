@@ -102,13 +102,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.OpenFileWithDesigner(project.Name, fileName);
 
         public void OpenFile(ProjectUtils.Project project, string fileName)
-            => _inProc.OpenFile(project.Name, fileName);
+        {
+            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
+            _inProc.OpenFile(project.Name, fileName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
             => _inProc.UpdateFile(projectName, fileName, contents, open);
 
         public void RenameFile(ProjectUtils.Project project, string oldFileName, string newFileName)
-            => _inProc.RenameFile(project.Name, oldFileName, newFileName);
+        {
+            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
+            _inProc.RenameFile(project.Name, oldFileName, newFileName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
             => _inProc.CloseFile(project.Name, fileName, saveFile);

@@ -1,26 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Linq
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Public MustInherit Class BasicTestBase
     Inherits CommonTestBase
-
-    Protected Overloads Function GetCompilationForEmit(
-        source As IEnumerable(Of String),
-        additionalRefs() As MetadataReference,
-        options As VisualBasicCompilationOptions,
-        parseOptions As VisualBasicParseOptions
-    ) As VisualBasicCompilation
-        Return DirectCast(MyClass.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
-    End Function
 
     Public Function XCDataToString(Optional data As XCData = Nothing) As String
         Return data?.Value.Replace(vbLf, Environment.NewLine)
@@ -203,45 +191,6 @@ Public MustInherit Class BasicTestBase
             verify)
     End Function
 
-    Friend Shadows Function CompileAndVerify(
-        source As String,
-        allReferences As IEnumerable(Of MetadataReference),
-        Optional expectedOutput As String = Nothing,
-        Optional expectedReturnCode As Integer? = Nothing,
-        Optional args As String() = Nothing,
-        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly) = Nothing,
-        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional emitOptions As EmitOptions = Nothing,
-        Optional assemblyName As String = Nothing,
-        Optional verify As Verification = Verification.Passes
-    ) As CompilationVerifier
-
-        If options Is Nothing Then
-            options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
-        End If
-
-        Dim compilation = CreateEmptyCompilation(source, allReferences, options, parseOptions, assemblyName)
-
-        Return MyBase.CompileAndVerifyCommon(
-            compilation,
-            Nothing,
-            dependencies,
-            Translate(sourceSymbolValidator),
-            validator,
-            Translate(symbolValidator),
-            expectedSignatures,
-            expectedOutput,
-            expectedReturnCode,
-            args,
-            emitOptions,
-            verify)
-    End Function
-
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
@@ -331,6 +280,45 @@ Public MustInherit Class BasicTestBase
             parseOptions:=parseOptions,
             verify:=If(OSVersion.IsWin8, verify, Verification.Skipped),
             useLatestFramework:=useLatestFramework)
+    End Function
+
+    Friend Shadows Function CompileAndVerifyEx(
+        source As BasicTestSource,
+        Optional references As IEnumerable(Of MetadataReference) = Nothing,
+        Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
+        Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
+        Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
+        Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
+        Optional expectedSignatures As SignatureDescription() = Nothing,
+        Optional options As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional emitOptions As EmitOptions = Nothing,
+        Optional assemblyName As String = Nothing,
+        Optional verify As Verification = Verification.Passes,
+        Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime
+    ) As CompilationVerifier
+
+        If options Is Nothing Then
+            options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
+        End If
+
+        Dim compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName)
+        Return MyBase.CompileAndVerifyCommon(
+            compilation,
+            Nothing,
+            dependencies,
+            Translate(sourceSymbolValidator),
+            validator,
+            Translate(symbolValidator),
+            expectedSignatures,
+            expectedOutput,
+            expectedReturnCode,
+            args,
+            emitOptions,
+            verify)
     End Function
 
     ''' <summary>
@@ -784,6 +772,7 @@ Public MustInherit Class BasicTestBase
         Dim semanticModel = compilation.GetSemanticModel(tree)
         Dim operation = semanticModel.GetOperation(node)
         If operation IsNot Nothing Then
+            Assert.Same(semanticModel, operation.SemanticModel)
             Return (OperationTreeVerifier.GetOperationTree(compilation, operation), node, operation)
         Else
             Return (Nothing, Nothing, Nothing)
@@ -812,6 +801,18 @@ Public MustInherit Class BasicTestBase
         If additionalOperationTreeVerifier IsNot Nothing Then
             additionalOperationTreeVerifier(operationTree.operation, compilation, operationTree.syntax)
         End If
+    End Sub
+
+    Protected Shared Sub VerifyFlowGraphForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedFlowGraph As String, Optional which As Integer = 0)
+        Dim tree = compilation.SyntaxTrees(0)
+        Dim syntaxNode As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, tree.FilePath, which, prefixMatch:=True)
+        VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph)
+    End Sub
+
+    Protected Shared Sub VerifyFlowGraph(compilation As VisualBasicCompilation, syntaxNode As SyntaxNode, expectedFlowGraph As String)
+        Dim model = compilation.GetSemanticModel(syntaxNode.SyntaxTree)
+        Dim graph As FlowAnalysis.ControlFlowGraph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model)
+        ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph)
     End Sub
 
     Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
@@ -846,6 +847,11 @@ Public MustInherit Class BasicTestBase
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which, additionalOperationTreeVerifier)
     End Sub
 
+    Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedFlowGraph As String, expectedDiagnostics As String, Optional which As Integer = 0)
+        compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
+        VerifyFlowGraphForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, which)
+    End Sub
+
     Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
         source As String,
         expectedOperationTree As String,
@@ -867,6 +873,26 @@ Public MustInherit Class BasicTestBase
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
     End Sub
 
+    Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
+        testSrc As String,
+        expectedFlowGraph As String,
+        expectedDiagnostics As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
+        Optional useLatestFramework As Boolean = False)
+
+        Dim fileName = "a.vb"
+        Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
+        Dim references As IEnumerable(Of MetadataReference) = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
+            If(useLatestFramework, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))
+        references = If(additionalReferences IsNot Nothing, references.Concat(additionalReferences), references)
+        Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, expectedDiagnostics, which)
+    End Sub
+
+
     Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
     End Function
@@ -879,6 +905,7 @@ Public MustInherit Class BasicTestBase
 
         Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
         Dim operation = semanticModel.GetOperation(node)
+        Assert.Same(semanticModel, operation.SemanticModel)
         Return (operation, node)
     End Function
 

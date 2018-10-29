@@ -1,0 +1,18 @@
+﻿<!-- All Rights Reserved. Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <Import Project="BuildStep.props" />
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+  <Target Name="Clean" />
+  <Target Name="Build" />
+  <Target Name="Test" />
+  <Target Name="Pack" />
+  <Target Name="IntegrationTest" />
+  <Target Name="PerformanceTest" />
+
+  <Import Project="BuildReleasePackages.targets" Condition="'$(UsingToolNuGetRepack)' == 'true'" />
+
+  <!-- Repository extension point -->
+  <Import Project="$(RepositoryEngineeringDir)AfterSolutionBuild.targets" Condition="Exists('$(RepositoryEngineeringDir)AfterSolutionBuild.targets')"/>
+
+</Project>

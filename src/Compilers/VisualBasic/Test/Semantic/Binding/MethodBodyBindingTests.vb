@@ -78,7 +78,8 @@ End Namespace
             Dim meth2 = DirectCast(classC.GetMembers("meth2").Single(), SourceMethodSymbol)
 
             Dim meth1Context As MethodBodyBinder = DirectCast(BinderBuilder.CreateBinderForMethodBody(DirectCast(meth1.ContainingModule, SourceModuleSymbol), meth1.SyntaxTree, meth1), MethodBodyBinder)
-            Dim meth1Binding = MethodBodySemanticModel.Create(meth1Context)
+            Dim model = DirectCast(compilation.GetSemanticModel(meth1Context.SyntaxTree), SyntaxTreeSemanticModel)
+            Dim meth1Binding = MethodBodySemanticModel.Create(model, meth1Context)
             Assert.Same(meth1Context, meth1Binding.RootBinder.ContainingBinder) ' Strip off SemanticModelBinder
 
             ' Make sure parameters, type parameters, and imports are correct.
@@ -103,7 +104,8 @@ End Namespace
             Assert.Equal(classQ1, lr.SingleSymbol)
 
             Dim meth2Context As MethodBodyBinder = DirectCast(BinderBuilder.CreateBinderForMethodBody(DirectCast(meth2.ContainingModule, SourceModuleSymbol), meth2.SyntaxTree, meth2), MethodBodyBinder)
-            Dim meth2Binding = MethodBodySemanticModel.Create(meth2Context)
+            model = DirectCast(compilation.GetSemanticModel(meth2Context.SyntaxTree), SyntaxTreeSemanticModel)
+            Dim meth2Binding = MethodBodySemanticModel.Create(model, meth2Context)
             Assert.Same(meth2Context, meth2Binding.RootBinder.ContainingBinder) ' Strip off SemanticModelBinder
 
             ' Make sure parameters, and imports are correct.

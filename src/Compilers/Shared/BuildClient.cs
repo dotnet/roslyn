@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                 case BuildResponse.ResponseType.MismatchedVersion:
+                case BuildResponse.ResponseType.IncorrectHash:
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     // Build could not be completed on the server.

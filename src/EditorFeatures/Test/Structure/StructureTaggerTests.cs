@@ -171,6 +171,7 @@ End Module";
             var projectionService = workspace.GetService<IProjectionBufferFactoryService>();
 
             var provider = new VisualStudio14StructureTaggerProvider(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 textService, editorService, projectionService,
                 AsynchronousOperationListenerProvider.NullProvider);

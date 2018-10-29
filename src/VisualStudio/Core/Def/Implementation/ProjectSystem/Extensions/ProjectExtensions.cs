@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Roslyn.Utilities;
@@ -12,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
     {
         public static ProjectItem FindOrCreateFolder(this EnvDTE.Project project, IEnumerable<string> containers)
         {
-            Contract.Requires(containers.Any());
+            Debug.Assert(containers.Any());
 
             var currentItems = project.ProjectItems;
             foreach (var container in containers)
