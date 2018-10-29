@@ -34515,8 +34515,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput: @"1");
+            CompileAndVerify(source, expectedOutput: @"1");
         }
 
         [Fact]
@@ -34538,8 +34537,7 @@ public class C : System.Collections.Generic.List<int>
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput: @"1");
+            CompileAndVerify(source, expectedOutput: @"1");
         }
 
     }
