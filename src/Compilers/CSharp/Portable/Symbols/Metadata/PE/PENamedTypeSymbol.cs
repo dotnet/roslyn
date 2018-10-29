@@ -2441,8 +2441,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // containing symbol for the temporary type is the namespace directly.
                 var nestedType = Create(this.ContainingPEModule, (PENamespaceSymbol)this.ContainingNamespace, _handle, null);
                 var nestedTypeParameters = nestedType.TypeParameters;
-                var containingTypeMap = new TypeMap(nonNullTypesContext: container, containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
-                var nestedTypeMap = new TypeMap(nonNullTypesContext: nestedType, nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
+                var containingTypeMap = new TypeMap(containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
+                var nestedTypeMap = new TypeMap(nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
 
                 for (int i = 0; i < n; i++)
                 {

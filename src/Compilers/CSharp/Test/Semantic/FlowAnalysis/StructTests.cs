@@ -407,6 +407,42 @@ public struct Struct
                 );
         }
 
+        [Fact]
+        [WorkItem(30756, "https://github.com/dotnet/roslyn/issues/30756")]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule_PlusNullable()
+        {
+            var source = @"
+internal class C1
+{
+    public struct S
+    {
+        public string data;
+    }
+}
+public struct Struct
+{
+    internal C1.S data;
+}
+";
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugModule));
+            var moduleReference = comp1.EmitToImageReference();
+
+            var source2 =
+@"class Program
+{
+    public static void Main()
+    {
+        Struct r1;
+        var r2 = r1;
+    }
+}";
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
+
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnorePrivateStructFieldsOfReferenceTypeFromAddedModule02()
         {

@@ -537,6 +537,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void AddInjectedSymbols(NamespaceSymbol containingNamespace)
             {
+                if (containingNamespace.DeclaringCompilation.Options.OutputKind.IsNetModule())
+                {
+                    return;
+                }
+
                 const string codeAnalysis = "CodeAnalysis";
                 const string system = "System";
                 const string microsoft = "Microsoft";
