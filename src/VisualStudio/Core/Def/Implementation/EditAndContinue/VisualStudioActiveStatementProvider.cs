@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -37,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 // No exception should be thrown in case of errors on the debugger side. 
                 // The debugger is responsible to provide telemetry for error cases.
-                var workList = DkmWorkList.Create(null); 
+                // The callback should not be called, but it's there to guarantee that the task completes and a hang is avoided.
+                var workList = DkmWorkList.Create(_ => { completion.TrySetResult(ImmutableArray<ActiveStatementDebugInfo>.Empty); });
 
                 void CancelWork()
                 {
@@ -66,98 +67,112 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                             clrRuntimeInstance.GetActiveStatements(workList, activeStatementsResult =>
                             {
-                                if (cancellationToken.IsCancellationRequested)
+                                try
                                 {
-                                    CancelWork();
-                                    return;
-                                }
-
-                                var localBuilders = builders;
-                                if (localBuilders == null) // e.g. cancelled
-                                {
-                                    return;
-                                }
-
-                                if (activeStatementsResult.ErrorCode != 0)
-                                {
-                                    localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
-
-                                    // the last active statement of the last runtime has been processed:
-                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    if (cancellationToken.IsCancellationRequested)
                                     {
-                                        completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
+                                        CancelWork();
+                                        return;
                                     }
 
-                                    return;
-                                }
-
-                                // group active statement by instruction and aggregate flags and threads:
-                                var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
-
-                                GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
-
-                                int pendingStatements = instructionMap.Count;
-                                localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
-                                localBuilders[runtimeIndex].Count = pendingStatements;
-
-                                if (instructionMap.Count == 0)
-                                {
-                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                    var localBuilders = builders;
+                                    if (localBuilders == null) // e.g. cancelled
                                     {
-                                        completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
+                                        return;
                                     }
 
-                                    return;
-                                }
-
-                                foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
-                                {
-                                    var immutableThreads = threads.ToImmutableAndFree();
-
-                                    symbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
+                                    if (activeStatementsResult.ErrorCode != 0)
                                     {
-                                        if (cancellationToken.IsCancellationRequested)
+                                        localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(0);
+
+                                        // the last active statement of the last runtime has been processed:
+                                        if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                         {
-                                            CancelWork();
-                                            return;
+                                            completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
                                         }
 
-                                        DkmSourcePosition position;
-                                        string documentNameOpt;
-                                        LinePositionSpan span;
-                                        if (sourcePositionResult.ErrorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
+                                        return;
+                                    }
+
+                                    // group active statement by instruction and aggregate flags and threads:
+                                    var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
+
+                                    GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
+
+                                    int pendingStatements = instructionMap.Count;
+                                    localBuilders[runtimeIndex] = ArrayBuilder<ActiveStatementDebugInfo>.GetInstance(pendingStatements);
+                                    localBuilders[runtimeIndex].Count = pendingStatements;
+
+                                    if (instructionMap.Count == 0)
+                                    {
+                                        if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                         {
-                                            documentNameOpt = position.DocumentName;
-                                            span = ToLinePositionSpan(position.TextSpan);
-                                        }
-                                        else
-                                        {
-                                            // The debugger can't determine source location for the active statement.
-                                            // The PDB might not be available or the statement is in a method that doesn't have debug information.
-                                            documentNameOpt = null;
-                                            span = default;
+                                            completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
                                         }
 
-                                        localBuilders[runtimeIndex][index] = new ActiveStatementDebugInfo(
-                                            instructionId,
-                                            documentNameOpt,
-                                            span,
-                                            immutableThreads,
-                                            flags);
+                                        return;
+                                    }
 
-                                        // the last active statement of the current runtime has been processed:
-                                        if (Interlocked.Decrement(ref pendingStatements) == 0)
+                                    foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
+                                    {
+                                        var immutableThreads = threads.ToImmutableAndFree();
+
+                                        symbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
                                         {
-                                            // the last active statement of the last runtime has been processed:
-                                            if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                            try
                                             {
-                                                completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
-                                            }
-                                        }
-                                    });
-                                }
+                                                if (cancellationToken.IsCancellationRequested)
+                                                {
+                                                    CancelWork();
+                                                    return;
+                                                }
 
-                                instructionMap.Free();
+                                                DkmSourcePosition position;
+                                                string documentNameOpt;
+                                                LinePositionSpan span;
+                                                if (sourcePositionResult.ErrorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
+                                                {
+                                                    documentNameOpt = position.DocumentName;
+                                                    span = ToLinePositionSpan(position.TextSpan);
+                                                }
+                                                else
+                                                {
+                                                    // The debugger can't determine source location for the active statement.
+                                                    // The PDB might not be available or the statement is in a method that doesn't have debug information.
+                                                    documentNameOpt = null;
+                                                    span = default;
+                                                }
+
+                                                localBuilders[runtimeIndex][index] = new ActiveStatementDebugInfo(
+                                                    instructionId,
+                                                    documentNameOpt,
+                                                    span,
+                                                    immutableThreads,
+                                                    flags);
+
+                                                // the last active statement of the current runtime has been processed:
+                                                if (Interlocked.Decrement(ref pendingStatements) == 0)
+                                                {
+                                                    // the last active statement of the last runtime has been processed:
+                                                    if (Interlocked.Decrement(ref pendingRuntimes) == 0)
+                                                    {
+                                                        completion.TrySetResult(localBuilders.ToFlattenedImmutableArrayAndFree());
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                completion.TrySetException(e);
+                                            }
+                                        });
+                                    }
+
+                                    instructionMap.Free();
+                                }
+                                catch (Exception e)
+                                {
+                                    completion.TrySetException(e);
+                                }
                             });
                         }
                     }
