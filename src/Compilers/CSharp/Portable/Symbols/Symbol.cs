@@ -1289,8 +1289,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool ISymbol.IsStatic
         {
-            get { return this.IsStatic; }
+            get { return this.PublicIsStatic; }
         }
+
+        // LocalFunctionSymbol needs to be able to provide different functionality for ISymbol.IsStatic than for Symbol.IsStatic, without
+        // also overriding all other explicit implementations of ISymbol methods and properties. This provides a level of indirection for
+        // it to do so.
+        protected virtual bool PublicIsStatic => this.IsStatic;
 
         bool ISymbol.IsVirtual
         {

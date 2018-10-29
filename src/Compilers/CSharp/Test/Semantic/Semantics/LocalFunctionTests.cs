@@ -3891,5 +3891,29 @@ var lambda = new System.Action(() =>
             CreateSubmission(source, previous: previous)
                 .VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void LocalFunctionsAreNotStatic()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        void LocalFunc()
+        {
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+            var localFuncDecl = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFuncSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(localFuncDecl);
+
+            Assert.False(localFuncSymbol.IsStatic);
+        }
     }
 }

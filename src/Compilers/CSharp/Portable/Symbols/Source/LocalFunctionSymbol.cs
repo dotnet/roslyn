@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
@@ -341,7 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync => (_declarationModifiers & DeclarationModifiers.Async) != 0;
 
-        public override bool IsStatic => (_declarationModifiers & DeclarationModifiers.Static) != 0;
+        public override bool IsStatic => true;
+
+        // LocalFunctions are always emitted as static, so the internal IsStatic property should always return IsTrue. The public
+        // ISymbol property, on the other hand, should only return true for local functions declared with the static modifier.
+        protected override bool PublicIsStatic => (_declarationModifiers & DeclarationModifiers.Static) != 0;
 
         public override bool IsVirtual => (_declarationModifiers & DeclarationModifiers.Virtual) != 0;
 
