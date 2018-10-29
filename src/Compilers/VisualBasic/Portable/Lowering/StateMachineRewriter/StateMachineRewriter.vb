@@ -271,13 +271,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We'll create proxies for these variable later:
                 ' TODO: so, we have to check if it is already in or not. See the early impl.
 
-                'If initializers.ContainsKey(local) Then
-                Debug.Assert(initializers.ContainsKey(local))
+                If initializers.ContainsKey(local) Then
+                    Debug.Assert(initializers.ContainsKey(local))
                     proxy = CreateByRefLocalCapture(typeMap, local, initializers)
                     nonReusableLocalProxies.Add(local, proxy)
 
-                'Return proxy
-                'End If
+                    'Return proxy
+                End If
             End If
 
             ' Variable needs to be hoisted.

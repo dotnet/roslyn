@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Me._builder IsNot Nothing Then
                     Me._builder.Add(slot)
 
-                ElseIf _singleValue = 0 Then
+                ElseIf Me._singleValue = 0 Then
                     Me._singleValue = slot
 
                 Else

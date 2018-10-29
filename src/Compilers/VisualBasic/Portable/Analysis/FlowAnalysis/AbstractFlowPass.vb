@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> Split state </summary>
         Protected Sub Split()
-            If Not IsConditionalState Then
+            If Not Me.IsConditionalState Then
                 SetConditionalState(Me.State, Me.State.Clone())
             End If
         End Sub
@@ -2166,7 +2166,7 @@ EnteredRegion:
                         VisitCondition(binary.Right)
                         Dim resultTrue As LocalState = Me.StateWhenTrue
                         Dim resultFalse As LocalState = leftFalse
-                        Me.IntersectWith(resultFalse, StateWhenFalse)
+                        IntersectWith(resultFalse, Me.StateWhenFalse)
                         Me.SetConditionalState(resultTrue, resultFalse)
                         Exit Select
                     Case BinaryOperatorKind.OrElse
@@ -2547,10 +2547,10 @@ EnteredRegion:
             VisitCondition(node.Condition)
             Debug.Assert(Me.IsConditionalState)
             If node.JumpIfTrue Then
-                Me._pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
                 Me.SetState(Me.StateWhenFalse)
             Else
-                Me._pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
+                _pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
                 Me.SetState(Me.StateWhenTrue)
             End If
 

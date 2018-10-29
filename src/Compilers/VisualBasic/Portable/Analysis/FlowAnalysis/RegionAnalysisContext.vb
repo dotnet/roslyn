@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._region = Nothing
             Me._firstInRegion = Nothing
             Me._lastInRegion = Nothing
-            Failed = True
+            Me.Failed = True
         End Sub
 
         Friend ReadOnly Property AnalysisInfo As FlowAnalysisInfo

@@ -45,16 +45,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        )
 
             MyBase.New(info, region, unassignedVariables, trackUnassignments:=True, trackStructsWithIntrinsicTypedFields:=True)
-            _dataFlowsIn = dataFlowsIn
-            _originalUnassigned = originalUnassigned
-            _dataFlowsOut = PooledObjects.PooledHashSet(Of Symbol).GetInstance
+            Me._dataFlowsIn = dataFlowsIn
+            Me._originalUnassigned = originalUnassigned
+            Me._dataFlowsOut = PooledObjects.PooledHashSet(Of Symbol).GetInstance
         End Sub
 
         Protected Overrides Sub Free()
 #If DEBUG Then
-            _assignedInside?.Free()
+            Me._assignedInside?.Free()
 #End If
-            _dataFlowsOut?.Free()
+            Me._dataFlowsOut?.Free()
             MyBase.Free()
         End Sub
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            Dim walker As New DataFlowsOutWalker(info, region, unassignedWithoutStatic.ToImmutableArrayOrEmpty, unassignedVariables, dataFlowsIn)
+            Dim walker = New DataFlowsOutWalker(info, region, unassignedWithoutStatic.ToImmutableArrayOrEmpty, unassignedVariables, dataFlowsIn)
             Try
                 Dim success = walker.Analyze
                 Dim result = walker.dataFlowsOut
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' any reachable assignment to a ref or out parameter can 
                 ' be visible to the caller in the face of exceptions.
-                If State.Reachable Then
+                If Me.State.Reachable Then
                     Select Case node.Kind
 
                         Case BoundKind.Parameter, BoundKind.MeReference

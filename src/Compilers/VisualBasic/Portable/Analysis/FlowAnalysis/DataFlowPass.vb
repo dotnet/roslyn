@@ -108,8 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New(info As FlowAnalysisInfo, suppressConstExpressionsSupport As Boolean, Optional trackStructsWithIntrinsicTypedFields As Boolean = False)
             MyBase.New(info, suppressConstExpressionsSupport)
-            _initiallyAssignedVariables = Nothing
-            _trackStructsWithIntrinsicTypedFields = trackStructsWithIntrinsicTypedFields
+            Me._initiallyAssignedVariables = Nothing
+            Me._trackStructsWithIntrinsicTypedFields = trackStructsWithIntrinsicTypedFields
         End Sub
 
         Friend Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 variableBySlot(slot) = varIdentifier
             End If
 
-            Normalize(Me.State)
+            Me.Normalize(Me.State)
             Return slot
         End Function
 
@@ -1479,7 +1479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IntersectWith(finallyState, Me._tryState.Value)
 
                 If oldTryState.HasValue Then
-                    Dim tryState = _tryState.Value
+                    Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
                 Else
@@ -1517,7 +1517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
                 Else
-                    _tryState = oldTryState
+                    Me._tryState = oldTryState
                 End If
             Else
                 MyBase.VisitFinallyBlock(finallyBlock, unsetInFinally)
@@ -1557,7 +1557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub LeaveParameter(parameter As ParameterSymbol)
             If parameter.IsByRef Then
                 Dim slot = VariableSlot(parameter)
-                If Not State.IsAssigned(slot) Then
+                If Not Me.State.IsAssigned(slot) Then
                     ReportUnassignedByRefParameter(parameter)
                 End If
                 NoteRead(parameter)
@@ -1719,8 +1719,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
-            Dim oldSymbol = symbol
-            symbol = node.LambdaSymbol
+            Dim oldSymbol = Me.symbol
+            Me.symbol = node.LambdaSymbol
             Dim finalState As LocalState = Me.State.Clone()
 
             VisitRvalue(node.Expression)
