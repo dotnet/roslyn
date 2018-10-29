@@ -928,5 +928,14 @@ class C
 @"string x; [||]if (x.Length > 0.0f) { GreaterThanZero(); } else { EqualsZero(); } } } ",
 @"string x; if (x.Length <= 0.0f) { EqualsZero(); } else { GreaterThanZero(); } } } ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(29434, "https://github.com/dotnet/roslyn/issues/29434")]
+        public async Task TestIsExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
+@"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
+        }
     }
 }

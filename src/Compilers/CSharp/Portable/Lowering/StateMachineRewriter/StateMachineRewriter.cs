@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ShouldPreallocateNonReusableProxy(local))
                     {
                         // variable needs to be hoisted
-                        var fieldType = typeMap.SubstituteType(local.Type).Type;
+                        var fieldType = typeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol;
 
                         LocalDebugId id;
                         int slotIndex = -1;
@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method 
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValues);
+                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, parameter.Name, isPublic: !PreserveInitialParameterValues);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
+                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentFunction = method;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
+            var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments, unbound: false) : stateMachineType;
             LocalSymbol stateMachineVariable = F.SynthesizedLocal(frameType, null);
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 
@@ -324,6 +324,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
             F.CurrentFunction = result;
             return result;
+        }
+
+        /// <summary>
+        /// Produce Environment.CurrentManagedThreadId if available, otherwise CurrentThread.ManagedThreadId
+        /// </summary>
+        protected BoundExpression MakeCurrentThreadId()
+        {
+            Debug.Assert(CanGetThreadId());
+            var currentManagedThreadIdProperty = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true);
+            if ((object)currentManagedThreadIdProperty != null)
+            {
+                MethodSymbol currentManagedThreadIdMethod = currentManagedThreadIdProperty.GetMethod;
+                if ((object)currentManagedThreadIdMethod != null)
+                {
+                    return F.Call(null, currentManagedThreadIdMethod);
+                }
+            }
+
+            return F.Property(F.Property(WellKnownMember.System_Threading_Thread__CurrentThread), WellKnownMember.System_Threading_Thread__ManagedThreadId);
+        }
+
+        /// <summary>
+        /// Returns true if either Thread.ManagedThreadId or Environment.CurrentManagedThreadId are available
+        /// </summary>
+        protected bool CanGetThreadId()
+        {
+            return (object)F.WellKnownMember(WellKnownMember.System_Threading_Thread__ManagedThreadId, isOptional: true) != null ||
+                (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null;
         }
     }
 }

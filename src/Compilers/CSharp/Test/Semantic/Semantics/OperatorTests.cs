@@ -3127,7 +3127,7 @@ class C
                 select edge.Key.Text + ": " + (node.Value != null ? node.Value.ToString() : "<null>"));
         }
 
-        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbol>? arguments)
+        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbolWithAnnotations>? arguments)
         {
             if (arguments == null || arguments.Value.IsEmpty)
             {
@@ -3141,7 +3141,7 @@ class C
                 {
                     s += ", ";
                 }
-                s += arguments.Value[i].ToString();
+                s += arguments.Value[i].TypeSymbol.ToString();
             }
 
             return s + ">";
@@ -3154,7 +3154,7 @@ class C
                 let node = edge.Value
                 where node.Text == "dynamicMemberAccess"
                 let name = node["name"]
-                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbol>?
+                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbolWithAnnotations>?
                 select name.Value.ToString() + FormatTypeArgumentList(typeArguments));
         }
 
@@ -6448,7 +6448,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
-                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0] == m.ParameterTypes[1]);
+                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0].Equals(m.ParameterTypes[1], TypeCompareKind.CompareNullableModifiersForReferenceTypes));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -7055,7 +7055,7 @@ public class RubyTime
             Assert.False(symbol1.CanBeReferencedByName);
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
-            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type);
+            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol);
             Assert.Equal(0, symbol1.Locations.Length);
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
@@ -7129,7 +7129,7 @@ class Module1
             }
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason="https://github.com/mono/mono/issues/10917")]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =
@@ -7605,20 +7605,20 @@ class Module1
                 {
                     if (leftType.IsPointerType())
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type, leftType);
-                        Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
+                        Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                     }
                     else
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type, rightType, rightType);
-                        Assert.True(symbol1.Parameters[0].Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type.TypeSymbol, rightType, rightType);
+                        Assert.True(symbol1.Parameters[0].Type.TypeSymbol.IsIntegralType());
                     }
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     (leftType.IsPointerType() && (rightType.IsIntegralType() || rightType.IsCharType())))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type, leftType);
-                    Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
+                    Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
                 }
                 else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && leftType == rightType)
                 {
@@ -7824,20 +7824,20 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type || symbol1.ContainingSymbol == symbol1.Parameters[1].Type);
+            Assert.True(symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol || symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol);
 
             int match = 0;
-            if (symbol1.ContainingSymbol == symbol1.ReturnType)
+            if (symbol1.ContainingSymbol == symbol1.ReturnType.TypeSymbol)
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type)
+            if (symbol1.ContainingSymbol == symbol1.Parameters[0].Type.TypeSymbol)
             {
                 match++;
             }
 
-            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type)
+            if (symbol1.ContainingSymbol == symbol1.Parameters[1].Type.TypeSymbol)
             {
                 match++;
             }

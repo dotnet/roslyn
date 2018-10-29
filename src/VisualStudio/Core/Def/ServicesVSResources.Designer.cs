@@ -1045,6 +1045,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate .editorconfig file from settings.
+        /// </summary>
+        internal static string Generate_dot_editorconfig_file_from_settings {
+            get {
+                return ResourceManager.GetString("Generate_dot_editorconfig_file_from_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate Type.
         /// </summary>
         internal static string Generate_Type {
@@ -1268,6 +1277,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Keep_all_parentheses_in_colon {
             get {
                 return ResourceManager.GetString("Keep_all_parentheses_in_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Kind.
+        /// </summary>
+        internal static string Kind {
+            get {
+                return ResourceManager.GetString("Kind", resourceCulture);
             }
         }
         
@@ -1786,6 +1804,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer compound assignments.
+        /// </summary>
+        internal static string Prefer_compound_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_compound_assignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with assignments.
         /// </summary>
         internal static string Prefer_conditional_expression_over_if_with_assignments {
@@ -1827,6 +1854,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_framework_type {
             get {
                 return ResourceManager.GetString("Prefer_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer index operator.
+        /// </summary>
+        internal static string Prefer_index_operator {
+            get {
+                return ResourceManager.GetString("Prefer_index_operator", resourceCulture);
             }
         }
         
@@ -1890,6 +1926,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer range operator.
+        /// </summary>
+        internal static string Prefer_range_operator {
+            get {
+                return ResourceManager.GetString("Prefer_range_operator", resourceCulture);
             }
         }
         
@@ -2238,6 +2283,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Sample_Identifier_colon {
             get {
                 return ResourceManager.GetString("Sample_Identifier_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save .editorconfig file.
+        /// </summary>
+        internal static string Save_dot_editorconfig_file {
+            get {
+                return ResourceManager.GetString("Save_dot_editorconfig_file", resourceCulture);
             }
         }
         

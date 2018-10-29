@@ -436,13 +436,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 await ProcessCompilationEventsAsync(analysisScope, analysisStateOpt, usingPrePopulatedEventQueue, cancellationToken).ConfigureAwait(false);
 
-#if DEBUG
                 // If not using pre-populated event queue (batch mode), then verify all symbol end actions were processed.
                 if (!usingPrePopulatedEventQueue)
                 {
                     AnalyzerManager.VerifyAllSymbolEndActionsExecuted();
                 }
-#endif
             }
         }
 

@@ -2350,23 +2350,23 @@ class C
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
             var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.IsErrorType());
+            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
-            Assert.Equal(tooMany, parameter.Type.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
 

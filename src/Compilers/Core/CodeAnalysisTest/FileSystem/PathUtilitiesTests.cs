@@ -309,16 +309,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 ("data1//", false),
                 (null, false),
                 ("", false),
-                ("  ", PathUtilities.IsUnixLikePlatform),
-                ("path/?.txt", ExecutionConditionUtil.IsCoreClr),
-                ("path/*.txt", ExecutionConditionUtil.IsCoreClr),
-                ("path/:.txt", ExecutionConditionUtil.IsCoreClr),
-                ("path/\".txt", ExecutionConditionUtil.IsCoreClr),
+                ("  ", ExecutionConditionUtil.IsCoreClrUnix),
+                ("path/?.txt", !ExecutionConditionUtil.IsWindowsDesktop),
+                ("path/*.txt", !ExecutionConditionUtil.IsWindowsDesktop),
+                ("path/:.txt", !ExecutionConditionUtil.IsWindowsDesktop),
+                ("path/\".txt", !ExecutionConditionUtil.IsWindowsDesktop),
                 ("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
             "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
             "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
             "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
-            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.txt", ExecutionConditionUtil.IsCoreClr)
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.txt", !ExecutionConditionUtil.IsWindowsDesktop)
             };
 
             foreach (var (path, isValid) in cases)

@@ -27,9 +27,24 @@
         <target state="translated">不再顯示此訊息</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="new">Extract method encountered the following issues:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="new">Format Document performed additional cleanup</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="new">Paste Tracking</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -880,16 +895,6 @@
       <trans-unit id="Automatic_Formatting">
         <source>Automatic Formatting</source>
         <target state="translated">自動格式化</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_method_failed_with_following_reasons_colon">
-        <source>Extract method failed with following reasons :</source>
-        <target state="translated">擷取方法失敗，原因如下:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_you_still_want_to_proceed_it_will_generate_broken_code">
-        <source>Do you still want to proceed? it will generate broken code.</source>
-        <target state="translated">仍要繼續嗎? 如此會產生不完整的程式碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">

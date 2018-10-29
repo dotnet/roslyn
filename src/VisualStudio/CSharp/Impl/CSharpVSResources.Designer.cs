@@ -151,6 +151,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# Coding Conventions.
+        /// </summary>
+        internal static string CSharp_Coding_Conventions {
+            get {
+                return ResourceManager.GetString("CSharp_Coding_Conventions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# Formatting Rules.
+        /// </summary>
+        internal static string CSharp_Formatting_Rules {
+            get {
+                return ResourceManager.GetString("CSharp_Formatting_Rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
         /// </summary>
         internal static string Do_not_prefer_this {
@@ -245,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         /// </summary>
         internal static string Generate_Event_Subscription {
             get {
-                return ResourceManager.GetString("Generate Event Subscription", resourceCulture);
+                return ResourceManager.GetString("Generate_Event_Subscription", resourceCulture);
             }
         }
         

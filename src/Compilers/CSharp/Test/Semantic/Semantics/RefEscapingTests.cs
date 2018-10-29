@@ -3514,5 +3514,56 @@ readonly ref struct Test
                 //         this = ref obj;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
         }
+
+        [Fact]
+        [WorkItem(29927, "https://github.com/dotnet/roslyn/issues/29927")]
+        public void CoalesceSpanReturn()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    Span<byte> M()
+    {       
+        return null ?? new Span<byte>();
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(29927, "https://github.com/dotnet/roslyn/issues/29927")]
+        public void CoalesceAssignSpanReturn()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    Span<byte> M()
+    {       
+        var x = null ?? new Span<byte>();
+        return x;
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(29927, "https://github.com/dotnet/roslyn/issues/29927")]
+        public void CoalesceRefSpanReturn()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    Span<byte> M()
+    {       
+        Span<byte> x = stackalloc byte[10];
+        return null ?? x;
+    }
+}", options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (8,24): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return null ?? x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(8, 24)
+                );
+        }
     }
 }

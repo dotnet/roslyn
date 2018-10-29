@@ -3153,11 +3153,11 @@ class Error
             var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
+            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single().TypeSymbol;
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
-            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type;
+            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type.TypeSymbol;
             Assert.Equal("I<A.ProtectedClass>", paramTypeSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Type should be inaccessible since type argument is inaccessible");
 
@@ -21269,7 +21269,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/18610")]
         public void CS1592WRN_XMLParseIncludeError()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");

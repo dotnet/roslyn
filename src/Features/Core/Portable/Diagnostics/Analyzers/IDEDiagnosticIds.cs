@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class IDEDiagnosticIds
@@ -83,6 +87,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnreadMembersDiagnosticId = "IDE0052";
 
         public const string UseExpressionBodyForLambdaExpressionsDiagnosticId = "IDE0053";
+
+        public const string UseCompoundAssignmentDiagnosticId = "IDE0054";
+
+        public const string FormattingDiagnosticId = "IDE0055";
+
+        public const string UseIndexOperatorDiagnosticId = "IDE0056";
+        public const string UseRangeOperatorDiagnosticId = "IDE0057";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

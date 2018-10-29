@@ -400,10 +400,11 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        // Swap the first and last elements of a read-only array, yielding a new read only array.
-        // Used in DEBUG to make sure that read-only array is not sorted.
-        internal static ImmutableArray<T> DeOrder<T>(this ImmutableArray<T> array)
+        // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
+        // This helps to avoid depending on accidentally sorted arrays.
+        internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
         {
+#if DEBUG
             if (!array.IsDefault && array.Length >= 2)
             {
                 T[] copy = array.ToArray();
@@ -413,10 +414,8 @@ namespace Microsoft.CodeAnalysis
                 copy[last] = temp;
                 return copy.AsImmutable();
             }
-            else
-            {
-                return array;
-            }
+#endif
+            return array;
         }
 
         internal static ImmutableArray<TValue> Flatten<TKey, TValue>(
@@ -538,6 +537,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return dictionary;
+        }
+
+        internal static Location FirstOrNone(this ImmutableArray<Location> items)
+        {
+            return items.IsEmpty ? Location.None : items[0];
         }
     }
 }

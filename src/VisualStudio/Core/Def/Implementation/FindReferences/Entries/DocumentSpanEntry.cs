@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         {
             private readonly DocumentHighlighting.HighlightSpanKind _spanKind;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpansAndHighlights;
+            private readonly ImmutableDictionary<string, string> _customColumnsData;
 
             public DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
@@ -44,11 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 string documentName,
                 Guid projectGuid,
                 SourceText sourceText,
-                ClassifiedSpansAndHighlightSpan classifiedSpans)
+                ClassifiedSpansAndHighlightSpan classifiedSpans,
+                ImmutableDictionary<string, string> customColumnsData)
                 : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
             {
                 _spanKind = spanKind;
                 _classifiedSpansAndHighlights = classifiedSpans;
+                _customColumnsData = customColumnsData;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()
@@ -98,6 +101,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return false;
             }
+
+            protected override object GetValueWorker(string keyName)
+                => _customColumnsData.TryGetValue(keyName, out var value) ? value : base.GetValueWorker(keyName);
 
             private DisposableToolTip CreateDisposableToolTip()
             {

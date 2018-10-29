@@ -1052,6 +1052,9 @@ This version used in: {2}</value>
   <data name="Use_pattern_matching" xml:space="preserve">
     <value>Use pattern matching</value>
   </data>
+  <data name="Use_interpolated_verbatim_string" xml:space="preserve">
+    <value>Use interpolated verbatim string</value>
+  </data>
   <data name="Use_expression_body_for_methods" xml:space="preserve">
     <value>Use expression body for methods</value>
   </data>
@@ -1436,10 +1439,46 @@ This version used in: {2}</value>
   <data name="Code_Quality" xml:space="preserve">
     <value>Code Quality</value>
   </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
   </data>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
+  </data>
+  <data name="Introduce_constant" xml:space="preserve">
+    <value>Introduce constant</value>
+  </data>
+  <data name="Introduce_field" xml:space="preserve">
+    <value>Introduce field</value>
+  </data>
+  <data name="Introduce_local" xml:space="preserve">
+    <value>Introduce local</value>
+  </data>
+  <data name="Introduce_query_variable" xml:space="preserve">
+    <value>Introduce query variable</value>
+  </data>
+  <data name="Failed_to_analyze_data_flow_for_0" xml:space="preserve">
+    <value>Failed to analyze data-flow for: {0}</value>
+  </data>
+  <data name="Fix_formatting" xml:space="preserve">
+    <value>Fix formatting</value>
+  </data>
+  <data name="Indexing_can_be_simplified" xml:space="preserve">
+    <value>Indexing can be simplified</value>
+  </data>
+  <data name="Use_index_operator" xml:space="preserve">
+    <value>Use index operator</value>
+  </data>
+  <data name="Use_range_operator" xml:space="preserve">
+    <value>Use range operator</value>
+  </data>
+  <data name="_0_can_be_simplified" xml:space="preserve">
+    <value>{0} can be simplified</value>
   </data>
 </root>

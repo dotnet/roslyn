@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} can be simplified.
+        /// </summary>
+        internal static string _0_can_be_simplified {
+            get {
+                return ResourceManager.GetString("_0_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} Keyword.
         /// </summary>
         internal static string _0_Keyword {
@@ -1280,6 +1289,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to analyze data-flow for: {0}.
+        /// </summary>
+        internal static string Failed_to_analyze_data_flow_for_0 {
+            get {
+                return ResourceManager.GetString("Failed_to_analyze_data_flow_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create a remote process for interactive code execution..
         /// </summary>
         internal static string Failed_to_create_a_remote_process_for_interactive_code_execution {
@@ -1357,6 +1375,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Fix_all_occurrences {
             get {
                 return ResourceManager.GetString("Fix_all_occurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix formatting.
+        /// </summary>
+        internal static string Fix_formatting {
+            get {
+                return ResourceManager.GetString("Fix_formatting", resourceCulture);
             }
         }
         
@@ -1838,6 +1865,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indexing can be simplified.
+        /// </summary>
+        internal static string Indexing_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Indexing_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
         /// </summary>
         internal static string Initialize_field_0 {
@@ -1928,6 +1964,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce constant.
+        /// </summary>
+        internal static string Introduce_constant {
+            get {
+                return ResourceManager.GetString("Introduce_constant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce constant for &apos;{0}&apos;.
         /// </summary>
         internal static string Introduce_constant_for_0 {
@@ -1946,6 +1991,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Introduce field.
+        /// </summary>
+        internal static string Introduce_field {
+            get {
+                return ResourceManager.GetString("Introduce_field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce field for &apos;{0}&apos;.
         /// </summary>
         internal static string Introduce_field_for_0 {
@@ -1960,6 +2014,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Introduce_field_for_all_occurrences_of_0 {
             get {
                 return ResourceManager.GetString("Introduce_field_for_all_occurrences_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduce local.
+        /// </summary>
+        internal static string Introduce_local {
+            get {
+                return ResourceManager.GetString("Introduce_local", resourceCulture);
             }
         }
         
@@ -1996,6 +2059,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Introduce_local_for_all_occurrences_of_0 {
             get {
                 return ResourceManager.GetString("Introduce_local_for_all_occurrences_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduce query variable.
+        /// </summary>
+        internal static string Introduce_query_variable {
+            get {
+                return ResourceManager.GetString("Introduce_query_variable", resourceCulture);
             }
         }
         
@@ -2301,6 +2373,16 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_t" +
                         "he_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}..
+        /// </summary>
+        internal static string Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error {
+            get {
+                return ResourceManager.GetString("Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_inter" +
+                        "nal_error", resourceCulture);
             }
         }
         
@@ -3780,6 +3862,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use compound assignment.
+        /// </summary>
+        internal static string Use_compound_assignment {
+            get {
+                return ResourceManager.GetString("Use_compound_assignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use explicitly provided tuple name.
         /// </summary>
         internal static string Use_explicitly_provided_tuple_name {
@@ -3861,11 +3952,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use index operator.
+        /// </summary>
+        internal static string Use_index_operator {
+            get {
+                return ResourceManager.GetString("Use_index_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use inferred member name.
         /// </summary>
         internal static string Use_inferred_member_name {
             get {
                 return ResourceManager.GetString("Use_inferred_member_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use interpolated verbatim string.
+        /// </summary>
+        internal static string Use_interpolated_verbatim_string {
+            get {
+                return ResourceManager.GetString("Use_interpolated_verbatim_string", resourceCulture);
             }
         }
         
@@ -3912,6 +4021,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_pattern_matching {
             get {
                 return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use range operator.
+        /// </summary>
+        internal static string Use_range_operator {
+            get {
+                return ResourceManager.GetString("Use_range_operator", resourceCulture);
             }
         }
         

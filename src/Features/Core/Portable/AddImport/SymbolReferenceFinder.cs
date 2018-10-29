@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     tasks.Add(this.GetReferencesForCollectionInitializerMethodsAsync(searchScope));
                     tasks.Add(this.GetReferencesForQueryPatternsAsync(searchScope));
                     tasks.Add(this.GetReferencesForDeconstructAsync(searchScope));
+                    tasks.Add(this.GetReferencesForGetAwaiterAsync(searchScope));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -457,6 +458,28 @@ namespace Microsoft.CodeAnalysis.AddImport
                         // find extension methods named "Select"
                         return await GetReferencesForExtensionMethodAsync(
                             searchScope, nameof(Enumerable.Select), type).ConfigureAwait(false);
+                    }
+                }
+
+                return ImmutableArray<SymbolReference>.Empty;
+            }
+
+            /// <summary>
+            /// Searches for extension methods exactly called 'GetAwaiter'.  Returns
+            /// <see cref="SymbolReference"/>s to the <see cref="INamespaceSymbol"/>s that contain
+            /// the static classes that those extension methods are contained in.
+            /// </summary>
+            private async Task<ImmutableArray<SymbolReference>> GetReferencesForGetAwaiterAsync(SearchScope searchScope)
+            {
+                searchScope.CancellationToken.ThrowIfCancellationRequested();
+
+                if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
+                {
+                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node, searchScope.CancellationToken);
+                    if (type != null)
+                    {
+                        return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
+                            m => m.IsValidGetAwaiter()).ConfigureAwait(false); 
                     }
                 }
 

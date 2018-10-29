@@ -16,11 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioRuleSetManager _ruleSetManager;
             private readonly object _gate = new object();
 
-            /// <summary>
-            /// The list of file trackers we have. This is null if we haven't even computed trackers yet; but can be empty if we
-            /// already know the file was modified and we unsubscribed.
-            /// </summary>
-            private List<FileChangeTracker> _trackers;
+            private FileChangeWatcher.IContext _fileChangeContext;
 
             private ReportDiagnostic _generalDiagnosticOption;
             private ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
@@ -36,11 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _ruleSetManager = ruleSetManager;
             }
 
-            public void InitializeFileTracking(IVsFileChangeEx fileChangeService)
+            public void InitializeFileTracking(FileChangeWatcher fileChangeWatcher)
             {
                 lock (_gate)
                 {
-                    if (_trackers == null)
+                    if (_fileChangeContext == null)
                     {
                         ImmutableArray<string> includes;
 
@@ -60,15 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             includes = ImmutableArray.Create(FilePath);
                         }
 
-                        _trackers = new List<FileChangeTracker>(capacity: includes.Length);
+                        _fileChangeContext = fileChangeWatcher.CreateContext();
+                        _fileChangeContext.FileChanged += IncludeUpdated;
 
                         foreach (var include in includes)
                         {
-                            var tracker = new FileChangeTracker(fileChangeService, include);
-                            tracker.UpdatedOnDisk += IncludeUpdated;
-                            tracker.StartFileChangeListeningAsync();
-
-                            _trackers.Add(tracker);
+                            _fileChangeContext.EnqueueWatchingFile(include);
                         }
                     }
                 }
@@ -108,11 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     if (!_subscribed)
                     {
-                        foreach (var tracker in _trackers)
-                        {
-                            tracker.EnsureSubscription();
-                        }
-
+                        // TODO: ensure subscriptions now
                         _subscribed = true;
                     }
                 }
@@ -155,13 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 lock (_gate)
                 {
-                    foreach (var tracker in _trackers)
-                    {
-                        tracker.UpdatedOnDisk -= IncludeUpdated;
-                        tracker.Dispose();
-                    }
-
-                    _trackers.Clear();
+                    _fileChangeContext.Dispose();
 
                     if (_removedFromRuleSetManager)
                     {
@@ -169,14 +152,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     _removedFromRuleSetManager = true;
-
                 }
 
                 // Call outside of lock to avoid general surprises; we skip this with the return above inside the lock.
                 _ruleSetManager.StopTrackingRuleSetFile(this);
             }
 
-            private void IncludeUpdated(object sender, EventArgs e)
+            private void IncludeUpdated(object sender, string fileChanged)
             {
                 // The file change service is going to notify us of updates on the foreground thread.
                 // This is going to cause us to drop our existing subscriptions and create new ones.
