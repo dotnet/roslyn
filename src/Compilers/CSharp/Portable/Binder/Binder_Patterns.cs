@@ -104,12 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindRecursivePattern((RecursivePatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
 
                 case SyntaxKind.VarPattern:
-                    if (inputType.TypeKind == TypeKind.Pointer)
-                    {
-                        // pattern-matching is not permitted for pointer types
-                        diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
-                    }
-
                     return BindVarPattern((VarPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
 
                 default:
