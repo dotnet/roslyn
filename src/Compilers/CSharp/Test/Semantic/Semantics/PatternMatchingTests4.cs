@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -867,6 +869,57 @@ public class C : System.Runtime.CompilerServices.ITuple
                 //         var r = t is (X: 3, Y: 4, Z: 5);
                 Diagnostic(ErrorCode.ERR_ArgumentNameInITuplePattern, "Z:").WithLocation(6, 35)
                 );
+        }
+
+        [Fact]
+        public void SymbolInfoForPositionalSubpattern()
+        {
+            var source =
+@"using C2 = System.ValueTuple<int, int>;
+public class Program
+{
+    public static void Main()
+    {
+        C1 c1 = null;
+        if (c1 is (1, 2)) {}       // [0]
+        if (c1 is (1, 2) Z1) {}    // [1]
+        if (c1 is (1, 2) {}) {}    // [2]
+        if (c1 is C1(1, 2) {}) {}  // [3]
+
+        (int X, int Y) c2 = (1, 2);
+        if (c2 is (1, 2)) {}       // [4]
+        if (c2 is (1, 2) Z2) {}    // [5]
+        if (c2 is (1, 2) {}) {}    // [6]
+        if (c2 is C2(1, 2) {}) {}  // [7]
+    }
+}
+class C1
+{
+    public void Deconstruct(out int X, out int Y) => X = Y = 0;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var dpcss = tree.GetRoot().DescendantNodes().OfType<DeconstructionPatternClauseSyntax>().ToArray();
+            for (int i = 0; i < dpcss.Length; i++)
+            {
+                var dpcs = dpcss[i];
+                var symbolInfo = model.GetSymbolInfo(dpcs);
+                if (i <= 3)
+                {
+                    Assert.Equal("void C1.Deconstruct(out System.Int32 X, out System.Int32 Y)", symbolInfo.Symbol.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Null(symbolInfo.Symbol);
+                }
+
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Empty(symbolInfo.CandidateSymbols);
+            }
         }
     }
 }
