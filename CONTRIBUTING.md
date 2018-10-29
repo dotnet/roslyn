@@ -11,7 +11,7 @@ Guidelines for contributing to the Roslyn repo.
 - **DO** submit issues for other features. This facilitates discussion of a feature separately from its implementation, and increases the acceptance rates for pull requests.
 - **DO NOT** submit large code formatting changes without discussing with the team first.
 
-When you are ready to proceed with making a change, get set up to [build](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) the code and familiarize yourself with our developer workflow. 
+When you are ready to proceed with making a change, get set up to build (either on [Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) or on [Unix](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Unix.md)) the code and familiarize yourself with our developer workflow. 
 
 These two blogs posts on contributing code to open source projects are good too: [Open Source Contribution Etiquette](http://tirania.org/blog/archive/2010/Dec-31.html) by Miguel de Icaza and [Don’t “Push” Your Pull Requests](https://www.igvita.com/2011/12/19/dont-push-your-pull-requests/) by Ilya Grigorik.
 
