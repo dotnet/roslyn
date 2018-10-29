@@ -1,36 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
     internal class ClassPullerWithDialog : AbstractMemberPullerWithDialog
     {
+        internal ClassPullerWithDialog(Document document) : base(document)
+        {
+        }
+
         internal async Task<Solution> ComputeChangedSolution(
             PullMemberDialogResult result,
-            Document contextDocument,
             CancellationToken cancellationToken)
         {
-            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
-            var targetSyntaxNode = await codeGenerationService.
-                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
+            var targetSyntaxNode = await CodeGenerationService.
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(ContextDocument.Project.Solution, result.Target);
 
             if (targetSyntaxNode != null)
             {
-                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
-                var targetEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+                var solutionEditor = new SolutionEditor(ContextDocument.Project.Solution);
+                var targetEditor = await solutionEditor.GetDocumentEditorAsync(ContextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
 
-                await RemoveMembers(result, contextDocument, solutionEditor, cancellationToken);
-                var changedTarget = ChangeTargetType(result, targetSyntaxNode, codeGenerationService);
-                AddMembersToTarget(result, targetEditor, targetSyntaxNode, changedTarget, codeGenerationService, cancellationToken);
+                await RemoveMembers(result, ContextDocument, solutionEditor, cancellationToken);
+                var changedTarget = ChangeTargetType(result, targetSyntaxNode, CodeGenerationService);
+                AddMembersToTarget(result, targetEditor, targetSyntaxNode, changedTarget, CodeGenerationService, cancellationToken);
                 return solutionEditor.GetChangedSolution();
             }
             else
@@ -99,25 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                 async (syntax, symbol, containingTypeNode) =>
                 {
                     var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    if (symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Event)
-                    {
-                        if (syntax.Parent != null &&
-                            syntax.Parent.Parent is BaseFieldDeclarationSyntax fieldOrEventSyntaxDeclaration)
-                        {
-                            if (fieldOrEventSyntaxDeclaration.Declaration.Variables.Count() == 1)
-                            {
-                                editor.RemoveNode(fieldOrEventSyntaxDeclaration);
-                            }
-                            else
-                            {
-                                editor.RemoveNode(syntax);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        editor.RemoveNode(syntax);
-                    }
+
+                    ChangeService.RemoveNode(editor, syntax, symbol);
                 },
                 cancellationToken);
         }

@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.PullMemberUp.Dialog;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
     internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
     {
-        private IPullMemberUpService PullMemberUpService { get; }
+        private IPullMemberUpDialogService PullMemberUpService { get; }
 
         private IEnumerable<ISymbol> Members { get; }
 
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             CodeRefactoringContext context,
             ISymbol selectedNodeSymbol)
         {
-            PullMemberUpService = context.Document.Project.Solution.Workspace.Services.GetService<IPullMemberUpService>();
+            PullMemberUpService = context.Document.Project.Solution.Workspace.Services.GetService<IPullMemberUpDialogService>();
             Members = selectedNodeSymbol.ContainingType.GetMembers().Where(
                 member => {
                     if (member is IMethodSymbol methodSymbol)
@@ -76,45 +75,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            var result = PullMemberUpService.GetPullTargetAndMembers(SelectedNodeSymbol, Members, LazyDependentsMap);
-            if (result.IsCanceled)
+            var result = PullMemberDialogResult.CanceledResult;
+            do
             {
-                return result;
-            }
-            else
-            {
-                if (result.Target.TypeKind == TypeKind.Interface)
+                result = PullMemberUpService.GetPullTargetAndMembers(SelectedNodeSymbol, Members, LazyDependentsMap);
+                var analysisResult = PullMembersUpAnalysisBuilder.BuildAnalysisResult(result.Target, result.SelectedMembers);
+                if (analysisResult.IsValid)
                 {
-                    return ValidateSelection(new InterfaceModifiersValidator(generateWarningMessage: true), result, cancellationToken);
-                }
-                else if (result.Target.TypeKind == TypeKind.Class)
-                {
-                    return ValidateSelection(new ClassModifiersValidator(generateWarningMessage: true), result, cancellationToken);
-                }
-                else
-                {
-                    throw new ArgumentException($"{result.Target} should be interface or class");
-                }
-            }
-        }
-
-        private PullMemberDialogResult ValidateSelection(IValidator validator, PullMemberDialogResult result, CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested &&
-                   !result.IsCanceled &&
-                   !validator.AreModifiersValid(result.Target, result.SelectedMembers.Select(memberSelectionPair => memberSelectionPair.member)))
-            {
-                if (PullMemberUpService.CreateWarningDialog(validator.WarningMessageList))
-                {
-                    validator.WarningMessageList.Clear();
                     return result;
                 }
                 else
                 {
-                    validator.WarningMessageList.Clear();
-                    result = PullMemberUpService.RestoreSelectionDialog();
+                    var proceedToRefactoring = PullMemberUpService.CreateWarningDialog(analysisResult);
+                    if (proceedToRefactoring)
+                    {
+                        return result;
+                    }
                 }
-            }
+            } while (!cancellationToken.IsCancellationRequested &&
+                     !result.IsCanceled);
+
             return result;
         }
         
@@ -122,17 +102,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
         {
             if (options is PullMemberDialogResult result && !result.IsCanceled)
             {
-                var service = ContextDocument.Project.LanguageServices.GetRequiredService<IPullMemberUpWithDialogService>();
                 if (result.Target.TypeKind == TypeKind.Interface)
                 {
+                    var puller = new InterfacePullerWithDialog(ContextDocument);
                     var operation = new ApplyChangesOperation(
-                        await service.ComputeInterfaceRefactoring(result, ContextDocument, cancellationToken));
+                        await puller.ComputeChangedSolution(result, cancellationToken));
                     return new CodeActionOperation[] { operation };
                 }
                 else if (result.Target.TypeKind == TypeKind.Class)
                 {
+                    var puller = new ClassPullerWithDialog(ContextDocument);
                     var operation = new ApplyChangesOperation(
-                        await service.ComputeClassRefactoring(result, ContextDocument, cancellationToken));
+                        await puller.ComputeChangedSolution(result, cancellationToken));
                     return new CodeActionOperation[] { operation };
                 }
                 else

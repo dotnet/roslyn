@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
                 var interfaces = currentSymbol.Interfaces.Where(@interface => @interface.DeclaringSyntaxReferences.Length > 0);
                 var baseClass = currentSymbol.BaseType;
-                if (baseClass != null && baseClass.DeclaringSyntaxReferences.Length == 0)
+                if (baseClass != null || baseClass.DeclaringSyntaxReferences.Length == 0)
                 {
                     baseClass = null;
                 }

@@ -1,39 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal class InterfacePullerWithDialog : AbstractMemberPullerWithDialog
     {
+        internal InterfacePullerWithDialog(Document document) : base(document)
+        {
+        }
+
         internal async Task<Solution> ComputeChangedSolution(
             PullMemberDialogResult result,
-            Document contextDocument,
             CancellationToken cancellationToken)
         {
-            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var codeGenerationService = ContextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var targetSyntaxNode = await codeGenerationService.
-                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(ContextDocument.Project.Solution, result.Target);
 
             if (targetSyntaxNode != null )
             {
-                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
+                var solutionEditor = new SolutionEditor(ContextDocument.Project.Solution);
                 var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(
-                   contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+                   ContextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
 
                 AddMembersToTarget(result, targetDocumentEditor, targetSyntaxNode, codeGenerationService);
 
-                await ChangeMembersToPublic(result, contextDocument ,solutionEditor, codeGenerationService, cancellationToken);
+                await ChangeMembersToPublic(result, ContextDocument ,solutionEditor, codeGenerationService, cancellationToken);
 
-                await ChangeMembersToNonStatic(result, contextDocument, solutionEditor, codeGenerationService, cancellationToken);
+                await ChangeMembersToNonStatic(result, ContextDocument, solutionEditor, codeGenerationService, cancellationToken);
 
                 return solutionEditor.GetChangedSolution();
             }
@@ -56,32 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                 async (syntax, symbol, containingTypeNode) =>
                 {
                     var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    if (symbol is IEventSymbol eventSymbol)
-                    {
-                        if (syntax.Parent != null &&
-                            syntax.Parent.Parent is BaseFieldDeclarationSyntax eventDeclaration)
-                        {
-                            if (eventDeclaration.Declaration.Variables.Count == 1)
-                            {
-                                editor.SetAccessibility(eventDeclaration, Accessibility.Public);
-                            }
-                            else if (eventDeclaration.Declaration.Variables.Count > 1)
-                            {
-                                // If multiple declaration on same line
-                                // e.g. private EventHandler event Event1, Event2, Event3
-                                // change Event1 to public need to create a new declaration
-                                var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-                                var publicSyntax = codeGenerationService.CreateEventDeclaration(eventSymbol, CodeGenerationDestination.InterfaceType, options);
-
-                                editor.RemoveNode(syntax);
-                                editor.AddMember(containingTypeNode, publicSyntax);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        editor.SetAccessibility(syntax, Accessibility.Public);
-                    }
+                    ChangeService.ChangeMemberToPublic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
                 },
                 cancellationToken);
         }
@@ -98,40 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.Dialog
                 selectionPair => selectionPair.member.IsStatic,
                 async (syntax, symbol, containingTypeNode) =>
                 {
-                    var modifier = DeclarationModifiers.From(symbol).WithIsStatic(false);
                     var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    if (symbol is IEventSymbol eventSymbol)
-                    {
-                        if (syntax.Parent != null &&
-                            syntax.Parent.Parent is BaseFieldDeclarationSyntax eventDeclaration)
-                        {
-                            if (eventDeclaration.Declaration.Variables.Count == 1)
-                            {
-                                editor.SetModifiers(eventDeclaration, modifier);
-                            }
-                            else if (eventDeclaration.Declaration.Variables.Count > 1)
-                            {
-                                var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
-                                var nonStaticSymbol = CodeGenerationSymbolFactory.CreateEventSymbol(
-                                    eventSymbol.GetAttributes(),
-                                    eventSymbol.DeclaredAccessibility,
-                                    modifier,
-                                    eventSymbol.Type,
-                                    eventSymbol.ExplicitInterfaceImplementations,
-                                    eventSymbol.Name,
-                                    eventSymbol.AddMethod,
-                                    eventSymbol.RemoveMethod,
-                                    eventSymbol.RaiseMethod);
-                                var nonStaticSyntax = codeGenerationService.CreateEventDeclaration(nonStaticSymbol, options: options);
-                                editor.RemoveNode(syntax);
-                                editor.AddMember(containingTypeNode, nonStaticSyntax);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        editor.SetModifiers(syntax, modifier);
-                    }
+                    ChangeService.ChangeMemberToNonStatic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
                 },
                 cancellationToken);
         }

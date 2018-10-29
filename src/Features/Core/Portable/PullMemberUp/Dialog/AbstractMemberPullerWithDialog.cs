@@ -6,12 +6,25 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal abstract class AbstractMemberPullerWithDialog
     {
+        protected ICodeGenerationService CodeGenerationService { get; }
+
+        protected IPullMemberUpSyntaxChangeService ChangeService { get; }
+
+        protected Document ContextDocument { get; }
+
+        internal AbstractMemberPullerWithDialog(Document document)
+        {
+            CodeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            ChangeService = document.Project.LanguageServices.GetRequiredService<IPullMemberUpSyntaxChangeService>();
+        }
+
         protected async Task ChangeMembers(
             PullMemberDialogResult result,
             Func<(ISymbol member, bool makeAbstract), bool> memberFilter,

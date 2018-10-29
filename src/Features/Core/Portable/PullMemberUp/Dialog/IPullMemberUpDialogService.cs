@@ -6,12 +6,10 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
-    internal interface IPullMemberUpService : IWorkspaceService
+    internal interface IPullMemberUpDialogService : IWorkspaceService
     {
         PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap);
 
-        bool CreateWarningDialog(List<string> warningMessageList);
-
-        PullMemberDialogResult RestoreSelectionDialog();
+        bool CreateWarningDialog(AnalysisResult result);
     }
 }

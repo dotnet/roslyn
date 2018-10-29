@@ -23,32 +23,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var userSelectedNodeSymbol = semanticModel.GetDeclaredSymbol(userSelectedNode);
-            if (userSelectedNodeSymbol == null)
+            var userSelectNodeSymbol = semanticModel.GetDeclaredSymbol(userSelectedNode);
+            if (userSelectNodeSymbol == null)
             {
                 return;
             }
 
-            var allTargetClasses = FindAllTargetBaseClasses(userSelectedNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
-            var allTargetInterfaces = FindAllTargetInterfaces(userSelectedNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
+            var allTargetClasses = FindAllTargetBaseClasses(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
+            var allTargetInterfaces = FindAllTargetInterfaces(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
 
             if (allTargetInterfaces.Count == 0 && allTargetClasses.Count == 0)
             {
                 return;
             }
 
-            if (userSelectedNodeSymbol.Kind == SymbolKind.Method ||
-                userSelectedNodeSymbol.Kind == SymbolKind.Property ||
-                userSelectedNodeSymbol.Kind == SymbolKind.Event)
+            if (userSelectNodeSymbol.Kind == SymbolKind.Method ||
+                userSelectNodeSymbol.Kind == SymbolKind.Property ||
+                userSelectNodeSymbol.Kind == SymbolKind.Event)
             {
-                await AddPullUpMemberToClassRefactoringViaQuickAction(allTargetClasses, userSelectedNode, semanticModel, context);
-                await AddPullUpMemberToInterfaceRefactoringViaQuickAction(allTargetInterfaces, userSelectedNode, semanticModel, context);
-                AddPullUpMemberRefactoringViaDialogBox(userSelectedNodeSymbol, context, root, semanticModel);
+                await AddPullUpMemberToClassRefactoringViaQuickAction(allTargetClasses, userSelectedNode, userSelectNodeSymbol, context);
+                await AddPullUpMemberToInterfaceRefactoringViaQuickAction(allTargetInterfaces, userSelectedNode, userSelectNodeSymbol, context);
+                AddPullUpMemberRefactoringViaDialogBox(userSelectNodeSymbol, context, root, semanticModel);
             }
-            else if (userSelectedNodeSymbol.Kind == SymbolKind.Field)
+            else if (userSelectNodeSymbol.Kind == SymbolKind.Field)
             {
-                await AddPullUpMemberToClassRefactoringViaQuickAction(allTargetClasses, userSelectedNode, semanticModel, context);
-                AddPullUpMemberRefactoringViaDialogBox(userSelectedNodeSymbol, context, root, semanticModel);
+                await AddPullUpMemberToClassRefactoringViaQuickAction(allTargetClasses, userSelectedNode, userSelectNodeSymbol, context);
+                AddPullUpMemberRefactoringViaDialogBox(userSelectNodeSymbol, context, root, semanticModel);
             }
         }
 
@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         protected async Task AddPullUpMemberToClassRefactoringViaQuickAction(
             List<INamedTypeSymbol> targetClasses,
             SyntaxNode userSelectedNode,
-            SemanticModel semanticModel,
+            ISymbol userSelectNodeSymbol,
             CodeRefactoringContext context)
         {
-            var service = context.Document.Project.LanguageServices.GetRequiredService<IPullMemberUpWithQuickActionService>();
+            var puller = new ClassPullerWithQuickAction();
             foreach (var eachClass in targetClasses)
             {
-                var action = await service.ComputeClassRefactoring(eachClass, context, semanticModel, userSelectedNode);
+                var action = await puller.ComputeRefactoring(eachClass, context, userSelectedNode, userSelectNodeSymbol);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         protected async virtual Task AddPullUpMemberToInterfaceRefactoringViaQuickAction(
             List<INamedTypeSymbol> targetInterfaces,
             SyntaxNode userSelectedNode,
-            SemanticModel semanticModel,
+            ISymbol userSelectNodeSymbol,
             CodeRefactoringContext context)
         {
-            var service = context.Document.Project.LanguageServices.GetRequiredService<IPullMemberUpWithQuickActionService>();
+            var puller = new InterfacePullerWithQuickAction();
             foreach (var eachInterface in targetInterfaces)
             {
-                var action = await service.ComputeInterfaceRefactoring(eachInterface, context, semanticModel, userSelectedNode);
+                var action = await puller.ComputeRefactoring(eachInterface, context, userSelectedNode, userSelectNodeSymbol);
 
                 if (action != null)
                 {
