@@ -4874,7 +4874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundObjectInitializerExpressionBase makeBoundInitializerOpt()
             {
-                if (initializerSyntaxOpt != null )
+                if (initializerSyntaxOpt != null)
                 {
                     return BindInitializerExpression(syntax: initializerSyntaxOpt,
                                                      type: initializerTypeOpt ?? type,

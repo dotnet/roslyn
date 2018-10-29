@@ -34495,13 +34495,13 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
         }
 
         [Fact]
-        public void OutVarInConstructorUsedInInitializer()
+        public void OutVarInConstructorUsedInObjectInitializer()
         {
             var source =
 @"
 public class C
 {
-    public int Number{ get; set; }
+    public int Number { get; set; }
     
     public C(out int n)
     {
@@ -34515,7 +34515,30 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput: @"1");
+        }
+
+        [Fact]
+        public void OutVarInConstructorUsedInCollectionInitializer()
+        {
+            var source =
+@"
+public class C : System.Collections.Generic.List<int>
+{
+    public C(out int n)
+    {
+        n = 1;
+    }
+
+    public static void Main()
+    {
+        C c = new C(out var i) { i, i, i };
+        System.Console.WriteLine(c[0]);
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1");
         }
 
