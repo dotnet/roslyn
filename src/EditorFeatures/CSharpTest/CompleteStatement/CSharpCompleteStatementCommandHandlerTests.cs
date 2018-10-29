@@ -208,7 +208,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for (Goo f = new Goo { i = 0, s = ""abc"" };$$
+        for (Goo f = new Goo { i = 0, s = ""abc"";$$ }
     }
 }
 public class Goo
@@ -621,7 +621,7 @@ public class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopMethodInitializer()
+        public void ForLoopNewInInitializer2()
         {
             var code =
 @"
@@ -629,7 +629,16 @@ class C
 {
     static void Main(string[] args)
     {
-        for (int i = s.IndexOf(""s""$$) i < 10; i++)
+        for (C1 i = new C1($$
+    }
+}
+public class C1
+{
+    public static C1 operator ++(C1 obj)
+    {
+        return obj;
+    }
+}
 ";
 
             var expected =
@@ -638,7 +647,42 @@ class C
 {
     static void Main(string[] args)
     {
-        for (int i = s.IndexOf(""s"");$$ i < 10; i++)
+        for (C1 i = new C1();$$
+    }
+}
+public class C1
+{
+    public static C1 operator ++(C1 obj)
+    {
+        return obj;
+    }
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopMethodInitializer()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij""
+        for (int i = s.IndexOf(""bcd""$$) i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij""
+        for (int i = s.IndexOf(""bcd"");$$ i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -679,6 +723,66 @@ class C
 class C
 {
     int i = Min(2,3);$$
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void FieldInitialzer2b()
+        {
+            var code =
+@"
+class C
+{
+    int i = Min(2$$,3
+";
+
+            var expected =
+@"
+class C
+{
+    int i = Min(2,3);$$
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void FieldInitialzer3()
+        {
+            var code =
+@"
+class C
+{
+    int i = Min(Max(4,5$$),3)
+";
+
+            var expected =
+@"
+class C
+{
+    int i = Min(Max(4,5),3);$$
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void FieldInitialzer3b()
+        {
+            var code =
+@"
+class C
+{
+    int i = Min(Max(4,5$$),3)
+";
+
+            var expected =
+@"
+class C
+{
+    int i = Min(Max(4,5),3);$$
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -869,7 +973,7 @@ class C
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);;$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1202,29 +1306,29 @@ public class Class1
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);;$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation4_knownfailure()
+        public void ArgumentListOfNestedMethodInvocation4()
         {
             // Because of the open paren, thinks everything after is the first argument
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(, y));$$");
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation5_knownfailure()
+        public void ArgumentListOfNestedMethodInvocation5()
         {
             // only get one closing paren because it doesn't know about the other parameter's missing closing paren
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y.ToString(");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString();$$");
 
             VerifyTypingSemicolon(code, expected);
         }

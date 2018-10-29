@@ -154,7 +154,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // check closing delimeters, if missing add it, if not skip it
-            var newCaretPosition = GetEndPosition(root, currentNode.Span.End) - countExistingDelimiters;
+            var peek = delimitingClosures.Peek();
+            var currentToken = root.FindToken(currentNode.Span.End);
+            var previousToken = currentToken.GetPreviousToken();
+            var newCaretPosition = GetEndPosition(root, currentNode.Span.End, currentNode.Kind(), peek.isMissing) - countExistingDelimiters;
+            //var newCaretPosition = countExistingDelimiters == 0 ? GetEndPosition(root, currentNode.Span.End, currentNode.Kind()) - countExistingDelimiters : currentNode.Span.End;
             for (int offset = 0; offset <= delimitingClosures.Count; offset++)
             {
                 var c = delimitingClosures.Dequeue();
@@ -172,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             }
 
-            args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition + (SemicolonIsMissing(currentNode) ? 0 : 1)));
+            args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(newCaretPosition));
             nextCommandHandler();
         }
 
@@ -239,8 +243,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// <summary>
         /// To account for the new line character at the end of a line, this returns the previous tokens end  
         /// </summary>
-        private int GetEndPosition(SyntaxNode root, int end)
+        private int GetEndPosition(SyntaxNode root, int end, SyntaxKind nodeKind, bool outerDelimiterMissing)
         {
+            // in these cases, the previous token's trivia has end of line trivia that we want to get ahead of
+            if (nodeKind == SyntaxKind.VariableDeclaration)
+            {
+                if (!outerDelimiterMissing)
+                {
+                    return end;
+                }
+            }
+
             // If "end" is at the end of a line, the token has trailing end of line trivia.
             // We want to put our cursor before that trivia, so use previous token for placement.
             var previousToken = root.FindToken(end).GetPreviousToken();
