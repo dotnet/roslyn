@@ -2207,10 +2207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (current != null);
             }
 
+            // NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
+            // only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
             var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity);
-
-            var fullName = qualifierOpt != null && !ReferenceEquals(qualifierOpt, Compilation.GlobalNamespace) ? qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + metadataName : metadataName;
-            var result = GetForwardedToAssembly(fullName, diagnostics, location);
+            var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
+            var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
             if ((object)result != null)
             {
                 return result;
