@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Set unconditional state </summary>
         Protected Sub SetState(_state As LocalState)
             Me.State = _state
-            If IsConditionalState Then
+            If Me.IsConditionalState Then
                 Me.StateWhenTrue = Nothing
                 Me.StateWhenFalse = Nothing
                 Me.IsConditionalState = False
@@ -160,14 +160,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Split state </summary>
         Protected Sub Split()
             If Not IsConditionalState Then
-                Me.SetConditionalState(Me.State, Me.State.Clone())
+                SetConditionalState(Me.State, Me.State.Clone())
             End If
         End Sub
 
         ''' <summary> Intersect and unsplit state </summary>
         Protected Sub Unsplit()
             If Me.IsConditionalState Then
-                IntersectWith(Me.StateWhenTrue, Me.StateWhenFalse)
+                Me.IntersectWith(Me.StateWhenTrue, Me.StateWhenFalse)
                 Me.SetState(Me.StateWhenTrue)
             End If
         End Sub
@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub ResetPendingBranches(newPendingBranches As ArrayBuilder(Of PendingBranch))
             Debug.Assert(newPendingBranches IsNot Nothing)
-            Debug.Assert(newPendingBranches IsNot _pendingBranches)
+            Debug.Assert(newPendingBranches IsNot Me._pendingBranches)
             Me._pendingBranches.Free()
             Me._pendingBranches = newPendingBranches
         End Sub
@@ -552,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.backwardBranchChanged = True
             End If
 
-            oldPending.PendingBranches.AddRange(PendingBranches)
+            oldPending.PendingBranches.AddRange(Me.PendingBranches)
             ResetPendingBranches(oldPending.PendingBranches)
 
             ' We only use SavePending/RestorePending when there could be no branch into the region between them.
@@ -630,10 +630,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub SetPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase, newSubstitute As BoundExpression)
             Debug.Assert(placeholder IsNot Nothing)
 
-            Me._placeholderReplacementMap = If(_placeholderReplacementMap, PooledDictionary(Of BoundValuePlaceholderBase, BoundExpression).GetInstance)
+            _placeholderReplacementMap = If(_placeholderReplacementMap, PooledDictionary(Of BoundValuePlaceholderBase, BoundExpression).GetInstance)
 
-            Debug.Assert(Not Me._placeholderReplacementMap.ContainsKey(placeholder))
-            Me._placeholderReplacementMap(placeholder) = newSubstitute
+            Debug.Assert(Not _placeholderReplacementMap.ContainsKey(placeholder))
+            _placeholderReplacementMap(placeholder) = newSubstitute
         End Sub
 
         Protected Sub RemovePlaceholderSubstitute(placeholder As BoundValuePlaceholderBase)
@@ -745,8 +745,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
-            If Not dontLeaveRegion AndAlso node Is _lastInRegion AndAlso IsInside Then
-                LeaveRegion()
+            If Not dontLeaveRegion AndAlso node Is Me._lastInRegion AndAlso IsInside Then
+                Me.LeaveRegion()
             End If
         End Sub
 
@@ -755,8 +755,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Sub VisitCondition(node As BoundExpression)
             ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
-            If node Is _firstInRegion AndAlso Me._regionPlace = RegionPlace.Before Then
-                EnterRegion()
+            If node Is Me._firstInRegion AndAlso Me._regionPlace = RegionPlace.Before Then
+                Me.EnterRegion()
             End If
 
             Visit(node, dontLeaveRegion:=True)
@@ -764,8 +764,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             AdjustConditionalState(node)
 
             ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
-            If node Is _lastInRegion AndAlso IsInside Then
-                LeaveRegion()
+            If node Is Me._lastInRegion AndAlso IsInside Then
+                Me.LeaveRegion()
             End If
         End Sub
 
@@ -922,7 +922,7 @@ lUnsplitAndFinish:
 
                     containedByInitializer = False
                     Debug.Assert(initializerExpr IsNot Nothing)
-                    If BoundNodeFinder.ContainsNode(initializerExpr, _firstInRegion, _recursionDepth, ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()) Then
+                    If BoundNodeFinder.ContainsNode(initializerExpr, Me._firstInRegion, _recursionDepth, ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()) Then
                         Debug.Assert(Not containedByInitializer)
                         containedByInitializer = True
                         Exit For
@@ -966,7 +966,7 @@ lUnsplitAndFinish:
                 ' the region was defined by nodes which were not part of initializers; thus, we never
                 ' emitted/visited the node
                 Debug.Assert(Me._regionPlace = AbstractFlowPass(Of LocalState).RegionPlace.Before)
-                SetInvalidRegion()
+                Me.SetInvalidRegion()
             End If
 
             Return Nothing
@@ -1274,9 +1274,9 @@ lUnsplitAndFinish:
             Dim methodGroup As BoundMethodGroup = node.MethodGroupOpt
 
             ' if method group is present, check if we need to enter region
-            If methodGroup IsNot Nothing AndAlso _firstInRegion Is methodGroup AndAlso
+            If methodGroup IsNot Nothing AndAlso Me._firstInRegion Is methodGroup AndAlso
                     Me._regionPlace = AbstractFlowPass(Of LocalState).RegionPlace.Before Then
-                EnterRegion()
+                Me.EnterRegion()
             End If
 
             Dim receiverOpt As BoundExpression = node.ReceiverOpt
@@ -1312,8 +1312,8 @@ lUnsplitAndFinish:
             End If
 
             ' if method group is present, check if we need to leave region
-            If methodGroup IsNot Nothing AndAlso _lastInRegion Is methodGroup AndAlso IsInside Then
-                LeaveRegion()
+            If methodGroup IsNot Nothing AndAlso Me._lastInRegion Is methodGroup AndAlso IsInside Then
+                Me.LeaveRegion()
             End If
 
             Return Nothing
@@ -1441,9 +1441,9 @@ lUnsplitAndFinish:
                 VisitRvalue(node.ElseExpression)
             Else
                 '  all other cases including 'If("const", AnyExpression)'
-                Dim savedState As LocalState = State.Clone()
+                Dim savedState As LocalState = Me.State.Clone()
                 VisitRvalue(node.ElseExpression)
-                SetState(savedState)
+                Me.SetState(savedState)
             End If
             Return Nothing
         End Function
@@ -1477,7 +1477,7 @@ lUnsplitAndFinish:
             IntersectWith(Me.State, savedState)
 
             If node.WhenNullOpt IsNot Nothing Then
-                savedState = State.Clone()
+                savedState = Me.State.Clone()
                 VisitRvalue(node.WhenNullOpt)
                 IntersectWith(Me.State, savedState)
             End If
@@ -2047,7 +2047,7 @@ lUnsplitAndFinish:
 
                     If unionBranchWithFinallyState Then
                         Me.UnionWith(pend.State, Me.State)
-                        If TrackUnassignments Then
+                        If Me.TrackUnassignments Then
                             Me.IntersectWith(pend.State, unsetInFinally)
                         End If
                     End If
@@ -2055,7 +2055,7 @@ lUnsplitAndFinish:
 
                 RestorePending(tryAndCatchPending)
                 Me.UnionWith(endState, Me.State)
-                If TrackUnassignments Then
+                If Me.TrackUnassignments Then
                     Me.IntersectWith(endState, unsetInFinally)
                 End If
             End If
@@ -2166,7 +2166,7 @@ EnteredRegion:
                         VisitCondition(binary.Right)
                         Dim resultTrue As LocalState = Me.StateWhenTrue
                         Dim resultFalse As LocalState = leftFalse
-                        IntersectWith(resultFalse, StateWhenFalse)
+                        Me.IntersectWith(resultFalse, StateWhenFalse)
                         Me.SetConditionalState(resultTrue, resultFalse)
                         Exit Select
                     Case BinaryOperatorKind.OrElse
@@ -2398,7 +2398,7 @@ EnteredRegion:
 
             ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'boundLambda' is not nothing
             If boundLambda Is Me._firstInRegion AndAlso Me._regionPlace = RegionPlace.Before Then
-                EnterRegion()
+                Me.EnterRegion()
             End If
 
             VisitLambda(node.BindForErrorRecovery())
@@ -2412,7 +2412,7 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitExitStatement(node As BoundExitStatement) As BoundNode
-            _pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
+            Me._pendingBranches.Add(New PendingBranch(node, Me.State, Me._nesting))
             SetUnreachable()
             Return Nothing
         End Function
@@ -2504,7 +2504,7 @@ EnteredRegion:
             End If
             Dim label As LabelSymbol = node.Label
             Dim _state As LocalState = LabelState(label)
-            IntersectWith(State, _state)
+            Me.IntersectWith(Me.State, _state)
             Me._labels(label) = New LabelStateAndNesting(node, Me.State.Clone(), Me._nesting)
             Me._labelsSeen.Add(label)
             Return Nothing
@@ -2548,10 +2548,10 @@ EnteredRegion:
             Debug.Assert(Me.IsConditionalState)
             If node.JumpIfTrue Then
                 Me._pendingBranches.Add(New PendingBranch(node, Me.StateWhenTrue, Me._nesting))
-                SetState(StateWhenFalse)
+                Me.SetState(Me.StateWhenFalse)
             Else
                 Me._pendingBranches.Add(New PendingBranch(node, Me.StateWhenFalse, Me._nesting))
-                SetState(StateWhenTrue)
+                Me.SetState(Me.StateWhenTrue)
             End If
 
             Return Nothing

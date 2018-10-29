@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsCompilerGeneratedTempLocal(variable) Then
                 MyBase.NoteRead(variable)
             Else
-                Select Case _regionPlace
+                Select Case Me._regionPlace
                     Case RegionPlace.Before, RegionPlace.After
                         _readOutside.Add(variable)
                     Case RegionPlace.Inside
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsCompilerGeneratedTempLocal(variable) Then
                 MyBase.NoteWrite(variable, value)
             Else
-                Select Case _regionPlace
+                Select Case Me._regionPlace
                     Case RegionPlace.Before, RegionPlace.After
                         _writtenOutside.Add(variable)
                     Case RegionPlace.Inside

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo) As PooledObjects.PooledHashSet(Of Symbol)
-            Dim walker As New UnassignedVariablesWalker(info)
+            Dim walker = New UnassignedVariablesWalker(info)
             Try
                 Return If(walker.Analyze(), walker._result, PooledObjects.PooledHashSet(Of Symbol).GetInstance)
             Finally

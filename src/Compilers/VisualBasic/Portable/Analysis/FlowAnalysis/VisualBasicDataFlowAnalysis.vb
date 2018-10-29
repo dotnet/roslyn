@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                     ImmutableInterlocked.InterlockedCompareExchange(_dataFlowsOut, result, Nothing)
                 End If
-                    Return _dataFlowsOut
+                Return _dataFlowsOut
             End Get
         End Property
 
