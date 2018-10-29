@@ -35,11 +35,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Symbol.GetHashCode, ContainingSlot.GetHashCode)
+                Return Hash.Combine(Me.Symbol.GetHashCode, Me.ContainingSlot.GetHashCode)
             End Function
 
             Public Overloads Function Equals(obj As VariableIdentifier) As Boolean Implements IEquatable(Of VariableIdentifier).Equals
-                Return Symbol.Equals(obj.Symbol) AndAlso ContainingSlot = obj.ContainingSlot
+                Return Me.Symbol.Equals(obj.Symbol) AndAlso Me.ContainingSlot = obj.ContainingSlot
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean

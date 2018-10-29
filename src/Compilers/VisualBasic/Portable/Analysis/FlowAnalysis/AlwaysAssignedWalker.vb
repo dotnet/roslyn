@@ -63,11 +63,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub LeaveRegion()
-            If IsConditionalState Then
+            If Me.IsConditionalState Then
                 ' If the region is in a condition, then the state will be split and 
                 ' State.Assigned(will) be null. Merge to get sensible results.
-                _endOfRegionState = StateWhenTrue.Clone()
-                IntersectWith(_endOfRegionState, StateWhenFalse)
+                _endOfRegionState = Me.StateWhenTrue.Clone()
+                IntersectWith(_endOfRegionState, Me.StateWhenFalse)
             Else
                 _endOfRegionState = MyBase.State.Clone()
             End If

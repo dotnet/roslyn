@@ -280,8 +280,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-                ' Variable needs to be hoisted.
-                Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap).Type
+            ' Variable needs to be hoisted.
+            Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap).Type
 
             Dim id As LocalDebugId = LocalDebugId.None
             Dim slotIndex As Integer = -1

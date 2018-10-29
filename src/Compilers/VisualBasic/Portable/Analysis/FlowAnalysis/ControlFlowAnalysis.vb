@@ -47,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property EntryPoints As ImmutableArray(Of SyntaxNode)
             Get
                 If _entryPoints.IsDefault Then
-                    _succeeded = Not _context.Failed
-                    Dim result = If(_context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                    Me._succeeded = Not Me._context.Failed
+                    Dim result = If(Me._context.Failed, ImmutableArray(Of SyntaxNode).Empty,
                                     DirectCast(EntryPointsWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, _succeeded), IEnumerable(Of SyntaxNode)).ToImmutableArray())
                     ImmutableInterlocked.InterlockedCompareExchange(_entryPoints, result, Nothing)
                 End If
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ExitPoints As ImmutableArray(Of SyntaxNode)
             Get
                 If _exitPoints.IsDefault Then
-                    Dim result = If(_context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                    Dim result = If(Me._context.Failed, ImmutableArray(Of SyntaxNode).Empty,
                                     DirectCast(ExitPointsWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of SyntaxNode)).ToImmutableArray())
                     ImmutableInterlocked.InterlockedCompareExchange(_exitPoints, result, Nothing)
                 End If
@@ -117,11 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property Succeeded As Boolean
             Get
-                If _succeeded Is Nothing Then
+                If Me._succeeded Is Nothing Then
                     Dim discarded = EntryPoints
                 End If
 
-                Return _succeeded.Value
+                Return Me._succeeded.Value
             End Get
         End Property
 

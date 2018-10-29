@@ -140,12 +140,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 GetOrCreateSlot(parameter)
             Next
 
-            _alreadyReported = BitVector.Empty          ' no variables yet reported unassigned
-            EnterParameters(MethodParameters)         ' with parameters assigned
-            Dim methodMeParameter = MeParameter       ' and with 'Me' assigned as well
+            Me._alreadyReported = BitVector.Empty          ' no variables yet reported unassigned
+            Me.EnterParameters(MethodParameters)         ' with parameters assigned
+            Dim methodMeParameter = Me.MeParameter       ' and with 'Me' assigned as well
             If methodMeParameter IsNot Nothing Then
-                GetOrCreateSlot(methodMeParameter)
-                EnterParameter(methodMeParameter)
+                Me.GetOrCreateSlot(methodMeParameter)
+                Me.EnterParameter(methodMeParameter)
             End If
 
             ' Usually we need to treat locals used without being assigned first as assigned in the beginning of the block.
@@ -188,9 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If ShouldAnalyzeByRefParameters Then
                 LeaveParameters(MethodParameters)
             End If
-            Dim methodMeParameter = MeParameter       ' and also 'Me'
+            Dim methodMeParameter = Me.MeParameter       ' and also 'Me'
             If methodMeParameter IsNot Nothing Then
-                LeaveParameter(methodMeParameter)
+                Me.LeaveParameter(methodMeParameter)
             End If
 
             Return True
@@ -205,10 +205,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not local.IsFunctionValue AndAlso Not String.IsNullOrEmpty(local.Name) Then
                 If _writtenVariables.Contains(local) Then
                     If local.IsConst Then
-                        diagnostics.Add(ERRID.WRN_UnusedLocalConst, local.Locations(0), If(local.Name, "dummy"))
+                        Me.diagnostics.Add(ERRID.WRN_UnusedLocalConst, local.Locations(0), If(local.Name, "dummy"))
                     End If
                 Else
-                    diagnostics.Add(ERRID.WRN_UnusedLocal, local.Locations(0), If(local.Name, "dummy"))
+                    Me.diagnostics.Add(ERRID.WRN_UnusedLocal, local.Locations(0), If(local.Name, "dummy"))
                 End If
             End If
         End Sub
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 
                 Case BoundKind.WithLValueExpressionPlaceholder, BoundKind.WithRValueExpressionPlaceholder
-                    Dim substitute As BoundExpression = GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
+                    Dim substitute As BoundExpression = Me.GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
                     If substitute IsNot Nothing Then
                         Return MakeSlotsForExpression(substitute)
                     End If
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not _variableSlot.TryGetValue(varIdentifier, slot) Then
 
                 If symbol.Kind = SymbolKind.Local Then
-                    _unusedVariables.Add(DirectCast(symbol, LocalSymbol))
+                    Me._unusedVariables.Add(DirectCast(symbol, LocalSymbol))
                 End If
 
                 Dim variableType As TypeSymbol = GetVariableType(symbol)
@@ -517,12 +517,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 nextVariableSlot = nextVariableSlot + 1
                 _variableSlot.Add(varIdentifier, slot)
                 If slot >= variableBySlot.Length Then
-                    Array.Resize(variableBySlot, slot * 2)
+                    Array.Resize(Me.variableBySlot, slot * 2)
                 End If
                 variableBySlot(slot) = varIdentifier
             End If
 
-            Normalize(State)
+            Normalize(Me.State)
             Return slot
         End Function
 
@@ -679,17 +679,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> Unassign a slot for a regular variable </summary>
         Private Sub SetSlotUnassigned(slot As Integer)
-            If slot >= State.Assigned.Capacity Then
-                Normalize(State)
+            If slot >= Me.State.Assigned.Capacity Then
+                Normalize(Me.State)
             End If
 
-            If _tryState.HasValue Then
-                Dim tryState = _tryState.Value
+            If Me._tryState.HasValue Then
+                Dim tryState = Me._tryState.Value
                 SetSlotUnassigned(slot, tryState)
-                _tryState = tryState
+                Me._tryState = tryState
             End If
 
-            SetSlotUnassigned(slot, State)
+            SetSlotUnassigned(slot, Me.State)
         End Sub
 
         Private Sub SetSlotUnassigned(slot As Integer, ByRef state As LocalState)
@@ -799,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>Assign a slot for a regular variable.</summary>
         Private Sub SetSlotAssigned(slot As Integer)
-            SetSlotAssigned(slot, State)
+            SetSlotAssigned(slot, Me.State)
         End Sub
 
         ''' <summary> Hash structure fields as we may query them many times </summary>
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            If _trackStructsWithIntrinsicTypedFields Then
+            If Me._trackStructsWithIntrinsicTypedFields Then
                 ' If the flag is set we do not ignore any structure instance fields 
                 Return False
             End If
@@ -926,9 +926,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '  Function value slot is treated in a special way. For example it does not have Symbol assigned
                 '  Just do a simple assign/unassign
                 If assigned Then
-                    State.Assign(slot)
+                    Me.State.Assign(slot)
                 Else
-                    State.Unassign(slot)
+                    Me.State.Unassign(slot)
                 End If
 
             Else
@@ -954,7 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub CheckAssigned(symbol As Symbol, node As SyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
             If symbol IsNot Nothing Then
                 Dim local = TryCast(symbol, LocalSymbol)
-                If local IsNot Nothing AndAlso local.IsCompilerGenerated AndAlso Not ProcessCompilerGeneratedLocals Then
+                If local IsNot Nothing AndAlso local.IsCompilerGenerated AndAlso Not Me.ProcessCompilerGeneratedLocals Then
                     ' Do not process compiler generated temporary locals
                     Return
                 End If
@@ -973,11 +973,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Else
                     Dim slot As Integer = GetOrCreateSlot(symbol)
-                    If slot >= State.Assigned.Capacity Then
-                        Normalize(State)
+                    If slot >= Me.State.Assigned.Capacity Then
+                        Normalize(Me.State)
                     End If
 
-                    If slot >= SlotKind.FirstAvailable AndAlso State.Reachable AndAlso Not State.IsAssigned(slot) Then
+                    If slot >= SlotKind.FirstAvailable AndAlso Me.State.Reachable AndAlso Not Me.State.IsAssigned(slot) Then
                         ReportUnassigned(symbol, node, rwContext)
                     End If
 
@@ -990,7 +990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CheckAssigned(fieldAccess As BoundFieldAccess, node As SyntaxNode, Optional rwContext As ReadWriteContext = ReadWriteContext.None)
             Dim unassignedSlot As Integer
 
-            If State.Reachable AndAlso Not IsAssigned(fieldAccess, unassignedSlot) Then
+            If Me.State.Reachable AndAlso Not IsAssigned(fieldAccess, unassignedSlot) Then
                 ReportUnassigned(fieldAccess.FieldSymbol, node, rwContext, unassignedSlot, fieldAccess)
             End If
 
@@ -1011,8 +1011,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
-            If Not dontLeaveRegion AndAlso node Is _lastInRegion AndAlso IsInside Then
-                LeaveRegion()
+            If Not dontLeaveRegion AndAlso node Is Me._lastInRegion AndAlso IsInside Then
+                Me.LeaveRegion()
             End If
         End Sub
 
@@ -1057,7 +1057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     unassignedSlot = GetOrCreateSlot(fieldAccess.FieldSymbol, unassignedSlot)
 
                 Case BoundKind.WithLValueExpressionPlaceholder, BoundKind.WithRValueExpressionPlaceholder
-                    Dim substitute As BoundExpression = GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
+                    Dim substitute As BoundExpression = Me.GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
                     If substitute IsNot Nothing Then
                         Return IsAssigned(substitute, unassignedSlot)
                     End If
@@ -1070,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End Select
 
-            Return State.IsAssigned(unassignedSlot)
+            Return Me.State.IsAssigned(unassignedSlot)
         End Function
 
         ''' <summary>
@@ -1152,8 +1152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 slot = VariableSlot(sym)
             End If
 
-            If slot >= _alreadyReported.Capacity Then
-                _alreadyReported.EnsureCapacity(nextVariableSlot)
+            If slot >= Me._alreadyReported.Capacity Then
+                _alreadyReported.EnsureCapacity(Me.nextVariableSlot)
             End If
 
             If sym.Kind = SymbolKind.Parameter Then
@@ -1213,7 +1213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If warning <> Nothing Then
-                            diagnostics.Add(warning, node.GetLocation(), If(sym.Name, "dummy"))
+                            Me.diagnostics.Add(warning, node.GetLocation(), If(sym.Name, "dummy"))
                         End If
                     End If
 
@@ -1224,14 +1224,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub CheckAssignedFunctionValue(local As LocalSymbol, node As SyntaxNode)
-            If Not State.FunctionAssignedValue AndAlso Not _seenOnErrorOrResume Then
+            If Not Me.State.FunctionAssignedValue AndAlso Not _seenOnErrorOrResume Then
                 Dim type As TypeSymbol = local.Type
                 ' NOTE: Dev11 does NOT report warning on user-defined empty value types
                 ' Special case: We specifically want to give a warning if the user doesn't return from a WinRT AddHandler.
                 ' NOTE: Strictly speaking, dev11 actually checks whether the return type is EventRegistrationToken (see IsWinRTEventAddHandler),
                 ' but the conditions should be equivalent (i.e. return EventRegistrationToken if and only if WinRT).
                 If EnableBreakingFlowAnalysisFeatures OrElse Not type.IsValueType OrElse type.IsIntrinsicOrEnumType OrElse Not IsEmptyStructType(type) OrElse
-                    (Me.MethodSymbol.MethodKind = MethodKind.EventAdd AndAlso DirectCast(MethodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent) Then
+                    (Me.MethodSymbol.MethodKind = MethodKind.EventAdd AndAlso DirectCast(Me.MethodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent) Then
                     ReportUnassignedFunctionValue(local, node)
                 End If
             End If
@@ -1241,7 +1241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not _alreadyReported(SlotKind.FunctionValue) Then
 
                 Dim type As TypeSymbol = Nothing
-                Dim method = MethodSymbol
+                Dim method = Me.MethodSymbol
 
                 type = method.ReturnType
                 If type IsNot Nothing AndAlso
@@ -1310,7 +1310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If warning <> Nothing Then
                         Debug.Assert(localName IsNot Nothing)
-                        diagnostics.Add(warning, node.GetLocation(), localName)
+                        Me.diagnostics.Add(warning, node.GetLocation(), localName)
                     End If
 
                 End If
@@ -1346,7 +1346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(local.InitializerOpt Is value OrElse local.InitializedByAsNew)
                     Dim symbol = local.LocalSymbol
                     Dim slot As Integer = GetOrCreateSlot(symbol)
-                    Dim written As Boolean = assigned OrElse Not State.Reachable
+                    Dim written As Boolean = assigned OrElse Not Me.State.Reachable
                     SetSlotState(slot, written)
                     ' Note write if the local has an initializer or if it is part of an as-new.
                     If assigned AndAlso (value IsNot Nothing OrElse local.InitializedByAsNew) Then NoteWrite(symbol, value)
@@ -1357,13 +1357,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim symbol = forStatement.DeclaredOrInferredLocalOpt
                     Debug.Assert(symbol IsNot Nothing)
                     Dim slot As Integer = GetOrCreateSlot(symbol)
-                    Dim written As Boolean = assigned OrElse Not State.Reachable
+                    Dim written As Boolean = assigned OrElse Not Me.State.Reachable
                     SetSlotState(slot, written)
 
                 Case BoundKind.Local
                     Dim local = DirectCast(node, BoundLocal)
                     Dim symbol = local.LocalSymbol
-                    If symbol.IsCompilerGenerated AndAlso Not ProcessCompilerGeneratedLocals Then
+                    If symbol.IsCompilerGenerated AndAlso Not Me.ProcessCompilerGeneratedLocals Then
                         ' Do not process compiler generated temporary locals.
                         Return
                     End If
@@ -1401,7 +1401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If assigned Then NoteWrite(expression, value)
 
                 Case BoundKind.WithLValueExpressionPlaceholder, BoundKind.WithRValueExpressionPlaceholder
-                    Dim substitute As BoundExpression = GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
+                    Dim substitute As BoundExpression = Me.GetPlaceholderSubstitute(DirectCast(node, BoundValuePlaceholderBase))
                     If substitute IsNot Nothing Then
                         Assign(substitute, value, assigned)
                     End If
@@ -1444,7 +1444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _tryState As OptionalState
 
         Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement, ByRef _tryState As LocalState)
-            If TrackUnassignments Then
+            If Me.TrackUnassignments Then
 
                 ' store original try state
                 Dim oldTryState As OptionalState = Me._tryState
@@ -1455,11 +1455,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.VisitTryBlock(tryBlock, node, _tryState)
 
                 ' merge resulting tryState into tryState that we were given.
-                IntersectWith(_tryState, Me._tryState.Value)
+                Me.IntersectWith(_tryState, Me._tryState.Value)
                 ' restore and merge old state with new changes.
                 If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
-                    IntersectWith(tryState, oldTryState.Value)
+                    Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
                 Else
                     Me._tryState = oldTryState
@@ -1470,23 +1470,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub VisitCatchBlock(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
-            If TrackUnassignments Then
+            If Me.TrackUnassignments Then
 
-                Dim oldTryState As OptionalState = _tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
-                _tryState = AllBitsSet()
-                VisitCatchBlockInternal(catchBlock, finallyState)
-                IntersectWith(finallyState, _tryState.Value)
+                Me._tryState = AllBitsSet()
+                Me.VisitCatchBlockInternal(catchBlock, finallyState)
+                Me.IntersectWith(finallyState, Me._tryState.Value)
 
                 If oldTryState.HasValue Then
                     Dim tryState = _tryState.Value
-                    IntersectWith(tryState, oldTryState.Value)
-                    _tryState = tryState
+                    Me.IntersectWith(tryState, oldTryState.Value)
+                    Me._tryState = tryState
                 Else
-                    _tryState = oldTryState
+                    Me._tryState = oldTryState
                 End If
             Else
-                VisitCatchBlockInternal(catchBlock, finallyState)
+                Me.VisitCatchBlockInternal(catchBlock, finallyState)
             End If
         End Sub
 
@@ -1505,17 +1505,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef unsetInFinally As LocalState)
-            If TrackUnassignments Then
-                Dim oldTryState As OptionalState = _tryState
+            If Me.TrackUnassignments Then
+                Dim oldTryState As OptionalState = Me._tryState
 
-                _tryState = AllBitsSet()
+                Me._tryState = AllBitsSet()
                 MyBase.VisitFinallyBlock(finallyBlock, unsetInFinally)
-                IntersectWith(unsetInFinally, _tryState.Value)
+                Me.IntersectWith(unsetInFinally, Me._tryState.Value)
 
                 If oldTryState.HasValue Then
-                    Dim tryState = _tryState.Value
-                    IntersectWith(tryState, oldTryState.Value)
-                    _tryState = tryState
+                    Dim tryState = Me._tryState.Value
+                    Me.IntersectWith(tryState, oldTryState.Value)
+                    Me._tryState = tryState
                 Else
                     _tryState = oldTryState
                 End If
@@ -1541,13 +1541,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' variable slots to all parameters.
             Dim slot As Integer = VariableSlot(parameter)
             If slot >= SlotKind.FirstAvailable Then
-                State.Assign(slot)
+                Me.State.Assign(slot)
             End If
             NoteWrite(parameter, Nothing)
         End Sub
 
         Private Sub LeaveParameters(parameters As ImmutableArray(Of ParameterSymbol))
-            If State.Reachable Then
+            If Me.State.Reachable Then
                 For Each parameter In parameters
                     LeaveParameter(parameter)
                 Next
@@ -1601,7 +1601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Should this local variable be considered assigned at first? It is if in the set of initially
         ' assigned variables, or else the current state is not reachable.
         Protected Function ConsiderLocalInitiallyAssigned(variable As LocalSymbol) As Boolean
-            Return Not State.Reachable OrElse
+            Return Not Me.State.Reachable OrElse
                    _initiallyAssignedVariables.IsDefaultOrEmpty = False AndAlso _initiallyAssignedVariables.Contains(variable)
         End Function
 
@@ -1697,37 +1697,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Pending
             Dim oldPending As SavedPending = SavePending()
             ' Symbol
-            Dim oldSymbol = symbol
-            symbol = node.LambdaSymbol
+            Dim oldSymbol = Me.symbol
+            Me.symbol = node.LambdaSymbol
             ' Final State
-            Dim finalState As LocalState = State
-            SetState(If(finalState.Reachable, finalState.Clone(), AllBitsSet()))
-            State.Assigned(SlotKind.FunctionValue) = False
+            Dim finalState As LocalState = Me.State
+            Me.SetState(If(finalState.Reachable, finalState.Clone(), Me.AllBitsSet()))
+            Me.State.Assigned(SlotKind.FunctionValue) = False
             ' Already Reported
             Dim save_alreadyReportedFunctionValue = _alreadyReported(SlotKind.FunctionValue)
             _alreadyReported(SlotKind.FunctionValue) = False
             EnterParameters(node.LambdaSymbol.Parameters)
             VisitBlock(node.Body)
             LeaveParameters(node.LambdaSymbol.Parameters)
-            symbol = oldSymbol
+            Me.symbol = oldSymbol
             _alreadyReported(SlotKind.FunctionValue) = save_alreadyReportedFunctionValue
-            State.Assigned(SlotKind.FunctionValue) = True
+            Me.State.Assigned(SlotKind.FunctionValue) = True
             RestorePending(oldPending)
-            IntersectWith(finalState, State)
-            SetState(finalState)
+            Me.IntersectWith(finalState, Me.State)
+            Me.SetState(finalState)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
             Dim oldSymbol = symbol
             symbol = node.LambdaSymbol
-            Dim finalState As LocalState = State.Clone()
+            Dim finalState As LocalState = Me.State.Clone()
 
             VisitRvalue(node.Expression)
 
-            symbol = oldSymbol
-            IntersectWith(finalState, State)
-            SetState(finalState)
+            Me.symbol = oldSymbol
+            Me.IntersectWith(finalState, Me.State)
+            Me.SetState(finalState)
             Return Nothing
         End Function
 
@@ -1871,9 +1871,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitWithStatement(node As BoundWithStatement) As BoundNode
-            SetPlaceholderSubstitute(node.ExpressionPlaceholder, node.DraftPlaceholderSubstitute)
+            Me.SetPlaceholderSubstitute(node.ExpressionPlaceholder, node.DraftPlaceholderSubstitute)
             MyBase.VisitWithStatement(node)
-            RemovePlaceholderSubstitute(node.ExpressionPlaceholder)
+            Me.RemovePlaceholderSubstitute(node.ExpressionPlaceholder)
             Return Nothing
         End Function
 
@@ -1934,7 +1934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected NotOverridable Overrides Sub VisitArgument(arg As BoundExpression, p As ParameterSymbol)
             Debug.Assert(arg IsNot Nothing)
             If p.IsByRef Then
-                If p.IsOut And Not IgnoreOutSemantics Then
+                If p.IsOut And Not Me.IgnoreOutSemantics Then
                     VisitLvalue(arg)
                 Else
                     VisitRvalue(arg, rwContext:=ReadWriteContext.ByRefArgument)
@@ -1954,7 +1954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Sub CheckAssignedFromArgumentWrite(expr As BoundExpression, node As SyntaxNode)
-            If Not State.Reachable Then
+            If Not Me.State.Reachable Then
                 Return
             End If
 
@@ -2090,7 +2090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' if needed, replace the placeholders with the bound local for the current declared variable.
             If variableIsUsedDirectlyAndIsAlwaysAssigned Then
-                SetPlaceholderSubstitute(placeholder, New BoundLocal(localDecl.Syntax, localToUseAsSubstitute, localToUseAsSubstitute.Type))
+                Me.SetPlaceholderSubstitute(placeholder, New BoundLocal(localDecl.Syntax, localToUseAsSubstitute, localToUseAsSubstitute.Type))
             End If
 
             VisitRvalue(node.Initializer)
@@ -2112,7 +2112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We also need to mark all 
 
             If variableIsUsedDirectlyAndIsAlwaysAssigned Then
-                RemovePlaceholderSubstitute(placeholder)
+                Me.RemovePlaceholderSubstitute(placeholder)
             End If
 
             Return Nothing
@@ -2129,13 +2129,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               DirectCast(node, BoundObjectInitializerExpression).CreateTemporaryLocalForInitialization
 
             If resetPlaceholder Then
-                SetPlaceholderSubstitute(DirectCast(node, BoundObjectInitializerExpression).PlaceholderOpt, Nothing) ' Override substitute
+                Me.SetPlaceholderSubstitute(DirectCast(node, BoundObjectInitializerExpression).PlaceholderOpt, Nothing) ' Override substitute
             End If
 
             MyBase.VisitObjectCreationExpressionInitializer(node)
 
             If resetPlaceholder Then
-                RemovePlaceholderSubstitute(DirectCast(node, BoundObjectInitializerExpression).PlaceholderOpt)
+                Me.RemovePlaceholderSubstitute(DirectCast(node, BoundObjectInitializerExpression).PlaceholderOpt)
             End If
         End Sub
 

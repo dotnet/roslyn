@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function UnreachableState() As LocalState
-            Return New LocalState(False, State.Reported)
+            Return New LocalState(False, Me.State.Reported)
         End Function
 
         Protected Overrides Sub Visit(node As BoundNode, dontLeaveRegion As Boolean)
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
 
-                    If Not State.Alive AndAlso Not State.Reported Then
+                    If Not Me.State.Alive AndAlso Not Me.State.Reported Then
 
                         Select Case statement.Kind
                             Case BoundKind.LocalDeclaration
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 If decl.InitializerOpt IsNot Nothing Then
                                     ' TODO: uncomment the following line 
                                     'Me.diagnostics.Add(ERRID.WRN_UnreachableCode, decl.InitializerOpt.Syntax.GetLocation())
-                                    State.Reported = True
+                                    Me.State.Reported = True
                                 End If
 
                             Case BoundKind.ReturnStatement
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 If Not returnStmt.IsEndOfMethodReturn Then
                                     ' TODO: uncomment the following line 
                                     'Me.diagnostics.Add(ERRID.WRN_UnreachableCode, statement.Syntax.GetLocation())
-                                    State.Reported = True
+                                    Me.State.Reported = True
                                 End If
 
                             Case BoundKind.DimStatement
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case Else
                                 ' TODO: uncomment the following line 
                                 'Me.diagnostics.Add(ERRID.WRN_UnreachableCode, statement.Syntax.GetLocation())
-                                State.Reported = True
+                                Me.State.Reported = True
                         End Select
 
                     End If
@@ -120,13 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.VisitTryBlock(tryBlock, node, tryState)
 
             Else
-                Dim oldPendings As SavedPending = SavePending()
+                Dim oldPendings As SavedPending = Me.SavePending()
                 MyBase.VisitTryBlock(tryBlock, node, tryState)
 
                 ' NOTE: C# generates errors for 'yield return' inside try statement here;
                 '       it is valid in VB though.
 
-                RestorePending(oldPendings, mergeLabelsSeen:=True)
+                Me.RestorePending(oldPendings, mergeLabelsSeen:=True)
             End If
         End Sub
 
@@ -134,16 +134,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim oldPendings As SavedPending = SavePending()
             MyBase.VisitCatchBlock(node, finallyState)
 
-            For Each branch In PendingBranches
+            For Each branch In Me.PendingBranches
                 If branch.Branch.Kind = BoundKind.YieldStatement Then
-                    diagnostics.Add(ERRID.ERR_BadYieldInTryHandler, branch.Branch.Syntax.GetLocation)
+                    Me.diagnostics.Add(ERRID.ERR_BadYieldInTryHandler, branch.Branch.Syntax.GetLocation)
                 End If
             Next
 
             ' NOTE: VB generates error ERR_GotoIntoTryHandler in binding, but
             '       we still want to 'nest' pendings' state for catch statements
 
-            RestorePending(oldPendings)
+            Me.RestorePending(oldPendings)
         End Sub
 
         Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef endState As LocalState)
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim oldPending2 As SavedPending = SavePending() ' track only the branches out of the finally block
             MyBase.VisitFinallyBlock(finallyBlock, endState)
             RestorePending(oldPending2) ' resolve branches that remain within the finally block
-            For Each branch In PendingBranches
+            For Each branch In Me.PendingBranches
 
                 Dim syntax = branch.Branch.Syntax
                 Dim errorLocation As SyntaxNodeOrToken
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 End If
 
-                diagnostics.Add(errId, errorLocation.GetLocation())
+                Me.diagnostics.Add(errId, errorLocation.GetLocation())
             Next
 
             RestorePending(oldPending1)

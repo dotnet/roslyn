@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function IntersectWith(ByRef self As LocalState, ByRef other As LocalState) As Boolean
             If self.Reachable = other.Reachable Then
                 If self.Assigned.Capacity <> other.Assigned.Capacity Then
-                    Normalize(self)
-                    Normalize(other)
+                    Me.Normalize(self)
+                    Me.Normalize(other)
                 End If
                 Return IntersectBitArrays(self.Assigned, other.Assigned)
 
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim oldNext As Integer = _state.Assigned.Capacity
             _state.Assigned.EnsureCapacity(nextVariableSlot)
             For i = oldNext To nextVariableSlot - 1
-                Dim id As VariableIdentifier = variableBySlot(i)
+                Dim id As VariableIdentifier = Me.variableBySlot(i)
                 If id.ContainingSlot >= SlotKind.FirstAvailable AndAlso _state.Assigned(id.ContainingSlot) Then
                     _state.Assign(i)
                 End If
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             ''' <returns></returns>
             Public Function Clone() As LocalState Implements AbstractFlowPass(Of LocalState).AbstractLocalState.Clone
-                Return New LocalState(Assigned.Clone())
+                Return New LocalState(Me.Assigned.Clone())
             End Function
 
             Public Function IsAssigned(slot As Integer) As Boolean
@@ -136,19 +136,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub Assign(slot As Integer)
                 If slot <> SlotKind.NotTracked Then
-                    Assigned(slot) = True
+                    Me.Assigned(slot) = True
                 End If
             End Sub
 
             Public Sub Unassign(slot As Integer)
                 If slot <> SlotKind.NotTracked Then
-                    Assigned(slot) = False
+                    Me.Assigned(slot) = False
                 End If
             End Sub
 
             Public ReadOnly Property Reachable As Boolean
                 Get
-                    Return Assigned.Capacity <= 0 OrElse Not IsAssigned(SlotKind.Unreachable)
+                    Return Me.Assigned.Capacity <= 0 OrElse Not IsAssigned(SlotKind.Unreachable)
                 End Get
             End Property
 
