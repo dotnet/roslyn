@@ -1099,4 +1099,10 @@ I agree to all of the foregoing:</value>
   <data name="Select_Public" xml:space="preserve">
     <value>Select public</value>
   </data>
+  <data name="Make_Abs" xml:space="preserve">
+    <value>Make Abstract</value>
+  </data>
+  <data name="Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
 </root>

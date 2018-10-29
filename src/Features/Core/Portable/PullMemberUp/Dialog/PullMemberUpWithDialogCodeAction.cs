@@ -79,22 +79,33 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             do
             {
                 result = PullMemberUpService.GetPullTargetAndMembers(SelectedNodeSymbol, Members, LazyDependentsMap);
-                var analysisResult = PullMembersUpAnalysisBuilder.BuildAnalysisResult(result.Target, result.SelectedMembers);
-                if (analysisResult.IsValid)
+                if (result.IsCanceled)
                 {
+                    PullMemberUpService.ResetSession();
                     return result;
                 }
                 else
                 {
-                    var proceedToRefactoring = PullMemberUpService.CreateWarningDialog(analysisResult);
-                    if (proceedToRefactoring)
+                    var analysisResult = PullMembersUpAnalysisBuilder.BuildAnalysisResult(result.Target, result.SelectedMembers);
+                    if (analysisResult.IsValid)
                     {
+                        PullMemberUpService.ResetSession();
                         return result;
+                    }
+                    else
+                    {
+                        var proceedToRefactoring = PullMemberUpService.CreateWarningDialog(analysisResult);
+                        if (proceedToRefactoring)
+                        {
+                            PullMemberUpService.ResetSession();
+                            return result;
+                        }
                     }
                 }
             } while (!cancellationToken.IsCancellationRequested &&
                      !result.IsCanceled);
 
+            PullMemberUpService.ResetSession();
             return result;
         }
         

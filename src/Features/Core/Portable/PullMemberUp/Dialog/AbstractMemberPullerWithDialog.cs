@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
         {
             CodeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             ChangeService = document.Project.LanguageServices.GetRequiredService<IPullMemberUpSyntaxChangeService>();
+            ContextDocument = document;
         }
 
         protected async Task ChangeMembers(

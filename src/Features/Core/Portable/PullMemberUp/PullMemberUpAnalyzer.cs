@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             ChangeTargetAbstract = changeTargetAbstract;
             Target = target;
             MembersAnalysisResults = membersAnalysisResults;
-            IsValid = MembersAnalysisResults.Aggregate(
+            IsValid = !MembersAnalysisResults.Aggregate(
                 ChangeTargetAbstract,
                 (acc, result) => acc || result.ChangeOriginToNonPublic || result.ChangeOriginToNonStatic);
         }

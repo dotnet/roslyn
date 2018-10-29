@@ -164,6 +164,7 @@ namespace PushUpTest
 }";
             await TestInRegularAndScriptAsync(testText, expected);
         }
+    
         #endregion interface
 
         #region class

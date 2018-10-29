@@ -52,6 +52,16 @@
         <target state="translated">Şunun içindeki tüm parantezleri tut:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_Abs">
+        <source>Make Abstract</source>
+        <target state="new">Make Abstract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Members">
+        <source>Members</source>
+        <target state="new">Members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Gereksizse hiçbir zaman</target>

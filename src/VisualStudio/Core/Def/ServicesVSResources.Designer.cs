@@ -1335,6 +1335,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make Abstract.
+        /// </summary>
+        internal static string Make_Abs {
+            get {
+                return ResourceManager.GetString("Make_Abs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage naming styles.
         /// </summary>
         internal static string Manage_naming_styles {
@@ -1367,6 +1376,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Member_of_0 {
             get {
                 return ResourceManager.GetString("Member_of_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members.
+        /// </summary>
+        internal static string Members {
+            get {
+                return ResourceManager.GetString("Members", resourceCulture);
             }
         }
         

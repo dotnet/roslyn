@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     /// <summary>
     /// Interaction logic for PushMemberUpDialogxaml.xaml
     /// </summary>
-    internal partial class PullMemberUpDialogWarningxaml : DialogWindow
+    internal partial class PullMemberUpDialogWarning : DialogWindow
     {
         public string Back => ServicesVSResources.Back;
 
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public string FoundProblem => ServicesVSResources.Found_Problems;
 
-        internal PullMemberUpDialogWarningxaml(PullMemberUpWarningViewModel viewModel)
+        internal PullMemberUpDialogWarning(PullMemberUpWarningViewModel viewModel)
         {
             DataContext = viewModel;
             InitializeComponent();

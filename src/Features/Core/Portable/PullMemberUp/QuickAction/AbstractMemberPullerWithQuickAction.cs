@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 
         protected CancellationToken _cancellationToken;
 
-        protected virtual bool IsOrdinaryMethod(IMethodSymbol methodNodeSymbol)
-        {
-            return methodNodeSymbol.MethodKind == MethodKind.Ordinary;
-        }
-
         internal async virtual Task<CodeAction> ComputeRefactoring(
             INamedTypeSymbol targetTypeSymbol,
             CodeRefactoringContext context,
@@ -46,13 +41,14 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             UserSelectedNode = userSelectedNode;
             TargetTypeSymbol = targetTypeSymbol;
 
-            if (IsDeclarationAlreadyInTarget(targetTypeSymbol, userSelectNodeSymbol) && AreModifiersValid(targetTypeSymbol, userSelectNodeSymbol))
+            if (userSelectNodeSymbol is IMethodSymbol methodSymbol &&
+                methodSymbol.MethodKind != MethodKind.Ordinary)
             {
                 return default;
             }
 
-            if (userSelectNodeSymbol is IMethodSymbol methodSymbol &&
-                methodSymbol.MethodKind != MethodKind.Ordinary)
+            if (IsDeclarationAlreadyInTarget(targetTypeSymbol, userSelectNodeSymbol) ||
+                !AreModifiersValid(targetTypeSymbol, userSelectNodeSymbol))
             {
                 return default;
             }

@@ -130,6 +130,5 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             }
             return await CreateDocumentOrSolutionAction(member, TargetTypeNode, options);
         }
-
     }
 }

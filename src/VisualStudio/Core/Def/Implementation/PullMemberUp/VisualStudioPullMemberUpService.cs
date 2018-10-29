@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
 
             var viewModel = new PullMemberUpWarningViewModel(warningMessages);
-            var dialog = new PullMemberUpDialogWarningxaml(viewModel);
+            var dialog = new PullMemberUpDialogWarning(viewModel);
             var result = dialog.ShowModal();
             if (result.GetValueOrDefault())
             {
@@ -50,16 +50,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             if (ViewModel != null)
             {
-                var restoredDialog = new PullMemberUpDialogxaml(ViewModel);
+                var restoredDialog = new PullMemberUpDialog(ViewModel);
                 return CreateResult(ViewModel, restoredDialog.ShowModal());
             }
             else
             {
                 var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedOwnerSymbol.ContainingType, _glyphService);
                 ViewModel = new PullMemberUpViewModel(members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, lazyDependentsMap);
-                var dialog = new PullMemberUpDialogxaml(ViewModel);
+                var dialog = new PullMemberUpDialog(ViewModel);
                 return CreateResult(ViewModel, dialog.ShowModal());
             }
+        }
+
+        public void ResetSession()
+        {
+            ViewModel = null;
         }
 
         private PullMemberDialogResult CreateResult(PullMemberUpViewModel viewModel, bool? showModal)

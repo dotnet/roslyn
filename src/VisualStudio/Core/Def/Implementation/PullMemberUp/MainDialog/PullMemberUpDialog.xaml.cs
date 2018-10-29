@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     /// <summary>
     /// Interaction logic for PullhMemberUpDialogxaml.xaml
     /// </summary>
-    internal partial class PullMemberUpDialogxaml : DialogWindow
+    internal partial class PullMemberUpDialog : DialogWindow
     {
         public string OK => ServicesVSResources.OK;
 
@@ -33,9 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public string SelectDependents => ServicesVSResources.Select_Dependents;
 
+        public string Members => ServicesVSResources.Members;
+
+        public string MakeAbstract => ServicesVSResources.Make_Abs;
+            
         private PullMemberUpViewModel ViewModel { get; }
 
-        internal PullMemberUpDialogxaml(PullMemberUpViewModel pullMemberUpViewModel)
+        internal PullMemberUpDialog(PullMemberUpViewModel pullMemberUpViewModel)
         {
             ViewModel = pullMemberUpViewModel;
             DataContext = ViewModel;
@@ -143,7 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             foreach (var member in members)
             {
-                // TODO: maybe create a hash map to do the mapping
                 var index = ViewModel.SelectedMembersContainer.Select(symbolView => symbolView.MemberSymbol).ToList().IndexOf(member);
                 ViewModel.SelectedMembersContainer[index].IsChecked = true;
             }
