@@ -24,13 +24,14 @@ efforts behind them.
 | [Null-coalescing Assignment](https://github.com/dotnet/csharplang/issues/34) | master | [Merged to dev16 preview1](https://github.com/dotnet/roslyn/issues/29168) | [333fred](https://github.com/333fred) | [cston](https://github.com/cston) | [gafter](https://github.com/gafter)
 | [Alternative interpolated verbatim strings](https://github.com/dotnet/csharplang/issues/1630) | master | Merged to dev16 preview1 | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv)
 | [stackalloc in nested contexts](https://github.com/dotnet/csharplang/issues/1412) | [nested-stackalloc](https://github.com/dotnet/roslyn/tree/features/nested-stackalloc) | [In Progress](https://github.com/dotnet/roslyn/issues/28968) | [gafter](https://github.com/gafter) | - | [gafter](https://github.com/gafter)
+| [Static local functions](https://github.com/dotnet/csharplang/issues/1565) | Not yet made | In Progress | [333fred](https://github.com/333fred) | TDB | [gafter](https://github.com/gafter) |
 
 # VB 16.0
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Line continuation comments](https://github.com/dotnet/vblang/issues/65) | [continuation-comments](https://github.com/dotnet/roslyn/tree/features/continuation-comments) | Prototype | [paul1956](https://github.com/paul1956) | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) |
-| [Relax null coalesing operator requirements](https://github.com/dotnet/vblang/issues/339) | [null-operator-enhancements](https://github.com/dotnet/roslyn/tree/features/null-operator-enhancements) | In Progress | [333fred](https://github.com/333fred) | [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
+| [Relax null coalesing operator requirements](https://github.com/dotnet/vblang/issues/339) | [null-operator-enhancements](https://github.com/dotnet/roslyn/tree/features/null-operator-enhancements) | [Merged to dev16 preview1](https://github.com/dotnet/roslyn/issues/29168) | [333fred](https://github.com/333fred) | [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
 
 # C# 7.3
 
