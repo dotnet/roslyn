@@ -19,10 +19,17 @@ in-process. Engineering has focused on three performance benefits from the serve
 The primary way to use the compiler server is via the
 `Microsoft.Build.Tasks.CodeAnalysis` MSBuild task, which ships in both the
 `dotnet` SDK and Visual Studio. The build task contains a build client which,
-rather than executing the `csc.exe`.
+rather than executing the `csc.exe` or `vbc.exe`, creates the
+`VBCSCompiler.exe` process and dispatches the command line arguments to the
+server directly.
 
 If you're not using MSBuild, there's also a flag, `/shared` which can be
-passed directly to `csc.exe`, which causes `csc.exe` to behave as a client.
+passed directly to `csc.exe`, which causes `csc.exe` to behave as a client
+and dispatches the actual compilation to the server process. In this mode
+`csc.exe` doesn't perform any computation itself, it just dispatches the
+command line to the server process (starting one if one does not already
+exist), and then reports the results of the compilation (including any
+warnings/errors produced).
 
 Importantly, the server is a performance optimization. If server compilation
 fails for any reason, the compiler will fall back to stand-alone compilation.
@@ -37,7 +44,7 @@ as the client will always recover gracefully.
 ## Architecture
 
 Roslyn supports a client-server protocol where multiple clients can dispatch
-to mulitple servers and multiple servers can run concurrently on the machine.
+to multiple servers and multiple servers can run concurrently on the machine.
 The client and server must run on the same machine, as the client and server
 only exchange a command line, not real assets.
 
