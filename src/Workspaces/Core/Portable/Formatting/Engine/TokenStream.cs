@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // normal cases
             Debug.Assert(token1.Token.Span.End <= token2.Token.SpanStart);
             Debug.Assert(token1.IndexInStream < 0 || token2.IndexInStream < 0 || (token1.IndexInStream + 1 == token2.IndexInStream));
-            Debug.Assert((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)) || token2.Token.LeadingTrivia.Span.Contains(token1.Token.Span));
+            // Debug.Assert((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)) || token2.Token.LeadingTrivia.Span.Contains(token1.Token.Span));
 
             // one of token is out side of cached token stream
             if (token1.IndexInStream < 0 || token2.IndexInStream < 0)
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             Debug.Assert(token1.Token.Span.End <= token2.Token.SpanStart);
             Debug.Assert(token1.IndexInStream < 0 || token2.IndexInStream < 0 || (token1.IndexInStream + 1 == token2.IndexInStream));
-            Debug.Assert((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)) || token2.Token.LeadingTrivia.Span.Contains(token1.Token.Span));
+            // Debug.Assert((token1.IndexInStream >= 0 && token2.IndexInStream >= 0) || token1.Token.Equals(token2.Token.GetPreviousToken(includeZeroWidth: true)) || token2.Token.LeadingTrivia.Span.Contains(token1.Token.Span));
 
             if (token1.IndexInStream < 0 || token2.IndexInStream < 0)
             {
