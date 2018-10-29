@@ -50,7 +50,12 @@
     <ExpectedDependency Include="System.Reflection.Metadata" DevEnvLib="lib/netstandard2.0/System.Reflection.Metadata.dll"/>
     <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" DevEnvLib="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll"/>
     <ExpectedDependency Include="System.Text.Encoding.CodePages" DevEnvLib="lib/netstandard2.0/System.Text.Encoding.CodePages.dll"/>
-    <ExpectedDependency Include="System.Threading.Tasks.Extensions" DevEnvLib="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"/>
+
+    <!-- 
+      This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
+      Arcade SignTool doesn't support signing directly at this point either.
+    -->
+    <ExpectedDependency Include="System.Threading.Tasks.Extensions" DevEnvLib="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll" Optimize="false" />
   </ItemGroup>
   
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences">
