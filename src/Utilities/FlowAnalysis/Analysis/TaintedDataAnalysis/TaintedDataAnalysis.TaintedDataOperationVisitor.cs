@@ -164,18 +164,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
 
-                // TODO: DefaultVisit seems to handle this, so don't need this nonsense.
-                //// If we're accessing a property from a tainted object
-                //IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
-                //if (referenceeOperation != null)
-                //{
-                //    TaintedDataAbstractValue referenceeAbstractValue = this.GetCachedAbstractValue(referenceeOperation);
-                //    if (referenceeAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                //    {
-                //        return referenceeAbstractValue;
-                //    }
-                //}
-
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
                     return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
