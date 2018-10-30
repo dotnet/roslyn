@@ -326,8 +326,10 @@ partial class C9 { }
 @"#nullable enable
 class Program
 {
-    static void F(object o)
+    static void F(object x)
     {
+        object? y = null;
+        F(y); // warning
     }
 #nullable disable
     static void G()
@@ -336,7 +338,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8604: Possible null reference argument for parameter 'x' in 'void Program.F(object x)'.
+                //         F(y); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void Program.F(object x)").WithLocation(7, 11));
         }
 
         [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
@@ -352,12 +357,17 @@ class Program
         F(null);
     }
 #nullable enable
-    static void F(object o)
+    static void F(object x)
     {
+        object? y = null;
+        F(y); // warning
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,11): warning CS8604: Possible null reference argument for parameter 'x' in 'void Program.F(object x)'.
+                //         F(y); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void Program.F(object x)").WithLocation(12, 11));
         }
 
         [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
@@ -367,8 +377,10 @@ class Program
             var source =
 @"class Program
 {
-    static void F(object o)
+    static void F(object x)
     {
+        object? y = null;
+        F(y); // warning
     }
 #nullable disable
     static void G()
@@ -377,7 +389,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,11): warning CS8604: Possible null reference argument for parameter 'x' in 'void Program.F(object x)'.
+                //         F(y); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void Program.F(object x)").WithLocation(6, 11));
         }
 
         [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
@@ -392,12 +407,17 @@ class Program
         F(null);
     }
 #nullable enable
-    static void F(object o)
+    static void F(object x)
     {
+        object? y = null;
+        F(y); // warning
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,11): warning CS8604: Possible null reference argument for parameter 'x' in 'void Program.F(object x)'.
+                //         F(y); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void Program.F(object x)").WithLocation(11, 11));
         }
 
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
