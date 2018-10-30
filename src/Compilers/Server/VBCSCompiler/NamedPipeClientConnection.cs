@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             PipeSecurity security;
             PipeOptions pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
 
-            if (!PlatformInformation.IsRunningOnMono) {
+            if (!PlatformInformation.IsRunningOnMono) 
+            {
                 security = new PipeSecurity();
                 SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
 
@@ -84,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
                 security.AddAccessRule(rule);
                 security.SetOwner(identifier);
-            } else {
+            } 
+            else 
+            {
                 // Pipe security and additional access rights constructor arguments
                 //  are not supported by Mono 
                 // https://github.com/dotnet/roslyn/pull/30810
