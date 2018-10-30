@@ -5283,11 +5283,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void DiscardInSwitchStatement_01a()
         {
-            UsingStatement("switch(e) { case _: break; }",
-                // (1,18): error CS8523: The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.
-                // switch(e) { case _: break; }
-                Diagnostic(ErrorCode.ERR_DiscardPatternInSwitchStatement, "_").WithLocation(1, 18)
-                );
+            UsingStatement("switch(e) { case _: break; }");
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -5300,12 +5296,12 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CasePatternSwitchLabel);
+                    N(SyntaxKind.CaseSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DiscardPattern);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.UnderscoreToken);
+                            N(SyntaxKind.IdentifierToken, "_");
                         }
                         N(SyntaxKind.ColonToken);
                     }
@@ -5359,11 +5355,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void DiscardInSwitchStatement_02()
         {
-            UsingStatement("switch(e) { case _ when true: break; }",
-                // (1,18): error CS8523: The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.
-                // switch(e) { case _ when true: break; }
-                Diagnostic(ErrorCode.ERR_DiscardPatternInSwitchStatement, "_").WithLocation(1, 18)
-                );
+            UsingStatement("switch(e) { case _ when true: break; }");
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -5379,9 +5371,12 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DiscardPattern);
+                        N(SyntaxKind.ConstantPattern);
                         {
-                            N(SyntaxKind.UnderscoreToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                            }
                         }
                         N(SyntaxKind.WhenClause);
                         {

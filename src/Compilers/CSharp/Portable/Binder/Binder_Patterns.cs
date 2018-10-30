@@ -113,20 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
         {
-            // give an error if there is a bindable `_` in scope.
-            var lookupResult = LookupResult.GetInstance();
-            var name = node.UnderscoreToken.ValueText;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsInternal(
-                lookupResult, name, arity: 0, basesBeingResolved: null,
-                options: LookupOptions.AllMethodsOnArityZero, diagnose: false, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
-            if (lookupResult.IsMultiViable)
-            {
-                diagnostics.Add(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, node.Location, lookupResult.Symbols[0]);
-            }
-
-            lookupResult.Free();
             return new BoundDiscardPattern(node, inputType);
         }
 
@@ -166,14 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            if (innerExpression.Kind() == SyntaxKind.IdentifierName &&
-                ((IdentifierNameSyntax)innerExpression).Identifier.Text == "_" &&
-                Compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
-            {
-                diagnostics.Add(ErrorCode.ERR_ConstantPatternNamedUnderscore, innerExpression.Location);
-                hasErrors = true;
-            }
-
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(inputType, patternExpression, expression, out constantValueOpt, diagnostics);
@@ -190,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedExpression = new BoundConversion(
                     convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
                     explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
             }
 
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);

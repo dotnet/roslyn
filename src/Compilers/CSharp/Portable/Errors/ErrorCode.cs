@@ -1603,8 +1603,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarMayNotBindToType = 8508,
         WRN_SwitchExpressionNotExhaustive = 8509,
         ERR_SwitchArmSubsumed = 8510,
-        ERR_UnderscoreDeclaredAndDiscardPattern = 8511,
-        ERR_ConstantPatternNamedUnderscore = 8512,
+        // ERR_UnderscoreDeclaredAndDiscardPattern = 8511, // unused
+        WRN_CaseConstantNamedUnderscore = 8512,
         WRN_IsTypeNamedUnderscore = 8513,
         ERR_ExpressionTreeContainsSwitchExpression = 8514,
         ERR_SwitchGoverningExpressionRequiresParens = 8515,
