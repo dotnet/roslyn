@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
 
-            _ = GetBoundRoot();
+            var root = GetBoundRoot();
+            NullableWalker.Analyze(Compilation, (MethodSymbol)MemberSymbol, root, new DiagnosticBag());
         }
 
         /// <summary>
