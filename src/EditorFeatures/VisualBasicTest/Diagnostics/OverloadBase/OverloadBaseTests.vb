@@ -81,16 +81,18 @@ End Class")
         Public Async Function TestAddShadowsToProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Class Application
-    Shared Property Current As Application
+    Shared Sub Current()
+    End Sub
 End Class
 Class App : Inherits Application
     [|Shared Property Current As App|]
 End Class",
 "Class Application
-    Shared Property Current As Application
+    Shared Sub Current()
+    End Sub
 End Class
 Class App : Inherits Application
-    Shadows Shared Property Current As App
+    Shared Shadows Property Current As App
 End Class")
         End Function
 
@@ -98,9 +100,7 @@ End Class")
         Public Async Function TestAddShadowsToFunction() As Task
             Await TestInRegularAndScriptAsync(
 "Class Application
-    Shared Function Test() As Integer
-        Return 1
-    End Function
+    Shared Property Test As Integer
 End Class
 Class App : Inherits Application
     [|Shared Function Test() As Integer
@@ -108,12 +108,10 @@ Class App : Inherits Application
     End Function|]
 End Class",
 "Class Application
-    Shared Function Test() As Integer
-        Return 1
-    End Function
+    Shared Property Test As Integer
 End Class
 Class App : Inherits Application
-    Shadows Shared Function Test() As Integer
+    Shared Shadows Function Test() As Integer
         Return 2
     End Function
 End Class")
@@ -123,19 +121,17 @@ End Class")
         Public Async Function TestAddShadowsToSub() As Task
             Await TestInRegularAndScriptAsync(
 "Class Application
-    Shared Sub Test()
-    End Sub
+    Shared Property Test As Integer
 End Class
 Class App : Inherits Application
     [|Shared Sub Test()
     End Sub|]
 End Class",
 "Class Application
-    Shared Sub Test()
-    End Sub
+    Shared Property Test As Integer
 End Class
 Class App : Inherits Application
-    Shadows Shared Sub Test()
+    Shared Shadows Sub Test()
     End Sub
 End Class")
         End Function
