@@ -37,21 +37,4 @@
       <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">42.42.42.42</AssemblyVersion>
     </PropertyGroup>
   </Target>
-
-  <!-- 
-    Append short commit SHA to PackageVersion.
-  -->
-  <Target Name="GetPackageVersion" 
-          BeforeTargets="GenerateNuSpec" 
-          DependsOnTargets="InitializeSourceControlInformation"
-          Condition="'$(DotNetFinalVersionKind)' != 'release'">
-    <PropertyGroup>
-      <_ShortSha>$(SourceRevisionId)</_ShortSha>
-      <_ShortSha Condition="$(SourceRevisionId.Length) &gt; 7">$(SourceRevisionId.Substring(0, 8))</_ShortSha>
-
-      <PackageVersion Condition="'$(SemanticVersioningV1)' != 'true'">$(Version)+$(_ShortSha)</PackageVersion>
-      <PackageVersion Condition="'$(SemanticVersioningV1)' == 'true'">$(Version)-$(_ShortSha)</PackageVersion>
-    </PropertyGroup>
-  </Target>
-
 </Project>
