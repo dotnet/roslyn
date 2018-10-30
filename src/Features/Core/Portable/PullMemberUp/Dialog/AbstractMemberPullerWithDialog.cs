@@ -1,31 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal abstract class AbstractMemberPullerWithDialog
     {
-        protected ICodeGenerationService CodeGenerationService { get; }
-
-        protected IPullMemberUpSyntaxChangeService ChangeService { get; }
-
-        protected Document ContextDocument { get; }
-
-        internal AbstractMemberPullerWithDialog(Document document)
-        {
-            CodeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
-            ChangeService = document.Project.LanguageServices.GetRequiredService<IPullMemberUpSyntaxChangeService>();
-            ContextDocument = document;
-        }
-
         protected async Task ChangeMembers(
             PullMemberDialogResult result,
             Func<(ISymbol member, bool makeAbstract), bool> memberFilter,

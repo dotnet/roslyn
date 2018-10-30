@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             ISymbol userSelectNodeSymbol,
             CodeRefactoringContext context)
         {
-            var puller = new ClassPullerWithQuickAction();
+            var puller = context.Document.Project.LanguageServices.GetService<AbstractClassPullerWithQuickAction>();
             foreach (var eachClass in targetClasses)
             {
                 var action = await puller.ComputeRefactoring(eachClass, context, userSelectedNode, userSelectNodeSymbol);

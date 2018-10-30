@@ -1105,4 +1105,13 @@ I agree to all of the foregoing:</value>
   <data name="Members" xml:space="preserve">
     <value>Members</value>
   </data>
+  <data name="Change_Member_To_NonStatic" xml:space="preserve">
+    <value>{0} will be changed to non-static since {1} is an interface.</value>
+  </data>
+  <data name="Change_Member_To_Public" xml:space="preserve">
+    <value>{0} will be changed to public since {1} is an interface.</value>
+  </data>
+  <data name="Change_Target_To_Abstract" xml:space="preserve">
+    <value>{0} will be changed to abstract.</value>
+  </data>
 </root>

@@ -7,30 +7,29 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
-    internal class ClassPullerWithDialog : AbstractMemberPullerWithDialog
+    internal abstract class AbstractClassPullerWithDialog : AbstractMemberPullerWithDialog, ILanguageService
     {
-        internal ClassPullerWithDialog(Document document) : base(document)
-        {
-        }
-
-        internal async Task<Solution> ComputeChangedSolution(
+         internal async Task<Solution> ComputeChangedSolution(
             PullMemberDialogResult result,
+            Document contextDocument,
             CancellationToken cancellationToken)
         {
-            var targetSyntaxNode = await CodeGenerationService.
-                FindMostRelevantNameSpaceOrTypeDeclarationAsync(ContextDocument.Project.Solution, result.Target);
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var targetSyntaxNode = await codeGenerationService.
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
 
             if (targetSyntaxNode != null)
             {
-                var solutionEditor = new SolutionEditor(ContextDocument.Project.Solution);
-                var targetEditor = await solutionEditor.GetDocumentEditorAsync(ContextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
+                var targetEditor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
 
-                await RemoveMembers(result, ContextDocument, solutionEditor, cancellationToken);
-                var changedTarget = ChangeTargetType(result, targetSyntaxNode, CodeGenerationService);
-                AddMembersToTarget(result, targetEditor, targetSyntaxNode, changedTarget, CodeGenerationService, cancellationToken);
+                await RemoveMembers(result, contextDocument, solutionEditor, cancellationToken);
+                var changedTarget = ChangeTargetType(result, targetSyntaxNode, codeGenerationService);
+                AddMembersToTarget(result, targetEditor, targetSyntaxNode, changedTarget, codeGenerationService, cancellationToken);
                 return solutionEditor.GetChangedSolution();
             }
             else
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
                 {
                     var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
 
-                    ChangeService.RemoveNode(editor, syntax, symbol);
+                    RemoveNode(editor, syntax, symbol);
                 },
                 cancellationToken);
         }
@@ -134,5 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
                 throw new ArgumentException($"{nameof(symbol)} should be method, property, event, indexer or class");
             }
         }
+
+        protected abstract void RemoveNode(DocumentEditor editor, SyntaxNode node, ISymbol symbol);
     }
 }

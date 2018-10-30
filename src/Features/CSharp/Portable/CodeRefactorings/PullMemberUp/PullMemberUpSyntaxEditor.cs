@@ -1,15 +1,11 @@
-﻿using System.Composition;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 {
-    [ExportLanguageService(typeof(IPullMemberUpSyntaxChangeService), LanguageNames.CSharp), Shared]
-    internal class PullMemberUpSyntaxChangeService : IPullMemberUpSyntaxChangeService
+    internal class PullMemberUpSyntaxEditor
     {
         public void RemoveNode(DocumentEditor editor, SyntaxNode node, ISymbol symbol)
         {

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
 {
     internal class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
     {
-        private IPullMemberUpDialogService PullMemberUpService { get; }
+        private IPullMemberUpOptionsService PullMemberUpService { get; }
 
         private IEnumerable<ISymbol> Members { get; }
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             CodeRefactoringContext context,
             ISymbol selectedNodeSymbol)
         {
-            PullMemberUpService = context.Document.Project.Solution.Workspace.Services.GetService<IPullMemberUpDialogService>();
+            PullMemberUpService = context.Document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
             Members = selectedNodeSymbol.ContainingType.GetMembers().Where(
                 member => {
                     if (member is IMethodSymbol methodSymbol)
@@ -115,16 +115,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             {
                 if (result.Target.TypeKind == TypeKind.Interface)
                 {
-                    var puller = new InterfacePullerWithDialog(ContextDocument);
+                    var puller = ContextDocument.Project.LanguageServices.GetService<AbstractInterfacePullerWithDialog>();
                     var operation = new ApplyChangesOperation(
-                        await puller.ComputeChangedSolution(result, cancellationToken));
+                        await puller.ComputeChangedSolution(result, ContextDocument, cancellationToken));
                     return new CodeActionOperation[] { operation };
                 }
                 else if (result.Target.TypeKind == TypeKind.Class)
                 {
-                    var puller = new ClassPullerWithDialog(ContextDocument);
+                    var puller = ContextDocument.Project.LanguageServices.GetService<AbstractClassPullerWithDialog>();
                     var operation = new ApplyChangesOperation(
-                        await puller.ComputeChangedSolution(result, cancellationToken));
+                        await puller.ComputeChangedSolution(result, ContextDocument, cancellationToken));
                     return new CodeActionOperation[] { operation };
                 }
                 else

@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 {
-    internal class ClassPullerWithQuickAction : AbstractMemberPullerWithQuickAction
+    internal abstract class AbstractClassPullerWithQuickAction : AbstractMemberPullerWithQuickAction, ILanguageService
     {
         protected override bool IsDeclarationAlreadyInTarget(INamedTypeSymbol targetSymbol, ISymbol userSelectedNodeSymbol)
         {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             var nodeWithMemberAdded = CodeGenerationService.AddMembers(targetNode, new ISymbol[] { memberSymbol }, options, _cancellationToken);
             var editor = await DocumentEditor.CreateAsync(ContextDocument, _cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(targetNode, nodeWithMemberAdded);
-            RemoveService.RemoveNode(editor, UserSelectedNode, memberSymbol);
+            RemoveNode(editor, UserSelectedNode, memberSymbol);
             return new DocumentChangeAction(Title, _ => Task.FromResult(editor.GetChangedDocument()));
         }
 
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(targetDocument.Id, _cancellationToken).ConfigureAwait(false);
 
             targetDocumentEditor.ReplaceNode(targetNode, nodeWithMemberAdded);
-            RemoveService.RemoveNode(contextDocumentEditor, UserSelectedNode, memberSymbol);
+            RemoveNode(contextDocumentEditor, UserSelectedNode, memberSymbol);
 
             return new SolutionChangeAction(Title, _ => Task.FromResult(solutionEditor.GetChangedSolution()));
         }
@@ -130,5 +131,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
             }
             return await CreateDocumentOrSolutionAction(member, TargetTypeNode, options);
         }
+
+        protected abstract void RemoveNode(DocumentEditor editor, SyntaxNode node, ISymbol symbol);
     }
 }

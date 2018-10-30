@@ -45,23 +45,25 @@
     </Window.Resources>
     <Grid Margin="10,8,10,8">
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="40*"/>
+            <RowDefinition Height="60*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        
+        <Label
+        Grid.Row="0"
+            x:Uid="Description"
+            x:Name="Description"
+            Content="{Binding ElementName=dialog, Path=PullUpDescription}"/>
 
-        <StackPanel Grid.Row="0" MinHeight="150" MinWidth="370" Margin="0,0,0,1">
-            <Label
-                x:Uid="Description"
-                x:Name="Description"
-                Content="{Binding ElementName=dialog, Path=PullUpDescription}"/>
-            <Separator/>
-            <GroupBox
+        <GroupBox
+            Grid.Row="1"
                 x:Name="TargetSelectionGroupBox"
                 Header="{Binding ElementName=dialog, Path=SelectDestination}">
                 <TreeView x:Uid="PullTargetTreeView"
                           x:Name="TargetMembersContainer"
-                          MinHeight="150"
+                          MinHeight="130"
                           MinWidth="360"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                           ItemsSource="{Binding TargetMembersContainer}"
@@ -82,11 +84,10 @@
                     </TreeView.ItemTemplate>
                 </TreeView>
             </GroupBox>
-        </StackPanel>
 
         <GroupBox
             Header="{Binding ElementName=dialog, Path=SelectMembers}"
-            Grid.Row="1"
+            Grid.Row="2"
             MinHeight="200"
             MinWidth="240"
             x:Uid="MemberSelectionLabel">
@@ -175,7 +176,7 @@
                 </Grid>
             </GroupBox>
             <StackPanel
-                Grid.Row="2"
+                Grid.Row="3"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"
                 Margin="0,11,0,0">

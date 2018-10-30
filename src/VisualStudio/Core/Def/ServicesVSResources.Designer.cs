@@ -452,11 +452,38 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} will be changed to non-static since {1} is an interface..
+        /// </summary>
+        internal static string Change_Member_To_NonStatic {
+            get {
+                return ResourceManager.GetString("Change_Member_To_NonStatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} will be changed to public since {1} is an interface..
+        /// </summary>
+        internal static string Change_Member_To_Public {
+            get {
+                return ResourceManager.GetString("Change_Member_To_Public", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Signature.
         /// </summary>
         internal static string Change_Signature {
             get {
                 return ResourceManager.GetString("Change_Signature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} will be changed to abstract..
+        /// </summary>
+        internal static string Change_Target_To_Abstract {
+            get {
+                return ResourceManager.GetString("Change_Target_To_Abstract", resourceCulture);
             }
         }
         

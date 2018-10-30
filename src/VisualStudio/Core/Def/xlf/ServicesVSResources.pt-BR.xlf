@@ -17,6 +17,21 @@
         <target state="new">Back</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_Member_To_NonStatic">
+        <source>{0} will be changed to non-static since {1} is an interface.</source>
+        <target state="new">{0} will be changed to non-static since {1} is an interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Member_To_Public">
+        <source>{0} will be changed to public since {1} is an interface.</source>
+        <target state="new">{0} will be changed to public since {1} is an interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Target_To_Abstract">
+        <source>{0} will be changed to abstract.</source>
+        <target state="new">{0} will be changed to abstract.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="new">Colorize regular expressions</target>

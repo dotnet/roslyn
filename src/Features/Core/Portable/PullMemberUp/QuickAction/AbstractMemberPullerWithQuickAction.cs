@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
 
         protected ICodeGenerationService CodeGenerationService { get; set; }
 
-        protected IPullMemberUpSyntaxChangeService RemoveService { get; set; }
-
         protected CancellationToken _cancellationToken;
 
         internal async virtual Task<CodeAction> ComputeRefactoring(
@@ -35,7 +33,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp.QuickAction
         {
             Title = FeaturesResources.Add_To + targetTypeSymbol.Name;
             CodeGenerationService = context.Document.Project.LanguageServices.GetService<ICodeGenerationService>();
-            RemoveService = context.Document.Project.LanguageServices.GetRequiredService<IPullMemberUpSyntaxChangeService>();
             _cancellationToken = context.CancellationToken;
             ContextDocument = context.Document;
             UserSelectedNode = userSelectedNode;

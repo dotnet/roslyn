@@ -5,34 +5,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
-    internal class InterfacePullerWithDialog : AbstractMemberPullerWithDialog
+    internal abstract class AbstractInterfacePullerWithDialog : AbstractMemberPullerWithDialog, ILanguageService
     {
-        internal InterfacePullerWithDialog(Document document) : base(document)
-        {
-        }
-
         internal async Task<Solution> ComputeChangedSolution(
             PullMemberDialogResult result,
+            Document contextDocument,
             CancellationToken cancellationToken)
         {
-            var codeGenerationService = ContextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+            var codeGenerationService = contextDocument.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var targetSyntaxNode = await codeGenerationService.
-                FindMostRelevantNameSpaceOrTypeDeclarationAsync(ContextDocument.Project.Solution, result.Target);
+                FindMostRelevantNameSpaceOrTypeDeclarationAsync(contextDocument.Project.Solution, result.Target);
 
             if (targetSyntaxNode != null )
             {
-                var solutionEditor = new SolutionEditor(ContextDocument.Project.Solution);
+                var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
                 var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(
-                   ContextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+                   contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
 
                 AddMembersToTarget(result, targetDocumentEditor, targetSyntaxNode, codeGenerationService);
 
-                await ChangeMembersToPublic(result, ContextDocument ,solutionEditor, codeGenerationService, cancellationToken);
+                await ChangeMembersToPublic(result, contextDocument ,solutionEditor, codeGenerationService, cancellationToken);
 
-                await ChangeMembersToNonStatic(result, ContextDocument, solutionEditor, codeGenerationService, cancellationToken);
+                await ChangeMembersToNonStatic(result, contextDocument, solutionEditor, codeGenerationService, cancellationToken);
 
                 return solutionEditor.GetChangedSolution();
             }
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
                 async (syntax, symbol, containingTypeNode) =>
                 {
                     var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    ChangeService.ChangeMemberToPublic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
+                    ChangeMemberToPublic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
                 },
                 cancellationToken);
         }
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
                 async (syntax, symbol, containingTypeNode) =>
                 {
                     var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    ChangeService.ChangeMemberToNonStatic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
+                    ChangeMemberToNonStatic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
                 },
                 cancellationToken);
         }
@@ -131,5 +129,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
             var options = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
             editor.ReplaceNode(targetNode, codeGenerationService.AddMembers(targetNode, symbolsToPullUp, options: options));
         }
+
+        protected abstract void ChangeMemberToNonStatic(DocumentEditor editor, ISymbol symbol, SyntaxNode node, SyntaxNode containingTypeNode, ICodeGenerationService codeGenerationService);
+
+        protected abstract void ChangeMemberToPublic(DocumentEditor editor, ISymbol symbol, SyntaxNode node, SyntaxNode containingTypeNode, ICodeGenerationService codeGenerationService);
     }
 }

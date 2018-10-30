@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
-    internal interface IPullMemberUpDialogService : IWorkspaceService
+    internal interface IPullMemberUpOptionsService : IWorkspaceService
     {
         PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap);
 

@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         public ISymbol Member { get; }
 
-        public bool ChangeOriginToNonPublic { get; }
+        public bool ChangeOriginToPublic { get; }
 
         public bool ChangeOriginToNonStatic { get; }
 
-        internal MemberAnalysisResult(ISymbol member, bool changeOriginToNonPublic = false, bool changeOriginToNonStatic = false)
+        internal MemberAnalysisResult(ISymbol member, bool changeOriginToPublic = false, bool changeOriginToNonStatic = false)
         {
             Member = member;
-            ChangeOriginToNonPublic = changeOriginToNonPublic;
+            ChangeOriginToPublic = changeOriginToPublic;
             ChangeOriginToNonStatic = changeOriginToNonStatic;
         }
     }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             MembersAnalysisResults = membersAnalysisResults;
             IsValid = !MembersAnalysisResults.Aggregate(
                 ChangeTargetAbstract,
-                (acc, result) => acc || result.ChangeOriginToNonPublic || result.ChangeOriginToNonStatic);
+                (acc, result) => acc || result.ChangeOriginToPublic || result.ChangeOriginToNonStatic);
         }
     }
 }

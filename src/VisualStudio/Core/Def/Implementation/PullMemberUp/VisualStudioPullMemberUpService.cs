@@ -12,8 +12,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
-    [ExportWorkspaceService(typeof(IPullMemberUpDialogService), ServiceLayer.Host), Shared]
-    internal class VisualStudioPullMemberUpService : IPullMemberUpDialogService
+    [ExportWorkspaceService(typeof(IPullMemberUpOptionsService), ServiceLayer.Host), Shared]
+    internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
     {
         private readonly IGlyphService _glyphService;
 
@@ -25,12 +25,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             _glyphService = glyphService;
         }
 
-        public bool CreateWarningDialog(AnalysisResult analysisResult)
+        private List<string> GenerateMessage(AnalysisResult analysisResult)
         {
             var warningMessages = new List<string>();
+            foreach (var result in analysisResult.MembersAnalysisResults)
+            {
+                if (result.ChangeOriginToPublic)
+                {
+                    warningMessages.Add(string.Format(ServicesVSResources.Change_Member_To_Public, result.Member.Name, analysisResult.Target));
+                }
 
+                if (result.ChangeOriginToNonStatic)
+                {
+                    warningMessages.Add(string.Format(ServicesVSResources.Change_Member_To_NonStatic, result.Member.Name, analysisResult.Target));
+                }
+            }
+            if (analysisResult.ChangeTargetAbstract)
+            {
+                warningMessages.Add(string.Format(ServicesVSResources.Change_Target_To_Abstract, analysisResult.Target.Name));
+            }
+            return warningMessages;
+        }
 
-            var viewModel = new PullMemberUpWarningViewModel(warningMessages);
+        public bool CreateWarningDialog(AnalysisResult analysisResult)
+        {
+            var viewModel = new PullMemberUpWarningViewModel(GenerateMessage(analysisResult));
             var dialog = new PullMemberUpDialogWarning(viewModel);
             var result = dialog.ShowModal();
             if (result.GetValueOrDefault())
