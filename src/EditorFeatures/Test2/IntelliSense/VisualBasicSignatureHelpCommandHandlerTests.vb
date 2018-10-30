@@ -119,8 +119,8 @@ End Module
         Public Async Function TestSigHelpInLinkedFiles(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(completionImplementation,
                 <Workspace>
-                                <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
-                                    <Document FilePath="C.vb">
+                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj" PreprocessorSymbols="Proj1=True">
+                        <Document FilePath="C.vb">
 Class C
     Sub M()
         M2($$)
@@ -136,11 +136,11 @@ Class C
 #End If
 End Class
                               </Document>
-                                </Project>
-                                <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
-                                    <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
-                                </Project>
-                            </Workspace>)
+                    </Project>
+                    <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
+                        <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
+                    </Project>
+                </Workspace>)
 
                 Dim documents = state.Workspace.Documents
                 Dim linkDocument = documents.Single(Function(d) d.IsLinkFile)

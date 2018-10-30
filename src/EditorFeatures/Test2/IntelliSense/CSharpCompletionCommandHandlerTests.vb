@@ -3508,16 +3508,16 @@ class C
         Public Async Function Filters_EmptyList1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
-        using System.IO;
-        using System.Threading.Tasks;
-        class C
-        {
-            async Task Moo()
-            {
-                var x = asd$$
-            }
-        }
-                    ]]></Document>)
+using System.IO;
+using System.Threading.Tasks;
+class C
+{
+    async Task Moo()
+    {
+        var x = asd$$
+    }
+}
+            ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3542,16 +3542,16 @@ class C
         Public Async Function Filters_EmptyList2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
-        using System.IO;
-        using System.Threading.Tasks;
-        class C
-        {
-            async Task Moo()
-            {
-                var x = asd$$
-            }
-        }
-                    ]]></Document>)
+using System.IO;
+using System.Threading.Tasks;
+class C
+{
+    async Task Moo()
+    {
+        var x = asd$$
+    }
+}
+            ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3578,16 +3578,16 @@ class C
         Public Async Function Filters_EmptyList3(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
-        using System.IO;
-        using System.Threading.Tasks;
-        class C
-        {
-            async Task Moo()
-            {
-                var x = asd$$
-            }
-        }
-                    ]]></Document>)
+using System.IO;
+using System.Threading.Tasks;
+class C
+{
+    async Task Moo()
+    {
+        var x = asd$$
+    }
+}
+            ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3614,16 +3614,16 @@ class C
         Public Async Function Filters_EmptyList4(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
-        using System.IO;
-        using System.Threading.Tasks;
-        class C
-        {
-            async Task Moo()
-            {
-                var x = asd$$
-            }
-        }
-                    ]]></Document>)
+using System.IO;
+using System.Threading.Tasks;
+class C
+{
+    async Task Moo()
+    {
+        var x = asd$$
+    }
+}
+            ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3717,21 +3717,21 @@ class AAttribute: Attribute
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 
-        enum Color
-        {
-            Red,
-            Green,
-            Blue
-        }
+enum Color
+{
+    Red,
+    Green,
+    Blue
+}
 
-        class C
-        {
-            void M()
-            {
-                Color.Re$$d
-            }
-        }
-                    ]]></Document>)
+class C
+{
+    void M()
+    {
+        Color.Re$$d
+    }
+}
+            ]]></Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Red")

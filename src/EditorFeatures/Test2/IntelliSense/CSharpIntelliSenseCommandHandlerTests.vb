@@ -66,9 +66,8 @@ class C
             End Using
         End Function
 
-        'No need to run in the modern completion because this Escape is supported on the VSSDK side.
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
-        <InlineData(CompletionImplementation.Legacy)>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCutDismissesCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -91,9 +90,8 @@ class C
             End Using
         End Function
 
-        'No need to run in the modern completion because this Escape is supported on the VSSDK side.
         <WorkItem(531149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531149")>
-        <InlineData(CompletionImplementation.Legacy)>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestPasteDismissesCompletion(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,

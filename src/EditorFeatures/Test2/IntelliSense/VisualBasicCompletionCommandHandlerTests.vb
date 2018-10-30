@@ -197,7 +197,7 @@ End Class
         End Function
 
         <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
-        <InlineData(CompletionImplementation.Legacy)> 'Escape is handled on the VSSDK side in the modern completion.
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionDismissedAfterEscape1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -218,8 +218,10 @@ End Class
         End Function
 
         <WorkItem(543497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543497")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEnterOnSoftSelection1(completionImplementation As CompletionImplementation) As Task
+            ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <document>
 Class Program

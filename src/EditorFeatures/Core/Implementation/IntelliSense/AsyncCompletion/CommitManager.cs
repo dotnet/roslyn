@@ -131,13 +131,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             if (!subjectBuffer.CheckEditAccess())
             {
                 // We are on the wrong thread.
-                FatalError.ReportWithoutCrash(new AccessViolationException("Subject buffer did not provide Edit Access"));
+                FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer did not provide Edit Access"));
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
             if (subjectBuffer.EditInProgress)
             {
-                FatalError.ReportWithoutCrash(new AccessViolationException("Subject buffer is editing by someone else."));
+                FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer is editing by someone else."));
                 return AsyncCompletionData.CommitBehavior.None;
             }
 

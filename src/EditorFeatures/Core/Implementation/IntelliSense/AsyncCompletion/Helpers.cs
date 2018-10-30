@@ -26,6 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             return TryGetRoslynTrigger(trigger, characterRemoved, out roslynTrigger);
         }
 
+        /// <summary>
+        /// Attempts to convert VS Completion trigger into Roslyn completion trigget
+        /// </summary>
+        /// <param name="trigger">VS completion trigger</param>
+        /// <param name="c">Character. 
+        /// VS provides Backspace and Delete characters inside the trigger while Roslyn needs the char deleted by the trigger.
+        /// Therefore, we provide this character separately and use it for Delete and Backspace cases only.
+        /// </param>
+        /// <param name="roslynTrigger">Roslyn completion trigger</param>
+        /// <returns>true if converted, false is failed to convert</returns>
         internal static bool TryGetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, char c, out RoslynTrigger roslynTrigger)
         {
             switch (trigger.Reason)
