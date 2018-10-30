@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return CurrentAnalysisData;
         }
 
-        [Conditional("DEBUG")]
         private void AfterVisitRoot(IOperation operation)
         {
             if (PredicateAnalysis)
@@ -276,6 +275,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 _flowCaptureReferencesWithPredicatedData.Clear();
             }
 
+#if DEBUG
             Debug.Assert(_pendingArgumentsToReset.Count == 0);
             Debug.Assert(_pendingArgumentsToPostProcess.Count == 0);
             Debug.Assert(_flowCaptureReferencesWithPredicatedData.Count == 0);
@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // GetState will throw an InvalidOperationException if the visitor did not visit the operation or cache it's abstract value.
                 var _ = GetCachedAbstractValue(descendant);
             }
+#endif
         }
 
         public void OnStartBlockAnalysis(BasicBlock block, TAnalysisData input)
@@ -1552,7 +1553,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     if (instanceReceiver != null && AnalysisEntityFactory.TryCreate(instanceReceiver, out var receiverAnalysisEntity))
                     {
-                        return (receiverAnalysisEntity, GetPointsToAbstractValue(instanceReceiver));
+                        var instancePointsToValue = GetPointsToAbstractValue(instanceReceiver);
+                        if (instancePointsToValue.Kind == PointsToAbstractValueKind.Undefined)
+                        {
+                            // Error case: Invocation through an uninitialized local.
+                            // Use Unknown PointsTo value for interprocedural analysis.
+                            instancePointsToValue = PointsToAbstractValue.Unknown;
+                        }
+
+                        return (receiverAnalysisEntity, instancePointsToValue);
                     }
                     else if (isLambdaOrLocalFunction)
                     {

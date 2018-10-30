@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             CoreAnalysisData[key] = value;
         }
 
-        public override void SetAbstactValue(AnalysisEntity key, CopyAbstractValue value)
+        public override void SetAbstractValue(AnalysisEntity key, CopyAbstractValue value)
         {
             throw new NotSupportedException("Use the other overload of SetAbstactValue");
         }

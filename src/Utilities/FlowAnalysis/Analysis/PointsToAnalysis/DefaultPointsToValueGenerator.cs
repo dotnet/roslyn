@@ -27,9 +27,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out PointsToAbstractValue value))
             {
-                value = analysisEntity.SymbolOpt?.Kind == SymbolKind.Local || analysisEntity.CaptureIdOpt != null ?
-                    PointsToAbstractValue.Undefined :
-                    PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
+                if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Local ||
+                    analysisEntity.SymbolOpt is IParameterSymbol parameter && parameter.RefKind == RefKind.Out ||
+                    analysisEntity.CaptureIdOpt != null)
+                {
+                    return PointsToAbstractValue.Undefined;
+                }
+
+                value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
                 _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
             }
 

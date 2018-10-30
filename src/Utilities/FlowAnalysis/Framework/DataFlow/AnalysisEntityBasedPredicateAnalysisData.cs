@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public TValue this[AnalysisEntity key] => CoreAnalysisData[key];
 
-        public virtual void SetAbstactValue(AnalysisEntity key, TValue value)
+        public virtual void SetAbstractValue(AnalysisEntity key, TValue value)
         {
             if (HasPredicatedData)
             {
