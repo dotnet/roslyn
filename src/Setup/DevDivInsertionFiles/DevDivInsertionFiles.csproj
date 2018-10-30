@@ -52,6 +52,7 @@
     <ExpectedDependency Include="System.Text.Encoding.CodePages" DevEnvLib="lib/netstandard2.0/System.Text.Encoding.CodePages.dll"/>
 
     <!-- 
+      Do not optimize this binary for now.
       This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
       Arcade SignTool doesn't support signing directly at this point either.
     -->
