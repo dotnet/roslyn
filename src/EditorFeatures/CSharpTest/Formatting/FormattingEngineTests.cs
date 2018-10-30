@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -1648,6 +1650,33 @@ class C
             var node = SyntaxFactory.ParseExpression(code);
             var expected = @"(() => { })";
             await AssertFormatOnArbitraryNodeAsync(node, expected);
+        }
+
+        [WorkItem(30518, "https://github.com/dotnet/roslyn/issues/30518")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatGeneratedNodeInInitializer()
+        {
+            var code = @"new int[] {
+    0,
+    1
+}";
+
+            var expected = @"new int[] {
+    0,
+Identifier Identifier,
+    1
+}";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script);
+            var root = tree.GetRoot();
+
+            var declaration = SyntaxFactory.DeclarationExpression(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Identifier")), SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("Identifier")));
+
+            var newType = declaration.Type.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker).WithAdditionalAnnotations(Formatter.Annotation);
+            var strippedDeclaration = SyntaxFactory.DeclarationExpression(newType, declaration.Designation);
+
+            var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { strippedDeclaration });
+            await AssertFormatOnArbitraryNodeAsync(newRoot, expected);
         }
 
         private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)

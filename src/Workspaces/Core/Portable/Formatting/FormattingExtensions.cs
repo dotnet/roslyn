@@ -60,16 +60,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             return combinedList;
         }
 
-        public static bool ContainsElasticTrivia(this SuppressOperation operation, TokenStream tokenStream)
-        {
-            var startToken = tokenStream.GetTokenData(operation.StartToken);
-            var nextToken = startToken.GetNextTokenData();
-            var endToken = tokenStream.GetTokenData(operation.EndToken);
-            var previousToken = endToken.GetPreviousTokenData();
-
-            return tokenStream.GetTriviaData(startToken, nextToken).TreatAsElastic || tokenStream.GetTriviaData(previousToken, endToken).TreatAsElastic;
-        }
-
         public static bool HasAnyWhitespaceElasticTrivia(this SyntaxTriviaList list)
         {
             // Use foreach to avoid accessing indexer as it will call GetSlotOffset for each trivia

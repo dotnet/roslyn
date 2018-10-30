@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal class SuppressSpacingData
     {
-        public SuppressSpacingData(TextSpan textSpan, bool noSpacing)
+        public SuppressSpacingData(TextSpan textSpan, bool ignoreElastic)
         {
             this.TextSpan = textSpan;
-            this.NoSpacing = noSpacing;
+            this.IgnoreElastic = ignoreElastic;
         }
 
         public TextSpan TextSpan { get; }
-        public bool NoSpacing { get; }
+        public bool IgnoreElastic { get; }
     }
 }

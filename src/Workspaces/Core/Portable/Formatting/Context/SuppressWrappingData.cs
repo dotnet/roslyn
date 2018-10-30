@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal class SuppressWrappingData
     {
-        public SuppressWrappingData(TextSpan textSpan, bool noWrapping)
+        public SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
         {
             this.TextSpan = textSpan;
-            this.NoWrapping = noWrapping;
+            this.IgnoreElastic = ignoreElastic;
         }
 
         public TextSpan TextSpan { get; }
-        public bool NoWrapping { get; }
+        public bool IgnoreElastic { get; }
     }
 }
