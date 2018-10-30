@@ -318,6 +318,88 @@ partial class C9 { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new C9()").WithArguments("C9", "Base<object?>", "b", "void Program.F(Base<object?> b)").WithLocation(18, 11));
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
+        [Fact]
+        public void Directive_EnableAndDisable_01()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static void F(object o)
+    {
+    }
+#nullable disable
+    static void G()
+    {
+        F(null);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
+        [Fact]
+        public void Directive_EnableAndDisable_02()
+        {
+            var source =
+@"class Program
+{
+#nullable disable
+    static void G()
+    {
+        F(null);
+    }
+#nullable enable
+    static void F(object o)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
+        [Fact]
+        public void Directive_EnableAndDisable_03()
+        {
+            var source =
+@"class Program
+{
+    static void F(object o)
+    {
+    }
+#nullable disable
+    static void G()
+    {
+        F(null);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
+        [Fact]
+        public void Directive_EnableAndDisable_04()
+        {
+            var source =
+@"class Program
+{
+    static void G()
+    {
+        F(null);
+    }
+#nullable enable
+    static void F(object o)
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
         public void IsOperatorOnNonNullExpression()
         {
@@ -966,12 +1048,7 @@ class C<T> where T : class
                 );
 
             var c3 = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse());
-            c3.VerifyDiagnostics(expectedDiagnostics
-                .Concat(new[] {
-                    // (37,17): warning CS8602: Possible dereference of a null reference.
-                    //     void M4() { Event(new C<string?>()); } // warn 21
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Event").WithLocation(37, 17)
-                    }).ToArray());
+            c3.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2495,8 +2572,8 @@ public class D : C
             var comp2B = CreateCompilation(source2, references: new[] { ref0, ref1 });
             comp2B.VerifyDiagnostics();
 
-            var expectedDiagnostics = new[]
-            {
+            var comp2C = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
+            comp2C.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         ((I)a).F(o).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)a).F(o)").WithLocation(5, 9),
@@ -2514,13 +2591,10 @@ public class D : C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((I)d).F(o)").WithLocation(19, 9),
                 // (20,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         ((I)d).G(null).ToString();
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18)
-            };
-            var comp2C = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { ref0, ref1 });
-            comp2C.VerifyDiagnostics(expectedDiagnostics);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(20, 18));
 
             var comp2D = CreateCompilation(new[] { source2 }, options: WithNonNullTypesFalse(), references: new[] { ref0, ref1 });
-            comp2D.VerifyDiagnostics(expectedDiagnostics);
+            comp2D.VerifyDiagnostics();
         }
 
         [Fact]
@@ -4099,7 +4173,7 @@ class C
 
         foreach (string? ns in NCollection()) // 1
         {
-            ns /*T:string?*/ .ToString(); // 2
+            ns /*T:string?*/ .ToString();
         }
 
         foreach (var s1 in Collection())
@@ -4109,7 +4183,7 @@ class C
 
         foreach (var ns1 in NCollection())
         {
-            ns1 /*T:string?*/ .ToString(); // 3
+            ns1 /*T:string?*/ .ToString();
         }
 
         foreach (string s in FalseCollection())
@@ -4117,9 +4191,9 @@ class C
             s /*T:string*/ .ToString();
         }
 
-        foreach (string? ns in FalseNCollection()) // 4
+        foreach (string? ns in FalseNCollection()) // 2
         {
-            ns /*T:string?*/ .ToString(); // 5
+            ns /*T:string?*/ .ToString();
         }
 
         foreach (var s1 in FalseCollection())
@@ -4129,7 +4203,7 @@ class C
 
         foreach (var ns1 in FalseNCollection())
         {
-            ns1 /*T:string?*/ .ToString(); // 6
+            ns1 /*T:string?*/ .ToString();
         }
     }
 
@@ -4143,7 +4217,7 @@ class C
     string[] FalseCollection() => throw null;
 
 " + NonNullTypesOff() + @"
-    string?[] FalseNCollection() => throw null; // 7
+    string?[] FalseNCollection() => throw null; // 3
 }
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -4151,26 +4225,14 @@ class C
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (60,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     string?[] FalseNCollection() => throw null; // 7
+                //     string?[] FalseNCollection() => throw null; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(60, 11),
                 // (14,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         foreach (string? ns in NCollection()) // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 24),
                 // (34,24): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //         foreach (string? ns in FalseNCollection()) // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(34, 24),
-                // (16,13): warning CS8602: Possible dereference of a null reference.
-                //             ns /*T:string?*/ .ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns").WithLocation(16, 13),
-                // (26,13): warning CS8602: Possible dereference of a null reference.
-                //             ns1 /*T:string?*/ .ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns1").WithLocation(26, 13),
-                // (36,13): warning CS8602: Possible dereference of a null reference.
-                //             ns /*T:string?*/ .ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns").WithLocation(36, 13),
-                // (46,13): warning CS8602: Possible dereference of a null reference.
-                //             ns1 /*T:string?*/ .ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns1").WithLocation(46, 13)
+                //         foreach (string? ns in FalseNCollection()) // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(34, 24)
                 );
         }
 
@@ -4331,22 +4393,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 24),
                 // (21,29): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         FalseNOut(out string? ns3); // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 29),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         ns2 /*T:string?*/ .ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns2").WithLocation(14, 9),
-                // (22,9): warning CS8602: Possible dereference of a null reference.
-                //         ns3 /*T:string?*/ .ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns3").WithLocation(22, 9),
-                // (27,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         s4 = null; // 5
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(27, 14),
-                // (30,9): warning CS8602: Possible dereference of a null reference.
-                //         ns4 /*T:string?*/ .ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns4").WithLocation(30, 9),
-                // (38,9): warning CS8602: Possible dereference of a null reference.
-                //         ns5 /*T:string?*/ .ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns5").WithLocation(38, 9)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 29)
                 );
         }
 
@@ -4456,23 +4503,23 @@ public class C : Base
         s2 = null;
 
         string? ns2 = NMethod(); // 1
-        ns2 /*T:string?*/ .ToString(); // 2
+        ns2 /*T:string?*/ .ToString();
         ns2 = null;
 
         string s3 = FalseMethod();
         s3 /*T:string*/ .ToString();
         s3 = null;
 
-        string? ns3 = FalseNMethod(); // 3
-        ns3 /*T:string?*/ .ToString(); // 4
+        string? ns3 = FalseNMethod(); // 2
+        ns3 /*T:string?*/ .ToString();
         ns3 = null;
 
         var s4 = Method();
         s4 /*T:string!*/ .ToString();
-        s4 = null; // 5
+        s4 = null;
 
         var ns4 = NMethod();
-        ns4 /*T:string?*/ .ToString(); // 6
+        ns4 /*T:string?*/ .ToString();
         ns4 = null;
 
         var s5 = FalseMethod();
@@ -4480,7 +4527,7 @@ public class C : Base
         s5 = null;
 
         var ns5 = FalseNMethod();
-        ns5 /*T:string?*/ .ToString(); // 7 
+        ns5 /*T:string?*/ .ToString();
         ns5 = null;
     }
 }
@@ -4496,7 +4543,7 @@ public class Base
     public string FalseMethod() => throw null;
 
 " + NonNullTypesOff() + @"
-    public string? FalseNMethod() => throw null; // 8
+    public string? FalseNMethod() => throw null; // 3
 }
 ";
             var compilation = CreateCompilation(new[] { source });
@@ -4504,29 +4551,14 @@ public class Base
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (54,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public string? FalseNMethod() => throw null; // 8
+                //     public string? FalseNMethod() => throw null; // 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(54, 18),
                 // (13,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         string? ns2 = NMethod(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 15),
                 // (21,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //         string? ns3 = FalseNMethod(); // 3
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 15),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         ns2 /*T:string?*/ .ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns2").WithLocation(14, 9),
-                // (22,9): warning CS8602: Possible dereference of a null reference.
-                //         ns3 /*T:string?*/ .ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns3").WithLocation(22, 9),
-                // (27,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         s4 = null; // 5
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(27, 14),
-                // (30,9): warning CS8602: Possible dereference of a null reference.
-                //         ns4 /*T:string?*/ .ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns4").WithLocation(30, 9),
-                // (38,9): warning CS8602: Possible dereference of a null reference.
-                //         ns5 /*T:string?*/ .ToString(); // 7 
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ns5").WithLocation(38, 9)
+                //         string? ns3 = FalseNMethod(); // 2
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 15)
                 );
         }
 
@@ -4704,7 +4736,7 @@ public struct D<T, NT>
     {
         t.Item /*T:S*/ .ToString();
         t.Item = null;
-        nt.Item /*T:S?*/ .ToString(); // warn 4
+        nt.Item /*T:S?*/ .ToString();
         nt.Item = null;
     }
 }
@@ -4716,9 +4748,6 @@ public struct D<T, NT>
                 // (23,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     where NT : List<S?> // warn 3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(23, 22),
-                // (29,9): warning CS8602: Possible dereference of a null reference.
-                //         nt.Item /*T:S?*/ .ToString(); // warn 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "nt.Item").WithLocation(29, 9),
                 // (14,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         t.Item = null; // warn 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 18),
@@ -28766,31 +28795,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 27),
                 // (8,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 38),
-                // (17,18): warning CS8601: Possible null reference assignment.
-                //             E1 = x11; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x11").WithLocation(17, 18),
-                // (22,19): hidden CS8607: Expression is probably never null.
-                //             x12 = E1 ?? x12; // 3
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(22, 19),
-                // (10,20): warning CS8601: Possible null reference assignment.
-                //             c.F1 = x21; // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(10, 20),
-                // (11,20): warning CS8601: Possible null reference assignment.
-                //             c.P1 = x21; // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(11, 20),
-                // (12,18): warning CS8604: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
-                //             c.M3(x21); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(12, 18),
-                // (17,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.F1 ?? x22; // 8
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(17, 19),
-                // (18,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.P1 ?? x22; // 9
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(18, 19),
-                // (19,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.M1() ?? x22; // 10
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 38)
                 );
 
             CSharpCompilation c1 = CreateCompilation(new[] { lib },
@@ -28802,7 +28807,22 @@ partial class C
             var expectedDiagnostics = new[] {
                 // (8,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 38),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 38)
+                };
+
+            c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
+                                              parseOptions: TestOptions.Regular8,
+                                              options: WithNonNullTypesFalse());
+
+            c.VerifyDiagnostics(expectedDiagnostics);
+
+            c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
+                                              parseOptions: TestOptions.Regular8,
+                                              options: WithNonNullTypesFalse());
+
+            c.VerifyDiagnostics(expectedDiagnostics);
+
+            expectedDiagnostics = new[] {
                 // (10,20): warning CS8601: Possible null reference assignment.
                 //             c.F1 = x21; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(10, 20),
@@ -28820,18 +28840,27 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(18, 19),
                 // (19,19): hidden CS8607: Expression is probably never null.
                 //             x22 = c.M1() ?? x22; // 10
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19)
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19),
+                // (24,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x23 = c.F2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.F2").WithLocation(24, 19),
+                // (25,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x23 = c.P2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P2").WithLocation(25, 19),
+                // (26,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x23 = c.M2();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(26, 19)
                 };
 
             c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: WithNonNullTypesFalse());
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(expectedDiagnostics);
 
             c = CreateCompilation(new[] { source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
-                                              options: WithNonNullTypesFalse());
+                                              options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(expectedDiagnostics);
         }
@@ -28943,24 +28972,6 @@ partial class C
                 // (20,19): hidden CS8607: Expression is probably never null.
                 //             x12 = E1 ?? x12; // 3 
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(20, 19),
-                // (11,20): warning CS8601: Possible null reference assignment.
-                //             c.F1 = x21; // 5 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(11, 20),
-                // (12,20): warning CS8601: Possible null reference assignment.
-                //             c.P1 = x21; // 6 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(12, 20),
-                // (13,18): warning CS8604: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
-                //             c.M3(x21); // 7 
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(13, 18),
-                // (18,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.F1 ?? x22; // 8 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(18, 19),
-                // (19,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.P1 ?? x22; // 9 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(19, 19),
-                // (20,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.M1() ?? x22; // 10 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(20, 19),
                 // (25,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             x13 = E2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "E2").WithLocation(25, 19)
@@ -28976,25 +28987,7 @@ partial class C
             {
                 // (9,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 38),
-                // (11,20): warning CS8601: Possible null reference assignment.
-                //             c.F1 = x21; // 5 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(11, 20),
-                // (12,20): warning CS8601: Possible null reference assignment.
-                //             c.P1 = x21; // 6 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(12, 20),
-                // (13,18): warning CS8604: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
-                //             c.M3(x21); // 7 
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(13, 18),
-                // (18,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.F1 ?? x22; // 8 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(18, 19),
-                // (19,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.P1 ?? x22; // 9 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(19, 19),
-                // (20,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.M1() ?? x22; // 10 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(20, 19)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 38)
             };
 
             c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
@@ -29119,24 +29112,6 @@ partial class C
                 // (20,19): hidden CS8607: Expression is probably never null.
                 //             x12 = E1 ?? x12; // 3
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "E1").WithLocation(20, 19),
-                // (12,20): warning CS8601: Possible null reference assignment.
-                //             c.F1 = x21; // 5 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(12, 20),
-                // (13,20): warning CS8601: Possible null reference assignment.
-                //             c.P1 = x21; // 6 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
-                // (14,18): warning CS8604: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
-                //             c.M3(x21); // 7 
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(14, 18),
-                // (19,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.F1 ?? x22; // 8 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(19, 19),
-                // (20,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.P1 ?? x22; // 9 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(20, 19),
-                // (21,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.M1() ?? x22; // 10 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19),
                 // (25,19): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             x13 = E2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "E2").WithLocation(25, 19)
@@ -29152,25 +29127,7 @@ partial class C
             {
                 // (10,38): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         void Test21(CL0.CL1 c, Action? x21) // 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 38),
-                // (12,20): warning CS8601: Possible null reference assignment.
-                //             c.F1 = x21; // 5 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(12, 20),
-                // (13,20): warning CS8601: Possible null reference assignment.
-                //             c.P1 = x21; // 6 
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x21").WithLocation(13, 20),
-                // (14,18): warning CS8604: Possible null reference argument for parameter 'x3' in 'void CL1.M3(Action x3)'.
-                //             c.M3(x21); // 7 
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x21").WithArguments("x3", "void CL1.M3(Action x3)").WithLocation(14, 18),
-                // (19,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.F1 ?? x22; // 8 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.F1").WithLocation(19, 19),
-                // (20,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.P1 ?? x22; // 9 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.P1").WithLocation(20, 19),
-                // (21,19): hidden CS8607: Expression is probably never null.
-                //             x22 = c.M1() ?? x22; // 10 
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(21, 19)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 38)
             };
 
             c = CreateCompilation(new[] { source2 }, new[] { c1.ToMetadataReference() },
