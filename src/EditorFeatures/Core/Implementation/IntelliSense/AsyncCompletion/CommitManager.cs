@@ -46,6 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
+            if (session.Properties.TryGetProperty<ImmutableArray<char>>(CompletionSource.ExcludedCommitCharacters, out var excludedCommitCharacter))
+            {
+                if (excludedCommitCharacter.Contains(typedChar))
+                {
+                    return false;
+                }
+            }
+
             return PotentialCommitCharacters.Contains(typedChar);
         }
 

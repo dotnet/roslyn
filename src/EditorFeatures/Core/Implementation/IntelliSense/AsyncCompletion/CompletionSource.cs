@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         internal const string Description = nameof(Description);
         internal const string InitialTrigger = nameof(InitialTrigger);
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
+        internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
@@ -175,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
             session.Properties.AddProperty(InitialTrigger, roslynTrigger);
+            session.Properties.AddProperty(ExcludedCommitCharacters, GetExcludedCommitCharacters(completionList.Items));
 
             return new AsyncCompletionData.CompletionContext(
                 items,
@@ -245,6 +247,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
             return item;
+        }
+
+        private ImmutableArray<char> GetExcludedCommitCharacters(ImmutableArray<RoslynCompletionItem> roslynItems)
+        {
+            var hashSet = new HashSet<char>();
+            foreach(var roslynItem in roslynItems)
+            {
+                foreach(var rule in  roslynItem.Rules?.FilterCharacterRules)
+                {
+                    if (rule.Kind == CharacterSetModificationKind.Add)
+                    {
+                        foreach(var c in rule.Characters)
+                        {
+                            hashSet.Add(c);
+                        }
+                    }
+                }
+            }
+
+            return hashSet.ToImmutableArray();
         }
 
         private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
