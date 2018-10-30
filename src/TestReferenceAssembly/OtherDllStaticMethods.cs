@@ -52,5 +52,24 @@ namespace OtherDll
         {
             output = ReturnsRandom(input);
         }
+
+        public static void SetsReferenceToInput<T>(T input, ref T output)
+        {
+            output = input;
+        }
+
+        public static void SetsReferenceToDefault<T>(T input, ref T output)
+        {
+            output = default(T);
+        }
+
+        public static void SetsReferenceToRandom(string input, ref string output)
+        {
+            Random r = new Random();
+            byte[] bytes = new byte[r.Next(20) + 10];
+            r.NextBytes(bytes);
+            bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+            output = Encoding.ASCII.GetString(bytes);
+        }
     }
 }

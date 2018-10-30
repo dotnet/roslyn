@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -116,6 +117,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             public override TaintedDataAbstractValue DefaultVisit(IOperation operation, object argument)
             {
+                // This handles most cases of tainted data flowing from child operations to parent operations.
+                // Examples:
+                // - tainted input parameters to method calls returns, and out/ref parameters, tainted (assuming no interprocedural)
+                // - adding a tainted value to something makes the result tainted
+                // - instantiating an object with tainted data makes the new object tainted
+
                 List<TaintedDataAbstractValue> taintedValues = null;
                 foreach (IOperation childOperation in operation.Children)
                 {
@@ -157,16 +164,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
 
-                // If we're accessing a property from a tainted object
-                IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
-                if (referenceeOperation != null)
-                {
-                    TaintedDataAbstractValue referenceeAbstractValue = this.GetCachedAbstractValue(referenceeOperation);
-                    if (referenceeAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                    {
-                        return referenceeAbstractValue;
-                    }
-                }
+                // TODO: DefaultVisit seems to handle this, so don't need this nonsense.
+                //// If we're accessing a property from a tainted object
+                //IOperation referenceeOperation = operation.GetReferenceOperationReferencee();
+                //if (referenceeOperation != null)
+                //{
+                //    TaintedDataAbstractValue referenceeAbstractValue = this.GetCachedAbstractValue(referenceeOperation);
+                //    if (referenceeAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
+                //    {
+                //        return referenceeAbstractValue;
+                //    }
+                //}
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity analysisEntity))
                 {
@@ -188,15 +196,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 if (taintedArguments.Any())
                 {
                     ProcessTaintedDataEnteringInvocationOrCreation(operation.Constructor, taintedArguments, operation);
-
-                    // TODO baseVisit seems to be right, maybe cuz of the DefaultVisit fix?  So no need for the nonsense below...
-                    //IEnumerable<TaintedDataAbstractValue> allTaintedValues = taintedArguments.Select(a => this.GetCachedAbstractValue(a));
-                    //if (baseValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                    //{
-                    //    allTaintedValues = allTaintedValues.Concat(baseValue);
-                    //}
-
-                    //return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
                 }
 
                 return baseValue;
@@ -240,43 +239,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
 
                 return baseVisit;
-
-                // TODO baseVisit seems to be right, maybe cuz of the DefaultVisit fix?  So no need for the nonsense below...
-                //if (this.TryGetInterproceduralAnalysisResult(originalOperation, out TaintedDataAnalysisResult subResult))
-                //{
-                //    // We performed interprocedural analysis on this invocation, so use its result, whatever it is.
-                //    return baseVisit;
-                //}
-
-                //// No inteprocedural, so...
-                //TaintedDataAbstractValue returnValue = baseVisit;
-                //if (visitedInstance != null)
-                //{
-                //    // A method call on a tainted object returns tainted.
-                //    TaintedDataAbstractValue instanceAbstractValue = this.GetCachedAbstractValue(visitedInstance);
-                //    if (instanceAbstractValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                //    {
-                //        returnValue = instanceAbstractValue;
-                //    }
-                //}
-
-                //if (taintedArguments.Any())
-                //{
-                //    // Since we didn't perform interprocedural, assume that any tainted arguments entering 
-                //    // the method taint the return value.
-                //    IEnumerable<TaintedDataAbstractValue> allTaintedValues =
-                //        taintedArguments.Select(a => this.GetCachedAbstractValue(a));
-                //    if (returnValue.Kind == TaintedDataAbstractValueKind.Tainted)
-                //    {
-                //        allTaintedValues = allTaintedValues.Concat(returnValue);
-                //    }
-
-                //    return TaintedDataAbstractValue.MergeTainted(allTaintedValues);
-                //}
-                //else
-                //{
-                //    return returnValue;
-                //}
             }
 
             public override TaintedDataAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)
@@ -304,16 +266,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <param name="analysisEntity">Analysis entity.</param>
             /// <param name="operation">IArgumentOperation.</param>
             /// <param name="defaultValue">Default TaintedDataAbstractValue if we don't need to override.</param>
-            /// <returns></returns>
+            /// <returns>Abstract value of the output parameter.</returns>
             protected override TaintedDataAbstractValue ComputeAnalysisValueForEscapedRefOrOutArgument(
                 AnalysisEntity analysisEntity, 
                 IArgumentOperation operation,
                 TaintedDataAbstractValue defaultValue)
             {
-                // TODO what to do with interprocedural finds the out argument isn't tainted?
-                // Need lots of test cases
+                // Note this method is only called when interprocedural DFA is *NOT* performed.
                 if (operation.Parent is IInvocationOperation invocationOperation)
                 {
+                    Debug.Assert(!this.TryGetInterproceduralAnalysisResult(invocationOperation, out TaintedDataAnalysisResult _));
+
                     // Treat ref or out arguments as the same as the invocation operation.
                     TaintedDataAbstractValue returnValueAbstractValue = this.GetCachedAbstractValue(invocationOperation);
                     return returnValueAbstractValue;
@@ -388,7 +351,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 IEnumerable<IArgumentOperation> taintedArguments,
                 IOperation originalOperation)
             {
-                // TODO consider putting this stuff in VisitArgument...or not since we need the interprocedural stuff afterwards
                 if (this.IsMethodArgumentASink(targetMethod, taintedArguments))
                 {
                     foreach (IArgumentOperation taintedArgument in taintedArguments)
@@ -538,6 +500,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             private IEnumerable<SinkInfo> GetSinkInfosForType(INamedTypeSymbol namedTypeSymbol)
             {
+                Debug.Assert(namedTypeSymbol != null);
+
                 if (namedTypeSymbol == null)
                 {
                     yield break;

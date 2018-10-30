@@ -3,6 +3,8 @@
 #pragma warning disable CA1801
 
 using System;
+using System.Linq;
+using System.Text;
 
 namespace OtherDll
 {
@@ -32,8 +34,26 @@ namespace OtherDll
 
         public string RandomString
         {
-            get { return OtherDllStaticMethods.ReturnsRandom(String.Empty); }
+            get
+            {
+                Random r = new Random();
+                byte[] bytes = new byte[r.Next(20) + 10];
+                r.NextBytes(bytes);
+                bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+                return Encoding.ASCII.GetString(bytes);
+            }
+
             set { }
+        }
+
+        public T ReturnsConstructedInput()
+        {
+            return this.ConstructedInput;
+        }
+
+        public T ReturnsDefault()
+        {
+            return default(T);
         }
 
         public T ReturnsInput(T input)
@@ -48,7 +68,21 @@ namespace OtherDll
 
         public string ReturnsRandom(string input)
         {
-            return OtherDllStaticMethods.ReturnsRandom(input);
+            Random r = new Random();
+            byte[] bytes = new byte[r.Next(20) + 10];
+            r.NextBytes(bytes);
+            bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+            return Encoding.ASCII.GetString(bytes);
+        }
+
+        public void SetsOutputToConstructedInput(out T output)
+        {
+            output = this.ConstructedInput;
+        }
+
+        public void SetsOutputToDefault(out T output)
+        {
+            output = default(T);
         }
 
         public void SetsOutputToInput(T input, out T output)
@@ -63,7 +97,40 @@ namespace OtherDll
 
         public void SetsOutputToRandom(string input, out string output)
         {
-            output = OtherDllStaticMethods.ReturnsRandom(input);
+            Random r = new Random();
+            byte[] bytes = new byte[r.Next(20) + 10];
+            r.NextBytes(bytes);
+            bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+            output = Encoding.ASCII.GetString(bytes);
+        }
+
+        public void SetsReferenceToConstructedInput(ref T output)
+        {
+            output = this.ConstructedInput;
+        }
+
+        public void SetsReferenceToDefault(ref T output)
+        {
+            output = default(T);
+        }
+
+        public void SetsReferenceToInput(T input, ref T output)
+        {
+            output = input;
+        }
+
+        public void SetsReferenceToDefault(T input, ref T output)
+        {
+            output = default(T);
+        }
+
+        public void SetsReferenceToRandom(string input, ref string output)
+        {
+            Random r = new Random();
+            byte[] bytes = new byte[r.Next(20) + 10];
+            r.NextBytes(bytes);
+            bytes = bytes.Where(b => (byte) ' ' <= b && b <= (byte) '~').ToArray();
+            output = Encoding.ASCII.GetString(bytes);
         }
     }
 }
