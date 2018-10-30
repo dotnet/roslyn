@@ -63,21 +63,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             throw new Exception("Insufficient resources to process new connection.");
         }
 
-        // HACK to identify whether we are running on mono, see https://github.com/dotnet/roslyn/pull/30810
-        private static bool IsRunningOnMono {
-            get {
-                try
-                {
-                    return !(Type.GetType("Mono.Runtime") is null);
-                }
-                catch
-                {
-                    // Arbitrarily assume we're not running on Mono.
-                    return false;
-                }
-            }
-        }
-
         /// <summary>
         /// Create an instance of the pipe. This might be the first instance, or a subsequent instance.
         /// There always needs to be an instance of the pipe created to listen for a new client connection.
@@ -90,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 #if NET46
             PipeSecurity security;
 
-            if (!IsRunningOnMono) {
+            if (!PlatformInformation.IsRunningOnMono) {
                 security = new PipeSecurity();
                 SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
 
@@ -99,8 +84,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 security.AddAccessRule(rule);
                 security.SetOwner(identifier);
             } else {
-                // HACK: Pipe security and additional access rights are not supported by Mono 
+                // Pipe security and additional access rights constructor arguments
+                //  are not supported by Mono 
                 // https://github.com/dotnet/roslyn/pull/30810
+                // https://github.com/mono/mono/issues/11406
                 security = null;
             }
 
