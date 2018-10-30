@@ -261,7 +261,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return CurrentAnalysisData;
         }
 
+#pragma warning disable CA1801  // Parameter is used in DEBUG configuration.
         private void AfterVisitRoot(IOperation operation)
+#pragma warning restore CA1801
         {
             if (PredicateAnalysis)
             {
