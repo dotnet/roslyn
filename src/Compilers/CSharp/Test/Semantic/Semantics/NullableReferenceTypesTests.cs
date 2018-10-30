@@ -4155,6 +4155,7 @@ class C
                 );
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
         [Fact]
         public void NonNullTypesFalse_Foreach()
         {
@@ -4324,6 +4325,7 @@ class C
                 );
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
         [Fact]
         public void NonNullTypesFalse_OutVars()
         {
@@ -4487,6 +4489,7 @@ public class Base
                 );
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
         [Fact]
         public void NonNullTypesFalse_LocalDeclarations()
         {
@@ -28692,6 +28695,7 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
         [Fact]
         public void NonNullTypes_03()
         {
@@ -28865,6 +28869,7 @@ partial class C
             c.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
         [Fact]
         public void NonNullTypes_04()
         {
@@ -29003,6 +29008,7 @@ partial class C
             c.VerifyDiagnostics(expected);
         }
 
+        [WorkItem(30840, "https://github.com/dotnet/roslyn/issues/30840")]
         [Fact]
         public void NonNullTypes_05()
         {
