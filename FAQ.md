@@ -47,7 +47,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [How do I get the .NET Framework version](#how-do-i-get-the-.net-framework-version)
     * [How do I get a project's assembly symbol, references, and syntax trees for each document or item in the project](#how-do-i-get-a-project's-assembly-symbol,-references,-and-syntax-trees-for-each-document-or-item-in-the-project)
     * [How do I extract an annotation of a particular (sub) type](#how-do-i-extract-an-annotation-of-a-particular-sub-type)
-    * [Why doesnâ€™t the Workspace API support more VS concepts (nested documents or non-code files)](#why-doesnâ€™t-the-workspace-api-support-more-vs-concepts-nested-documents-or-non-code-files)
+    * [Why doesn't the Workspace API support more VS concepts (nested documents or non-code files)](#why-doesnt-the-workspace-api-support-more-vs-concepts-nested-documents-or-non-code-files)
     * [How do I get base type or implemented interface information and which members override or implement base members](#how-do-i-get-base-type-or-implemented-interface-information-and-which-members-override-or-implement-base-members)
     * [How do I use symbols to find and investigate attributes that have been applied to methods](#how-do-i-use-symbols-to-find-and-investigate-attributes-that-have-been-applied-to-methods)
 * [Constructing and Updating Tree Questions](#constructing-and-updating-tree-questions)
@@ -239,7 +239,7 @@ See the sample code answer tagged “FAQ(24)” ([installed location information
 ### How do I extract an annotation of a particular (sub) type?
 See the sample code answer tagged “FAQ(25)” ([installed location information|faq#codefiles]) to see annotating certain tokens and then finding tokens with a particular type of annotation.  The sample doesn’t show it, but this works with nodes as well.
 
-### Why doesn’t the Workspace API support more VS concepts (nested documents or non-code files)?
+### Why doesn't the Workspace API support more VS concepts (nested documents or non-code files)?
 The Workspace API represents the view of solutions, projects, and documents that the C# and VB language services actually consume.  The Workspace model includes C# and VB source files, references, compilation options, and other similar details.  However, the Workspace API does not represent every feature of the Visual Studio project system, such as modeling xaml, resource files, etc.  The Workspace model also works independently of Visual Studio.
 
 To get all the project item information that Visual Studio has, use the MSBuild APIs which ship in the .NET Framework.  If your code executes within Visual Studio, you could also use the IVsHierarchy API to enumerate project items, which would expose access to nested documents that Visual Studio manages.  If you want to do semantic analysis of C# and VB files, you should use a workspace.
