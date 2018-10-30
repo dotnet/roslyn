@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
 #if NET46
             PipeSecurity security;
+            PipeOptions pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
 
             if (!PlatformInformation.IsRunningOnMono) {
                 security = new PipeSecurity();
@@ -89,6 +90,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // https://github.com/dotnet/roslyn/pull/30810
                 // https://github.com/mono/mono/issues/11406
                 security = null;
+                // This enum value is implemented by Mono to restrict pipe access to
+                //  the current user
+                const int CurrentUserOnly = unchecked((int)0x20000000);
+                pipeOptions |= (PipeOptions)CurrentUserOnly;
             }
 
             NamedPipeServerStream pipeStream = new NamedPipeServerStream(
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 PipeDirection.InOut,
                 NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
                 PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                pipeOptions,
                 PipeBufferSize, // Default input buffer
                 PipeBufferSize, // Default output buffer
                 security,
