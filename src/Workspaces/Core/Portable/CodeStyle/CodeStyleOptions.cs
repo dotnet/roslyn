@@ -208,28 +208,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_compound_assignment"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
 
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> AvoidUnusedParameters = CreateOption(
+        private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
+            new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.None, NotificationOption.Silent);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<UnusedParametersPreference>> UnusedParameters = CreateOption(
             CodeStyleOptionGroups.Parameter,
-            nameof(AvoidUnusedParameters),
-            defaultValue: TrueWithSuggestionEnforcement,
+            nameof(UnusedParameters),
+            defaultValue: new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion),
             storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_avoid_unused_parameters"),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AvoidUnusedParameters)}") });
-
-        private static readonly CodeStyleOption<UnusedExpressionAssignmentPreference> s_preferExplicitAssignmentForUnusedExpressionValuesNone =
-            new CodeStyleOption<UnusedExpressionAssignmentPreference>(UnusedExpressionAssignmentPreference.None, NotificationOption.Silent);
-        private static readonly CodeStyleOption<UnusedExpressionAssignmentPreference> s_preferExplicitAssignmentForUnusedExpressionValuesDiscard =
-            new CodeStyleOption<UnusedExpressionAssignmentPreference>(UnusedExpressionAssignmentPreference.DiscardVariable, NotificationOption.Suggestion);
-
-        internal static readonly PerLanguageOption<CodeStyleOption<UnusedExpressionAssignmentPreference>> UnusedExpressionAssignment = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(UnusedExpressionAssignment),
-            defaultValue: s_preferExplicitAssignmentForUnusedExpressionValuesDiscard,
-            storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation<CodeStyleOption<UnusedExpressionAssignmentPreference>>(
-                    "dotnet_style_unused_expression_assignment_preference",
-                    s => ParseUnusedExpressionAssignmentPreference(s),
-                    GetUnusedExpressionAssignmentPreferenceEditorConfigString),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedExpressionAssignment)}Preference")});
+                new EditorConfigStorageLocation<CodeStyleOption<UnusedParametersPreference>>(
+                        "dotnet_style_unused_parameters",
+                        ParseUnusedParametersPreference,
+                        GetUnusedParametersPreferenceEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference") });
 
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
             new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.Silent);
@@ -346,12 +337,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
             });
 
-        private static readonly BidirectionalMap<string, UnusedExpressionAssignmentPreference> s_unusedExpressionAssignmentPreferenceMap =
-            new BidirectionalMap<string, UnusedExpressionAssignmentPreference>(new[]
+        private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
+            new BidirectionalMap<string, UnusedParametersPreference>(new[]
             {
-                KeyValuePairUtil.Create("none", UnusedExpressionAssignmentPreference.None),
-                KeyValuePairUtil.Create("discard_variable", UnusedExpressionAssignmentPreference.DiscardVariable),
-                KeyValuePairUtil.Create("unused_local_variable", UnusedExpressionAssignmentPreference.UnusedLocalVariable),
+                KeyValuePairUtil.Create("none", UnusedParametersPreference.None),
+                KeyValuePairUtil.Create("private", UnusedParametersPreference.PrivateMethods),
+                KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
         static CodeStyleOptions()
@@ -382,22 +373,22 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
         }
 
-        private static Optional<CodeStyleOption<UnusedExpressionAssignmentPreference>> ParseUnusedExpressionAssignmentPreference(string optionString)
+        private static Optional<CodeStyleOption<UnusedParametersPreference>> ParseUnusedParametersPreference(string optionString)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
                 out var value, out var notificationOpt))
             {
-                return new CodeStyleOption<UnusedExpressionAssignmentPreference>(
-                    s_unusedExpressionAssignmentPreferenceMap.GetValueOrDefault(value), notificationOpt ?? NotificationOption.Suggestion);
+                return new CodeStyleOption<UnusedParametersPreference>(
+                    s_unusedParametersPreferenceMap.GetValueOrDefault(value), notificationOpt ?? NotificationOption.Suggestion);
             }
 
-            return s_preferExplicitAssignmentForUnusedExpressionValuesNone;
+            return s_preferNoneUnusedParametersPreference;
         }
 
-        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption<UnusedExpressionAssignmentPreference> option)
+        private static string GetUnusedParametersPreferenceEditorConfigString(CodeStyleOption<UnusedParametersPreference> option)
         {
-            Debug.Assert(s_unusedExpressionAssignmentPreferenceMap.ContainsValue(option.Value));
-            var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(CodeStyle.UnusedExpressionAssignmentPreference.None);
+            Debug.Assert(s_unusedParametersPreferenceMap.ContainsValue(option.Value));
+            var value = s_unusedParametersPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedParametersPreferenceMap.GetKeyOrDefault(UnusedParametersPreference.None);
             return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
         }
     }

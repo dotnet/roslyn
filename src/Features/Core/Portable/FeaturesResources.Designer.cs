@@ -4115,20 +4115,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value assigned here to &apos;{0}&apos; is never used.
+        ///   Looks up a localized string similar to Value assigned to &apos;{0}&apos; is never used.
         /// </summary>
-        internal static string Value_assigned_here_to_0_is_never_used {
+        internal static string Value_assigned_to_0_is_never_used {
             get {
-                return ResourceManager.GetString("Value_assigned_here_to_0_is_never_used", resourceCulture);
+                return ResourceManager.GetString("Value_assigned_to_0_is_never_used", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Value assigned here to symbol is never used.
+        ///   Looks up a localized string similar to Value assigned to symbol is never used.
         /// </summary>
-        internal static string Value_assigned_here_to_symbol_is_never_used {
+        internal static string Value_assigned_to_symbol_is_never_used {
             get {
-                return ResourceManager.GetString("Value_assigned_here_to_symbol_is_never_used", resourceCulture);
+                return ResourceManager.GetString("Value_assigned_to_symbol_is_never_used", resourceCulture);
             }
         }
         

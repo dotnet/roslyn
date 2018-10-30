@@ -1469,11 +1469,11 @@ This version used in: {2}</value>
   <data name="Expression_value_is_never_used" xml:space="preserve">
     <value>Expression value is never used</value>
   </data>
-  <data name="Value_assigned_here_to_0_is_never_used" xml:space="preserve">
-    <value>Value assigned here to '{0}' is never used</value>
+  <data name="Value_assigned_to_0_is_never_used" xml:space="preserve">
+    <value>Value assigned to '{0}' is never used</value>
   </data>
-  <data name="Value_assigned_here_to_symbol_is_never_used" xml:space="preserve">
-    <value>Value assigned here to symbol is never used</value>
+  <data name="Value_assigned_to_symbol_is_never_used" xml:space="preserve">
+    <value>Value assigned to symbol is never used</value>
   </data>
   <data name="Use_discarded_local" xml:space="preserve">
     <value>Use discarded local</value>

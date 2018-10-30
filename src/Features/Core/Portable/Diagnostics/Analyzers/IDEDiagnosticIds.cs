@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ExpressionValueIsUnusedDiagnosticId = "IDE0056";
         public const string ValueAssignedIsUnusedDiagnosticId = "IDE0057";
-        public const string ParameterCanBeRemovedDiagnosticId = "IDE0058";
+        public const string UnusedParameterDiagnosticId = "IDE0058";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

@@ -3,13 +3,13 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedExpressionsAndParameters
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedExpressionsAndParameters
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
     Public Class RemoveUnusedParametersTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer(), New VisualBasicRemoveUnusedExpressionsAndParametersCodeFixProvider())
+            Return (New VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), New VisualBasicRemoveUnusedParametersAndValuesCodeFixProvider())
         End Function
 
         ' Ensure that we explicitly test missing IDE0058, which has no corresponding code fix (non-fixable diagnostic).
@@ -38,7 +38,7 @@ $"Class C
     Sub M([|p|] As Integer)
     End Sub
 End Class", parameters:=Nothing,
-            Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId))
+            Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -49,7 +49,7 @@ $"Class C
         p = 1
     End Sub
 End Class", parameters:=Nothing,
-            Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId))
+            Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
@@ -61,7 +61,7 @@ $"Class C
         Return p
     End Function
 End Class", parameters:=Nothing,
-            Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId))
+            Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
     End Class
 End Namespace

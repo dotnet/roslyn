@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
+namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
-    using PropertiesMap = ImmutableDictionary<(UnusedExpressionAssignmentPreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
+    using PropertiesMap = ImmutableDictionary<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
                                               ImmutableDictionary<string, string>>;
 
     /// <summary>
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
     ///        call sites and any automated fix can lead to subtle overload resolution differences,
     ///        though this may change in future.
     /// </summary>
-    internal abstract class AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string UnusedExpressionPreferenceKey = nameof(UnusedExpressionPreferenceKey);
         private const string IsUnusedLocalAssignmentKey = nameof(IsUnusedLocalAssignmentKey);
@@ -60,50 +62,50 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: true);
+            isUnneccessary: false);
 
-        // IDE0057: "Value assigned here to '{0}' is never used"
+        // IDE0057: "Value assigned to '{0}' is never used"
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
-            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_here_to_symbol_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_here_to_0_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_symbol_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_0_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         // IDE0058: "Remove unused parameter '{0}'{1}"
-        private static readonly DiagnosticDescriptor s_parameterIsUnusedRule = CreateDescriptorWithId(
-            IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId,
+        private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
+            IDEDiagnosticIds.UnusedParameterDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0_1), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
-        protected AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_parameterIsUnusedRule))
+        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
+            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_unusedParameterRule))
         {
         }
 
         private static PropertiesMap CreatePropertiesMap()
         {
-            var builder = ImmutableDictionary.CreateBuilder<(UnusedExpressionAssignmentPreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
+            var builder = ImmutableDictionary.CreateBuilder<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
                                                             ImmutableDictionary<string, string>>();
-            AddEntries(UnusedExpressionAssignmentPreference.DiscardVariable);
-            AddEntries(UnusedExpressionAssignmentPreference.UnusedLocalVariable);
+            AddEntries(UnusedValuePreference.DiscardVariable);
+            AddEntries(UnusedValuePreference.UnusedLocalVariable);
             return builder.ToImmutable();
 
-            void AddEntries(UnusedExpressionAssignmentPreference preference)
+            void AddEntries(UnusedValuePreference preference)
             {
                 AddEntries2(preference, isUnusedLocalAssignment: true);
                 AddEntries2(preference, isUnusedLocalAssignment: false);
             }
 
-            void AddEntries2(UnusedExpressionAssignmentPreference preference, bool isUnusedLocalAssignment)
+            void AddEntries2(UnusedValuePreference preference, bool isUnusedLocalAssignment)
             {
                 AddEntryCore(preference, isUnusedLocalAssignment, isRemovableAssignment: true);
                 AddEntryCore(preference, isUnusedLocalAssignment, isRemovableAssignment: false);
             }
 
-            void AddEntryCore(UnusedExpressionAssignmentPreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment)
+            void AddEntryCore(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment)
             {
                 var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
 
@@ -123,6 +125,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
+        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -132,12 +136,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(
-                compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, GetDefinitionLocationToFade, SupportsDiscard));
+                compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(
+                    compilationContext, GetDefinitionLocationToFade, SupportsDiscard,
+                    UnusedValueExpressionStatementOption, UnusedValueAssignmentOption));
 
         private sealed class SymbolStartAnalyzer
         {
             private readonly Func<IOperation, Location> _getDefinitionLocationToFade;
             private readonly Func<SyntaxTree, bool> _supportsDiscard;
+            private readonly Option<CodeStyleOption<UnusedValuePreference>> _unusedValueExpressionStatementOption;
+            private readonly Option<CodeStyleOption<UnusedValuePreference>> _unusedValueAssignmentOption;
+
             private readonly INamedTypeSymbol _eventArgsType, _interlockedType, _immutableInterlockedType;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly ConcurrentDictionary<IParameterSymbol, bool> _unusedParameters;
@@ -146,6 +155,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             public SymbolStartAnalyzer(
                 Func<IOperation, Location> getDefinitionLocationToFade,
                 Func<SyntaxTree, bool> supportsDiscard,
+                Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+                Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
                 INamedTypeSymbol eventArgsType,
                 INamedTypeSymbol interlockedType,
                 INamedTypeSymbol immutableInterlockedType,
@@ -153,6 +164,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             {
                 _getDefinitionLocationToFade = getDefinitionLocationToFade;
                 _supportsDiscard = supportsDiscard;
+                _unusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
+                _unusedValueAssignmentOption = unusedValueAssignmentOption;
+
                 _eventArgsType = eventArgsType;
                 _interlockedType = interlockedType;
                 _immutableInterlockedType = immutableInterlockedType;
@@ -164,7 +178,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext context,
                 Func<IOperation, Location> getDefinitionLocationToFade,
-                Func<SyntaxTree, bool> supportsDiscard)
+                Func<SyntaxTree, bool> supportsDiscard,
+                Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+                Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption)
             {
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation));
                 var eventsArgType = context.Compilation.EventArgsType();
@@ -172,6 +188,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                 var immutableInterlockedType = context.Compilation.ImmutableInterlockedType();
 
                 var analyzer = new SymbolStartAnalyzer(getDefinitionLocationToFade, supportsDiscard,
+                    unusedValueExpressionStatementOption, unusedValueAssignmentOption,
                     eventsArgType, interlockedType, immutableInterlockedType, attributeSetForMethodsToIgnore);
                 context.RegisterSymbolStartAction(analyzer.OnSymbolStart, SymbolKind.NamedType);
             }
@@ -224,8 +241,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                     return;
                 }
 
-                var option = optionSet.GetOption(CodeStyleOptions.AvoidUnusedParameters, parameter.Language);
-                if (!option.Value)
+                var option = optionSet.GetOption(CodeStyleOptions.UnusedParameters, parameter.Language);
+                if (!ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value) ||
+                    option.Notification.Severity == ReportDiagnostic.Suppress)
                 {
                     return;
                 }
@@ -245,7 +263,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                     arg2 += FeaturesResources.comma_its_initial_value_is_never_used;
                 }
 
-                var diagnostic = DiagnosticHelper.Create(s_parameterIsUnusedRule,
+                var diagnostic = DiagnosticHelper.Create(s_unusedParameterRule,
                                                          location,
                                                          option.Notification.Severity,
                                                          additionalLocations: null,
@@ -343,25 +361,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             private sealed class BlockAnalyzer
             {
                 private readonly SymbolStartAnalyzer _symbolStartAnalyzer;
-                private readonly UnusedExpressionAssignmentPreference _preference;
-                private readonly ReportDiagnostic _severity;
-                private readonly bool _computingUnusedParams;
+                private readonly Options _options;
                 private bool _hasDelegateCreation;
                 private bool _hasConversionFromDelegateTypeToNonDelegteType;
 
-                private BlockAnalyzer(
-                    SymbolStartAnalyzer symbolStartAnalyzer,
-                    UnusedExpressionAssignmentPreference preference,
-                    ReportDiagnostic severity,
-                    bool computingUnusedParams)
+                private BlockAnalyzer(SymbolStartAnalyzer symbolStartAnalyzer, Options options)
                 {
-                    Debug.Assert(preference != UnusedExpressionAssignmentPreference.None || computingUnusedParams);
-                    Debug.Assert(severity != ReportDiagnostic.Suppress || computingUnusedParams);
-
                     _symbolStartAnalyzer = symbolStartAnalyzer;
-                    _preference = preference;
-                    _severity = severity;
-                    _computingUnusedParams = computingUnusedParams;
+                    _options = options;
                 }
 
                 public static void Analyze(OperationBlockStartAnalysisContext context, SymbolStartAnalyzer symbolStartAnalyzer)
@@ -374,17 +381,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     var supportsDiscard = symbolStartAnalyzer._supportsDiscard(firstBlock.Syntax.SyntaxTree);
-                    var (preference, severity, computingUnusedParams) = GetOption(firstBlock.Syntax.SyntaxTree, firstBlock.Language,
-                        context.Options, supportsDiscard, context.CancellationToken);
-                    if (preference == UnusedExpressionAssignmentPreference.None &&
-                        !computingUnusedParams)
+                    var unusedValueExpressionStatementOption = symbolStartAnalyzer._unusedValueExpressionStatementOption;
+                    var unusedValueAssignmentOption = symbolStartAnalyzer._unusedValueAssignmentOption;
+                    if (!TryGetOptions(firstBlock.Syntax.SyntaxTree, firstBlock.Language,
+                                       context.Options, supportsDiscard,
+                                       unusedValueExpressionStatementOption, unusedValueAssignmentOption,
+                                       context.CancellationToken, out var options))
                     {
                         return;
                     }
 
-                    Debug.Assert(severity != ReportDiagnostic.Suppress || computingUnusedParams);
-
-                    var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, preference, severity, computingUnusedParams);
+                    var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeExpressionStatement, OperationKind.ExpressionStatement);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreation, OperationKind.DelegateCreation);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeConversion, OperationKind.Conversion);
@@ -409,10 +416,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 
                 private void AnalyzeExpressionStatement(OperationAnalysisContext context)
                 {
-                    if (_preference == UnusedExpressionAssignmentPreference.None)
+                    if (_options.UnusedValueExpressionStatementPreference == UnusedValuePreference.None)
                     {
                         return;
                     }
+
+                    Debug.Assert(_options.UnusedValueExpressionStatementSeverity != ReportDiagnostic.Suppress);
 
                     // Bail out cases for report unused expression value:
                     //  1. Null type
@@ -441,10 +450,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                     }
 
                     // IDE0056: "Expression value is never used"
-                    var properties = s_propertiesMap[(_preference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
+                    var properties = s_propertiesMap[(_options.UnusedValueExpressionStatementPreference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
                     var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
                                                              value.Syntax.GetLocation(),
-                                                             _severity,
+                                                             _options.UnusedValueExpressionStatementSeverity,
                                                              additionalLocations: null,
                                                              properties);
                     context.ReportDiagnostic(diagnostic);
@@ -470,6 +479,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 
                 private void AnalyzeOperationBlockEnd(OperationBlockAnalysisContext context)
                 {
+                    var isComputingUnusedParams = _options.IsComputingUnusedParams(context.OwningSymbol);
+                    if (_options.UnusedValueExpressionStatementPreference == UnusedValuePreference.None &&
+                        !isComputingUnusedParams)
+                    {
+                        return;
+                    }
+
                     var hasBlockWithAllUsedDefinitions = false;
                     var resultsFromFlowAnalysis = PooledHashSet<DefinitionUsageResult>.GetInstance();
 
@@ -505,22 +521,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                             var resultFromFlowAnalysis = ReachingDefinitionsAnalysis.Run(cfg, context.OwningSymbol, context.CancellationToken);
                             resultsFromFlowAnalysis.Add(resultFromFlowAnalysis);
 
-                            if (_preference == UnusedExpressionAssignmentPreference.None)
-                            {
-                                continue;
-                            }
-
                             foreach (var (unusedSymbol, unusedDefinition) in resultFromFlowAnalysis.GetUnusedDefinitions())
                             {
                                 if (unusedDefinition == null)
                                 {
                                     // Null definition indicates initial definition for parameter from method declaration.
-                                    // Report unused local and lambda parameters (which are specific to this operation block) here.
+                                    // Report unused local function parameters (which are specific to this operation block) here.
                                     // We process parameters for the context's owning symbol after analyzing all operation blocks for this symbol
                                     // as we need to verify parameter usages across all operation blocks before flagging it as unused.
                                     // For example, a constructor with both a constructor initializer and body will have two different operation blocks.
                                     var unusedParameter = (IParameterSymbol)unusedSymbol;
-                                    if (unusedParameter.ContainingSymbol != context.OwningSymbol)
+                                    if (isComputingUnusedParams &&
+                                        unusedParameter.ContainingSymbol.IsLocalFunction())
                                     {
                                         var hasReference = resultFromFlowAnalysis.SymbolsRead.Contains(unusedParameter);
                                         _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
@@ -531,10 +543,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 
                                 if (ShouldReportUnusedValueDiagnostic(unusedSymbol, unusedDefinition, resultFromFlowAnalysis, out var properties))
                                 {
-                                    // IDE0057: "Value assigned here to '{0}' is never used"
+                                    // IDE0057: "Value assigned to '{0}' is never used"
                                     var diagnostic = DiagnosticHelper.Create(s_valueAssignedIsUnusedRule,
                                                                              _symbolStartAnalyzer._getDefinitionLocationToFade(unusedDefinition),
-                                                                             _severity,
+                                                                             _options.UnusedValueAssignmentSeverity,
                                                                              additionalLocations: null,
                                                                              properties,
                                                                              unusedSymbol.Name);
@@ -544,7 +556,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                         }
 
                         // Process parameters for the context's OwningSymbol that are unused across all operation blocks.
-                        if (_computingUnusedParams &&
+                        if (isComputingUnusedParams &&
                             !hasBlockWithAllUsedDefinitions &&
                             resultsFromFlowAnalysis.Count > 0 &&
                             context.OwningSymbol is IMethodSymbol method)
@@ -642,6 +654,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                         out ImmutableDictionary<string, string> properties)
                     {
                         properties = null;
+                        if (_options.UnusedValueAssignmentPreference == UnusedValuePreference.None)
+                        {
+                            return false;
+                        }
+
+                        Debug.Assert(_options.UnusedValueAssignmentSeverity != ReportDiagnostic.Suppress);
 
                         var isUnusedLocalAssignment = unusedSymbol is ILocalSymbol localSymbol &&
                                                       !resultFromFlowAnalysis.SymbolsRead.Contains(localSymbol);
@@ -649,13 +667,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
 
                         if (isUnusedLocalAssignment &&
                             !isRemovableAssignment &&
-                            _preference == UnusedExpressionAssignmentPreference.UnusedLocalVariable)
+                            _options.UnusedValueAssignmentPreference == UnusedValuePreference.UnusedLocalVariable)
                         {
                             // Meets current user preference, skip reporting diagnostic.
                             return false;
                         }
 
-                        properties = s_propertiesMap[(_preference, isUnusedLocalAssignment, isRemovableAssignment)];
+                        properties = s_propertiesMap[(_options.UnusedValueAssignmentPreference, isUnusedLocalAssignment, isRemovableAssignment)];
                         return true;
                     }
 
@@ -691,64 +709,130 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             }
         }
 
-        private static (UnusedExpressionAssignmentPreference preference, ReportDiagnostic severity, bool computingUnusedParams) GetOption(
+        private static bool TryGetOptions(
             SyntaxTree syntaxTree,
             string language,
             AnalyzerOptions analyzerOptions,
             bool supportsDiscard,
-            CancellationToken cancellationToken)
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            CancellationToken cancellationToken,
+            out Options options)
         {
+            options = null;
             var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
-                return (UnusedExpressionAssignmentPreference.None, ReportDiagnostic.Suppress, false);
+                return false;
             }
 
-            var computingUnusedParams = optionSet.GetOption(CodeStyleOptions.AvoidUnusedParameters, language).Value;
-            var option = optionSet.GetOption(CodeStyleOptions.UnusedExpressionAssignment, language);
-            var preference = option?.Value ?? UnusedExpressionAssignmentPreference.None;
-            if (preference == UnusedExpressionAssignmentPreference.None ||
-                option.Notification.Severity == ReportDiagnostic.Suppress)
+            var unusedParametersPreference = optionSet.GetOption(CodeStyleOptions.UnusedParameters, language).Value;
+            var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(unusedValueExpressionStatementOption);
+            var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(unusedValueAssignmentOption);
+            if (unusedParametersPreference == UnusedParametersPreference.None &&
+                unusedValueExpressionStatementPreference == UnusedValuePreference.None &&
+                unusedValueAssignmentPreference == UnusedValuePreference.None)
             {
-                return (UnusedExpressionAssignmentPreference.None, ReportDiagnostic.Suppress, computingUnusedParams);
+                return false;
             }
 
-            // If language or language version does not support discard, fall back to prefer unused local variable.
-            if (!supportsDiscard && preference == UnusedExpressionAssignmentPreference.DiscardVariable)
+            options = new Options(unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity,
+                unusedValueAssignmentPreference, unusedValueAssignmentSeverity, unusedParametersPreference);
+            return true;
+
+            // Local functions.
+            (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(
+                Option<CodeStyleOption<UnusedValuePreference>> codeStyleOption)
             {
-                preference = UnusedExpressionAssignmentPreference.UnusedLocalVariable;
-            }
+                var option = optionSet.GetOption(codeStyleOption);
+                var preference = option?.Value ?? UnusedValuePreference.None;
+                if (preference == UnusedValuePreference.None ||
+                    option.Notification.Severity == ReportDiagnostic.Suppress)
+                {
+                    return (UnusedValuePreference.None, ReportDiagnostic.Suppress);
+                }
 
-            return (preference, option.Notification.Severity, computingUnusedParams);
+                // If language or language version does not support discard, fall back to prefer unused local variable.
+                if (!supportsDiscard && preference == UnusedValuePreference.DiscardVariable)
+                {
+                    preference = UnusedValuePreference.UnusedLocalVariable;
+                }
+
+                return (preference, option.Notification.Severity);
+            }
         }
 
-        public static UnusedExpressionAssignmentPreference GetUnusedExpressionAssignmentPreference(Diagnostic diagnostic)
+        private sealed class Options
+        {
+            private readonly UnusedParametersPreference _unusedParametersPreference;
+            public Options(
+                UnusedValuePreference unusedValueExpressionStatementPreference,
+                ReportDiagnostic unusedValueExpressionStatementSeverity,
+                UnusedValuePreference unusedValueAssignmentPreference,
+                ReportDiagnostic unusedValueAssignmentSeverity,
+                UnusedParametersPreference unusedParametersPreference)
+            {
+                Debug.Assert(unusedValueExpressionStatementPreference != UnusedValuePreference.None ||
+                             unusedValueAssignmentPreference != UnusedValuePreference.None ||
+                             unusedParametersPreference != UnusedParametersPreference.None);
+
+                UnusedValueExpressionStatementPreference = unusedValueExpressionStatementPreference;
+                UnusedValueExpressionStatementSeverity = unusedValueExpressionStatementSeverity;
+                UnusedValueAssignmentPreference = unusedValueAssignmentPreference;
+                UnusedValueAssignmentSeverity = unusedValueAssignmentSeverity;
+                _unusedParametersPreference = unusedParametersPreference;
+            }
+
+            public UnusedValuePreference UnusedValueExpressionStatementPreference { get; }
+            public ReportDiagnostic UnusedValueExpressionStatementSeverity { get; }
+            public UnusedValuePreference UnusedValueAssignmentPreference { get; }
+            public ReportDiagnostic UnusedValueAssignmentSeverity { get; }
+            public bool IsComputingUnusedParams(ISymbol symbol)
+                => ShouldReportUnusedParameters(symbol, _unusedParametersPreference);
+        }
+
+        public static bool ShouldReportUnusedParameters(ISymbol symbol, UnusedParametersPreference unusedParametersPreference)
+        {
+            switch (unusedParametersPreference)
+            {
+                case UnusedParametersPreference.None:
+                    return false;
+                case UnusedParametersPreference.AllMethods:
+                    return true;
+                case UnusedParametersPreference.PrivateMethods:
+                    return symbol.DeclaredAccessibility == Accessibility.Private;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        public static UnusedValuePreference GetUnusedExpressionAssignmentPreference(Diagnostic diagnostic)
         {
             if (diagnostic.Properties != null &&
                 diagnostic.Properties.TryGetValue(UnusedExpressionPreferenceKey, out var preference))
             {
                 switch (preference)
                 {
-                    case nameof(UnusedExpressionAssignmentPreference.DiscardVariable):
-                        return UnusedExpressionAssignmentPreference.DiscardVariable;
+                    case nameof(UnusedValuePreference.DiscardVariable):
+                        return UnusedValuePreference.DiscardVariable;
 
-                    case nameof(UnusedExpressionAssignmentPreference.UnusedLocalVariable):
-                        return UnusedExpressionAssignmentPreference.UnusedLocalVariable;
+                    case nameof(UnusedValuePreference.UnusedLocalVariable):
+                        return UnusedValuePreference.UnusedLocalVariable;
                 }
             }
 
-            return UnusedExpressionAssignmentPreference.None;
+            return UnusedValuePreference.None;
         }
 
         public static bool GetIsUnusedLocalDiagnostic(Diagnostic diagnostic)
         {
-            Debug.Assert(GetUnusedExpressionAssignmentPreference(diagnostic) != UnusedExpressionAssignmentPreference.None);
+            Debug.Assert(GetUnusedExpressionAssignmentPreference(diagnostic) != UnusedValuePreference.None);
             return diagnostic.Properties.ContainsKey(IsUnusedLocalAssignmentKey);
         }
 
         public static bool GetIsRemovableAssignmentDiagnostic(Diagnostic diagnostic)
         {
-            Debug.Assert(GetUnusedExpressionAssignmentPreference(diagnostic) != UnusedExpressionAssignmentPreference.None);
+            Debug.Assert(GetUnusedExpressionAssignmentPreference(diagnostic) != UnusedValuePreference.None);
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
     }

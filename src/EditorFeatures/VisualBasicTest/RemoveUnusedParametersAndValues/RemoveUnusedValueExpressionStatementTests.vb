@@ -1,16 +1,33 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedExpressionsAndParameters
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedExpressionsAndParameters
-    Partial Public Class RemoveUnusedExpressionsTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer(), New VisualBasicRemoveUnusedExpressionsAndParametersCodeFixProvider())
-        End Function
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
+    Partial Public Class RemoveUnusedValueExpressionStatementTests
+        Inherits RemoveUnusedValuesTestsBase
+
+        Protected Overrides ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.None, NotificationOption.Silent))
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property PreferDiscard As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption.Silent))
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey, Object)
+            Get
+                Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent))
+            End Get
+        End Property
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)>
         Public Async Function ExpressionStatement_PreferNone() As Task

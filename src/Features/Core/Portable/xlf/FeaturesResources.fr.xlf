@@ -202,14 +202,14 @@
         <target state="new">Use interpolated verbatim string</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_assigned_here_to_0_is_never_used">
-        <source>Value assigned here to '{0}' is never used</source>
-        <target state="new">Value assigned here to '{0}' is never used</target>
+      <trans-unit id="Value_assigned_to_0_is_never_used">
+        <source>Value assigned to '{0}' is never used</source>
+        <target state="new">Value assigned to '{0}' is never used</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_assigned_here_to_symbol_is_never_used">
-        <source>Value assigned here to symbol is never used</source>
-        <target state="new">Value assigned here to symbol is never used</target>
+      <trans-unit id="Value_assigned_to_symbol_is_never_used">
+        <source>Value assigned to symbol is never used</source>
+        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="comma_its_initial_value_is_never_used">

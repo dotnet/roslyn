@@ -70,13 +70,12 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_unused_expression_assignment_preference = discard_variable:suggestion
 
 # Field preferences
 dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
-dotnet_style_avoid_unused_parameters = true:suggestion
+dotnet_style_unused_parameters = all:suggestion
 
 #### C# Coding Conventions ####
 
@@ -110,6 +109,8 @@ csharp_prefer_braces = true:silent
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
 #### C# Formatting Rules ####
 
@@ -224,13 +225,12 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_unused_expression_assignment_preference = discard_variable:suggestion
 
 # Field preferences
 dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
-dotnet_style_avoid_unused_parameters = true:suggestion
+dotnet_style_unused_parameters = all:suggestion
 
 #### C# Coding Conventions ####
 
@@ -264,6 +264,8 @@ csharp_prefer_braces = true:silent
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
 #### C# Formatting Rules ####
 

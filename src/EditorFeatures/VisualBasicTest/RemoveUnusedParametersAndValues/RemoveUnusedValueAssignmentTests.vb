@@ -1,37 +1,33 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedExpressionsAndParameters
-    Partial Public Class RemoveUnusedExpressionsTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
+    Partial Public Class RemoveUnusedValueAssignmentTests
+        Inherits RemoveUnusedValuesTestsBase
 
-        Private ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
+        Protected Overrides ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
             Get
-                Return [Option](CodeStyleOptions.UnusedExpressionAssignment,
-                                New CodeStyleOption(Of UnusedExpressionAssignmentPreference)(UnusedExpressionAssignmentPreference.None, NotificationOption.Suggestion))
+                Return [Option](VisualBasicCodeStyleOptions.UnusedValueAssignment,
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.None, NotificationOption.Suggestion))
             End Get
         End Property
 
-        Private ReadOnly Property PreferDiscard As IDictionary(Of OptionKey, Object)
+        Protected Overrides ReadOnly Property PreferDiscard As IDictionary(Of OptionKey, Object)
             Get
-                Return [Option](CodeStyleOptions.UnusedExpressionAssignment,
-                                New CodeStyleOption(Of UnusedExpressionAssignmentPreference)(UnusedExpressionAssignmentPreference.DiscardVariable, NotificationOption.Suggestion))
+                Return [Option](VisualBasicCodeStyleOptions.UnusedValueAssignment,
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion))
             End Get
         End Property
 
-        Private ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey, Object)
+        Protected Overrides ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey, Object)
             Get
-                Return [Option](CodeStyleOptions.UnusedExpressionAssignment,
-                                New CodeStyleOption(Of UnusedExpressionAssignmentPreference)(UnusedExpressionAssignmentPreference.UnusedLocalVariable, NotificationOption.Suggestion))
+                Return [Option](VisualBasicCodeStyleOptions.UnusedValueAssignment,
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Suggestion))
             End Get
         End Property
-
-        Private Overloads Function TestMissingInRegularAndScriptAsync(initialMarkup As String, options As IDictionary(Of OptionKey, Object)) As Task
-            Return TestMissingInRegularAndScriptAsync(initialMarkup, New TestParameters(options:=options))
-        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)>
         Public Async Function TestPreferNone() As Task

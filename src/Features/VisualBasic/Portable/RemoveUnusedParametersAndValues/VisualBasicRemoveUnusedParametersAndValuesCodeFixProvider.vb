@@ -4,17 +4,17 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
+Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedExpressionsAndParameters
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedExpressionsAndParameters), [Shared]>
-    Friend Class VisualBasicRemoveUnusedExpressionsAndParametersCodeFixProvider
-        Inherits AbstractRemoveUnusedExpressionsAndParametersCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
-                                                                                ExpressionStatementSyntax, LocalDeclarationStatementSyntax,
-                                                                                VariableDeclaratorSyntax, ForEachBlockSyntax,
-                                                                                CaseBlockSyntax, CaseClauseSyntax,
-                                                                                CatchStatementSyntax, CatchBlockSyntax)
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedParametersAndValues), [Shared]>
+    Friend Class VisualBasicRemoveUnusedParametersAndValuesCodeFixProvider
+        Inherits AbstractRemoveUnusedParametersAndValuesCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
+                                                                           ExpressionStatementSyntax, LocalDeclarationStatementSyntax,
+                                                                           VariableDeclaratorSyntax, ForEachBlockSyntax,
+                                                                           CaseBlockSyntax, CaseClauseSyntax,
+                                                                           CatchStatementSyntax, CatchBlockSyntax)
 
         Protected Overrides Function GenerateBlock(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
             Throw ExceptionUtilities.Unreachable

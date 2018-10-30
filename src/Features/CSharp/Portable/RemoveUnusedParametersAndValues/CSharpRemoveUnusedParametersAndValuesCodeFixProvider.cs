@@ -10,18 +10,18 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters;
+using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedExpressionsAndParameters
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedExpressionsAndParameters), Shared]
-    internal class CSharpRemoveUnusedExpressionsAndParametersCodeFixProvider:
-        AbstractRemoveUnusedExpressionsAndParametersCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax, 
-                                                                    ExpressionStatementSyntax, LocalDeclarationStatementSyntax,
-                                                                    VariableDeclaratorSyntax, ForEachStatementSyntax,
-                                                                    SwitchSectionSyntax, SwitchLabelSyntax,
-                                                                    CatchClauseSyntax, CatchClauseSyntax>
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedParametersAndValues), Shared]
+    internal class CSharpRemoveUnusedParametersAndValuesCodeFixProvider:
+        AbstractRemoveUnusedParametersAndValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax, 
+                                                               ExpressionStatementSyntax, LocalDeclarationStatementSyntax,
+                                                               VariableDeclaratorSyntax, ForEachStatementSyntax,
+                                                               SwitchSectionSyntax, SwitchLabelSyntax,
+                                                               CatchClauseSyntax, CatchClauseSyntax>
     {
         protected override BlockSyntax GenerateBlock(IEnumerable<StatementSyntax> statements)
             => SyntaxFactory.Block(statements);

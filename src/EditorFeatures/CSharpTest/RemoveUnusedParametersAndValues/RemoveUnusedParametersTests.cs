@@ -1,29 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.RemoveUnusedExpressionsAndParameters;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressionsAndParameters
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer(), new CSharpRemoveUnusedExpressionsAndParametersCodeFixProvider());
+            => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedParametersAndValuesCodeFixProvider());
+
+        private IDictionary<OptionKey, object> PrivateMethodsOnly =>
+            Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.PrivateMethods, NotificationOption.Suggestion));
 
         // Ensure that we explicitly test missing IDE0058, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup)
-            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(retainNonFixableDiagnostics: true));
+            => TestDiagnosticMissingAsync(initialMarkup, options: null);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, new TestParameters(retainNonFixableDiagnostics: true), expectedDiagnostics);
+            => TestDiagnosticsAsync(initialMarkup, options: null, expectedDiagnostics);
+        private Task TestDiagnosticMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
+            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(options: options, retainNonFixableDiagnostics: true));
+        private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, params DiagnosticDescription[] expectedDiagnostics)
+            => TestDiagnosticsAsync(initialMarkup, new TestParameters(options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_Used()
@@ -48,14 +59,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
     {
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [InlineData("public", "public")]
+        [InlineData("public", "internal")]
+        [InlineData("public", "protected")]
+        [InlineData("internal", "public")]
+        [InlineData("internal", "internal")]
+        [InlineData("internal", "protected")]
+        public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccesibility, string methodAccessibility)
+        {
+            await TestDiagnosticMissingAsync(
+$@"{typeAccesibility} class C
+{{
+    {methodAccessibility} void M(int [|p|])
+    {{
+    }}
+}}", PrivateMethodsOnly);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [InlineData("public", "private")]
+        [InlineData("internal", "private")]
+        public async Task Parameter_Unused_Private(string typeAccesibility, string methodAccessibility)
+        {
+            await TestDiagnosticsAsync(
+$@"{typeAccesibility} class C
+{{
+    {methodAccessibility} void M(int [|p|])
+    {{
+    }}
+}}", PrivateMethodsOnly,
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_Unused_UnusedExpressionAssignment_PreferNone()
         {
-            var unusedExpressionAssignmentOptionSuppressed = Option(CodeStyleOptions.UnusedExpressionAssignment,
-        new CodeStyleOption<UnusedExpressionAssignmentPreference>(UnusedExpressionAssignmentPreference.None, NotificationOption.Suggestion));
+            var unusedExpressionAssignmentOptionSuppressed = Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+                new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.None, NotificationOption.Suggestion));
 
             await TestDiagnosticMissingAsync(
 @"class C
@@ -64,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
     {
         var x = p;
     }
-}", new TestParameters(options: unusedExpressionAssignmentOptionSuppressed));
+}", options: unusedExpressionAssignmentOptionSuppressed);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -78,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
         p = 1;
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -93,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
         var x = p;
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -116,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
         var x = p;
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -154,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
     {
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -230,7 +274,7 @@ class C: B
         }
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -247,7 +291,7 @@ class C: B
         }
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -426,7 +470,7 @@ class C
     {
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -439,7 +483,7 @@ class C
     {
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -520,7 +564,7 @@ class C
     {
     }
 }",
-    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId));
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -771,10 +815,10 @@ $@"class C
             {
                 var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
                 diagnostics.Verify(
-                    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId, "p1").WithLocation(5, 15),
-                    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId, "p2").WithLocation(5, 23),
-                    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId, "p3").WithLocation(13, 23),
-                    Diagnostic(IDEDiagnosticIds.ParameterCanBeRemovedDiagnosticId, "p4").WithLocation(13, 31));
+                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
+                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
+                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
+                    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31));
                 var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
 
                 Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());

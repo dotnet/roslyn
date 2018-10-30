@@ -22,10 +22,10 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
+namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
     /// <summary>
-    /// Code fixer for unused expression value diagnostics reported by <see cref="AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer"/>.
+    /// Code fixer for unused expression value diagnostics reported by <see cref="AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer"/>.
     /// We provide following code fixes:
     ///     1. If the unused value assigned to a local/parameter has no side-effects,
     ///        we recommend removing the assignment. We consider an expression value to have no side effects
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
     ///        language version supports discard variable, we recommend assigning the value to discard.
     ///     3. Otherwise, we recommend assigning the value to a new unused local variable which has no reads.
     /// </summary>
-    internal abstract class AbstractRemoveUnusedExpressionsAndParametersCodeFixProvider<TExpressionSyntax, TStatementSyntax, TBlockSyntax,
-                                                                                        TExpressionStatementSyntax, TLocalDeclarationStatementSyntax,
-                                                                                        TVariableDeclaratorSyntax, TForEachStatementSyntax,
-                                                                                        TSwitchCaseBlockSyntax, TSwitchCaseLabelOrClauseSyntax,
-                                                                                        TCatchStatementSyntax, TCatchBlockSyntax>
+    internal abstract class AbstractRemoveUnusedParametersAndValuesCodeFixProvider<TExpressionSyntax, TStatementSyntax, TBlockSyntax,
+                                                                                   TExpressionStatementSyntax, TLocalDeclarationStatementSyntax,
+                                                                                   TVariableDeclaratorSyntax, TForEachStatementSyntax,
+                                                                                   TSwitchCaseBlockSyntax, TSwitchCaseLabelOrClauseSyntax,
+                                                                                   TCatchStatementSyntax, TCatchBlockSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
-            var preference = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic);
-            var isRemovableAssignment = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
+            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic);
+            var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
 
             string title;
             if (isRemovableAssignment)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                 // Recommend using discard/unused local for redundant non-constant assignment.
                 switch (preference)
                 {
-                    case UnusedExpressionAssignmentPreference.DiscardVariable:
+                    case UnusedValuePreference.DiscardVariable:
                         if (IsForEachIterationVariableDiagnostic(diagnostic, context.Document))
                         {
                             // Do not offer a fix to replace unused foreach iteration variable with discard.
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                         title = FeaturesResources.Use_discard_underscore;
                         break;
 
-                    case UnusedExpressionAssignmentPreference.UnusedLocalVariable:
+                    case UnusedValuePreference.UnusedLocalVariable:
                         title = FeaturesResources.Use_discarded_local;
                         break;
 
@@ -116,13 +116,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             return syntaxFacts.IsForEachStatement(root.FindNode(diagnostic.Location.SourceSpan));
         }
 
-        private static string GetEquivalenceKey(UnusedExpressionAssignmentPreference preference, bool isRemovableAssignment)
+        private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
             => preference.ToString() + isRemovableAssignment.ToString();
 
         private static string GetEquivalenceKey(Diagnostic diagnostic)
         {
-            var preference = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic);
-            var isRemovableAssignment = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
+            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic);
+            var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
             return GetEquivalenceKey(preference, isRemovableAssignment);
         }
 
@@ -146,12 +146,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root,
             out string diagnosticId,
-            out UnusedExpressionAssignmentPreference preference,
+            out UnusedValuePreference preference,
             out bool removeAssignments)
         {
             diagnosticId = diagnostics[0].Id;
-            preference = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostics[0]);
-            removeAssignments = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostics[0]);
+            preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostics[0]);
+            removeAssignments = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostics[0]);
 #if DEBUG
             foreach (var diagnostic in diagnostics)
             {
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var diagnosticsGroupedByMember = GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root,
                 out var diagnosticId, out var preference, out var removeAssignments);
-            if (preference == UnusedExpressionAssignmentPreference.None)
+            if (preference == UnusedValuePreference.None)
             {
                 return;
             }
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             IOrderedEnumerable<Diagnostic> diagnostics,
             SemanticModel semanticModel,
             SyntaxNode root,
-            UnusedExpressionAssignmentPreference preference,
+            UnusedValuePreference preference,
             bool removeAssignments,
             Func<SyntaxNode, string> generateUniqueNameAtSpanStart,
             SyntaxEditor editor,
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             IOrderedEnumerable<Diagnostic> diagnostics,
             SemanticModel semanticModel,
             SyntaxNode root,
-            UnusedExpressionAssignmentPreference preference,
+            UnusedValuePreference preference,
             Func<SyntaxNode, string> generateUniqueNameAtSpanStart,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts,
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                 var expression = syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
                 switch (preference)
                 {
-                    case UnusedExpressionAssignmentPreference.DiscardVariable:
+                    case UnusedValuePreference.DiscardVariable:
                         Debug.Assert(semanticModel.Language != LanguageNames.VisualBasic);
                         var discardAssignmentExpression = (TExpressionSyntax)editor.Generator.AssignmentStatement(
                                 left: editor.Generator.IdentifierName("_"), right: expression.WithoutTrivia())
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                         editor.ReplaceNode(expression, discardAssignmentExpression);
                         break;
 
-                    case UnusedExpressionAssignmentPreference.UnusedLocalVariable:
+                    case UnusedValuePreference.UnusedLocalVariable:
                         // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
                         var localDecl = editor.Generator.LocalDeclarationStatement(
                                 name: generateUniqueNameAtSpanStart(expressionStatement), initializer: expression.WithoutLeadingTrivia())
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             IOrderedEnumerable<Diagnostic> diagnostics,
             SemanticModel semanticModel,
             SyntaxNode root,
-            UnusedExpressionAssignmentPreference preference,
+            UnusedValuePreference preference,
             bool removeAssignments,
             Func<SyntaxNode, string> generateUniqueNameAtSpanStart,
             SyntaxEditor editor,
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                         else
                         {
                             // Non-constant value initialization/assignment.
-                            newLocalNameOpt = preference == UnusedExpressionAssignmentPreference.DiscardVariable ? "_" : generateUniqueNameAtSpanStart(node);
+                            newLocalNameOpt = preference == UnusedValuePreference.DiscardVariable ? "_" : generateUniqueNameAtSpanStart(node);
                             var newNameToken = editor.Generator.Identifier(newLocalNameOpt);
                             var newNameNode = UpdateNameForFlaggedNode(node, newNameToken);
                             if (syntaxFacts.IsLeftSideOfAnyAssignment(node) && !syntaxFacts.IsLeftSideOfAssignment(node))
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                             // We have a dead assignment to a local/parameter.
                             // If the assignment value is a non-constant expression, and user prefers unused local variables for unused value assignment,
                             // create a new local declaration for the unused local.
-                            if (preference == UnusedExpressionAssignmentPreference.UnusedLocalVariable && !removeAssignments)
+                            if (preference == UnusedValuePreference.UnusedLocalVariable && !removeAssignments)
                             {
                                 var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
                                 Debug.Assert(type != null);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
                 foreach (var diagnostic in diagnostics)
                 {
                     var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                    var isUnusedLocalAssignment = AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetIsUnusedLocalDiagnostic(diagnostic);
+                    var isUnusedLocalAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsUnusedLocalDiagnostic(diagnostic);
                     yield return (node, isUnusedLocalAssignment);
                 }
             }
@@ -537,14 +537,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedExpressionsAndParameters
             SyntaxNode currentRoot,
             SyntaxGenerator generator,
             string diagnosticId,
-            UnusedExpressionAssignmentPreference preference,
+            UnusedValuePreference preference,
             CancellationToken cancellationToken)
         {
             // If we added discard assignments, replace all discard variable declarations in
             // this method with discard assignments, i.e. "var _ = M();" is replaced with "_ = M();"
             // This is done to prevent compiler errors where the existing method has a discard
             // variable declaration at a line following the one we added a discard assignment in our fix.
-            if (preference == UnusedExpressionAssignmentPreference.DiscardVariable)
+            if (preference == UnusedValuePreference.DiscardVariable)
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
                     RemoveDiscardDeclarationsAsync, currentRoot, document, generator, cancellationToken).ConfigureAwait(false);

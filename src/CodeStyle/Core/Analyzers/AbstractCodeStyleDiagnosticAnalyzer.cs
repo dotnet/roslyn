@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool isUnneccessary = false,
             bool isConfigurable = true,
             params string[] customTags)
-            =>  new DiagnosticDescriptor(
+            => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,

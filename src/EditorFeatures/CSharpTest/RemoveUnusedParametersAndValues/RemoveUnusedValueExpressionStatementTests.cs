@@ -1,15 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressionsAndParameters
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
-    public partial class RemoveUnusedExpressionsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
     {
+        protected override IDictionary<OptionKey, object> PreferNone =>
+            Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.None, NotificationOption.Silent));
+
+        protected override IDictionary<OptionKey, object> PreferDiscard =>
+            Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Silent));
+
+        protected override IDictionary<OptionKey, object> PreferUnusedLocal =>
+            Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Silent));
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
         public async Task ExpressionStatement_Suppressed()
         {

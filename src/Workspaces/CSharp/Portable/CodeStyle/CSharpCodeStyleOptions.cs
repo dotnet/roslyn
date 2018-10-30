@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         internal static ImmutableArray<IOption> AllOptions { get; }
 
         private static Option<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-        {
-            var option = new Option<T>(nameof(CSharpCodeStyleOptions), group, name, defaultValue, storageLocations);
-            s_allOptionsBuilder.Add(option);
-            return option;
-        }
+            => CodeStyleHelpers.CreateOption(group, nameof(CSharpCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocations);
 
         public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = CreateOption(
             CSharpCodeStyleOptionGroups.VarPreferences, nameof(UseImplicitTypeForIntrinsicTypes),
@@ -186,6 +182,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
+
+        internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatement =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature: nameof(CSharpCodeStyleOptions),
+                name: nameof(UnusedValueExpressionStatement),
+                editorConfigName: "csharp_style_unused_value_expression_statement_preference",
+                defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Silent),
+                s_allOptionsBuilder);
+
+        internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignment =
+            CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
+                CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
+                feature: nameof(CSharpCodeStyleOptions),
+                name: nameof(UnusedValueAssignment),
+                editorConfigName: "csharp_style_unused_value_assignment_preference",
+                defaultValue: new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion),
+                s_allOptionsBuilder);
 
         static CSharpCodeStyleOptions()
         {

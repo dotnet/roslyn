@@ -189,6 +189,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All methods.
+        /// </summary>
+        internal static string All_methods {
+            get {
+                return ResourceManager.GetString("All_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ALL UPPER.
         /// </summary>
         internal static string ALL_UPPER {
@@ -322,6 +331,33 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string at_the_end {
             get {
                 return ResourceManager.GetString("at_the_end", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid expression statements that implicitly ignore value.
+        /// </summary>
+        internal static string Avoid_expression_statements_that_implicitly_ignore_value {
+            get {
+                return ResourceManager.GetString("Avoid_expression_statements_that_implicitly_ignore_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused parameters.
+        /// </summary>
+        internal static string Avoid_unused_parameters {
+            get {
+                return ResourceManager.GetString("Avoid_unused_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused value assignments.
+        /// </summary>
+        internal static string Avoid_unused_value_assignments {
+            get {
+                return ResourceManager.GetString("Avoid_unused_value_assignments", resourceCulture);
             }
         }
         
@@ -1588,6 +1624,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        internal static string None {
+            get {
+                return ResourceManager.GetString("None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not a valid value.
         /// </summary>
         internal static string Not_a_valid_value {
@@ -1692,6 +1737,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Parameter {
             get {
                 return ResourceManager.GetString("Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter preferences:.
+        /// </summary>
+        internal static string Parameter_preferences_colon {
+            get {
+                return ResourceManager.GetString("Parameter_preferences_colon", resourceCulture);
             }
         }
         
@@ -1989,6 +2043,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Preview_unavailable {
             get {
                 return ResourceManager.GetString("Preview_unavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private methods.
+        /// </summary>
+        internal static string Private_methods {
+            get {
+                return ResourceManager.GetString("Private_methods", resourceCulture);
             }
         }
         

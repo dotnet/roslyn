@@ -1078,4 +1078,25 @@ I agree to all of the foregoing:</value>
   <data name="Kind" xml:space="preserve">
     <value>Kind</value>
   </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
+  <data name="Avoid_expression_statements_that_implicitly_ignore_value" xml:space="preserve">
+    <value>Avoid expression statements that implicitly ignore value</value>
+  </data>
+  <data name="Avoid_unused_parameters" xml:space="preserve">
+    <value>Avoid unused parameters</value>
+  </data>
+  <data name="Avoid_unused_value_assignments" xml:space="preserve">
+    <value>Avoid unused value assignments</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Parameter_preferences_colon" xml:space="preserve">
+    <value>Parameter preferences:</value>
+  </data>
+  <data name="Private_methods" xml:space="preserve">
+    <value>Private methods</value>
+  </data>
 </root>

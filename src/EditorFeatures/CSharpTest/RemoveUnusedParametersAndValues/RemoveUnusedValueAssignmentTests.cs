@@ -2,73 +2,28 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.RemoveUnusedExpressionsAndParameters;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressionsAndParameters
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
-    public partial class RemoveUnusedExpressionsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer(), new CSharpRemoveUnusedExpressionsAndParametersCodeFixProvider());
+        protected override IDictionary<OptionKey, object> PreferNone =>
+            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.None, NotificationOption.Suggestion));
 
-        private IDictionary<OptionKey, object> PreferNone =>
-            Option(CodeStyleOptions.UnusedExpressionAssignment,
-                   new CodeStyleOption<UnusedExpressionAssignmentPreference>(UnusedExpressionAssignmentPreference.None, NotificationOption.Suggestion));
+        protected override IDictionary<OptionKey, object> PreferDiscard =>
+            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion));
 
-        private IDictionary<OptionKey, object> PreferDiscard =>
-            Option(CodeStyleOptions.UnusedExpressionAssignment,
-                   new CodeStyleOption<UnusedExpressionAssignmentPreference>(UnusedExpressionAssignmentPreference.DiscardVariable, NotificationOption.Suggestion));
-
-        private IDictionary<OptionKey, object> PreferUnusedLocal =>
-            Option(CodeStyleOptions.UnusedExpressionAssignment,
-                   new CodeStyleOption<UnusedExpressionAssignmentPreference>(UnusedExpressionAssignmentPreference.UnusedLocalVariable, NotificationOption.Suggestion));
-
-        private IDictionary<OptionKey, object> GetOptions(string optionName)
-        {
-            switch (optionName)
-            {
-                case nameof(PreferDiscard):
-                    return PreferDiscard;
-
-                case nameof(PreferUnusedLocal):
-                    return PreferUnusedLocal;
-
-                default:
-                    return PreferNone;
-            }
-        }
-
-        private Task TestMissingInRegularAndScriptAsync(string initialMarkup, IDictionary<OptionKey, object> options)
-            => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
-        private Task TestMissingInRegularAndScriptAsync(string initialMarkup, string optionName)
-             => TestMissingInRegularAndScriptAsync(initialMarkup, GetOptions(optionName));
-        private Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, string optionName)
-            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: GetOptions(optionName));
-
-        // Helpers to test all options - only used by tests which already have InlineData for custom input test code snippets.
-        private async Task TestInRegularAndScriptWithAllOptionsAsync(string initialMarkup, string expectedMarkup)
-        {
-            foreach (var options in new[] { PreferDiscard, PreferUnusedLocal })
-            {
-                await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
-            }
-        }
-
-        private async Task TestMissingInRegularAndScriptWithAllOptionsAsync(string initialMarkup)
-        {
-            foreach (var options in new[] { PreferDiscard, PreferUnusedLocal })
-            {
-                await TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
-            }
-        }
+        protected override IDictionary<OptionKey, object> PreferUnusedLocal =>
+            Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Suggestion));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
         public async Task Initialization_Suppressed()
@@ -129,7 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
         {
-            var removeUnusedParametersSuppressed = Option(CodeStyleOptions.AvoidUnusedParameters, CodeStyleOptions.FalseWithSilentEnforcement);
+            var removeUnusedParametersSuppressed = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.None, NotificationOption.Silent));
 
             await TestInRegularAndScriptAsync(
 @"class C
@@ -149,6 +105,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedExpressions
         return x;
     }
 }", options: removeUnusedParametersSuppressed);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        public async Task Initialization_ConstantValue_RemoveUnsuedParametersNotApplicable()
+        {
+            var removeUnusedParametersNotApplicable = Option(CodeStyleOptions.UnusedParameters,
+                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.PrivateMethods, NotificationOption.Silent));
+
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int M(int z)
+    {
+        int [|x|] = 1;
+        x = 2;
+        return x;
+    }
+}",
+@"class C
+{
+    public int M(int z)
+    {
+        int x = 2;
+        return x;
+    }
+}", options: removeUnusedParametersNotApplicable);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]

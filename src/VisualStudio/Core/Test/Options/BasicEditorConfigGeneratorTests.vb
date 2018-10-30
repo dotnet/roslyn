@@ -70,18 +70,21 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_unused_expression_assignment_preference = discard_variable:suggestion
 
 # Field preferences
 dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
-dotnet_style_avoid_unused_parameters = true:suggestion
+dotnet_style_unused_parameters = all:suggestion
 
 #### VB Coding Conventions ####
 
 # Modifier preferences
 visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
+
+# Expression-level preferences
+visual_basic_style_unused_value_assignment_preference = unused_local_variable:suggestion
+visual_basic_style_unused_value_expression_statement_preference = unused_local_variable:silent
 
 "
                 Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
@@ -149,18 +152,21 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_unused_expression_assignment_preference = discard_variable:suggestion
 
 # Field preferences
 dotnet_style_readonly_field = true:suggestion
 
 # Parameter preferences
-dotnet_style_avoid_unused_parameters = true:suggestion
+dotnet_style_unused_parameters = all:suggestion
 
 #### VB Coding Conventions ####
 
 # Modifier preferences
 visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
+
+# Expression-level preferences
+visual_basic_style_unused_value_assignment_preference = unused_local_variable:suggestion
+visual_basic_style_unused_value_expression_statement_preference = unused_local_variable:silent
 
 "
                 Dim editorConfigOptions = VisualBasic.Options.Formatting.CodeStylePage.TestAccessor.GetEditorConfigOptions()
