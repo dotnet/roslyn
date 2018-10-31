@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.FlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -516,11 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
         haveLambdaBodyAndBinders:
-
-            if (delegateType.IsExpressionTree())
-            {
-                ExpressionTreeRefLikeWalker.Analyze(binder.Compilation, lambdaSymbol, block, diagnostics);
-            }
 
             bool reachableEndpoint = ControlFlowPass.Analyze(binder.Compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)

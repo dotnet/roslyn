@@ -211,6 +211,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode Visit(BoundNode node)
+        {
+            if (_inExpressionLambda &&
+                node is BoundExpression expr &&
+                expr.Type is TypeSymbol type &&
+                type.IsByRefLikeType)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, "ref struct");
+            }
+            return base.Visit(node);
+        }
+
         public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
         {
             if (_inExpressionLambda)
@@ -342,6 +354,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
+                var lambda = node.ExpressionSymbol as MethodSymbol;
+                if ((object)lambda != null)
+                {
+                    foreach (var p in lambda.Parameters)
+                    {
+                        if (p.RefKind != RefKind.None && p.Locations.Length != 0)
+                        {
+                            _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                        }
+                        if (p.Type.TypeSymbol?.IsByRefLikeType == true)
+                        {
+                            _diagnostics.Add(ErrorCode.ERR_FeatureNotValidInExpressionTree, p.Locations[0], "ref struct");
+                        }
+                    }
+                }
                 switch (node.Syntax.Kind())
                 {
                     case SyntaxKind.ParenthesizedLambdaExpression:
@@ -358,18 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.RefExpression)
                             {
                                 Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
-                            }
-
-                            var lambda = node.ExpressionSymbol as MethodSymbol;
-                            if ((object)lambda != null)
-                            {
-                                foreach (var p in lambda.Parameters)
-                                {
-                                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
-                                    {
-                                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
-                                    }
-                                }
                             }
                         }
                         break;
