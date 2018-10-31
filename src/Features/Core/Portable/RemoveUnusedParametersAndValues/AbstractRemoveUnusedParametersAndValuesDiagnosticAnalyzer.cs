@@ -569,8 +569,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                 foreach (var resultFromFlowAnalysis in resultsFromFlowAnalysis)
                                 {
-                                    var isUsedInBlock = resultFromFlowAnalysis.GetInitialDefinitionUsageForParameter(parameter);
-                                    if (isUsedInBlock)
+                                    if (resultFromFlowAnalysis.IsInitialParameterValueUsed(parameter))
                                     {
                                         isUsed = true;
                                         break;

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public static BitVector Run(ControlFlowGraph controlFlowGraph)
         {
             var analyzer = new BasicBlockReachabilityDataFlowAnalyzer();
-            _ = CustomDataFlowAnalysis<bool>.Run(controlFlowGraph.Blocks, analyzer, CancellationToken.None);
+            _ = CustomDataFlowAnalysis<bool>.Run(controlFlowGraph, analyzer, CancellationToken.None);
             return analyzer._visited;
         }
 

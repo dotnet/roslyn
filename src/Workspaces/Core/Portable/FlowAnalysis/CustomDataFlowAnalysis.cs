@@ -12,15 +12,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
     {
         /// <summary>
-        /// Runs dataflow analysis for the given <paramref name="analyzer"/> on the given <paramref name="blocks"/>.
+        /// Runs dataflow analysis for the given <paramref name="analyzer"/> on the given <paramref name="controlFlowGraph"/>.
         /// </summary>
-        /// <param name="blocks">Blocks on which to execute analysis.</param>
+        /// <param name="controlFlowGraph">Control flow graph on which to execute analysis.</param>
         /// <param name="analyzer">Dataflow analyzer.</param>
-        /// <returns>Block analysis data for the last block.</returns>
-        public static TBlockAnalysisData Run(ImmutableArray<BasicBlock> blocks, DataFlowAnalyzer<TBlockAnalysisData> analyzer, CancellationToken cancellationToken)
+        /// <returns>Block analysis data at the end of the exit block.</returns>
+        public static TBlockAnalysisData Run(ControlFlowGraph controlFlowGraph, DataFlowAnalyzer<TBlockAnalysisData> analyzer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var blocks = controlFlowGraph.Blocks;
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
             int firstBlockOrdinal = 0;

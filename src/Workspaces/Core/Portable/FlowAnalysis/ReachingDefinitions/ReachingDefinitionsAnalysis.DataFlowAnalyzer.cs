@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 cancellationToken.ThrowIfCancellationRequested();
                 using (var analyzer = new DataFlowAnalyzer(cfg, owningSymbol, cancellationToken))
                 {
-                    _ = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg.Blocks, analyzer, cancellationToken);
+                    _ = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
                     return analyzer._analysisData.ToResult();
                 }
             }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 cancellationToken.ThrowIfCancellationRequested();
                 using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, _analysisData, cancellationToken))
                 {
-                    var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg.Blocks, analyzer, cancellationToken);
+                    var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
                     if (resultBlockAnalysisData == null)
                     {
                         // Unreachable exit block from lambda/local.

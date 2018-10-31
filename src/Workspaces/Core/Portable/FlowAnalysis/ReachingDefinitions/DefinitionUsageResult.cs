@@ -17,7 +17,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             SymbolsRead = symbolsRead;
         }
 
+        /// <summary>
+        /// Map from each symbol definition to a boolean indicating if the value assinged
+        /// at definition is used/read on some control flow path.
+        /// </summary>
         public ImmutableDictionary<(ISymbol Symbol, IOperation Definition), bool> DefinitionUsageMap { get; }
+
+        /// <summary>
+        /// Set of locals/parameters that have at least one use/read for one of its definitions.
+        /// </summary>
         public ImmutableHashSet<ISymbol> SymbolsRead { get; }
 
         public bool HasUnusedDefinitions()
@@ -38,6 +46,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             return false;
         }
 
+        /// <summary>
+        /// Gets symbol definitions (writes) that have are never read.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<(ISymbol Symbol, IOperation Definition)> GetUnusedDefinitions()
         {
             foreach (var kvp in DefinitionUsageMap)
@@ -49,7 +61,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             }
         }
 
-        public bool GetInitialDefinitionUsageForParameter(IParameterSymbol parameter)
+        /// <summary>
+        /// Returns true if the initial value of the parameter from the caller is used.
+        /// </summary>
+        public bool IsInitialParameterValueUsed(IParameterSymbol parameter)
         {
             foreach (var kvp in DefinitionUsageMap)
             {
@@ -62,6 +77,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             throw ExceptionUtilities.Unreachable;
         }
 
+        /// <summary>
+        /// Gets the definition (write) count for a given local/parameter symbol.
+        /// </summary>
         public int GetDefinitionCount(ISymbol symbol)
         {
             int count = 0;
