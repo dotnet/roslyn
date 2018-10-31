@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // merge the result to existing one.
                         // there can be existing one from compiler driver with empty set. overwrite it with
                         // ide one.
-                        result = result.SetItem(analyzer, new DiagnosticAnalysisResult(builder));
+                        result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
                     }
 
                     return result;

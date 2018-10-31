@@ -71,13 +71,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
         }
 
-        public DiagnosticAnalysisResult(DiagnosticAnalysisResultBuilder builder) :
-            this(builder.Project.Id, builder.Version,
-                builder.SyntaxLocals, builder.SemanticLocals, builder.NonLocals, builder.Others,
-                builder.DocumentIds, fromBuild: false)
-        {
-        }
-
         public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
         {
             return new DiagnosticAnalysisResult(
@@ -88,6 +81,19 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                 nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                 others: ImmutableArray<DiagnosticData>.Empty,
+                fromBuild: false);
+        }
+
+        public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
+        {
+            return new DiagnosticAnalysisResult(
+                builder.Project.Id,
+                builder.Version,
+                builder.SyntaxLocals,
+                builder.SemanticLocals,
+                builder.NonLocals,
+                builder.Others,
+                builder.DocumentIds,
                 fromBuild: false);
         }
 
