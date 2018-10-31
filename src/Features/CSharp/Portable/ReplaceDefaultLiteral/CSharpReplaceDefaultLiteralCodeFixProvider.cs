@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseAnotherLiteral
+namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAnotherLiteral), Shared]
-    internal sealed class CSharpUseAnotherLiteralCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ReplaceDefaultLiteral), Shared]
+    internal sealed class CSharpReplaceDefaultLiteralCodeFixProvider : CodeFixProvider
     {
         private const string CS8313 = nameof(CS8313); // A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
         private const string CS8363 = nameof(CS8363); // A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.

@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
             public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
+            public const string CodeActionsReplaceDefaultLiteral = "CodeActions.ReplaceDefaultLiteral";
             public const string CodeActionsReplaceDocCommentTextWithTag = "CodeActions.ReplaceDocCommentTextWithTag";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
@@ -122,7 +123,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
-            public const string CodeActionsUseAnotherLiteral = "CodeActions.UseAnotherLiteral";
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
