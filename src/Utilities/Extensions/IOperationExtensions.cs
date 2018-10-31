@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -441,10 +443,23 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        /// <summary>
+        /// PERF: Cache from operation roots to their corresponding <see cref="ControlFlowGraph"/> to enable interprocedural flow analysis
+        /// across analyzers and analyzer callbacks to re-use the control flow graph.
+        /// </summary>
+        /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
+            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
+
         public static ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
         {
             operation = operation.GetRoot();
+            var operationToCfgMap = s_operationToCfgCache.GetOrCreateValue(operation.SemanticModel.Compilation);
+            return operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
+        }
 
+        private static ControlFlowGraph CreateControlFlowGraph(IOperation operation)
+        {
             switch (operation)
             {
                 case IBlockOperation blockOperation:

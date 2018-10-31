@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Dictionary storing context sensitive interprocedural analysis results for each callsite.
         /// </summary>
         private readonly ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>>.Builder _interproceduralResultsBuilder;
+
+        /// <summary>
+        /// Dictionary from interprocedural method symbols invoked to their corresponding <see cref="ControlFlowGraph"/>.
+        /// </summary>
+        private readonly Dictionary<IMethodSymbol, ControlFlowGraph> _interproceduralMethodToCfgMapOpt;
         #endregion
 
         protected abstract TAbstractAnalysisValue GetAbstractDefaultValue(ITypeSymbol type);
@@ -148,6 +153,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 _addressSharedEntitiesBuilder.AddRange(analysisContext.InterproceduralAnalysisDataOpt.AddressSharedEntities);
+                _interproceduralMethodToCfgMapOpt = null;
+            }
+            else
+            {
+                _interproceduralMethodToCfgMapOpt = new Dictionary<IMethodSymbol, ControlFlowGraph>();
             }
 
             AnalysisEntity thisOrMeInstanceFromCalleeOpt;
@@ -1549,7 +1559,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     _addressSharedEntitiesBuilder.ToImmutable(),
                     ImmutableStack.CreateRange(_interproceduralCallStack),
                     newMethodsBeingAnalyzed,
-                    getCachedAbstractValueFromCaller: GetCachedAbstractValue);
+                    getCachedAbstractValueFromCaller: GetCachedAbstractValue,
+                    getInterproceduralControlFlowGraph: GetInterproceduralControlFlowGraph);
 
                 (AnalysisEntity, PointsToAbstractValue)? GetInvocationInstance()
                 {
@@ -2256,14 +2267,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IOperation originalOperation,
             TAbstractAnalysisValue defaultValue)
         {
-            Func<ControlFlowGraph> getCfg = () =>
-            {
-                var operation = method.GetTopmostOperationBlock(WellKnownTypeProvider.Compilation);
-                return operation?.GetEnclosingControlFlowGraph();
-            };
+            Func<ControlFlowGraph> getCfg = () => GetInterproceduralControlFlowGraph(method);
 
             return PerformInterproceduralAnalysis(getCfg, method, visitedInstance,
                 visitedArguments, originalOperation, defaultValue, isLambdaOrLocalFunction: false);
+        }
+
+        private ControlFlowGraph GetInterproceduralControlFlowGraph(IMethodSymbol method)
+        {
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
+            {
+                return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.GetInterproceduralControlFlowGraph(method);
+            }
+
+            if (!_interproceduralMethodToCfgMapOpt.TryGetValue(method, out var cfg))
+            {
+                var operation = method.GetTopmostOperationBlock(WellKnownTypeProvider.Compilation);
+                cfg = operation?.GetEnclosingControlFlowGraph();
+                _interproceduralMethodToCfgMapOpt.Add(method, cfg);
+            }
+
+            return cfg;
         }
 
         public virtual TAbstractAnalysisValue VisitInvocation_LocalFunction(
