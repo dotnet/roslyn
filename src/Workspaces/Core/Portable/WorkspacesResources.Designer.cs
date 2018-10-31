@@ -504,6 +504,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing document &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string Changing_document_0_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_document_0_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing document properties is not supported.
         /// </summary>
         internal static string Changing_document_property_is_not_supported {
