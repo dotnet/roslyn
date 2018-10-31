@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             ErrorHandler.ThrowOnFailure(service.UnadviseDirChange(_directoryWatchCookie));
                         }
 
-                        // shouldn't _activeFileWatchingTokens need a lock or need local copy before the queue?
+                        // it runs after disposed. so no lock is needed for _activeFileWatchingTokens
                         foreach (var token in _activeFileWatchingTokens)
                         {
                             UnsubscribeFileChangeEvents(service, token);
