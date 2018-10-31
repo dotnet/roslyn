@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -74,28 +75,79 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var constant = semanticModel.GetConstantValue(defaultLiteral, cancellationToken);
-            if (constant.HasValue)
-            {
-                var newLiteral = SyntaxGenerator.GetGenerator(document).LiteralExpression(constant.Value);
-
-                return (newLiteral, newLiteral.ToString());
-            }
+            var generator = SyntaxGenerator.GetGenerator(document);
 
             var type = semanticModel.GetTypeInfo(defaultLiteral, cancellationToken).ConvertedType;
-            if (type != null && type.TypeKind != TypeKind.Error && !type.ContainsAnonymousType())
+            if (type != null && type.TypeKind != TypeKind.Error)
             {
-                var defaultExpression =
-                    SyntaxFactory.DefaultExpression(
-                        defaultLiteral.Token.WithoutTrivia(),
-                        SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                        type.GenerateTypeSyntax(allowVar: false),
-                        SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+                if (IsFlagsEnum(type, semanticModel.Compilation) &&
+                    type.GetMembers("None").FirstOrDefault() is IFieldSymbol field && IsZero(field.ConstantValue))
+                {
+                    return GenerateMemberAccess("None");
+                }
+                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken")))
+                {
+                    return GenerateMemberAccess(nameof(CancellationToken.None));
+                }
+                else if (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr)
+                {
+                    return GenerateMemberAccess(nameof(IntPtr.Zero));
+                }
+                else if (semanticModel.GetConstantValue(defaultLiteral, cancellationToken) is var constant && constant.HasValue)
+                {
+                    var newLiteral = generator.LiteralExpression(constant.Value);
 
-                return (defaultExpression, $"default({type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)})");
+                    return (newLiteral, newLiteral.ToString());
+                }
+                else if (!type.ContainsAnonymousType())
+                {
+                    var defaultExpression =
+                        SyntaxFactory.DefaultExpression(
+                            defaultLiteral.Token.WithoutTrivia(),
+                            SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                            type.GenerateTypeSyntax(allowVar: false),
+                            SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+                    return (defaultExpression, $"default({type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)})");
+                }
             }
 
             return default;
+
+            (SyntaxNode newExpression, string displayText) GenerateMemberAccess(string memberName)
+            {
+                var memberAccess =
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(type),
+                        memberName);
+
+                return (memberAccess, $"{type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}.{memberName}");
+            }
+        }
+
+        private static bool IsFlagsEnum(ITypeSymbol type, Compilation compilation)
+        {
+            var flagsAttribute = compilation.GetTypeByMetadataName("System.FlagsAttribute");
+            return type.TypeKind == TypeKind.Enum &&
+                   type.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(flagsAttribute));
+        }
+
+        private static bool IsZero(object o)
+        {
+            switch (o)
+            {
+                case default(int):
+                case default(uint):
+                case default(byte):
+                case default(sbyte):
+                case default(short):
+                case default(ushort):
+                case default(long):
+                case default(ulong):
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

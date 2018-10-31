@@ -574,26 +574,65 @@ $@"class C
 }}", s_csharp7_1above);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomEnum()
+        [Theory]
+        [InlineData("enum Enum { }")]
+        [InlineData("enum Enum { None = 0 }")]
+        [InlineData("[Flags] enum Enum { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum { None = 1 }")]
+        [InlineData("[System.Flags] enum Enum { None = 1, None = 0 }")]
+        [InlineData("[System.Flags] enum Enum { Some = 0 }")]
+        public async Task TestCSharp7_1_InIsPattern_CustomEnum_WithoutSpecialMember(string enumDeclaration)
         {
             await TestWithLanguageVersionsAsync(
-@"class C
-{
-    enum Enum { }
+$@"class C
+{{
+    {enumDeclaration}
     void M()
-    {
-        if (new Enum() is [||]default) { }
-    }
-}",
-@"class C
-{
-    enum Enum { }
+    {{
+        if (new Enum() is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
+    {enumDeclaration}
     void M()
-    {
-        if (new Enum() is 0) { }
-    }
-}", s_csharp7_1above);
+    {{
+        if (new Enum() is 0) {{ }}
+    }}
+}}", s_csharp7_1above);
+        }
+
+        [Theory]
+        [InlineData("[System.Flags] enum Enum : int { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : uint { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : byte { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : sbyte { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : short { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : ushort { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : long { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum : ulong { None = 0 }")]
+        [InlineData("[System.Flags] enum Enum { None = default }")]
+        [InlineData("[System.Flags] enum Enum { Some = 1, None = 0 }")]
+        [InlineData("[System.FlagsAttribute] enum Enum { None = 0, Some = 1 }")]
+        public async Task TestCSharp7_1_InIsPattern_CustomEnum_WithSpecialMember(string enumDeclaration)
+        {
+            await TestWithLanguageVersionsAsync(
+$@"class C
+{{
+    {enumDeclaration}
+    void M()
+    {{
+        if (new Enum() is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
+    {enumDeclaration}
+    void M()
+    {{
+        if (new Enum() is Enum.None) {{ }}
+    }}
+}}", s_csharp7_1above);
         }
 
         [Fact]
@@ -679,6 +718,70 @@ $@"class C
         if (ToContainer(new { x = 0 }) is [||]default) { }
     }
 }", s_csharp7_1above);
+        }
+
+        [Theory]
+        [InlineData("System.Threading", "CancellationToken", "None")]
+        [InlineData("System", "IntPtr", "Zero")]
+        [InlineData("System", "UIntPtr", "Zero")]
+        public async Task TestCSharp7_1_InIsPattern_SpecialTypeQualified(string @namespace, string type, string member)
+        {
+            await TestWithLanguageVersionsAsync(
+$@"class C
+{{
+    void M()
+    {{
+        if (default({@namespace}.{type}) is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
+    void M()
+    {{
+        if (default({@namespace}.{type}) is {@namespace}.{type}.{member}) {{ }}
+    }}
+}}", s_csharp7_1above);
+        }
+
+        [Theory]
+        [InlineData("System.Threading", "CancellationToken", "None")]
+        [InlineData("System", "IntPtr", "Zero")]
+        [InlineData("System", "UIntPtr", "Zero")]
+        public async Task TestCSharp7_1_InIsPattern_SpecialTypeUnqualifiedWithUsing(string @namespace, string type, string member)
+        {
+            await TestWithLanguageVersionsAsync(
+$@"using {@namespace};
+class C
+{{
+    void M()
+    {{
+        if (default({type}) is [||]default) {{ }}
+    }}
+}}",
+$@"using {@namespace};
+class C
+{{
+    void M()
+    {{
+        if (default({type}) is {type}.{member}) {{ }}
+    }}
+}}", s_csharp7_1above);
+        }
+
+        [Theory]
+        [InlineData("CancellationToken")]
+        [InlineData("IntPtr")]
+        [InlineData("UIntPtr")]
+        public async Task TestCSharp7_1_InIsPattern_NotForSpecialTypeUnqualifiedWithoutUsing(string type)
+        {
+            await TestMissingWithLanguageVersionsAsync(
+$@"class C
+{{
+    void M()
+    {{
+        if (default({type}) is [||]default) {{ }}
+    }}
+}}", s_csharp7_1above);
         }
 
         [Fact]
