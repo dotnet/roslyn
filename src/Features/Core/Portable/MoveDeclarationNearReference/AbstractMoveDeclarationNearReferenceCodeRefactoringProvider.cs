@@ -1,28 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 {
-    internal abstract partial class AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<
+    internal abstract partial class AbstractMoveDeclarationNearReferenceService<
         TService,
         TStatementSyntax,
         TLocalDeclarationStatementSyntax,
-        TVariableDeclaratorSyntax> : CodeRefactoringProvider
-        where TService : AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<TService, TStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax>
+        TVariableDeclaratorSyntax> : IMoveDeclarationNearReferenceService
+        where TService : AbstractMoveDeclarationNearReferenceService<TService, TStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax>
         where TStatementSyntax : SyntaxNode
         where TLocalDeclarationStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
@@ -34,55 +31,37 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
         protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public async Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            if (!textSpan.IsEmpty)
+            if (!(node is TLocalDeclarationStatementSyntax statement))
             {
-                return;
+                return false;
             }
 
-            var position = textSpan.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var statement = root.FindToken(position).GetAncestor<TLocalDeclarationStatementSyntax>();
-            if (statement == null)
-            {
-                return;
-            }
 
             var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
-                return;
+                return false;
             }
 
             if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
             {
-                return;
+                return false;
             }
 
-            // Don't offer the refactoring inside the initializer for the variable.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(state.VariableDeclarator);
-            var applicableSpan = initializer == null
-                ? statement.Span
-                : TextSpan.FromBounds(statement.SpanStart, initializer.SpanStart);
-
-            if (!applicableSpan.IntersectsWith(position))
-            {
-                return;
-            }
-
-            context.RegisterRefactoring(
-                new MyCodeAction(c => MoveDeclarationNearReferenceAsync(document, state, root, c)));
+            return true;
         }
 
-        private async Task<Document> MoveDeclarationNearReferenceAsync(
-            Document document, State state, SyntaxNode root, CancellationToken cancellationToken)
+        public async Task<Document> MoveDeclarationNearReferenceAsync(
+            Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken)
         {
+            Debug.Assert(await CanMoveDeclarationNearReferenceAsync(document, localDeclarationStatement, cancellationToken));
+
+            var statement = (TLocalDeclarationStatementSyntax)localDeclarationStatement;
+            var root = await document.GetSyntaxRootAsync(cancellationToken);
+            var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
+
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
