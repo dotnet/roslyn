@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -322,38 +324,53 @@ namespace Analyzer.Utilities.Extensions
                method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
 
         /// <summary>
+        /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
+        /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
+        /// </summary>
+        /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
+            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
+        
+        /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
         /// </summary>
         public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (method.ContainingAssembly != compilation.Assembly)
-            {
-                return null;
-            }
+            var methodToBlockMap = s_methodToTopmostOperationBlockCache.GetOrCreateValue(compilation);
+            return methodToBlockMap.GetOrAdd(method, ComputeTopmostOperationBlock);
 
-            foreach (var decl in method.DeclaringSyntaxReferences)
+            // Local functions.
+            IBlockOperation ComputeTopmostOperationBlock(IMethodSymbol unused)
             {
-                var syntax = decl.GetSyntax(cancellationToken);
-
-                // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
-                //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
-                if (compilation.Language == LanguageNames.VisualBasic)
+                if (method.ContainingAssembly != compilation.Assembly)
                 {
-                    syntax = syntax.Parent;
+                    return null;
                 }
 
-                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                foreach (var descendant in syntax.DescendantNodesAndSelf())
+                foreach (var decl in method.DeclaringSyntaxReferences)
                 {
-                    var operation = semanticModel.GetOperation(descendant, cancellationToken);
-                    if (operation is IBlockOperation blockOperation)
+                    var syntax = decl.GetSyntax(cancellationToken);
+
+                    // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
+                    //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
+                    if (compilation.Language == LanguageNames.VisualBasic)
                     {
-                        return blockOperation;
+                        syntax = syntax.Parent;
+                    }
+
+                    var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                    foreach (var descendant in syntax.DescendantNodesAndSelf())
+                    {
+                        var operation = semanticModel.GetOperation(descendant, cancellationToken);
+                        if (operation is IBlockOperation blockOperation)
+                        {
+                            return blockOperation;
+                        }
                     }
                 }
-            }
 
-            return null;
+                return null;
+            }
         }
 
         public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)

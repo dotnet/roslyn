@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
             ImmutableStack<IOperation> callStack,
             ImmutableHashSet<TAnalysisContext> methodsBeingAnalyzed,
-            Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller)
+            Func<IOperation, TAbstractAnalysisValue> getCachedAbstractValueFromCaller,
+            Func<IMethodSymbol, ControlFlowGraph> getInterproceduralControlFlowGraph)
         {
             Debug.Assert(initialAnalysisData != null);
             Debug.Assert(!arguments.IsDefault);
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(callStack != null);
             Debug.Assert(methodsBeingAnalyzed != null);
             Debug.Assert(getCachedAbstractValueFromCaller != null);
+            Debug.Assert(getInterproceduralControlFlowGraph != null);
 
             InitialAnalysisData = initialAnalysisData;
             InvocationInstanceOpt = invocationInstanceOpt;
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CallStack = callStack;
             MethodsBeingAnalyzed = methodsBeingAnalyzed;
             GetCachedAbstractValueFromCaller = getCachedAbstractValueFromCaller;
+            GetInterproceduralControlFlowGraph = getInterproceduralControlFlowGraph;
         }
 
         public TAnalysisData InitialAnalysisData { get; }
@@ -59,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableStack<IOperation> CallStack { get; }
         public ImmutableHashSet<TAnalysisContext> MethodsBeingAnalyzed { get; }
         public Func<IOperation, TAbstractAnalysisValue> GetCachedAbstractValueFromCaller { get; }
+        public Func<IMethodSymbol, ControlFlowGraph> GetInterproceduralControlFlowGraph { get; }
 
         protected sealed override int ComputeHashCode()
         {
