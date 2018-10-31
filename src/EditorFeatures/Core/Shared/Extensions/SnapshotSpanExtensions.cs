@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, trackingMode);
         }
 
-        public static void GetLinesAndColumns(
+        public static void GetLinesAndCharacters(
             this SnapshotSpan snapshotSpan,
             out int startLineNumber,
-            out int startColumnIndex,
+            out int startCharacterIndex,
             out int endLineNumber,
-            out int endColumnIndex)
+            out int endCharacterIndex)
         {
-            snapshotSpan.Snapshot.GetLineAndColumn(snapshotSpan.Span.Start, out startLineNumber, out startColumnIndex);
-            snapshotSpan.Snapshot.GetLineAndColumn(snapshotSpan.Span.End, out endLineNumber, out endColumnIndex);
+            snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.Start, out startLineNumber, out startCharacterIndex);
+            snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.End, out endLineNumber, out endCharacterIndex);
         }
 
         public static bool IntersectsWith(this SnapshotSpan snapshotSpan, TextSpan textSpan)
