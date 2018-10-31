@@ -94,17 +94,36 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 fromBuild: false);
         }
 
-        public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
+        public static DiagnosticAnalysisResult CreateFromSerialization(
+            ProjectId projectId,
+            VersionStamp version,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
+            ImmutableArray<DiagnosticData> others,
+            ImmutableHashSet<DocumentId> documentIds = null)
         {
             return new DiagnosticAnalysisResult(
+                projectId,
+                version,
+                syntaxLocalMap,
+                semanticLocalMap,
+                nonLocalMap,
+                others,
+                documentIds,
+                fromBuild: false);
+        }
+
+        public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
+        {
+            return CreateFromSerialization(
                 builder.Project.Id,
                 builder.Version,
                 builder.SyntaxLocals,
                 builder.SemanticLocals,
                 builder.NonLocals,
                 builder.Others,
-                builder.DocumentIds,
-                fromBuild: false);
+                builder.DocumentIds);
         }
 
         // aggregated form means it has aggregated information but no actual data.

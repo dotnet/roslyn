@@ -502,13 +502,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public DiagnosticAnalysisResult ToResult()
                 {
-                    return new DiagnosticAnalysisResult(_projectId, _version,
+                    return DiagnosticAnalysisResult.CreateFromSerialization(_projectId, _version,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _others.NullToEmpty(),
-                        _documentIds,
-                        fromBuild: false);
+                        _documentIds);
                 }
             }
         }

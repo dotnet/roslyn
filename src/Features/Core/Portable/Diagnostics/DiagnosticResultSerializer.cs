@@ -76,10 +76,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var others = diagnosticDataSerializer.ReadFrom(reader, project, cancellationToken);
 
-                var analysisResult = new DiagnosticAnalysisResult(
-                    project.Id, version,
-                    syntaxLocalMap, semanticLocalMap, nonLocalMap, GetOrDefault(others),
-                    documentIds: null, fromBuild: false);
+                var analysisResult = DiagnosticAnalysisResult.CreateFromSerialization(
+                    project.Id,
+                    version,
+                    syntaxLocalMap,
+                    semanticLocalMap,
+                    nonLocalMap,
+                    GetOrDefault(others));
 
                 analysisMap.Add(analyzer, analysisResult);
             }
