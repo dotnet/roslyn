@@ -162,16 +162,15 @@
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
-    <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-06</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
     <RoslynToolsModifyVsixManifestVersion>1.0.0-beta2-63222-01</RoslynToolsModifyVsixManifestVersion>
     <RoslynToolsMSBuildVersion>0.5.0-alpha</RoslynToolsMSBuildVersion>
-    <RoslynToolsNuGetRepackVersion>1.0.0-beta2-63223-01</RoslynToolsNuGetRepackVersion>
+    <RoslynToolsNuGetRepackVersion>1.0.0-beta3.18523.2</RoslynToolsNuGetRepackVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
-    <RoslynToolsBuildTasksVersion>1.0.0-beta3.18513.2</RoslynToolsBuildTasksVersion>
+    <RoslynToolsBuildTasksVersion>1.0.0-beta3.18525.2</RoslynToolsBuildTasksVersion>
     <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
@@ -314,6 +313,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Interfaces"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.RemoteControl"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.15.0"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Design"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Framework"/>
@@ -325,6 +325,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Telemetry"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Data"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Logic"/>
@@ -334,6 +335,8 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.0"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Utilities"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VSSDK.BuildTools"/>
+    <PrivateVisualStudioPackage Include="Newtonsoft.Json"/>
     <PrivateVisualStudioPackage Include="NuGet.VisualStudio"/>
     <PrivateVisualStudioPackage Include="StreamJsonRpc"/>
     <PrivateVisualStudioPackage Include="VSLangProj"/>

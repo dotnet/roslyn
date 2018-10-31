@@ -89,15 +89,27 @@ steps:
 
 # Publish VSTS artifact that the RoslynInsertionTool is able to find by its name.
 # The backing storage of the artifact is a file share.
+#
+# The bulk of the publish work is done by the Powershell task below. This exists to create
+# the proper entries in the build log so that the insertion tool can find the drop that 
+# needs to get published
 - task: PublishBuildArtifacts@1
   displayName: Publish Drop - Binaries
   inputs:
-    PathtoPublish: 'Binaries\$(BuildConfiguration)'
+    PathtoPublish: 'Binaries\$(BuildConfiguration)\DevDivInsertionFiles'
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
     Parallel: true
     ParallelCount: 64
+  condition: succeededOrFailed()
+
+# Archive the files from the build necessary for future investigations
+- task: PowerShell@2
+  displayName: Publish Drop - Binaries Real
+  inputs:
+    arguments: '-Source Binaries\$(BuildConfiguration) -Target $(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber) -ParallelCount 8 -Exclude UnitTests,PerfTests'
+    filePath: 'build\scripts\vsts-robocopy.ps1'
   condition: succeededOrFailed()
 
 # Copy additional files to the drop directory
