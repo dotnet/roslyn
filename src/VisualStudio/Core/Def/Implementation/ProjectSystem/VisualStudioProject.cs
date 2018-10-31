@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -431,9 +432,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
         }
 
-        public DocumentId AddSourceTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
+        public DocumentId AddSourceTextContainer(
+            SourceTextContainer textContainer,
+            string fullPath,
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
+            ImmutableArray<string> folders = default,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders);
+            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)
@@ -902,7 +908,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
+            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -917,7 +923,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: folders.IsDefault ? null : (IEnumerable<string>)folders,
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath);
+                    filePath: fullPath,
+                    isGenerated: false,
+                    documentServiceProvider: documentServiceProvider);
 
                 lock (_project._gate)
                 {

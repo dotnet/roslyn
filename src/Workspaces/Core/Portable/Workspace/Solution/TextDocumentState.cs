@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         protected TextDocumentState(
             SolutionServices solutionServices,
+            IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textAndVersionSource,
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis
             this.textAndVersionSource = textAndVersionSource;
 
             Attributes = attributes;
+            Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
 
             // for now, let it re-calculate if anything changed.
             // TODO: optimize this so that we only re-calcuate checksums that are actually changed
@@ -56,6 +58,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         public DocumentInfo.DocumentAttributes Attributes { get; }
+
+        /// <summary>
+        /// A <see cref="IDocumentServiceProvider"/> associated with this document
+        /// </summary>
+        public IDocumentServiceProvider Services { get; }
 
         public DocumentId Id
         {
@@ -85,6 +92,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 solutionServices: services,
+                documentServiceProvider: info.DocumentServiceProvider,
                 attributes: info.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: textSource,
@@ -320,6 +328,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
+                this.Services,
                 this.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
@@ -354,6 +363,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
+                this.Services,
                 this.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,

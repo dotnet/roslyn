@@ -28,13 +28,14 @@ namespace Microsoft.CodeAnalysis
         private DocumentState(
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
+            IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
             SourceText sourceTextOpt,
             ValueSource<TextAndVersion> textSource,
             ValueSource<TreeAndVersion> treeSource,
             ValueSource<DocumentStateChecksums> lazyChecksums)
-            : base(solutionServices, attributes, sourceTextOpt, textSource, lazyChecksums)
+            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textSource, lazyChecksums)
         {
             _languageServices = languageServices;
             _options = options;
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis
 
             return new DocumentState(
                 languageServices: language,
+                documentServiceProvider: info.DocumentServiceProvider,
                 solutionServices: services,
                 attributes: info.Attributes,
                 options: options,
@@ -332,6 +334,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes.With(sourceCodeKind: options.Kind),
                 options,
                 this.sourceTextOpt,
@@ -355,6 +358,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes.With(name: name),
                 _options,
                 this.sourceTextOpt,
@@ -368,6 +372,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes.With(folders: folders),
                 _options,
                 this.sourceTextOpt,
@@ -381,6 +386,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 _languageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes.With(filePath: filePath),
                 _options,
                 this.sourceTextOpt,
@@ -428,6 +434,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes,
                 _options,
                 sourceTextOpt: null,
@@ -469,6 +476,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes,
                 _options,
                 sourceTextOpt: textOpt,
@@ -511,6 +519,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentState(
                 this.LanguageServices,
                 this.solutionServices,
+                this.Services,
                 this.Attributes,
                 _options,
                 sourceTextOpt: null,
