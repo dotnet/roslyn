@@ -1533,10 +1533,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
         }
 
-
-
-        [Fact]
-        public void RefStructExpression()
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructExpressionTree()
         {
             var text = @"
 using System;
@@ -1559,6 +1557,81 @@ public ref struct Struct1 { }
                 // (8,40): error CS7053: An expression tree may not contain 'ref struct'
                 //         Method((Class1 c) => c.Method2(default(Struct1)));
                 Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "default(Struct1)").WithArguments("ref struct").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructNewExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(new Struct1()));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS7053: An expression tree may not contain 'ref struct'
+                //         Method((Class1 c) => c.Method2(new Struct1()));
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "new Struct1()").WithArguments("ref struct").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructParamExpressionTree()
+        {
+            var text = @"
+using System.Linq.Expressions;
+
+public delegate void Delegate1(Struct1 s);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Struct1 s) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Expression<Delegate1> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (9,25): error CS7053: An expression tree may not contain 'ref struct'
+                //         Method((Struct1 s) => Method2());
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "s").WithArguments("ref struct").WithLocation(9, 25));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructParamLambda()
+        {
+            var text = @"
+public delegate void Delegate1(Struct1 s);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Struct1 s) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Delegate1 expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
