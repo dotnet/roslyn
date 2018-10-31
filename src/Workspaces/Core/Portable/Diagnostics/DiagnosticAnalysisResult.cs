@@ -94,6 +94,28 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 fromBuild: false);
         }
 
+        public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
+            // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
+            var version = VersionStamp.Default;
+
+            // filter out any document that doesn't support diagnostics
+            var group = diagnostics.GroupBy(d => d.DocumentId);
+
+            var result = new DiagnosticAnalysisResult(
+                project.Id,
+                version,
+                documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
+                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
+                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
+                fromBuild: true);
+
+            return result;
+        }
+
         public static DiagnosticAnalysisResult CreateFromSerialization(
             ProjectId projectId,
             VersionStamp version,
