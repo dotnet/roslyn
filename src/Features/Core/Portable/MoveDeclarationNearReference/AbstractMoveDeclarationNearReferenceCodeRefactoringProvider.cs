@@ -33,35 +33,41 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
         public async Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
+            var state = await ComputeStateAsync(document, node, cancellationToken).ConfigureAwait(false);
+            return state != null;
+        }
+
+        private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        {
             if (!(node is TLocalDeclarationStatementSyntax statement))
             {
-                return false;
+                return null;
             }
-
 
             var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
-                return false;
+                return null;
             }
 
             if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
             {
-                return false;
+                return null;
             }
 
-            return true;
+            return state;
         }
 
         public async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken)
         {
-            Debug.Assert(await CanMoveDeclarationNearReferenceAsync(document, localDeclarationStatement, cancellationToken));
+            var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken);
+            if (state == null)
+            {
+                return document;
+            }
 
-            var statement = (TLocalDeclarationStatementSyntax)localDeclarationStatement;
             var root = await document.GetSyntaxRootAsync(cancellationToken);
-            var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
-
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
