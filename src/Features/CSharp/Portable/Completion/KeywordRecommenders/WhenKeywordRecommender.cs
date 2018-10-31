@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
             else
             {
+                // In a var pattern, the 'var' keyword is not wrapped in a type syntax, so we might just have a naked token.
                 var token = nodeOrToken.AsToken();
 
                 isVar = token.Text == SyntaxFacts.GetText(SyntaxKind.VarKeyword);
