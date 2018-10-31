@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
-            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic);
+            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostic);
             var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
 
             string title;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static string GetEquivalenceKey(Diagnostic diagnostic)
         {
-            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic);
+            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostic);
             var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
             return GetEquivalenceKey(preference, isRemovableAssignment);
         }
@@ -150,14 +150,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             out bool removeAssignments)
         {
             diagnosticId = diagnostics[0].Id;
-            preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostics[0]);
+            preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostics[0]);
             removeAssignments = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostics[0]);
 #if DEBUG
             foreach (var diagnostic in diagnostics)
             {
                 Debug.Assert(diagnosticId == diagnostic.Id);
-                Debug.Assert(preference == AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetUnusedExpressionAssignmentPreference(diagnostic));
-                Debug.Assert(removeAssignments == AbstractRemoveUnusedExpressionsAndParametersDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic));
+                Debug.Assert(preference == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostic));
+                Debug.Assert(removeAssignments == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic));
             }
 #endif
 

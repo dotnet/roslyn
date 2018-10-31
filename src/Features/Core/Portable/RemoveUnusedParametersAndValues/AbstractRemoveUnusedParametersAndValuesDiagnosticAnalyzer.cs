@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     /// </summary>
     internal abstract class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private const string UnusedExpressionPreferenceKey = nameof(UnusedExpressionPreferenceKey);
+        private const string UnusedValuePreferenceKey = nameof(UnusedValuePreferenceKey);
         private const string IsUnusedLocalAssignmentKey = nameof(IsUnusedLocalAssignmentKey);
         private const string IsRemovableAssignmentKey = nameof(IsRemovableAssignmentKey);
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
 
-                propertiesBuilder.Add(UnusedExpressionPreferenceKey, preference.ToString());
+                propertiesBuilder.Add(UnusedValuePreferenceKey, preference.ToString());
                 if (isUnusedLocalAssignment)
                 {
                     propertiesBuilder.Add(IsUnusedLocalAssignmentKey, string.Empty);
@@ -806,10 +806,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        public static UnusedValuePreference GetUnusedExpressionAssignmentPreference(Diagnostic diagnostic)
+        public static UnusedValuePreference GetUnusedValuePreference(Diagnostic diagnostic)
         {
             if (diagnostic.Properties != null &&
-                diagnostic.Properties.TryGetValue(UnusedExpressionPreferenceKey, out var preference))
+                diagnostic.Properties.TryGetValue(UnusedValuePreferenceKey, out var preference))
             {
                 switch (preference)
                 {
@@ -826,13 +826,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         public static bool GetIsUnusedLocalDiagnostic(Diagnostic diagnostic)
         {
-            Debug.Assert(GetUnusedExpressionAssignmentPreference(diagnostic) != UnusedValuePreference.None);
+            Debug.Assert(GetUnusedValuePreference(diagnostic) != UnusedValuePreference.None);
             return diagnostic.Properties.ContainsKey(IsUnusedLocalAssignmentKey);
         }
 
         public static bool GetIsRemovableAssignmentDiagnostic(Diagnostic diagnostic)
         {
-            Debug.Assert(GetUnusedExpressionAssignmentPreference(diagnostic) != UnusedValuePreference.None);
+            Debug.Assert(GetUnusedValuePreference(diagnostic) != UnusedValuePreference.None);
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
     }
