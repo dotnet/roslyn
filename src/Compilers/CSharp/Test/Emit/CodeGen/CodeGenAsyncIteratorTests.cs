@@ -84,7 +84,7 @@ class C
             CompileAndVerify(comp);
         }
 
-        [ConditionalFact(typeof(DesktopOnly)]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait1()
         {
@@ -113,7 +113,7 @@ class C
 8");
         }
 
-        [ConditionalFact(typeof(DesktopOnly)]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait2()
         {
