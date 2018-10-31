@@ -420,6 +420,42 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void Program.F(object x)").WithLocation(11, 11));
         }
 
+        [WorkItem(30862, "https://github.com/dotnet/roslyn/issues/30862")]
+        [Fact]
+        public void DirectiveDisableWarningEnable()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static void F(object x)
+    {
+    }
+#nullable disable
+    static void F1(object? y, object? z)
+    {
+        F(y);
+#pragma warning restore 8604
+        F(z); // 1
+    }
+    static void F2(object? w)
+    {
+        F(w); // 2
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     static void F1(object? y, object? z)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 26),
+                // (8,37): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     static void F1(object? y, object? z)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 37),
+                // (14,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     static void F2(object? w)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 26));
+        }
+
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
         public void IsOperatorOnNonNullExpression()
         {
