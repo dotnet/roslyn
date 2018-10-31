@@ -143,6 +143,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public ITextBuffer CloneWithUnknownContentType(SnapshotSpan span) => throw new NotImplementedException();
 
             public ITextBuffer CloneWithUnknownContentType(ITextImage textImage) => throw new NotImplementedException();
+
+            public ITextBuffer CloneWithRoslynContentType(SourceText sourceText) => throw new NotImplementedException();
+
+            public ITextBuffer Clone(SourceText sourceText, IContentType contentType) => throw new NotImplementedException();
+
         }
     }
 }
