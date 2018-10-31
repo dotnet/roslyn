@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState(StateSet owner, ProjectId projectId)
             {
                 _owner = owner;
-                _lastResult = new DiagnosticAnalysisResult(projectId, VersionStamp.Default, documentIds: null, isEmpty: true, fromBuild: false);
+                _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
             }
 
             public bool FromBuild => _lastResult.FromBuild;

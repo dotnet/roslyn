@@ -84,6 +84,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 fromBuild: false);
         }
 
+        public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
+        {
+            return new DiagnosticAnalysisResult(
+                projectId,
+                version: VersionStamp.Default,
+                documentIds: null,
+                isEmpty: true,
+                fromBuild: false);
+        }
+
         public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
         {
             return new DiagnosticAnalysisResult(
