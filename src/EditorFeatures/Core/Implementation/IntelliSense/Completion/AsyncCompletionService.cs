@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IAsynchronousOperationListener _listener;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
+        private readonly IFeatureCookie _legacyCompletionEnabledCookie;
+
+#pragma warning disable IDE1006 // Naming Styles -- This name is picked up by the IFeatureService.
+        [Export]
+        [Name(nameof(LegacyRoslynCompletion))]
+        [BaseDefinition(PredefinedEditorFeatureNames.Completion)]
+        public FeatureDefinition LegacyRoslynCompletion;
+#pragma warning restore IDE1006 // Naming Styles
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
             IAsynchronousOperationListenerProvider listenerProvider,
+            IFeatureServiceFactory featureServiceFactory,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
             : base(threadingContext)
@@ -51,11 +60,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
+
+            _legacyCompletionEnabledCookie = featureServiceFactory.GlobalFeatureService.GetCookie(nameof(LegacyRoslynCompletion));
         }
 
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
         {
             AssertIsForeground();
+
+            // Allow others to disable Roslyn's completion command handling
+            if (!_legacyCompletionEnabledCookie.IsEnabled)
+            {
+                controller = null;
+                return false;
+            }
 
             // check whether this feature is on.
             if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.CompletionSet))
