@@ -292,7 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: * S0 and T0 are different types:
 
-            if ((ContainingType.SpecialType == SpecialType.System_Nullable_T) ? source == target : source0 == target0)
+            if ((ContainingType.SpecialType == SpecialType.System_Nullable_T)
+                    ? source.Equals(target, TypeCompareKind.IgnoreTupleNames)
+                    : source0.Equals(target0, TypeCompareKind.IgnoreTupleNames))
             {
                 // CS0555: User-defined operator cannot take an object of the enclosing type 
                 // and convert to an object of the enclosing type
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol same;
             TypeSymbol different;
 
-            if (source0 == this.ContainingType)
+            if (source0.Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames))
             {
                 same = source;
                 different = target;
@@ -492,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
-            else if (!this.ReturnType.TypeSymbol.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+            else if (!this.ReturnType.TypeSymbol.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, TypeCompareKind.IgnoreTupleNames, useSiteDiagnostics: ref useSiteDiagnostics))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type

@@ -37,4 +37,11 @@
       <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">42.42.42.42</AssemblyVersion>
     </PropertyGroup>
   </Target>
+
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CheckRequiredDotNetVersion" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+
+  <Target Name="_CheckRequiredDotNetVersion" BeforeTargets="BeforeBuild">
+    <Microsoft.DotNet.Arcade.Sdk.CheckRequiredDotNetVersion RepositoryRoot="$(RepoRoot)" SdkVersion="$(NETCoreSdkVersion)" />
+  </Target>
+
 </Project>
