@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
 
             var root = GetBoundRoot();
-            NullableWalker.Analyze(Compilation, (MethodSymbol)MemberSymbol, root, new DiagnosticBag());
+            if (parentSemanticModelOpt == null)
+            {
+                NullableWalker.Analyze(Compilation, (MethodSymbol)MemberSymbol, root, new DiagnosticBag());
+            }
         }
 
         /// <summary>
