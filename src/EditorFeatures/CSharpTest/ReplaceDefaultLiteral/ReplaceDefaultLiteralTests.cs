@@ -44,6 +44,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
+        public async Task TestCSharpLatest_InCaseSwitchLabel_DateTime()
+        {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case [||]default: }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case default(System.DateTime): }
+    }
+}", parameters: s_csharpLatest);
+        }
+
+        [Fact]
         public async Task TestCSharpLatest_InCasePatternSwitchLabel_Bool()
         {
             await TestInRegularAndScript1Async(
@@ -64,6 +85,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
+        public async Task TestCSharpLatest_InCasePatternSwitchLabel_DateTime()
+        {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case [||]default when true: }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case default(System.DateTime) when true: }
+    }
+}", parameters: s_csharpLatest);
+        }
+
+        [Fact]
         public async Task TestCSharpLatest_InIsPattern_Int()
         {
             await TestInRegularAndScript1Async(
@@ -79,6 +121,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     void M()
     {
         if (1 is 0) { }
+    }
+}", parameters: s_csharpLatest);
+        }
+
+        [Fact]
+        public async Task TestCSharpLatest_InIsPattern_DateTime()
+        {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        if (System.DateTime.Now is [||]default) { }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (System.DateTime.Now is default(System.DateTime)) { }
     }
 }", parameters: s_csharpLatest);
         }
@@ -165,6 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         [Fact]
         public async Task TestCSharp7_1_InCaseSwitchLabel_DateTime()
         {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
@@ -185,6 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         [Fact]
         public async Task TestCSharp7_1_InCaseSwitchLabel_TupleType()
         {
+            // Note that the default value of a tuple type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
@@ -336,6 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         [Fact]
         public async Task TestCSharp7_1_InCasePatternSwitchLabel_DateTime()
         {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
@@ -356,6 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         [Fact]
         public async Task TestCSharp7_1_InCasePatternSwitchLabel_TupleType()
         {
+            // Note that the default value of a tuple type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
@@ -813,28 +880,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_DateTime()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        var value = System.DateTime.Now;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var value = System.DateTime.Now;
-        if (value is default(System.DateTime)) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
         public async Task TestCSharp7_1_InIsPattern_AnonymousType()
         {
             await TestInRegularAndScript1Async(
@@ -852,6 +897,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     {
         var value = new { a = 0 };
         if (value is null) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_DateTime()
+        {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        var value = System.DateTime.Now;
+        if (value is [||]default) { }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var value = System.DateTime.Now;
+        if (value is default(System.DateTime)) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -947,6 +1015,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         [Fact]
         public async Task TestCSharp7_1_InIsPattern_CustomStruct()
         {
+            // Note that the default value of a struct type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
@@ -969,6 +1038,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         [Fact]
         public async Task TestCSharp7_1_InIsPattern_TupleType()
         {
+            // Note that the default value of a tuple type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
@@ -1083,6 +1153,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     {
         if (true is
             /*a*/ false /*b*/) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_DateTime_Trivia()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        if (System.DateTime.Now is
+            /*a*/ [||]default /*b*/) { }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (System.DateTime.Now is
+            /*a*/ default(System.DateTime) /*b*/) { }
     }
 }", parameters: s_csharp7_1);
         }
