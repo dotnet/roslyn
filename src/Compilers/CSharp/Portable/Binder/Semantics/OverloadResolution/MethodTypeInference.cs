@@ -2490,7 +2490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_conversions.IncludeNullability)
             {
-                return false;
+                return null;
             }
             return _getIsNullableOpt?.Invoke(expr);
         }
