@@ -96,6 +96,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             SanitizerInfo info = new SanitizerInfo(
                 fullTypeName,
+                true,
                 isConstructorSanitizing,
                 sanitizingMethods != null ? ImmutableHashSet.Create<string>(sanitizingMethods) : ImmutableHashSet<string>.Empty);
             builder.Add(fullTypeName, info);

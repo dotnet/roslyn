@@ -25,7 +25,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraph,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
-            ImmutableDictionary<ITypeSymbol, SourceInfo> taintedSourceInfos,
+            TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
             ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
             ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
@@ -58,7 +58,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             bool pessimisticAnalysis,
             DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
-            ImmutableDictionary<ITypeSymbol, SourceInfo> taintedSourceInfos,
+            TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
             ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
             ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
@@ -105,7 +105,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.TaintedInterfaceSinkInfos);
         }
 
-        public ImmutableDictionary<ITypeSymbol, SourceInfo> TaintedSourceInfos { get; }
+        public TaintedDataSymbolMap<SourceInfo> TaintedSourceInfos { get; }
 
         public ImmutableDictionary<ITypeSymbol, SanitizerInfo> TaintedSanitizerInfos { get; }
 
@@ -115,7 +115,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         protected override int GetHashCode(int hashCode)
         {
-            return HashUtilities.Combine(this.TaintedSourceInfos,
+            return HashUtilities.Combine(this.TaintedSourceInfos.GetHashCode(),
                 HashUtilities.Combine(this.TaintedSanitizerInfos,
                 HashUtilities.Combine(this.TaintedConcreteSinkInfos,
                 HashUtilities.Combine(this.TaintedInterfaceSinkInfos,

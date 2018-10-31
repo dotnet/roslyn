@@ -6,13 +6,14 @@ using System.Collections.Immutable;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Information describing a tainted data sanitizer, which makes tainted data untainted.
+    /// Info for a tainted data sanitizer type, which makes tainted data untainted.
     /// </summary>
-    internal sealed class SanitizerInfo
+    internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
-        public SanitizerInfo(string fullTypeName, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods)
+        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+            IsInterface = isInterface;
             IsConstructorSanitizing = isConstructorSanitizing;
             SanitizingMethods = sanitizingMethods ?? throw new ArgumentNullException(nameof(sanitizingMethods));
         }
@@ -21,6 +22,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Full type name of the...type (namespace + type).
         /// </summary>
         public string FullTypeName { get; }
+
+        /// <summary>
+        /// Indicates that this sanitizer type is an interface.
+        /// </summary>
+        public bool IsInterface { get; }
 
         /// <summary>
         /// Indicates that any tainted data entering a constructor becomes untainted.

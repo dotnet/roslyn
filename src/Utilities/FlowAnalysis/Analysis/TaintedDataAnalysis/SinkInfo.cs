@@ -8,10 +8,10 @@ using System.Text;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Tainted data sink information for a type.
+    /// Info for a tainted data sink type.
     /// </summary>
     /// <remarks>It's bad if tainted data reaches a sink.</remarks>
-    internal sealed class SinkInfo
+    internal sealed class SinkInfo : ITaintedDataInfo, IEquatable<SinkInfo>
     {
         public SinkInfo(string fullTypeName, bool isInterface, bool isAnyStringParameterInConstructorASink, ImmutableHashSet<string> sinkProperties, ImmutableDictionary<string, ImmutableHashSet<string>> sinkMethodParameters)
         {
@@ -28,7 +28,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public string FullTypeName { get; }
 
         /// <summary>
-        /// Indicates this type is an interface.
+        /// Indicates this sink type is an interface.
         /// </summary>
         public bool IsInterface { get; }
 

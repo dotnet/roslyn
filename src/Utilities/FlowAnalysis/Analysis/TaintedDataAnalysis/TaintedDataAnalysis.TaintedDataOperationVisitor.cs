@@ -159,7 +159,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 // If the property reference itself is a tainted data source
                 if (operation is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.IsTaintedProperty(propertyReferenceOperation))
+                    && this.DataFlowAnalysisContext.TaintedSourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
                 {
                     return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
@@ -221,7 +221,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
-                else if (visitedInstance != null && this.IsTaintedMethod(visitedInstance, method))
+                else if (this.DataFlowAnalysisContext.TaintedSourceInfos.IsSourceMethod(method))
                 {
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
@@ -520,35 +520,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         yield return sinkInfo;
                     }
                 }
-            }
-
-            /// <summary>
-            /// Determines if the instance property reference generates tainted data.
-            /// </summary>
-            /// <param name="propertyReferenceOperation">IOperation representing the property reference.</param>
-            /// <returns>True if the property returns tainted data, false otherwise.</returns>
-            private bool IsTaintedProperty(IPropertyReferenceOperation propertyReferenceOperation)
-            {
-                return propertyReferenceOperation != null
-                    && propertyReferenceOperation.Instance != null
-                    && propertyReferenceOperation.Member != null
-                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(propertyReferenceOperation.Instance.Type, out SourceInfo sourceInfo)
-                    && sourceInfo.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
-            }
-
-            /// <summary>
-            /// Determines if the instance method call returns tainted data.
-            /// </summary>
-            /// <param name="instance">IOperation representing the instance.</param>
-            /// <param name="method">Instance method being called.</param>
-            /// <returns>True if the method returns tainted data, false otherwise.</returns>
-            private bool IsTaintedMethod(IOperation instance, IMethodSymbol method)
-            {
-                return instance != null
-                    && instance.Type != null
-                    && method != null
-                    && this.DataFlowAnalysisContext.TaintedSourceInfos.TryGetValue(instance.Type, out SourceInfo sourceInfo)
-                    && sourceInfo.TaintedMethods.Contains(method.MetadataName);
             }
         }
     }

@@ -6,19 +6,21 @@ using System.Collections.Immutable;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Info for tainted data sources.
+    /// Info for tainted data sources, which generate tainted data.
     /// </summary>
-    internal class SourceInfo : IEquatable<SourceInfo>
+    internal class SourceInfo : ITaintedDataInfo, IEquatable<SourceInfo>
     {
         /// <summary>
         /// Constructs.
         /// </summary>
         /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
+        /// 
         /// <param name="taintedProperties">Properties that generate tainted data.</param>
         /// <param name="taintedMethods">Methods that generate tainted data.</param>
-        public SourceInfo(string fullTypeName, ImmutableHashSet<string> taintedProperties, ImmutableHashSet<string> taintedMethods)
+        public SourceInfo(string fullTypeName, bool isInterface, ImmutableHashSet<string> taintedProperties, ImmutableHashSet<string> taintedMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
+            IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
             TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
         }
@@ -27,6 +29,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Full type name of the...type (namespace + type).
         /// </summary>
         public string FullTypeName { get; }
+
+        /// <summary>
+        /// Indicates this type is an interface.
+        /// </summary>
+        public bool IsInterface { get; }
 
         /// <summary>
         /// Properties that generate tainted data.
@@ -42,7 +49,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return HashUtilities.Combine(this.TaintedProperties,
                 HashUtilities.Combine(this.TaintedMethods,
-                    this.FullTypeName.GetHashCode()));
+                HashUtilities.Combine(this.IsInterface.GetHashCode(),
+                    this.FullTypeName.GetHashCode())));
         }
 
         public override bool Equals(object obj)
@@ -55,6 +63,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return other != null
                 && this.FullTypeName == other.FullTypeName
+                && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
                 && this.TaintedMethods == other.TaintedMethods;
         }

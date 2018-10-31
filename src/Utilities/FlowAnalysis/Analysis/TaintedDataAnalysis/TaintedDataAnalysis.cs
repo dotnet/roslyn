@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol containingMethod,
-            ImmutableDictionary<ITypeSymbol, SourceInfo> taintedSourceInfos,
+            TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
             ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
             ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
