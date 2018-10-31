@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private class FakeTextBufferCloneService : ITextBufferCloneService
         {
-            public ITextBuffer Clone(SnapshotSpan span) => throw new NotImplementedException();
+            public ITextBuffer CloneWithUnknownContentType(SnapshotSpan span) => throw new NotImplementedException();
 
-            public ITextBuffer Clone(ITextImage textImage) => throw new NotImplementedException();
+            public ITextBuffer CloneWithUnknownContentType(ITextImage textImage) => throw new NotImplementedException();
         }
     }
 }

@@ -39,11 +39,14 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
                 _unknownContentType = contentTypeRegistryService.UnknownContentType;
             }
 
-            public ITextBuffer Clone(SnapshotSpan span)
+            public ITextBuffer CloneWithUnknownContentType(SnapshotSpan span)
                 => _textBufferFactoryService.CreateTextBuffer(span, _unknownContentType);
 
-            public ITextBuffer Clone(ITextImage textImage)
-                => _textBufferFactoryService.CreateTextBuffer(textImage, _unknownContentType);
+            public ITextBuffer CloneWithUnknownContentType(ITextImage textImage)
+                => Clone(textImage, _unknownContentType);
+
+            private ITextBuffer Clone(ITextImage textImage, IContentType contentType)
+                => _textBufferFactoryService.CreateTextBuffer(textImage, contentType);
         }
     }
 }
