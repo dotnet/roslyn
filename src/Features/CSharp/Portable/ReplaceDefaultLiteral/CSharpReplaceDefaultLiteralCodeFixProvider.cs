@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
@@ -41,25 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 var defaultLiteral = (LiteralExpressionSyntax)token.Parent;
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
-                var type = semanticModel.GetTypeInfo(defaultLiteral, context.CancellationToken).ConvertedType;
-                if (type == null || type.TypeKind == TypeKind.Error)
-                {
-                    return;
-                }
-
-                if (type.IsAnonymousType)
-                {
-                    type = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
-                }
-
                 var (newExpression, displayText) = GetReplacementExpressionAndText(
-                    context.Document, defaultLiteral, type, semanticModel, context.CancellationToken);
+                    context.Document, defaultLiteral, semanticModel, context.CancellationToken);
 
-                context.RegisterCodeFix(
-                    new MyCodeAction(
-                        c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                        displayText),
-                    context.Diagnostics);
+                if (newExpression != null)
+                {
+                    context.RegisterCodeFix(
+                        new MyCodeAction(
+                            c => ReplaceAsync(context.Document, context.Span, newExpression, c),
+                            displayText),
+                        context.Diagnostics);
+                }
             }
         }
 
@@ -78,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
         private static (SyntaxNode newExpression, string displayText) GetReplacementExpressionAndText(
             Document document,
             LiteralExpressionSyntax defaultLiteral,
-            ITypeSymbol type,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
@@ -89,7 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
                 return (newLiteral, newLiteral.ToString());
             }
-            else
+
+            var type = semanticModel.GetTypeInfo(defaultLiteral, cancellationToken).ConvertedType;
+            if (type != null && type.TypeKind != TypeKind.Error && !type.ContainsAnonymousType())
             {
                 var defaultExpression =
                     SyntaxFactory.DefaultExpression(
@@ -100,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
                 return (defaultExpression, $"default({type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)})");
             }
+
+            return default;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

@@ -880,28 +880,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_AnonymousType()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        var value = new { a = 0 };
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var value = new { a = 0 };
-        if (value is null) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
         public async Task TestCSharp7_1_InIsPattern_DateTime()
         {
             // Note that the default value of a struct type is not a constant, so this code is incorrect.
@@ -910,16 +888,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 {
     void M()
     {
-        var value = System.DateTime.Now;
-        if (value is [||]default) { }
+        if (System.DateTime.Now is [||]default) { }
     }
 }",
 @"class C
 {
     void M()
     {
-        var value = System.DateTime.Now;
-        if (value is default(System.DateTime)) { }
+        if (System.DateTime.Now is default(System.DateTime)) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_TupleType()
+        {
+            // Note that the default value of a tuple type is not a constant, so this code is incorrect.
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        if ((0, true) is [||]default) { }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if ((0, true) is default((int, bool))) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -1036,22 +1033,108 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_TupleType()
+        public async Task TestCSharp7_1_InIsPattern_AnonymousType()
         {
-            // Note that the default value of a tuple type is not a constant, so this code is incorrect.
             await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
     {
-        if ((0, true) is [||]default) { }
+        if (new { a = 0 } is [||]default) { }
     }
 }",
 @"class C
 {
     void M()
     {
-        if ((0, true) is default((int, bool))) { }
+        if (new { a = 0 } is null) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_CustomClassOfAnonymousType()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    class Container<T> { }
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is [||]default) { }
+    }
+}",
+@"class C
+{
+    class Container<T> { }
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is null) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_CustomInterfaceOfAnonymousType()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    interface Container<T> { }
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is [||]default) { }
+    }
+}",
+@"class C
+{
+    interface Container<T> { }
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is null) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_CustomDelegateOfAnonymousType()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    delegate void Container<T>();
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is [||]default) { }
+    }
+}",
+@"class C
+{
+    delegate void Container<T>();
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is null) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForCustomStructOfAnonymousType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    struct Container<T> { }
+    Container<T> ToContainer<T>(T value) => new Container<T>();
+    void M()
+    {
+        if (ToContainer(new { x = 0 }) is [||]default) { }
     }
 }", parameters: s_csharp7_1);
         }
