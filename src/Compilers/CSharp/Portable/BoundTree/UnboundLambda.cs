@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
-haveLambdaBodyAndBinders:
+        haveLambdaBodyAndBinders:
 
             if (delegateType.IsExpressionTree())
             {
