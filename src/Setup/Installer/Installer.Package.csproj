@@ -21,7 +21,6 @@
   </Target>
 
   <!-- TODO: remove, once we upgrade to 15.8 -->
-  <Import Project="..\..\..\build\Targets\RepoToolset\BuildTasks.props"/>
   <UsingTask TaskName="RoslynTools.ZipDirectory" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
 
   <Target Name="_GenerateZip" 

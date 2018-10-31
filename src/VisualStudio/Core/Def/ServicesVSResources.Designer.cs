@@ -1912,6 +1912,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer index operator.
+        /// </summary>
+        internal static string Prefer_index_operator {
+            get {
+                return ResourceManager.GetString("Prefer_index_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer inferred anonymous type member names.
         /// </summary>
         internal static string Prefer_inferred_anonymous_type_member_names {
@@ -1971,6 +1980,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer range operator.
+        /// </summary>
+        internal static string Prefer_range_operator {
+            get {
+                return ResourceManager.GetString("Prefer_range_operator", resourceCulture);
             }
         }
         

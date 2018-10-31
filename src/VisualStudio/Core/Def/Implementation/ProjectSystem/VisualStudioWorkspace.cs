@@ -85,7 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public virtual string GetFilePath(DocumentId documentId)
         {
-            return CurrentSolution.GetDocument(documentId)?.FilePath;
+            var solution = CurrentSolution;
+
+            return (solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId))?.FilePath;
         }
 
         /// <summary>

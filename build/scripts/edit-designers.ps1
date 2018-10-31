@@ -25,7 +25,7 @@ $projectList = @(
 # causes the selector to use the new project system. 
 function Change-ProjectFiles() { 
     foreach ($proj in $projectList) {
-        $proj = Join-Path $repoDir $proj
+        $proj = Join-Path $RepoRoot $proj
         $lines = Get-Content $proj
         for ($i = 0; $i -lt $lines.Length; $i++) { 
             $line = $lines[$i]
@@ -40,7 +40,7 @@ function Change-ProjectFiles() {
 
 # Change the solution file to use the legacy project system GUID.
 function Change-Solution() {
-    $solution = Join-Path $repoDir "Roslyn.sln"
+    $solution = Join-Path $RepoRoot "Roslyn.sln"
     $lines = Get-Content $solution
     for ($i = 0; $i -lt $lines.Length; $i++) { 
         $line = $lines[$i]
@@ -68,7 +68,7 @@ function Change-Solution() {
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
+    Push-Location $RepoRoot
 
     Change-ProjectFiles
     Change-Solution
