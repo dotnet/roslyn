@@ -675,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundLocalDeclaration declaration = declarations[0];
             TypeSymbol declType = declaration.DeclaredType.Type;
+            BoundLocal declarationLocal = new BoundLocal(declaration.Syntax, declaration.LocalSymbol, null, declType);
 
             if (declType.IsDynamic())
             {
@@ -689,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!iDisposableConversion.IsImplicit)
                 {
-                   disposeMethod = TryFindDisposePatternMethod(declaration.InitializerOpt, declarationSyntax, diagnostics);
+                   disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, diagnostics);
                    if (disposeMethod is null)
                    {
                        if (!declType.IsErrorType())

@@ -282,6 +282,64 @@ class C3
         }
 
         [Fact]
+        public void UsingPatternLessDerivedAssignement()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (object c1 = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (object c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "object c1 = new C1()").WithArguments("object").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternImplicitConversionToDisposable()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+
+    //  User-defined implicit conversion from C2 to C1
+    public static implicit operator C1(C2 o)
+    {
+        return new C1();
+    }
+}
+
+class C2
+{
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C2())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingPatternHidingInheritedWithNonMatchingMethodTest()
         {
             var source = @"
@@ -1089,7 +1147,7 @@ class C2
         }
 
         [Fact]
-        public void UsingPatternExtensionMethodOnRefStruct()
+        public void UsingPatternExtensionMethodRefParameterOnStruct()
         {
             var source = @"
 struct S1
@@ -1110,29 +1168,41 @@ class C2
        }
     }
 }";
-            //PROTOTYPE: theoretically this should be doable:
-            //Consider:
-            // S1 s = new S1();
-            // try{}
-            // finally
-            // {
-            //    s.Dispose();
-            // }
-            // would be valid code which is what we'd ultimately lower to here.
-            // however, during binding we're effectively binding
-            //  (S1 s = new S1()).Dipose()
-            // which (correctly) results in the CS1510 below for this case.
-            // we either need to special case the ref extension case, or figure
-            // out a more general way to bind against what we'll eventually lower to
-             
+                      
             var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15),
-                // (15,22): error CS1510: A ref or out value must be an assignable variable
+                // (15,18): error CS1657: Cannot use 's' as a ref or out value because it is a 'using variable'
                 //        using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new S1()").WithLocation(15, 22)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s = new S1()").WithArguments("s", "using variable").WithLocation(15, 18)
                 );
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodInParameterOnStruct()
+        {
+            var source = @"
+struct S1
+{
+}
+
+static class C1 
+{
+   public static void Dispose(in this S1 s1) { }
+}
+
+class C2
+{
+    static void Main()
+    {
+       using (S1 s = new S1())
+       {
+       }
+    }
+}";
+
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
