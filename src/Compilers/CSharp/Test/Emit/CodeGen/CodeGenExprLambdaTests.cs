@@ -1786,29 +1786,6 @@ partial class Program : TestBase
 S");
         }
 
-        [Fact]
-        public void RefStructExpression()
-        {
-            var text = @"
-using System;
-using System.Linq.Expressions;
-public class Class1
-{
-    public void Method1()
-    {
-        Method((Class1 c) => c.Method2(default(Struct1)));
-    }
-
-    public void Method2(Struct1 s1) { }
-
-    public static void Method<T>(Expression<Action<T>> expression) { }
-}
-
-public ref struct Struct1 { }
-";
-            var compilation = CompileAndVerifyUtil(text);
-        }
-
         #region Regression Tests
 
         [WorkItem(544159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544159")]
