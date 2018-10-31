@@ -19,22 +19,22 @@ namespace Microsoft.CodeAnalysis.CodeLens
         public string FilePath { get; }
 
         /// <summary>
-        /// Reference's Span Start
+        /// Reference's span start based on the document content
         /// </summary>
         public int SpanStart { get; }
 
         /// <summary>
-        /// Reference's Span Length
+        /// Reference's span length based on the document content
         /// </summary>
         public int SpanLength { get; }
 
         /// <summary>
-        /// Reference's Line
+        /// Reference's line based on the document content
         /// </summary>
         public int LineNumber { get; }
 
         /// <summary>
-        /// Reference's Column
+        /// Reference's character based on the document content
         /// </summary>
         public int ColumnNumber { get; }
 
