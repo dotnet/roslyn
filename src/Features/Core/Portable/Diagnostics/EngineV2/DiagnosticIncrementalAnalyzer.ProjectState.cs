@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public void ResetVersion()
             {
                 // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                _lastResult = new DiagnosticAnalysisResult(_lastResult.ProjectId, VersionStamp.Default, _lastResult.DocumentIds, _lastResult.IsEmpty, _lastResult.FromBuild);
+                _lastResult = _lastResult.Reset();
             }
 
             public async Task MergeAsync(ActiveFileState state, Document document)
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
 
                 // save last aggregated form of analysis result
-                _lastResult = new DiagnosticAnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIdsOrEmpty.Add(state.DocumentId), isEmpty: false, fromBuild: fromBuild);
+                _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
             }
 
             public bool OnDocumentRemoved(DocumentId id)

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
         private readonly ImmutableArray<DiagnosticData> _others;
 
-        public DiagnosticAnalysisResult(
+        private DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
         {
             ProjectId = projectId;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             _others = default;
         }
 
-        public DiagnosticAnalysisResult(
+        private DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
@@ -178,6 +178,29 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public DiagnosticAnalysisResult ToAggregatedForm()
         {
             return new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
+        }
+
+        public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId, bool fromBuild)
+        {
+            return new DiagnosticAnalysisResult(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
+        }
+
+        public DiagnosticAnalysisResult Reset()
+        {
+            return new DiagnosticAnalysisResult(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
+        }
+
+        public DiagnosticAnalysisResult DropExceptSyntax()
+        {
+            return new DiagnosticAnalysisResult(
+               ProjectId,
+               Version,
+               SyntaxLocals,
+               semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+               nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+               others: ImmutableArray<DiagnosticData>.Empty,
+               documentIds: null,
+               fromBuild: false);
         }
 
         private T ReturnIfNotDefault<T>(T value)
