@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
             Return (New VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), New VisualBasicRemoveUnusedParametersAndValuesCodeFixProvider())
         End Function
 
-        ' Ensure that we explicitly test missing IDE0058, which has no corresponding code fix (non-fixable diagnostic).
+        ' Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
         Private Overloads Function TestDiagnosticMissingAsync(initialMarkup As String) As Task
             Return TestDiagnosticMissingAsync(initialMarkup, New TestParameters(retainNonFixableDiagnostics:=True))
         End Function

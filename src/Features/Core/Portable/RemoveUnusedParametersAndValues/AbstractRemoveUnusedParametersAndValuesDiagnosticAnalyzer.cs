@@ -57,21 +57,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private const string IsUnusedLocalAssignmentKey = nameof(IsUnusedLocalAssignmentKey);
         private const string IsRemovableAssignmentKey = nameof(IsRemovableAssignmentKey);
 
-        // IDE0056: "Expression value is never used"
+        // "Expression value is never used"
         private static readonly DiagnosticDescriptor s_expressionValueIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Expression_value_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: false);
 
-        // IDE0057: "Value assigned to '{0}' is never used"
+        // "Value assigned to '{0}' is never used"
         private static readonly DiagnosticDescriptor s_valueAssignedIsUnusedRule = CreateDescriptorWithId(
             IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_symbol_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             new LocalizableResourceString(nameof(FeaturesResources.Value_assigned_to_0_is_never_used), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
-        // IDE0058: "Remove unused parameter '{0}'{1}"
+        // "Remove unused parameter '{0}'{1}"
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return;
                 }
 
-                // IDE0058: "Remove unused parameter '{0}'{1}"
+                // "Remove unused parameter '{0}'{1}"
                 var arg1 = parameter.Name;
                 var arg2 = string.Empty;
                 if (parameter.ContainingSymbol.IsExternallyVisible() &&
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return;
                     }
 
-                    // IDE0056: "Expression value is never used"
+                    // "Expression value is never used"
                     var properties = s_propertiesMap[(_options.UnusedValueExpressionStatementPreference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
                     var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
                                                              value.Syntax.GetLocation(),
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                 if (ShouldReportUnusedValueDiagnostic(unusedSymbol, unusedDefinition, resultFromFlowAnalysis, out var properties))
                                 {
-                                    // IDE0057: "Value assigned to '{0}' is never used"
+                                    // "Value assigned to '{0}' is never used"
                                     var diagnostic = DiagnosticHelper.Create(s_valueAssignedIsUnusedRule,
                                                                              _symbolStartAnalyzer._getDefinitionLocationToFade(unusedDefinition),
                                                                              _options.UnusedValueAssignmentSeverity,

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             Option(CodeStyleOptions.UnusedParameters,
                 new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.PrivateMethods, NotificationOption.Suggestion));
 
-        // Ensure that we explicitly test missing IDE0058, which has no corresponding code fix (non-fixable diagnostic).
+        // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup)
             => TestDiagnosticMissingAsync(initialMarkup, options: null);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
