@@ -16,17 +16,22 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
+    /// <summary>
+    /// This tagger assumes content of the buffer never get changed. 
+    /// and the buffer provides static classification information on the buffer content
+    /// through <see cref="PredefinedPreviewTaggerKeys.StaticClassificationSpansKey" /> in the buffer property bag
+    /// </summary>
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewClassificationTaggerProvider : ITaggerProvider
+    internal class PreviewStaticClassificationTaggerProvider : ITaggerProvider
     {
         private readonly ClassificationTypeMap _typeMap;
 
         [ImportingConstructor]
-        public PreviewClassificationTaggerProvider(ClassificationTypeMap typeMap)
+        public PreviewStaticClassificationTaggerProvider(ClassificationTypeMap typeMap)
         {
             _typeMap = typeMap;
         }
