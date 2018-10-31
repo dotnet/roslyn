@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         protected abstract string CodeActionTitle { get; }
 
         protected abstract bool CanRefactorToContainBlockStatements(SyntaxNode parent);
-        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode parent);
-        protected abstract SyntaxNode WithStatements(SyntaxNode parent, SyntaxList<TStatementSyntax> statements);
+        protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround);
+        protected abstract SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<TStatementSyntax> statements);
 
         protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<TStatementSyntax> statementsToSurround);
 
@@ -164,6 +164,9 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
             else
             {
+                // Either the parent is not blocklike, meaning WithStatements can’t be used as in the other branch,
+                // or there’s just no need to replace more than the statement itself because no following statements
+                // will be surrounded.
                 return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingStatement
                     .WithAdditionalAnnotations(Formatter.Annotation)));
             }
@@ -176,30 +179,27 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            if (CanRefactorToContainBlockStatements(declarationStatement.Parent))
+            // Find the minimal number of statements to move into the using block
+            // in order to not break existing references to the local.
+            var lastUsageStatement = FindSiblingStatementContainingLastUsage(
+                declarationStatement,
+                localVariable,
+                semanticModel,
+                syntaxFactsService,
+                cancellationToken);
+
+            if (lastUsageStatement == null)
             {
-                // Find the minimal number of statements to move into the using block
-                // in order to not break existing references to the local.
-                var lastUsageStatement = FindSiblingStatementContainingLastUsage(
-                    declarationStatement,
-                    localVariable,
-                    semanticModel,
-                    syntaxFactsService,
-                    cancellationToken);
-
-                if (lastUsageStatement != null)
-                {
-                    var parentStatements = GetStatements(declarationStatement.Parent);
-                    var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
-                    var lastUsageStatementIndex = parentStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
-
-                    return new SyntaxList<TStatementSyntax>(parentStatements
-                        .Take(lastUsageStatementIndex + 1)
-                        .Skip(declarationStatementIndex + 1));
-                }
+                return default;
             }
 
-            return default;
+            var parentStatements = GetStatements(declarationStatement.Parent);
+            var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
+            var lastUsageStatementIndex = parentStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
+
+            return new SyntaxList<TStatementSyntax>(parentStatements
+                .Take(lastUsageStatementIndex + 1)
+                .Skip(declarationStatementIndex + 1));
         }
 
         private static (SyntaxTriviaList sameLine, SyntaxTriviaList endOfLine) SplitTrailingTrivia(SyntaxNode node, ISyntaxFactsService syntaxFactsService)

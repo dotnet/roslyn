@@ -19,15 +19,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
         End Property
 
         Protected Overrides Function CanRefactorToContainBlockStatements(parent As SyntaxNode) As Boolean
+            ' We don’t care enough about declarations in single-line If, Else, lambdas, etc, to support them.
             Return parent.IsMultiLineExecutableBlock()
         End Function
 
-        Protected Overrides Function GetStatements(parent As SyntaxNode) As SyntaxList(Of StatementSyntax)
-            Return parent.GetExecutableBlockStatements()
+        Protected Overrides Function GetStatements(parentOfStatementsToSurround As SyntaxNode) As SyntaxList(Of StatementSyntax)
+            Return parentOfStatementsToSurround.GetExecutableBlockStatements()
         End Function
 
-        Protected Overrides Function WithStatements(parent As SyntaxNode, statements As SyntaxList(Of StatementSyntax)) As SyntaxNode
-            Return parent.ReplaceStatements(statements)
+        Protected Overrides Function WithStatements(parentOfStatementsToSurround As SyntaxNode, statements As SyntaxList(Of StatementSyntax)) As SyntaxNode
+            Return parentOfStatementsToSurround.ReplaceStatements(statements)
         End Function
 
         Protected Overrides Function CreateUsingStatement(declarationStatement As LocalDeclarationStatementSyntax, sameLineTrivia As SyntaxTriviaList, statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax

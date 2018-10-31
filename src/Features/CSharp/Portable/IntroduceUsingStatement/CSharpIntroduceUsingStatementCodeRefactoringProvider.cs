@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
             return parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
         }
 
-        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parent)
+        protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround)
         {
             return
-                parent is BlockSyntax block ? block.Statements :
-                parent is SwitchSectionSyntax switchSection ? switchSection.Statements :
-                throw ExceptionUtilities.UnexpectedValue(parent);
+                parentOfStatementsToSurround is BlockSyntax block ? block.Statements :
+                parentOfStatementsToSurround is SwitchSectionSyntax switchSection ? switchSection.Statements :
+                throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
         }
 
-        protected override SyntaxNode WithStatements(SyntaxNode parent, SyntaxList<StatementSyntax> statements)
+        protected override SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<StatementSyntax> statements)
         {
             return
-                parent is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
-                parent is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
-                throw ExceptionUtilities.UnexpectedValue(parent);
+                parentOfStatementsToSurround is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
+                parentOfStatementsToSurround is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
+                throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
         }
 
         protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<StatementSyntax> statementsToSurround)
