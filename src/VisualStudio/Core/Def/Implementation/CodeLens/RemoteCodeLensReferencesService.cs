@@ -169,9 +169,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
         private static (string text, int start, int length) GetReferenceInfo(ExcerptResult? reference, ReferenceLocationDescriptor descriptor)
         {
-            return (reference.HasValue ? reference.Value.Content.ToString().TrimEnd() : descriptor.ReferenceLineText,
-                    reference.HasValue ? reference.Value.MappedSpan.Start : descriptor.ReferenceStart,
-                    reference.HasValue ? reference.Value.MappedSpan.Length : descriptor.ReferenceLength);
+            if (reference.HasValue)
+            {
+                return (reference.Value.Content.ToString().TrimEnd(),
+                        reference.Value.MappedSpan.Start,
+                        reference.Value.MappedSpan.Length);
+            }
+
+            return (descriptor.ReferenceLineText, descriptor.ReferenceStart, descriptor.ReferenceLength);
         }
 
         private static (string before1, string before2, string after1, string after2) GetReferenceTexts(ExcerptResult? reference, ExcerptResult? tooltip, ReferenceLocationDescriptor descriptor)
@@ -182,7 +187,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             var lines = tooltip.Value.Content.Lines;
-            var index = GetIndex(lines, reference.Value.Content.ToString());
+            var mappedLine = lines.GetLineFromPosition(tooltip.Value.MappedSpan.Start);
+            var index = mappedLine.LineNumber;
             if (index < 0)
             {
                 return (descriptor.BeforeReferenceText1, descriptor.BeforeReferenceText2, descriptor.AfterReferenceText1, descriptor.AfterReferenceText2);
@@ -200,20 +206,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             return lines[index].ToString().TrimEnd();
-        }
-
-        private static int GetIndex(TextLineCollection lines, string lineToFind)
-        {
-            for (var i = 0; i < lines.Count; i++)
-            {
-                var line = lines[i];
-                if (line.ToString().StartsWith(lineToFind))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         private async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsWorkerAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
