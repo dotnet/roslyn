@@ -267,56 +267,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 }", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType1()
+        [Theory]
+        [InlineData("value")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("() => { }")]
+        [InlineData("")]
+        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType(string expression)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M()
-    {
-        switch (null) { case [||]default: }
-    }
-}", parameters: s_csharp7_1);
-        }
-    
-        [Fact]
-        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch (default) { case [||]default: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch (() => { }) { case [||]default: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForMissingExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch () { case [||]default: }
-    }
-}", parameters: s_csharp7_1);
+    {{
+        switch ({expression}) {{ case [||]default: }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
         [Fact]
@@ -440,56 +406,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 }", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType1()
+        [Theory]
+        [InlineData("value")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("() => { }")]
+        [InlineData("")]
+        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType(string expression)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M()
-    {
-        switch (null) { case [||]default when true: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch (default) { case [||]default when true: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch (() => { }) { case [||]default when true: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForMissingExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch () { case [||]default when true: }
-    }
-}", parameters: s_csharp7_1);
+    {{
+        switch ({expression}) {{ case [||]default when true: }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
         [Fact]
@@ -571,246 +503,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 }", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Int()
+        [Theory]
+        [InlineData("int", "0")]
+        [InlineData("uint", "0U")]
+        [InlineData("byte", "0")]
+        [InlineData("sbyte", "0")]
+        [InlineData("short", "0")]
+        [InlineData("ushort", "0")]
+        [InlineData("long", "0L")]
+        [InlineData("ulong", "0UL")]
+        [InlineData("float", "0F")]
+        [InlineData("double", "0D")]
+        [InlineData("decimal", "0M")]
+        public async Task TestCSharp7_1_InIsPattern_NumericType(string type, string expectedLiteral)
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
+$@"class C
+{{
     void M()
-    {
-        int value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
+    {{
+        {type} value = 1;
+        if (value is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
     void M()
-    {
-        int value = 1;
-        if (value is 0) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_UInt()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        uint value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        uint value = 1;
-        if (value is 0U) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Byte()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        byte value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        byte value = 1;
-        if (value is 0) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_SByte()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        sbyte value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        sbyte value = 1;
-        if (value is 0) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Short()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        short value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        short value = 1;
-        if (value is 0) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_UShort()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        ushort value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        ushort value = 1;
-        if (value is 0) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Long()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        long value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        long value = 1;
-        if (value is 0L) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_ULong()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        ulong value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        ulong value = 1;
-        if (value is 0UL) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Float()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        float value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        float value = 1;
-        if (value is 0F) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Double()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        double value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        double value = 1;
-        if (value is 0D) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Decimal()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-    {
-        decimal value = 1;
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        decimal value = 1;
-        if (value is 0M) { }
-    }
-}", parameters: s_csharp7_1);
+    {{
+        {type} value = 1;
+        if (value is {expectedLiteral}) {{ }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
         [Fact]
@@ -921,70 +644,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 }", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomClass()
+        [Theory]
+        [InlineData("class Type { }")]
+        [InlineData("interface Type { }")]
+        [InlineData("delegate void Type();")]
+        public async Task TestCSharp7_1_InIsPattern_CustomReferenceType(string typeDeclaration)
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    class Class { }
+$@"class C
+{{
+    {typeDeclaration}
     void M()
-    {
-        if (new Class() is [||]default) { }
-    }
-}",
-@"class C
-{
-    class Class { }
+    {{
+        if (new Type() is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
+    {typeDeclaration}
     void M()
-    {
-        if (new Class() is null) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomInterface()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    interface Interface { }
-    void M()
-    {
-        if (new Interface() is [||]default) { }
-    }
-}",
-@"class C
-{
-    interface Interface { }
-    void M()
-    {
-        if (new Interface() is null) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomDelegate()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    delegate void Delegate();
-    void M()
-    {
-        if (new Delegate() is [||]default) { }
-    }
-}",
-@"class C
-{
-    delegate void Delegate();
-    void M()
-    {
-        if (new Delegate() is null) { }
-    }
-}", parameters: s_csharp7_1);
+    {{
+        if (new Type() is null) {{ }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
         [Fact]
@@ -1052,76 +734,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 }", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomClassOfAnonymousType()
+        [Theory]
+        [InlineData("class Container<T> { }")]
+        [InlineData("interface Container<T> { }")]
+        [InlineData("delegate void Container<T>();")]
+        public async Task TestCSharp7_1_InIsPattern_CustomReferenceTypeOfAnonymousType(string typeDeclaration)
         {
             await TestInRegularAndScript1Async(
-@"class C
-{
-    class Container<T> { }
+$@"class C
+{{
+    {typeDeclaration}
     Container<T> ToContainer<T>(T value) => new Container<T>();
     void M()
-    {
-        if (ToContainer(new { x = 0 }) is [||]default) { }
-    }
-}",
-@"class C
-{
-    class Container<T> { }
+    {{
+        if (ToContainer(new {{ x = 0 }}) is [||]default) {{ }}
+    }}
+}}",
+$@"class C
+{{
+    {typeDeclaration}
     Container<T> ToContainer<T>(T value) => new Container<T>();
     void M()
-    {
-        if (ToContainer(new { x = 0 }) is null) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomInterfaceOfAnonymousType()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    interface Container<T> { }
-    Container<T> ToContainer<T>(T value) => new Container<T>();
-    void M()
-    {
-        if (ToContainer(new { x = 0 }) is [||]default) { }
-    }
-}",
-@"class C
-{
-    interface Container<T> { }
-    Container<T> ToContainer<T>(T value) => new Container<T>();
-    void M()
-    {
-        if (ToContainer(new { x = 0 }) is null) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_CustomDelegateOfAnonymousType()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    delegate void Container<T>();
-    Container<T> ToContainer<T>(T value) => new Container<T>();
-    void M()
-    {
-        if (ToContainer(new { x = 0 }) is [||]default) { }
-    }
-}",
-@"class C
-{
-    delegate void Container<T>();
-    Container<T> ToContainer<T>(T value) => new Container<T>();
-    void M()
-    {
-        if (ToContainer(new { x = 0 }) is null) { }
-    }
-}", parameters: s_csharp7_1);
+    {{
+        if (ToContainer(new {{ x = 0 }}) is null) {{ }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
         [Fact]
@@ -1153,69 +790,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 }", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2()
+        [Theory]
+        [InlineData("value")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("() => { }")]
+        [InlineData("")]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2(string expression)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M()
-    {
-        if (value is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
+    {{ 
+        var value = {expression};
+        if (value is [||]default) {{ }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3()
+        [Theory]
+        [InlineData("value")]
+        [InlineData("null")]
+        [InlineData("default")]
+        [InlineData("() => { }")]
+        [InlineData("")]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3(string expression)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M()
-    {
-        if (null is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (default is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType5()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (() => { } is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForMissingExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if ( is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
+    {{
+        if ({expression} is [||]default) {{ }}
+    }}
+}}", parameters: s_csharp7_1);
         }
 
         [Fact]
