@@ -268,8 +268,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarMayNotBindToType">
-        <source>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</source>
-        <target state="new">The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</target>
+        <source>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</source>
+        <target state="new">The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">

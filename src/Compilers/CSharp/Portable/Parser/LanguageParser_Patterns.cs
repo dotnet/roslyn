@@ -415,39 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PatternSyntax ParsePatternContinued(TypeSyntax type, bool whenIsKeyword)
         {
-            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
-            {
-                propertyPatternClauseResult = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    propertyPatternClauseResult = ParsePropertyPatternClause();
-                    return true;
-                }
-
-                return false;
-            }
-
-            bool parseDesignation(out VariableDesignationSyntax designationResult)
-            {
-                designationResult = null;
-                if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
-                {
-                    designationResult = ParseSimpleDesignation();
-                    return true;
-                }
-
-                return false;
-            }
-
-            bool looksLikeCast()
-            {
-                var resetPoint = this.GetResetPoint();
-                bool result = this.ScanCast(forPattern: true);
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-                return result;
-            }
-
             if (type?.Kind == SyntaxKind.IdentifierName)
             {
                 var typeIdentifier = (IdentifierNameSyntax)type;
@@ -457,16 +424,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
-                    bool wasTupleDesignator = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
                     var varDesignation = ParseDesignation();
-                    if (wasTupleDesignator)
-                    {
-                        return _syntaxFactory.VarPattern(varToken, varDesignation);
-                    }
-                    else
-                    {
-                        return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
-                    }
+                    return _syntaxFactory.VarPattern(varToken, varDesignation);
                 }
             }
 
@@ -522,6 +481,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // let the caller fall back to its default (expression or type)
             return null;
+
+            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
+            {
+                propertyPatternClauseResult = null;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                {
+                    propertyPatternClauseResult = ParsePropertyPatternClause();
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool parseDesignation(out VariableDesignationSyntax designationResult)
+            {
+                designationResult = null;
+                if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                {
+                    designationResult = ParseSimpleDesignation();
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool looksLikeCast()
+            {
+                var resetPoint = this.GetResetPoint();
+                bool result = this.ScanCast(forPattern: true);
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+                return result;
+            }
         }
 
         private PatternSyntax ParsePattern(Precedence precedence, bool whenIsKeyword = false)

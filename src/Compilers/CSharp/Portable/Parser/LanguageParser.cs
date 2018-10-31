@@ -8106,25 +8106,19 @@ tryAgain:
                         else
                         {
                             var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(whenIsKeyword: true, forSwitchCase: true, precedence: Precedence.Ternary));
-                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
-                            {
-                                if (node is ExpressionSyntax)
-                                {
-                                    // if there is a 'when' token, we treat a case expression as a constant pattern.
-                                    node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
-                                }
-                            }
+
+                            // if there is a 'when' token, we treat a case expression as a constant pattern.
+                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax ex)
+                                node = _syntaxFactory.ConstantPattern(ex);
 
                             if (node.Kind == SyntaxKind.DiscardPattern)
-                            {
                                 node = this.AddError(node, ErrorCode.ERR_DiscardPatternInSwitchStatement);
-                            }
 
-                            if (node is PatternSyntax)
+                            if (node is PatternSyntax pat)
                             {
                                 var whenClause = ParseWhenClause(Precedence.Expression);
                                 colon = this.EatToken(SyntaxKind.ColonToken);
-                                label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, whenClause, colon);
+                                label = _syntaxFactory.CasePatternSwitchLabel(specifier, pat, whenClause, colon);
                                 label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
                             }
                             else

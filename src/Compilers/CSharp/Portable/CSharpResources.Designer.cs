@@ -10412,7 +10412,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The syntax &apos;var&apos; for a pattern is not permitted to bind to a type, but it binds to &apos;{0}&apos; here..
+        ///   Looks up a localized string similar to The syntax &apos;var&apos; for a pattern is not permitted to refer to a type, but &apos;{0}&apos; is in scope here..
         /// </summary>
         internal static string ERR_VarMayNotBindToType {
             get {

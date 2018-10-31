@@ -5584,7 +5584,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A single-element deconstruct pattern requires a type before the open parenthesis.</value>
   </data>
   <data name="ERR_VarMayNotBindToType" xml:space="preserve">
-    <value>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</value>
+    <value>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive" xml:space="preserve">
     <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>

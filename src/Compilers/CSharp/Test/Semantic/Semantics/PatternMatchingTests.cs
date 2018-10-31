@@ -4292,10 +4292,8 @@ public class C
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetSymbolInfo(discard2).Symbol);
-            var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
+            var declaration2 = (VarPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
@@ -4307,10 +4305,8 @@ public class C
 
             var discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
-            var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
+            var declaration4 = (VarPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
-            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4).Type.ToTestDisplayString());
-            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4.Type).Type.ToTestDisplayString());
         }
 
         [Fact]
