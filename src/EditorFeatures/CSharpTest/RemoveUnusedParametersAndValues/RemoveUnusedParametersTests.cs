@@ -330,7 +330,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task UsedInLambda_ReturnsDelegate()
         {
             // Currently we bail out from analysis for method returning delegate types.
@@ -346,7 +346,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task MethodWithLockAndControlFlow()
         {
             await TestDiagnosticMissingAsync(
@@ -788,7 +788,7 @@ $@"class C
 }}");
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Parameter_DiagnosticMessages()
         {
             var source =

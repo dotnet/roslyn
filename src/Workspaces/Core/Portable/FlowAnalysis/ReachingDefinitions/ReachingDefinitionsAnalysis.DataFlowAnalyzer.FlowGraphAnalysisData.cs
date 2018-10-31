@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 {
     internal static partial class ReachingDefinitionsAnalysis
     {
-        private sealed partial class DataFlowAnalyzer : AbstractDataFlowAnalyzer<BasicBlockAnalysisData>
+        private sealed partial class DataFlowAnalyzer : DataFlowAnalyzer<BasicBlockAnalysisData>
         {
             private sealed class FlowGraphAnalysisData : AnalysisData
             {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         /// in a given control flow graph, along with the information of whether or not the definition
         /// may be read on some control flow path.
         /// </summary>
-        private sealed partial class DataFlowAnalyzer : AbstractDataFlowAnalyzer<BasicBlockAnalysisData>
+        private sealed partial class DataFlowAnalyzer : DataFlowAnalyzer<BasicBlockAnalysisData>
         {
             private readonly FlowGraphAnalysisData _analysisData;
             private readonly CancellationToken _cancellationToken;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 cancellationToken.ThrowIfCancellationRequested();
                 using (var analyzer = new DataFlowAnalyzer(cfg, owningSymbol, cancellationToken))
                 {
-                    _ = CustomDataFlowAnalysis<DataFlowAnalyzer, BasicBlockAnalysisData>.Run(cfg.Blocks, analyzer, cancellationToken);
+                    _ = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg.Blocks, analyzer, cancellationToken);
                     return analyzer._analysisData.ToResult();
                 }
             }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 cancellationToken.ThrowIfCancellationRequested();
                 using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, _analysisData, cancellationToken))
                 {
-                    var resultBlockAnalysisData = CustomDataFlowAnalysis<DataFlowAnalyzer, BasicBlockAnalysisData>.Run(cfg.Blocks, analyzer, cancellationToken);
+                    var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg.Blocks, analyzer, cancellationToken);
                     if (resultBlockAnalysisData == null)
                     {
                         // Unreachable exit block from lambda/local.
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             }
 
             // Don't analyze blocks which are unreachable, as any definition
-            // in such a block which has a read outside will be marked redundant.
+            // in such a block which has a read outside will be marked redundant, which will just be noise for users.
             // For example,
             //      int x;
             //      if (true)
@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             //      else
             //          x = 1; // This will be marked redundant if "AnalyzeUnreachableBlocks = true"
             //      return x;
-            protected override bool AnalyzeUnreachableBlocks => false;
+            public override bool AnalyzeUnreachableBlocks => false;
 
-            protected override BasicBlockAnalysisData AnalyzeBlock(BasicBlock basicBlock, CancellationToken cancellationToken)
+            public override BasicBlockAnalysisData AnalyzeBlock(BasicBlock basicBlock, CancellationToken cancellationToken)
             {
                 BeforeBlockAnalysis();
                 Walker.AnalyzeOperationsAndUpdateData(basicBlock.Operations, _analysisData, cancellationToken);
@@ -116,13 +116,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 }
             }
 
-            protected override BasicBlockAnalysisData AnalyzeNonConditionalBranch(
+            public override BasicBlockAnalysisData AnalyzeNonConditionalBranch(
                 BasicBlock basicBlock,
                 BasicBlockAnalysisData currentBlockAnalysisData,
                 CancellationToken cancellationToken)
                 => AnalyzeBranch(basicBlock, currentBlockAnalysisData, cancellationToken);
 
-            protected override (BasicBlockAnalysisData fallThroughSuccessorData, BasicBlockAnalysisData conditionalSuccessorData) AnalyzeConditionalBranch(
+            public override (BasicBlockAnalysisData fallThroughSuccessorData, BasicBlockAnalysisData conditionalSuccessorData) AnalyzeConditionalBranch(
                 BasicBlock basicBlock,
                 BasicBlockAnalysisData currentAnalysisData,
                 CancellationToken cancellationToken)
@@ -145,19 +145,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 return _analysisData.CurrentBlockAnalysisData;
             }
 
-            protected override BasicBlockAnalysisData GetCurrentAnalysisData(BasicBlock basicBlock)
+            public override BasicBlockAnalysisData GetCurrentAnalysisData(BasicBlock basicBlock)
                 => _analysisData.GetCurrentBlockAnalysisData(basicBlock);
 
-            protected override BasicBlockAnalysisData GetEmptyAnalysisData()
+            public override BasicBlockAnalysisData GetEmptyAnalysisData()
                 => _analysisData.CreateBlockAnalysisData();
 
-            protected override void SetCurrentAnalysisData(BasicBlock basicBlock, BasicBlockAnalysisData data)
+            public override void SetCurrentAnalysisData(BasicBlock basicBlock, BasicBlockAnalysisData data)
                 => _analysisData.SetBlockAnalysisDataFrom(basicBlock, data);
 
-            protected override bool IsEqual(BasicBlockAnalysisData analysisData1, BasicBlockAnalysisData analysisData2)
+            public override bool IsEqual(BasicBlockAnalysisData analysisData1, BasicBlockAnalysisData analysisData2)
                 => analysisData1 == null ? analysisData2 == null : analysisData1.Equals(analysisData2);
 
-            protected override BasicBlockAnalysisData Merge(
+            public override BasicBlockAnalysisData Merge(
                 BasicBlockAnalysisData analysisData1,
                 BasicBlockAnalysisData analysisData2,
                 CancellationToken cancellationToken)

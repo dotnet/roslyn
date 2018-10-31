@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Suggestion));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_Suppressed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", options: PreferNone);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Assignment_Suppressed()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", options: PreferNone);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue(string optionName)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
         {
             var removeUnusedParametersSuppressed = Option(CodeStyleOptions.UnusedParameters,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", options: removeUnusedParametersSuppressed);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersNotApplicable()
         {
             var removeUnusedParametersNotApplicable = Option(CodeStyleOptions.UnusedParameters,
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", options: removeUnusedParametersNotApplicable);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_ConstantValue(string optionName)
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_ParameterReference(string optionName)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_ParameterReference(string optionName)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_LocalReference(string optionName)
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_LocalReference(string optionName)
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_NonConstantValue_FieldReferenceWithThisReceiver(string optionName)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_NonConstantValue_FieldReferenceWithNullReceiver(string optionName)
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Assignment_NonConstantValue_FieldReferenceWithReceiver(string optionName, string fix)
@@ -354,7 +354,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Initialization_NonConstantValue_PropertyReference(string optionName, string fix)
@@ -384,7 +384,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Initialization_NonConstantValue_MethodInvocation(string optionName, string fix)
@@ -414,7 +414,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_PreferDiscard_CSharp6()
         {
             // Discard not supported in C# 6.0, so we fallback to unused local variable.
@@ -444,7 +444,7 @@ $@"class C
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Assignment_NonConstantValue_MethodInvocation(string optionName, string fix)
@@ -476,7 +476,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task Assignment_NonConstantValue_ImplicitConversion(string optionName, string fix)
@@ -502,7 +502,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NestedAssignment_ConstantValue(string optionName)
@@ -528,7 +528,7 @@ $@"class C
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NestedAssignment_NonConstantValue_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -556,7 +556,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NestedAssignment_NonConstantValue_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -585,7 +585,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ReadAndWriteInSameExpression_MethodInvocation(string optionName)
@@ -604,7 +604,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("++", "")]
         [InlineData("", "++")]
         [InlineData("--", "")]
@@ -621,7 +621,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("++", "")]
         [InlineData("", "++")]
         [InlineData("--", "")]
@@ -639,7 +639,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("++", "")]
         [InlineData("", "++")]
         [InlineData("--", "")]
@@ -662,7 +662,7 @@ $@"class C
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("1")]       // Constant
         [InlineData("M2()")]    // Non-constant
         public async Task CompoundAssignmentOperator_ValueUsed_SameStatement(string rightHandSide)
@@ -679,7 +679,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("1")]       // Constant
         [InlineData("M2()")]    // Non-constant
         public async Task CompoundAssignmentOperator_ValueUsed_LaterStatement(string rightHandSide)
@@ -697,7 +697,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task CompoundAssignmentOperator_ValueNotUsed_ConstantValue(string optionName)
@@ -718,7 +718,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "int unused")]
         public async Task CompoundAssignmentOperator_ValueNotUsed_NonConstantValue(string optionName, string fix)
@@ -744,7 +744,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NullCoalescing_ReadWrite(string optionName)
@@ -763,7 +763,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedTarget(string optionName)
@@ -782,7 +782,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_01(string optionName, string fix)
@@ -812,7 +812,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_02(string optionName)
@@ -831,7 +831,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedTarget(string optionName)
@@ -850,7 +850,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "var unused")]
         public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_01(string optionName, string fix)
@@ -881,7 +881,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_02(string optionName)
@@ -900,7 +900,7 @@ $@"class C
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_NoReferences_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -924,7 +924,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_NoReferences_PreferUnusedLocal()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -939,7 +939,7 @@ $@"class C
 }", new TestParameters(options: PreferUnusedLocal));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_NoReadReferences_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -965,7 +965,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_NoReadReferences_PreferUnusedLocal()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -981,7 +981,7 @@ $@"class C
 }", new TestParameters(options: PreferUnusedLocal));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue_FirstField(string optionName)
@@ -1007,7 +1007,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue_MiddleField(string optionName)
@@ -1033,7 +1033,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Initialization_ConstantValue_LastField(string optionName)
@@ -1059,7 +1059,7 @@ $@"class C
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_FirstField_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1088,7 +1088,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_FirstField_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -1116,7 +1116,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_MiddleField_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1146,7 +1146,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_MiddleField_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -1174,7 +1174,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_LastField_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1203,7 +1203,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_NonConstantValue_LastField_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -1231,7 +1231,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Assignment_BeforeUseAsOutArgument(string optionName)
@@ -1262,7 +1262,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantAssignment_BeforeUseAsRefArgument(string optionName)
@@ -1282,7 +1282,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantAssignment_BeforeUseAsInArgument(string optionName)
@@ -1302,7 +1302,7 @@ $@"class C
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutArgument_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1332,7 +1332,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task OutArgument_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -1363,7 +1363,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task OutDeclarationExpressionArgument(string optionName, string fix)
@@ -1393,7 +1393,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantRefArgument(string optionName)
@@ -1412,7 +1412,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NonRedundantInArgument(string optionName)
@@ -1431,7 +1431,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeconstructionDeclarationExpression(string optionName, string fix)
@@ -1457,7 +1457,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeconstructionAssignment_01_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1483,7 +1483,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeconstructionAssignment_01_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -1510,7 +1510,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task DeconstructionAssignment_02(string optionName)
@@ -1527,7 +1527,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task TupleExpressionWithDeclarationExpressions(string optionName, string fix)
@@ -1553,7 +1553,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -1584,7 +1584,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1602,7 +1602,7 @@ $@"class C
 }", new TestParameters(options: PreferUnusedLocal));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_WithInvocation(string optionName)
@@ -1625,7 +1625,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithInvocation_DefinedAtStart(string optionName)
@@ -1648,7 +1648,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithInvocation_DefinedAtEnd(string optionName)
@@ -1671,7 +1671,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_WithoutInvocation(string optionName)
@@ -1704,7 +1704,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithoutInvocation_DefinedAtStart(string optionName)
@@ -1737,7 +1737,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithoutInvocation_DefinedAtEnd(string optionName)
@@ -1770,7 +1770,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLambda_WithInvocation(string optionName)
@@ -1803,7 +1803,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLocalFunction_WithInvocation(string optionName)
@@ -1836,7 +1836,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLambda_WithoutInvocation(string optionName)
@@ -1867,7 +1867,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLocalFunction_WithoutInvocation(string optionName)
@@ -1898,7 +1898,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RedundantWriteInLambda_WithInvocation(string optionName)
@@ -1931,7 +1931,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RedundantWriteInLocalFunction_WithInvocation(string optionName)
@@ -1964,7 +1964,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task WriteThenReadInLambda_WithInvocation(string optionName)
@@ -1986,7 +1986,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task WriteThenReadInLocalFunction_WithInvocation(string optionName)
@@ -2008,7 +2008,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RedundantWriteInLambda_WithoutInvocation(string optionName)
@@ -2028,7 +2028,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task RedundantWriteInLocalFunction_WithoutInvocation(string optionName)
@@ -2048,7 +2048,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_Nested(string optionName)
@@ -2078,7 +2078,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_NestedLocalFunction(string optionName)
@@ -2108,7 +2108,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_NestedLocalFunction(string optionName)
@@ -2133,7 +2133,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_NestedLambda(string optionName)
@@ -2159,7 +2159,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInNestedLambda_InvokedInOuterFunction(string optionName)
@@ -2186,7 +2186,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInNestedLocalFunction_InvokedInOuterFunction(string optionName)
@@ -2214,7 +2214,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_ArgumentToLambda(string optionName)
@@ -2232,7 +2232,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_ArgumentToLambda_02(string optionName)
@@ -2250,7 +2250,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_PassedAsArgument(string optionName)
@@ -2273,7 +2273,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_PassedAsArgument(string optionName)
@@ -2298,7 +2298,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_PassedAsArgument_CustomDelegate(string optionName)
@@ -2323,7 +2323,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_PassedAsArgument_CustomDelegate(string optionName)
@@ -2350,7 +2350,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_PassedAsArgument_CastFromDelegateType(string optionName)
@@ -2376,7 +2376,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_PassedAsArgument_CastFromDelegateType(string optionName)
@@ -2402,7 +2402,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_DelegateCreationPassedAsArgument(string optionName)
@@ -2425,7 +2425,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_DelegateCreationPassedAsArgument(string optionName)
@@ -2450,7 +2450,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_DelegatePassedAsArgument(string optionName)
@@ -2475,7 +2475,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_DelegatePassedAsArgument(string optionName)
@@ -2501,7 +2501,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_ReturnedDelegateCreation(string optionName)
@@ -2522,7 +2522,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_ReturnedDelegateCreation(string optionName)
@@ -2545,7 +2545,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_ReturnedDelegate(string optionName)
@@ -2568,7 +2568,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_ReturnedDelegate(string optionName)
@@ -2591,7 +2591,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_InvokedDelegate_ControlFlow(string optionName)
@@ -2617,7 +2617,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_InvokedDelegate_ControlFlow(string optionName)
@@ -2644,7 +2644,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_LambdaAndLocalFunctionTargets(string optionName)
@@ -2672,7 +2672,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUsed_LambdaAndLocalFunctionTargets(string optionName)
@@ -2701,7 +2701,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLambda_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
@@ -2764,7 +2764,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUsed_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
@@ -2877,7 +2877,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLambda_UsedAfterInvocation(string optionName)
@@ -2901,7 +2901,7 @@ class C
 ", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLocalFunction_UsedAfterInvocation(string optionName)
@@ -2926,7 +2926,7 @@ class C
 ", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLambda_UsedAfterSecondInvocation(string optionName)
@@ -2952,7 +2952,7 @@ class C
 ", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLocalFunction_UsedAfterSecondInvocation(string optionName)
@@ -2978,7 +2978,7 @@ class C
 ", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLambda_MayBeUsedAfterOneOfTheInvocations(string optionName)
@@ -3011,7 +3011,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLocalFunction_MayBeUsedAfterOneOfTheInvocations(string optionName)
@@ -3044,7 +3044,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLambda_NotUsedAfterInvocation(string optionName)
@@ -3079,7 +3079,7 @@ class C
 ", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInLocalFunction_NotUsedAfterInvocation(string optionName)
@@ -3114,7 +3114,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UseInLocalFunction_WithRecursiveInvocation(string optionName)
@@ -3138,7 +3138,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task NotUseInLocalFunction_WithRecursiveInvocation(string optionName)
@@ -3161,7 +3161,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task Lambda_WithNonReachableExit(string optionName)
@@ -3201,7 +3201,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeclarationPatternInSwitchCase_WithReadAndWriteReferences(string optionName, string fix)
@@ -3236,7 +3236,7 @@ $@"class C
 }}", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task CatchClause_ExceptionVariable_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -3270,7 +3270,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task CatchClause_ExceptionVariable_PreferUnusedLocal_01()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3290,7 +3290,7 @@ class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task CatchClause_ExceptionVariable_PreferUnusedLocal_02()
         {
             await TestInRegularAndScriptAsync(
@@ -3328,7 +3328,7 @@ class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedOutsideTry_UsedOnlyInCatchClause(string optionName)
@@ -3352,7 +3352,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedOutsideTry_UsedOnlyInCatchFilter(string optionName)
@@ -3375,7 +3375,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedOutsideTry_UsedOnlyInFinally(string optionName)
@@ -3399,7 +3399,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInsideTry_UsedOnlyInCatchClause(string optionName)
@@ -3423,7 +3423,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInsideNestedBlockInTry_UsedOnlyInCatchClause(string optionName)
@@ -3450,7 +3450,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchClause_UsedAfterTryCatch(string optionName)
@@ -3475,7 +3475,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInNestedCatchClause_UsedInOuterFinally(string optionName)
@@ -3505,7 +3505,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchClause_UsedInFinally(string optionName)
@@ -3532,7 +3532,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInCatchFilter_UsedAfterTryCatch(string optionName)
@@ -3558,7 +3558,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInFinally_UsedAfterTryFinally(string optionName)
@@ -3583,7 +3583,7 @@ class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task AssignedInNestedFinally_UsedInOuterFinally(string optionName)
@@ -3613,7 +3613,7 @@ class C
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_AssignedInCondition_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -3653,7 +3653,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_DeclaredInCondition_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -3692,7 +3692,7 @@ class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElseAssignedInCondition_ReadAfter_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -3737,7 +3737,7 @@ class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_AssignedInCondition_NoReads_PreferUnusedLocal()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3760,7 +3760,7 @@ class C
 }", new TestParameters(options: PreferUnusedLocal));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_DeclaredInCondition_ReadAfter_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -3803,7 +3803,7 @@ class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task IfElse_DeclaredInCondition_NoReads_PreferUnusedLocal()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3825,7 +3825,7 @@ class C
 }", new TestParameters(options: PreferUnusedLocal));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // Simple if-else.
         [InlineData("x = 1;", "x = 2;")]
         // Nested if-else.
@@ -3879,7 +3879,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // Overwrite missing in if path.
         [InlineData(";", "x = 2;")]
         // Overwrite missing in else path.
@@ -3918,7 +3918,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // Overitten in condition when true, overwritten in else code block when false.
         [InlineData("flag && M2(out x)", ";", "x = 2;")]
         // Overitten in condition when false, overwritten in if code block when true.
@@ -3968,7 +3968,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // Overwrite missing in condition when left of || is true.
         [InlineData("flag || M2(out x)")]
         // Overwrite missing in condition when left of && is true.
@@ -3998,7 +3998,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("M2(out x) || flag")]
         [InlineData("M2(out x) && flag")]
         [InlineData("M2(out x) || M2(out x)")]
@@ -4048,7 +4048,7 @@ $@"class C
 }}");
             }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ElselessIf(string optionName)
@@ -4069,7 +4069,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task UnusedDefinition_NotFlagged_InUnreachableBlock(string optionName)
@@ -4097,7 +4097,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // For loop, assignment in body, read on back edge.
         [InlineData("for(i = 1; i < 10; i--)",
                         "M2(x); [|x|] = 1;")]
@@ -4140,7 +4140,7 @@ $@"class C
 }}");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         // For loop, assignment in body, re-assigned on back edge before read in loop and re-assigned at loop exit.
         [InlineData("for(i = 1; i < 10; i--)",
                         "x = 1; M2(x); [|x|] = 2;",
@@ -4217,7 +4217,7 @@ $@"class C
 }}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_NonConstantValue_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -4309,7 +4309,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_NonConstantValue_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -4406,7 +4406,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task FixAll_ConstantValue_RemoveRedundantAssignments(string optionName)
@@ -4503,7 +4503,7 @@ $@"class C
 }", optionName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_MoveMultipleVariableDeclarations_PreferDiscard()
         {
             await TestInRegularAndScriptAsync(
@@ -4562,7 +4562,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task FixAll_MoveMultipleVariableDeclarations_PreferUnusedLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -4620,7 +4620,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferDiscard_01()
         {
             await TestInRegularAndScriptAsync(
@@ -4654,7 +4654,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferDiscard_02()
         {
             await TestInRegularAndScriptAsync(
@@ -4690,7 +4690,7 @@ $@"class C
 }", options: PreferDiscard);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferUnusedLocal_01()
         {
             await TestInRegularAndScriptAsync(
@@ -4726,7 +4726,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NonConstantValue_Trivia_PreferUnusedLocal_02()
         {
             await TestInRegularAndScriptAsync(
@@ -4763,7 +4763,7 @@ $@"class C
 }", options: PreferUnusedLocal);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ConstantValue_Trivia_01(string optionName)
@@ -4801,7 +4801,7 @@ $@"class C
 }", optionName);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedExpressions)]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
         public async Task ConstantValue_Trivia_02(string optionName)

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
             Return TestHelpers.Diagnostic(id)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
         Public Async Function Parameter_Used() As Task
             Await TestDiagnosticMissingAsync(
 $"Class C
@@ -31,7 +31,7 @@ $"Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
         Public Async Function Parameter_Unused() As Task
             Await TestDiagnosticsAsync(
 $"Class C
@@ -41,7 +41,7 @@ End Class", parameters:=Nothing,
             Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
         Public Async Function Parameter_WrittenOnly() As Task
             Await TestDiagnosticsAsync(
 $"Class C
@@ -52,7 +52,7 @@ End Class", parameters:=Nothing,
             Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
         Public Async Function Parameter_WrittenThenRead() As Task
             Await TestDiagnosticsAsync(
 $"Class C
