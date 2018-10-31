@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!");
+            var text = SourceText.From("Hello, World!");
 
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var textFactory = CreateMockTextFactoryService();
             var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-            var text = Text.SourceText.From("Hello, World!", Encoding.ASCII);
+            var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
             // Create a temporary storage location
             using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
