@@ -2336,7 +2336,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern1()
         {
             await TestAsync(
@@ -2353,7 +2353,7 @@ class Program
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern2()
         {
             await TestAsync(

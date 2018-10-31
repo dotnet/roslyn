@@ -1888,6 +1888,8 @@ done:
                 case SyntaxKind.GlobalStatement:
                 case SyntaxKind.Subpattern:
                     return node;
+                case SyntaxKind.DeconstructionPatternClause:
+                    return node.Parent;
             }
 
             while (true)
