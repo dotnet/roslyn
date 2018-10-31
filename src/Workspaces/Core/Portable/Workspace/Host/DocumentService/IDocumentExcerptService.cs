@@ -52,11 +52,15 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// <see cref="Document"/> this excerpt is from
+        /// 
+        /// should be same document in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, CancellationToken)" />
         /// </summary>
         public readonly Document Document;
 
         /// <summary>
         /// span on <see cref="Document"/> this excerpt is from
+        /// 
+        /// should be same text span in <see cref="IDocumentExcerptService.TryExcerptAsync(Document, TextSpan, ExcerptMode, CancellationToken)" />
         /// </summary>
         public readonly TextSpan Span;
 
@@ -66,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Host
             MappedSpan = mappedSpan;
             ClassifiedSpans = classifiedSpans;
 
-            // these 2 might not actually needed
             Document = document;
             Span = span;
         }
