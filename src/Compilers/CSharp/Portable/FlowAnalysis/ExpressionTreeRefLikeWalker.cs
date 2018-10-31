@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.FlowAnalysis
 {
-    internal class ExpressionTreeRefLikeWalker : BoundTreeVisitor
+    internal class ExpressionTreeRefLikeWalker : BoundTreeWalker
     {
         private readonly CSharpCompilation _compilation;
         private readonly Symbol _member;
@@ -22,23 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.FlowAnalysis
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
-            if (node.Type.IsByRefLikeType)
-            {
-                _expressionTreeContainsRefLikeExpressions = true;
-                _diagnostics.Add(ErrorCode.ERR_AnonDelegateCantUse, node.Syntax.Location);
-            }
-
             return (BoundExpression)base.Visit(node);
         }
 
-        public override BoundNode VisitBlock(BoundBlock node)
+        public override BoundNode Visit(BoundNode node)
         {
-            foreach (var stmt in node.Statements)
+            if (node is BoundExpression expr && expr.Type.IsByRefLikeType)
             {
-                Visit(stmt);
+                _expressionTreeContainsRefLikeExpressions = true;
+                _diagnostics.Add(ErrorCode.ERR_FeatureNotValidInExpressionTree, node.Syntax.Location, "ref struct");
             }
-
-            return base.VisitBlock(node);
+            return base.Visit(node);
         }
 
         public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag diagnostics)
