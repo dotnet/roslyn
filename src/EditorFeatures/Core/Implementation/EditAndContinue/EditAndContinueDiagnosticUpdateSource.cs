@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
-        internal static readonly object DebuggerErrorId = new object();
+        internal static readonly object InternalErrorId = new object();
         internal static readonly object EmitErrorId = new object();
 
         [ImportingConstructor]

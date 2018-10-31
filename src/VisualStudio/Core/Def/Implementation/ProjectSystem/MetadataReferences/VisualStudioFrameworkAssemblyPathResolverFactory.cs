@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
@@ -19,17 +18,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
     internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public VisualStudiorFrameworkAssemblyPathResolverFactory(SVsServiceProvider serviceProvider)
+        public VisualStudiorFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
+            return new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
         }
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
@@ -37,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioWorkspace _workspace;
             private readonly IServiceProvider _serviceProvider;
 
-            public Service(VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
-                : base(assertIsForeground: false)
+            public Service(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
+                : base(threadingContext, assertIsForeground: false)
             {
                 _workspace = workspace;
                 _serviceProvider = serviceProvider;

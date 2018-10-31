@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
@@ -27,12 +28,13 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager
+Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
+Imports IAsyncCompletionService = Microsoft.CodeAnalysis.Editor.IAsyncCompletionService
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
-        Implements IIntelliSenseTestState
 
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
@@ -40,18 +42,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
 
         Private _context As AbstractDebuggerIntelliSenseContext
+        Private ReadOnly SessionTestState As IIntelliSenseTestState
 
-        Friend Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
-        Friend Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
+            Get
+                Return SessionTestState.CurrentSignatureHelpPresenterSession
+            End Get
+        End Property
+
+        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
+            Get
+                Return SessionTestState.CurrentCompletionPresenterSession
+            End Get
+        End Property
 
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
-                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         isImmediateWindow As Boolean)
 
             MyBase.New(
                 workspaceElement,
-                exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider(),
+                excludedTypes:=CombineExcludedTypes(),
+                extraParts:=ExportProviderCache.CreateTypeCatalog(CombineExtraTypes()),
                 workspaceKind:=WorkspaceKind.Debugger)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
@@ -62,22 +74,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
             End If
 
-            Me.AsyncCompletionService = New AsyncCompletionService(
-                GetService(Of IEditorOperationsFactoryService)(),
-                UndoHistoryRegistry,
-                GetService(Of IInlineRenameService)(),
-                GetExportedValue(Of IAsynchronousOperationListenerProvider)(),
-                New TestCompletionPresenter(Me),
-                GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
+            Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
-            Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
+            Me.AsyncCompletionService = Workspace.GetService(Of IAsyncCompletionService)
 
-            Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
-                New TestSignatureHelpPresenter(Me),
-                GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
-                GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+            Me.CompletionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
 
-            Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
+            Me.SignatureHelpCommandHandler = Workspace.GetService(Of SignatureHelpCommandHandler)
+
+            Me.IntelliSenseCommandHandler = Workspace.GetService(Of IntelliSenseCommandHandler)
 
             Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
             Dim statementSpan = spanDocument.SelectedSpans.First()
@@ -105,6 +110,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             _context.TryInitialize()
         End Sub
 
+        Private Shared Function CombineExcludedTypes() As IList(Of Type)
+            Return New List(Of Type) From {
+                GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
+                GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
+            }
+        End Function
+
+        Private Shared Function CombineExtraTypes() As IList(Of Type)
+            Return New List(Of Type) From {
+                GetType(TestCompletionPresenter),
+                GetType(TestSignatureHelpPresenter),
+                GetType(IntelliSenseTestState)
+            }
+        End Function
+
         Public Overrides ReadOnly Property TextView As ITextView
             Get
                 Return _context.DebuggerTextView
@@ -131,7 +151,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             Return New TestState(documentElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
-                CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
                 isImmediateWindow)
         End Function
 
@@ -144,7 +163,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Return New TestState(
                 workspaceElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
-                CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
                 isImmediateWindow)
         End Function
 

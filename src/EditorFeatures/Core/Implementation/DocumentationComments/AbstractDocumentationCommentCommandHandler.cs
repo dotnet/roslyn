@@ -74,13 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             get { return ExteriorTriviaText[ExteriorTriviaText.Length - 1]; }
         }
 
-        public string DisplayName => EditorFeaturesResources.Documentation_Comment_Command_Handler;
-
-        private string GetNewLine(SourceText text)
-        {
-            // return editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
-            return "\r\n";
-        }
+        public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
         private TMemberNode GetTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
         {
@@ -127,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return targetMember;
         }
 
-        private void AddLineBreaks(SourceText text, IList<string> lines)
+        private void AddLineBreaks(SourceText text, IList<string> lines, string newLine)
         {
             for (int i = 0; i < lines.Count; i++)
             {
-                lines[i] = lines[i] + GetNewLine(text);
+                lines[i] = lines[i] + newLine;
             }
         }
 
@@ -184,9 +178,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
-            AddLineBreaks(text, lines);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+            AddLineBreaks(text, lines, newLine);
 
             // Shave off initial three slashes
             lines[0] = lines[0].Substring(3);
@@ -200,11 +195,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lastLine = lines[lines.Count - 1];
-            lastLine = indentText + lastLine.Substring(0, lastLine.Length - GetNewLine(text).Length);
+            lastLine = indentText + lastLine.Substring(0, lastLine.Length - newLine.Length);
             lines[lines.Count - 1] = lastLine;
 
             var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - GetNewLine(text).Length;
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             subjectBuffer.Insert(position, newText);
             textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + offset));
@@ -284,9 +279,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
-            AddLineBreaks(text, lines);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+            AddLineBreaks(text, lines, newLine);
 
             // Shave off initial exterior trivia
             lines[0] = lines[0].Substring(3);
@@ -300,13 +296,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - GetNewLine(text).Length;
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             // Shave off final line break or add trailing indent if necessary
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
             if (IsEndOfLineTrivia(trivia))
             {
-                newText = newText.Substring(0, newText.Length - GetNewLine(text).Length);
+                newText = newText.Substring(0, newText.Length - newLine.Length);
             }
             else
             {
@@ -415,16 +411,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             var startPosition = targetMember.GetFirstToken().SpanStart;
             var line = text.Lines.GetLineFromPosition(startPosition);
-            Contract.Assume(!line.IsEmptyOrWhitespace());
+            Debug.Assert(!line.IsEmptyOrWhitespace());
 
             var lines = GetDocumentationCommentStubLines(targetMember);
-            Contract.Assume(lines.Count > 2);
+            Debug.Assert(lines.Count > 2);
 
-            AddLineBreaks(text, lines);
+            var newLine = options.GetOption(FormattingOptions.NewLine);
+            AddLineBreaks(text, lines, newLine);
 
             // Add indents
             var lineOffset = line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(options.GetOption(FormattingOptions.TabSize));
-            Contract.Assume(line.Start + lineOffset == startPosition);
+            Debug.Assert(line.Start + lineOffset == startPosition);
 
             var indentText = lineOffset.CreateIndentationString(options.GetOption(FormattingOptions.UseTabs), options.GetOption(FormattingOptions.TabSize));
             for (int i = 1; i < lines.Count; i++)
@@ -435,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             lines[lines.Count - 1] = lines[lines.Count - 1] + indentText;
 
             var newText = string.Join(string.Empty, lines);
-            var offset = lines[0].Length + lines[1].Length - GetNewLine(text).Length;
+            var offset = lines[0].Length + lines[1].Length - newLine.Length;
 
             subjectBuffer.Insert(startPosition, newText);
 
@@ -575,9 +572,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         {
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
             {
-                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.WaitContext.UserCancellationToken);
+                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.OperationContext.UserCancellationToken);
             }
         }
 

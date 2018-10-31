@@ -107,7 +107,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml, TestOptions.ReleaseDll.WithRootNamespace("Pavement"))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml, options:=TestOptions.ReleaseDll.WithRootNamespace("Pavement"))
             Dim tree = comp.SyntaxTrees(0)
             Dim model1 = comp.GetSemanticModel(tree)
 
@@ -626,7 +626,7 @@ End Class
         End Class
     </file>
 
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors = <errors>
 BC30179: class 'Q' and structure 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
@@ -813,7 +813,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         End Class
     </file>
 
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors = <errors>
 BC30179: class 'N4' and namespace 'N4' conflict in namespace 'Goo.Bar'.
@@ -975,7 +975,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         End Class
     </file>
 
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedDeclErrors =
 <errors>
@@ -1084,7 +1084,7 @@ Class C
     End Property
 End Class
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim tree = CompilationUtils.GetTree(compilation, "c.vb")
             Dim bindings = compilation.GetSemanticModel(tree)
@@ -1145,7 +1145,7 @@ Class A
 End Class
 
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
             Dim model = compilation.GetSemanticModel(tree)
@@ -1231,7 +1231,7 @@ End Class
 
     </file>
 
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors =
 <errors>
@@ -1418,7 +1418,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
@@ -1627,7 +1627,7 @@ End Class
     <file name="a.vb">
 Imports VB6 = Microsoft.VisualBasic
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             compilation.AssertTheseDiagnostics(<expected>
 BC40056: Namespace or type specified in the Imports 'Microsoft.VisualBasic' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -1831,7 +1831,7 @@ End Namespace
 
     </file>
 
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors =
 <errors>
@@ -1927,7 +1927,7 @@ Label2:
     End Sub
 End Module
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindings = compilation.GetSemanticModel(tree)
@@ -1986,7 +1986,7 @@ End Module
         End Namespace
     </file>
 
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors =
 <errors>
@@ -2086,6 +2086,7 @@ BC42024: Unused local variable: 'ccc'.
             Assert.Equal("ccc", varSymbol7.Name)
             Assert.Equal(SymbolKind.Local, varSymbol7.Kind)
             Assert.Equal("System.String", DirectCast(varSymbol7, LocalSymbol).Type.ToTestDisplayString())
+            Assert.False(DirectCast(varSymbol7, ILocalSymbol).IsFixed)
             Assert.Equal(1, varSymbol7.Locations.Length())
             Assert.True(syntax.SpanStart = varSymbol7.Locations.Item(0).SourceSpan.Start OrElse
                         syntax.SpanStart = varSymbol7.Locations.Item(1).SourceSpan.Start,
@@ -2279,6 +2280,7 @@ End Module
             Dim expressionSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 0)
             Dim local = DirectCast(model.GetDeclaredSymbol(expressionSyntax), LocalSymbol)
             Assert.True(local.IsConst)
+            Assert.False(DirectCast(local, ILocalSymbol).IsFixed)
             Assert.True(local.HasConstantValue)
             Assert.Equal(100, CType(local.ConstantValue, Integer))
 
@@ -2497,7 +2499,7 @@ Namespace Server
         End Class
 End Namespace
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
@@ -2539,7 +2541,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)

@@ -1,0 +1,162 @@
+phases:
+- phase: Windows_Desktop_Unit_Tests
+  queue:
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
+    parallel: 4
+    matrix:
+      debug_32:
+        _configuration: Debug
+        _testKind: Test32
+      debug_64:
+        _configuration: Debug
+        _testKind: Test64
+      release_32:
+        _configuration: Release
+        _testKind: Test32
+      release_64:
+        _configuration: Release
+        _testKind: Test64
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testDesktop -$(_testKind)
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+- phase: Windows_Desktop_Spanish_Unit_Tests
+  queue:
+    name: dnceng-windows-spanish-external-temp
+    timeoutInMinutes: 90
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration Debug -testDesktop
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop Spanish'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows Desktop Spanish' 
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+- phase: Windows_CoreClr_Unit_Tests
+  queue:
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
+    parallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release:
+        _configuration: Release
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testCoreClr -buildCoreClr
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows CoreClr $(_configuration)'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows CoreClr $(_configuration)'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+           
+- phase: Windows_Determinism_Test
+  queue:
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
+  steps:
+    - script: build/scripts/cibuild.cmd -testDeterminism
+      displayName: Build - Validate determinism
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Debug\Logs'
+        ArtifactName: 'Build Determinism Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+- phase: Windows_Correctness_Test
+  queue:
+    name: dotnet-external-temp
+    timeoutInMinutes: 90
+  steps:
+    - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
+      displayName: Build - Validate correctness
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Release\Logs'
+        ArtifactName: 'Build Correctness Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+- phase: Linux_Test
+  queue:
+    name: DotNetCore-Linux                     
+    timeoutInMinutes: 90
+    parallel: 2
+    matrix:
+      coreclr:
+        _args: --configuration Debug
+        _name: CoreClr 
+      mono:
+        _args: --configuration Debug --docker --mono
+        _name: Mono
+  steps:
+    - script: ./build/scripts/cibuild.sh $(_args)
+      displayName: Build and Test
+    - script: ./build/scripts/dockerstop.sh
+      displayName: Stop Docker
+      condition: eq(variables['_name'], 'Mono')
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Linux $(_name)'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/Binaries/Debug/Logs'
+        ArtifactName: 'Linux $(_name)'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+    

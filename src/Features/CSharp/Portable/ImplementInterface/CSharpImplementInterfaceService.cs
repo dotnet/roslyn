@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             decls[decls.Length - 1] = decls[decls.Length - 1].WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-                    SyntaxFactory.CarriageReturnLineFeed));
+                    SyntaxFactory.ElasticCarriageReturnLineFeed));
 
             // Ensure that open and close brace tokens are generated in case they are missing.
             var newNode = classDecl.EnsureOpenAndCloseBraceTokens().AddMembers(decls);

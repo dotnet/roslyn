@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsGenerated
         {
-            get { return this.info.IsGenerated; }
+            get { return this.Attributes.IsGenerated; }
         }
     }
 }

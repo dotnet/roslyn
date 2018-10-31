@@ -13,10 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         Inherits CommonCompletionProvider
 
         Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-            Dim item = CommonCompletionItem.Create("DisplayText", rules:=CompletionItemRules.Default)
+            Dim item = CommonCompletionItem.Create("DisplayText", "", rules:=CompletionItemRules.Default)
             context.AddItem(item)
 
-            Return SpecializedTasks.EmptyTask
+            Return Task.CompletedTask
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

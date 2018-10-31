@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// A crypto hash algorithm used to calculate PDB Checksum stored in the PE/COFF File.
-        /// If not specified (the value is <code>default(HashAlgorithmName)</code>) the checksum is not calculated.
+        /// If not specified (the value is <c>default(HashAlgorithmName)</c>) the checksum is not calculated.
         /// </summary>
         public HashAlgorithmName PdbChecksumAlgorithm { get; private set; }
 

@@ -4,7 +4,9 @@ Imports System.Runtime.ExceptionServices
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
@@ -38,10 +40,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Dim result As TestState = Nothing
 
             Try
+                Dim vsWorkspace = New MockVisualStudioWorkspace(workspace)
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
-                mockComponentModel.ProvideService(Of VisualStudioWorkspace)(New MockVisualStudioWorkspace(workspace))
+                mockComponentModel.ProvideService(Of VisualStudioWorkspace)(vsWorkspace)
                 Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
-                Dim libraryManager = CreateLibraryManager(mockServiceProvider)
+                Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
 
                 result = New TestState(workspace, libraryManager)
             Finally
@@ -53,7 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Return result
         End Function
 
-        Friend MustOverride Function CreateLibraryManager(serviceProvider As IServiceProvider) As AbstractObjectBrowserLibraryManager
+        Friend MustOverride Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
 
         Friend Function ProjectNode(name As String) As NavInfoNodeDescriptor
             Return New NavInfoNodeDescriptor With {.Kind = ObjectListKind.Projects, .Name = name}

@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     miscellaneousOptions:
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new SymbolDisplayFormat(
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
+            protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
 
             protected void AddPrefixTextForAwaitKeyword()
             {
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 // the tree, a source symbol is defined in, doesn't exist in universe
                 // how this can happen?
-                Contract.Requires(false, "How?");
+                Debug.Assert(false, "How?");
                 return null;
             }
 
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 var analysis = semanticModel.AnalyzeDataFlow(syntax);
-                var captures = analysis.CapturedInside;
+                var captures = analysis.CapturedInside.Except(analysis.VariablesDeclared).ToImmutableArray();
                 if (!captures.IsEmpty)
                 {
                     var parts = new List<SymbolDisplayPart>();
@@ -487,7 +489,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                 }
 
-                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants);
+                return ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstantsAndModifiers);
             }
 
             private async Task AddDescriptionForLocalAsync(ILocalSymbol symbol)

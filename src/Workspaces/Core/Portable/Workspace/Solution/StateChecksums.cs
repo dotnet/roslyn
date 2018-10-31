@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Info))
             {
-                result[Info] = state.Info.Attributes;
+                result[Info] = state.Attributes;
             }
 
             if (searchingChecksumsLeft.Remove(Text))

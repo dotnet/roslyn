@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 if (!document.SupportsSyntaxTree)
                 {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 }
 
                 if (!RemoteFeatureOptions.ShouldComputeIndex(document.Project.Solution.Workspace))
                 {
-                    return SpecializedTasks.EmptyTask;
+                    return Task.CompletedTask;
                 }
 
                 return SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken);

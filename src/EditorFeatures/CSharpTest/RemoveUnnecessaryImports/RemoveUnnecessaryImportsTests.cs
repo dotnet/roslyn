@@ -41,6 +41,32 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        public async Task TestNoReferencesWithCopyright()
+        {
+            await TestInRegularAndScriptAsync(
+@"[|// Copyright (c) Somebody.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"// Copyright (c) Somebody.
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestIdentifierReferenceInTypeContext()
         {
             await TestInRegularAndScriptAsync(
@@ -1307,19 +1333,23 @@ public class QueryExpressionTest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestReferenceInCref()
         {
-            // parsing doc comments as simple trivia; System is unnecessary
-            await TestInRegularAndScriptAsync(
+            // parsing doc comments as simple trivia; we don't know System is unnecessary
+            await TestMissingAsync(
 @"[|using System;
 /// <summary><see cref=""String"" /></summary>
 class C
 {
-}|]",
-@"/// <summary><see cref=""String"" /></summary>
-class C
-{
-}");
+}|]", new TestParameters(Options.Regular.WithDocumentationMode(DocumentationMode.None)));
 
             // fully parsing doc comments; System is necessary
+            await TestMissingAsync(
+@"[|using System;
+/// <summary><see cref=""String"" /></summary>
+class C
+{
+}|]", new TestParameters(Options.Regular.WithDocumentationMode(DocumentationMode.Parse)));
+
+            // fully parsing and diagnosing doc comments; System is necessary
             await TestMissingAsync(
 @"[|using System;
 /// <summary><see cref=""String"" /></summary>

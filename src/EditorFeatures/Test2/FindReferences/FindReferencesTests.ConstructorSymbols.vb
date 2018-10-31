@@ -791,5 +791,30 @@ class Program
 </Workspace>
             Await TestAPIAndFeature(input)
         End Function
+
+        <WorkItem(25655, "https://github.com/dotnet/roslyn/issues/25655")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNoCompilationProjectReferencingCSharp() As Task
+            Dim input =
+<Workspace>
+    <Project Language="NoCompilation" CommonReferences="false">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+            // a no-compilation document
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+        <Document>
+public class A
+{
+    public {|Definition:$$A|}()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
     End Class
 End Namespace

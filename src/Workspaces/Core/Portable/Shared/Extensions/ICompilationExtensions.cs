@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol ExceptionType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Exception).FullName);
 
+        public static INamedTypeSymbol DebuggerDisplayAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName);
+
+        public static INamedTypeSymbol StructLayoutAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName);
+
         public static INamedTypeSymbol DesignerCategoryAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
 
@@ -117,5 +123,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol DynamicAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
+
+        public static INamedTypeSymbol LazyOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName);
     }
 }

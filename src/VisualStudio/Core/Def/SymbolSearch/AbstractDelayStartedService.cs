@@ -33,9 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private bool _enabled = false;
 
         protected AbstractDelayStartedService(
+            IThreadingContext threadingContext,
             Workspace workspace,
             Option<bool> onOffOption,
             params PerLanguageOption<bool>[] perLanguageOptions)
+            : base(threadingContext)
         {
             Workspace = workspace;
             _serviceOnOffOption = onOffOption;

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -109,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
-                Contract.Requires(node.SyntaxTree != null);
-                Contract.Requires(node.SyntaxTree.GetText() != null);
+                Debug.Assert(node.SyntaxTree != null);
+                Debug.Assert(node.SyntaxTree.GetText() != null);
 
                 nextOperation.Invoke(list);
 

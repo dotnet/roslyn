@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return true;
             }
 
-            attributeLists = default(SyntaxList<AttributeListSyntax>);
+            attributeLists = default;
             return false;
         }
 

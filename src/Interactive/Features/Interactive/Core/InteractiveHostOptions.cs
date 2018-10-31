@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.Interactive
@@ -19,32 +20,19 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         public CultureInfo Culture { get; }
 
+        /// <summary>
+        /// Host process bitness.
+        /// </summary>
+        public bool Is64Bit { get; }
+
         public InteractiveHostOptions(
             string initializationFile = null,
-            CultureInfo culture = null)
+            CultureInfo culture = null,
+            bool is64Bit = false)
         {
             InitializationFile = initializationFile;
             Culture = culture ?? CultureInfo.CurrentUICulture;
-        }
-
-        public InteractiveHostOptions WithInitializationFile(string initializationFile)
-        {
-            if (InitializationFile == initializationFile)
-            {
-                return this;
-            }
-
-            return new InteractiveHostOptions(initializationFile, Culture);
-        }
-
-        public InteractiveHostOptions WithCulture(CultureInfo culture)
-        {
-            if (Culture == culture)
-            {
-                return this;
-            }
-
-            return new InteractiveHostOptions(InitializationFile, culture);
+            Is64Bit = is64Bit;
         }
     }
 }

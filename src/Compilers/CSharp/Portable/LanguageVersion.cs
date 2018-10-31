@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Globalization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -126,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp7_3 = 703,
 
         /// <summary>
+        /// C# language version 8.0
+        /// </summary>
+        CSharp8 = 800,
+
+        /// <summary>
         /// The latest version of the language supported.
         /// </summary>
         Latest = int.MaxValue,
@@ -147,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_1:
                 case LanguageVersion.CSharp7_2:
                 case LanguageVersion.CSharp7_3:
+                case LanguageVersion.CSharp8:
                     return true;
             }
 
@@ -177,6 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_2;
                 case LanguageVersion.CSharp7_3:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_3;
+                case LanguageVersion.CSharp8:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion8;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -225,6 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "7.2";
                 case LanguageVersion.CSharp7_3:
                     return "7.3";
+                case LanguageVersion.CSharp8:
+                    return "8.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -237,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Try parse a <see cref="LanguageVersion"/> from a string input, returning default if input was null.
         /// </summary>
-        public static bool TryParse(this string version, out LanguageVersion result)
+        public static bool TryParse(string version, out LanguageVersion result)
         {
             if (version == null)
             {
@@ -302,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case "7.3":
                     result = LanguageVersion.CSharp7_3;
+                    return true;
+
+                case "8":
+                case "8.0":
+                    result = LanguageVersion.CSharp8;
                     return true;
 
                 default:

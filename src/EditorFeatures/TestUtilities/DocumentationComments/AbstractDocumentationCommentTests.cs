@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
-        protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
+        protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true, string newLine = "\r\n")
         {
-            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments, newLine: newLine,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
                     var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService);
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
         private void Verify(string initialMarkup, string expectedMarkup, bool useTabs, bool autoGenerateXmlDocComments,
             Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute,
-            Action<TestWorkspace> setOptionsOpt = null)
+            Action<TestWorkspace> setOptionsOpt = null, string newLine = "\r\n")
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
@@ -148,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
                 options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
+                options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
 
                 workspace.Options = options;
 

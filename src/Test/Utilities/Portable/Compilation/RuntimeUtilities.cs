@@ -13,31 +13,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public static partial class RuntimeUtilities
     {
-        internal static BuildPaths CreateBuildPaths(string workingDirectory)
+        internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
-#if NET461 || NET46
+            tempDirectory = tempDirectory ?? Path.GetTempPath();
+#if NET46
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
                 workingDir: workingDirectory,
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                tempDir: Path.GetTempPath());
+                sdkDir: sdkDirectory ?? RuntimeEnvironment.GetRuntimeDirectory(),
+                tempDir: tempDirectory);
 #else
             return new BuildPaths(
                 clientDir: AppContext.BaseDirectory,
                 workingDir: workingDirectory,
-                sdkDir: null,
-                tempDir: Path.GetTempPath());
+                sdkDir: sdkDirectory,
+                tempDir: tempDirectory);
 #endif
         }
 
         internal static IRuntimeEnvironmentFactory GetRuntimeEnvironmentFactory()
         {
-#if NET461 || NET46
+#if NET46
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP2_0
+#elif NETCOREAPP2_1
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
 #elif NETSTANDARD1_3
-            throw new NotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif
@@ -45,10 +46,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static AnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
         {
-#if NET461 || NET46
+#if NET46
             return new DesktopAnalyzerAssemblyLoader();
-#else 
+#elif NETCOREAPP2_1
+            return new CoreClrAnalyzerAssemblyLoader();
+#elif NETSTANDARD1_3
             return new ThrowingAnalyzerAssemblyLoader();
+#else
+#error Unsupported configuration
 #endif
         }
 
@@ -57,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal static string GetAssemblyLocation(Type type)
         {
-#if NET461 || NET46 || NETCOREAPP2_0
+#if NET46 || NETCOREAPP2_1
             return type.GetTypeInfo().Assembly.Location;
 #elif NETSTANDARD1_3
-            throw new NotSupportedException();
+            throw new PlatformNotSupportedException();
 #else
 #error Unsupported configuration
 #endif

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var sourceLinkJsonPath = Path.Combine(ObjDir.Path, ProjectName + ".sourcelink.json");
 
-            var sourcePackageTargets = $@"
+            var sourcePackageProps = $@"
   <ItemGroup>
     <Compile Include=""{libFile.Path}"" Link=""Lib.cs"" />
     <SourceRoot Include=""{root2}"" SourceLinkUrl=""https://raw.githubusercontent.com/Source/Package/*""/>
@@ -56,16 +56,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // deterministic CI build:
             VerifyValues(
-                props:  $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PathMap>PreviousPathMap</PathMap>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  <PathMap>PreviousPathMap</PathMap>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -97,16 +95,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // non-deterministic CI build:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <Deterministic>false</Deterministic>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  <Deterministic>false</Deterministic>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -136,15 +132,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // deterministic local build:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -174,15 +168,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // DeterministicSourcePaths override:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <DeterministicSourcePaths>false</DeterministicSourcePaths>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <DeterministicSourcePaths>false</DeterministicSourcePaths>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -212,18 +204,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // SourceControlInformationFeatureSupported = false:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>false</SourceControlInformationFeatureSupported>
-    <DeterministicSourcePaths>true</DeterministicSourcePaths>
-  </PropertyGroup>
-  <ItemGroup>
-    <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
-  </ItemGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <DeterministicSourcePaths>true</DeterministicSourcePaths>
+</PropertyGroup>
+<ItemGroup>
+  <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
+</ItemGroup>
+{sourcePackageProps}",
+                customTargets: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>false</SourceControlInformationFeatureSupported>
+</PropertyGroup>
+{sourceLinkPackageTargets}",
                 targets: new[]
                 {
                     "CoreCompile"
@@ -249,17 +242,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // No SourceLink package:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <DeterministicSourcePaths>true</DeterministicSourcePaths>
-  </PropertyGroup>
-  <ItemGroup>
-    <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
-  </ItemGroup>
-  {sourcePackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <DeterministicSourcePaths>true</DeterministicSourcePaths>
+</PropertyGroup>
+<ItemGroup>
+  <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
+</ItemGroup>
+{sourcePackageProps}",
+                customTargets: @"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+</PropertyGroup>
+",
                 targets: new[]
                 {
                     "CoreCompile"
@@ -282,6 +277,60 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 $@"[/_/]=[https://raw.githubusercontent.com/R1/*]," +
                 $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
+        }
+
+        /// <summary>
+        /// Validates dependencies of _BeforeVBCSCoreCompile target. 
+        /// </summary>
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void BeforeVBCSCoreCompileDependencies()
+        {
+            VerifyValues(
+                customProps: $@"
+  <ItemGroup>
+    <ReferencePath Include=""A"" />
+  </ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "_BeforeVBCSCoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencePathWithRefAssemblies)",
+                },
+                expectedResults: new[]
+                {
+                    "A",
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void ClearEmbedInteropTypes()
+        {
+            VerifyValues(
+                customProps: $@"
+  <PropertyGroup>
+    <TargetingClr2Framework>true</TargetingClr2Framework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ReferencePathWithRefAssemblies Include=""A"" EmbedInteropTypes=""false""/>
+    <ReferencePathWithRefAssemblies Include=""B"" EmbedInteropTypes=""true""/>
+  </ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencePathWithRefAssemblies->'EmbedInteropTypes=`%(EmbedInteropTypes)`')",
+                },
+                expectedResults: new[]
+                {
+                    "EmbedInteropTypes=``",
+                    "EmbedInteropTypes=``"
+                });
         }
     }
 }

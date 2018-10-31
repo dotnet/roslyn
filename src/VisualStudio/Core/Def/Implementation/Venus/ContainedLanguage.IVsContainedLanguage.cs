@@ -78,12 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public int SetHost(IVsContainedLanguageHost host)
         {
             // Are we going away due to the contained language being disconnected?
-            if (this.ContainedLanguageHost != null && host == null)
+            if (this.ContainedDocument.ContainedLanguageHost != null && host == null)
             {
                 OnDisconnect();
             }
+            else
+            {
+                ContainedDocument.ContainedLanguageHost = host;
+            }
 
-            this.ContainedLanguageHost = host;
             return VSConstants.S_OK;
         }
 

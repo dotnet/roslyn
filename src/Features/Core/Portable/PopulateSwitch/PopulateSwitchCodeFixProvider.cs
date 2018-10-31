@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     context.Diagnostics);
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         private Task<Document> FixAsync(

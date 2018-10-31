@@ -958,7 +958,7 @@ End Class
         </file>
 </compilation>
 
-            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib40(forwardedTypes, TestOptions.ReleaseDll)
+            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib40(forwardedTypes, options:=TestOptions.ReleaseDll)
 
             Dim netmod =
 <compilation>
@@ -1166,7 +1166,7 @@ End Class
         </file>
 </compilation>
 
-            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib40(forwardedTypes, TestOptions.ReleaseDll)
+            Dim forwardedTypesCompilation = CreateCompilationWithMscorlib40(forwardedTypes, options:=TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
@@ -1230,7 +1230,7 @@ End class
 public class Forwarded(Of T)
 End class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim cB = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="B">
@@ -1249,7 +1249,7 @@ End class
 public class Forwarded(Of T)
 End class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim cC_v1_ImageRef = cC_v1.EmitToImageReference()
 
@@ -1268,7 +1268,7 @@ End class
 public class Forwarded(Of T)
 End class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             Dim ref1 = New MetadataReference() {
                 New VisualBasicCompilationReference(cA_v3)

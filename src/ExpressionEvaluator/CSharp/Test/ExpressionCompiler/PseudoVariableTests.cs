@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData: null);
                 AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
-                Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal(error, "error CS1061: 'C' does not contain a definition for '$exception' and no accessible extension method '$exception' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)");
             });
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     out error,
                     testData);
                 Assert.Null(error);
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       25 (0x19)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       22 (0x16)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     aliases,
                     out error,
                     testData);
-                Assert.Equal(testData.Methods.Count, 1);
+                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       40 (0x28)
@@ -524,7 +524,7 @@ class C
             var testData = Evaluate(runtime, "C.M", variableName, out error, alias);
             if (valid)
             {
-                var expectedNames = new[] { "<>x.<>m0()" };
+                var expectedNames = new[] { "<>x.<>m0()", "System.Runtime.CompilerServices.NonNullTypesAttribute..ctor(bool)", "Microsoft.CodeAnalysis.EmbeddedAttribute..ctor()" };
                 var actualNames = testData.GetMethodsByName().Keys;
                 AssertEx.SetEqual(expectedNames, actualNames);
             }

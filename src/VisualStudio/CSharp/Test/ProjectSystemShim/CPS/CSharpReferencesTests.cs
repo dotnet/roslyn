@@ -1,15 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
-    using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
     using static CSharpHelpers;
 
     [UseExportProvider]
@@ -39,16 +41,29 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 var metadaRefFilePath = @"c:\someAssembly.dll";
                 project3.AddMetadataReference(metadaRefFilePath, new MetadataReferenceProperties(embedInteropTypes: true));
 
-                Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
-                Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
-                Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project4.Id));
-                Assert.True(project3.GetCurrentMetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
+                IEnumerable<ProjectReference> GetProject3ProjectReferences()
+                {
+                    return environment.Workspace
+                                      .CurrentSolution.GetProject(project3.Id).ProjectReferences;
+                }
+
+                IEnumerable<PortableExecutableReference> GetProject3MetadataReferences()
+                {
+                    return environment.Workspace.CurrentSolution.GetProject(project3.Id)
+                                      .MetadataReferences
+                                      .Cast<PortableExecutableReference>();
+                }
+
+                Assert.True(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+                Assert.True(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project2.Id));
+                Assert.True(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project4.Id));
+                Assert.True(GetProject3MetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
 
                 // Change output path for project reference and verify the reference.
                 ((IWorkspaceProjectContext)project4).BinOutputPath = @"C:\project4.dll";
                 Assert.Equal(@"C:\project4.dll", project4.BinOutputPath);
 
-                Assert.True(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project4.Id));
+                Assert.True(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project4.Id));
 
                 // Remove project reference
                 project3.RemoveProjectReference(project1);
@@ -59,9 +74,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Remove metadata reference
                 project3.RemoveMetadataReference(metadaRefFilePath);
 
-                Assert.False(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
-                Assert.False(project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
-                Assert.False(project3.GetCurrentMetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
+                Assert.False(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+                Assert.False(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project2.Id));
+                Assert.False(GetProject3MetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
 
                 project1.Dispose();
                 project2.Dispose();
@@ -79,12 +94,20 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             {
                 // Add analyzer reference
                 var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
+
+                bool AnalyzersContainsAnalyzer()
+                {
+                    return environment.Workspace.CurrentSolution.Projects.Single()
+                                      .AnalyzerReferences.Cast<AnalyzerReference>()
+                                      .Any(a => a.FullPath == analyzerAssemblyFullPath);
+                }
+
                 project.AddAnalyzerReference(analyzerAssemblyFullPath);
-                Assert.True(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
+                Assert.True(AnalyzersContainsAnalyzer());
 
                 // Remove analyzer reference
                 project.RemoveAnalyzerReference(analyzerAssemblyFullPath);
-                Assert.False(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
+                Assert.False(AnalyzersContainsAnalyzer());
             }
         }
     }

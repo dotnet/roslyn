@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         [DllImport("kernel32.dll")]
         private static extern IntPtr LoadLibrary(string dllToLoad);
 
-        internal static bool TryInitializeLibraries() => s_initialized.Value;
+        private static bool TryInitializeLibraries() => s_initialized.Value;
 
         private static readonly Lazy<bool> s_initialized = new Lazy<bool>(() => TryInitializeLibrariesLazy());
 
@@ -88,6 +88,13 @@ namespace Microsoft.CodeAnalysis.SQLite
         protected override bool TryOpenDatabase(
             Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage)
         {
+            if (!TryInitializeLibraries())
+            {
+                // SQLite is not supported on the current platform
+                storage = null;
+                return false;
+            }
+
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (dbOwnershipLock == null)

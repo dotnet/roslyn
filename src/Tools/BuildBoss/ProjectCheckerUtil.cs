@@ -110,8 +110,9 @@ namespace BuildBoss
             }
             catch (Exception ex)
             {
-                data = default(RoslynProjectData);
+                textWriter.WriteLine("Unable to parse Roslyn project properties");
                 textWriter.WriteLine(ex.Message);
+                data = default;
                 return false;
             }
         }
@@ -442,13 +443,10 @@ namespace BuildBoss
                 {
                     case "net20":
                     case "net46":
-                    case "net461":
-                    case "net462":
                     case "netstandard1.3":
                     case "netcoreapp1.1":
-                    case "netcoreapp2.0":
+                    case "netcoreapp2.1":
                     case "$(RoslynPortableTargetFrameworks)":
-                    case "$(RoslynPortableTargetFrameworks46)":
                         break;
                     default:
                         textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

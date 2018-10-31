@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
@@ -19,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override bool IncludeSuppressedDiagnostics => true;
         protected override bool IncludeUnsuppressedDiagnostics => false;
         protected override int CodeActionIndex => 0;
-        private string FixAllActionEquivalenceKey => FeaturesResources.Remove_Suppression + UserDiagnosticAnalyzer.Decsciptor.Id;
 
         protected class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -370,7 +368,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -466,7 +464,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -566,7 +564,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             #endregion
@@ -691,7 +689,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -811,7 +809,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
 
             [Fact]
@@ -940,7 +938,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 
@@ -1067,7 +1065,7 @@ class Class2
 
 
 
-                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected);
             }
         }
 

@@ -121,22 +121,22 @@
       </trans-unit>
       <trans-unit id="MapSourceRoots.ContainsDuplicate">
         <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
-        <target state="new">{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</target>
+        <target state="translated">{0} contiene elementi duplicati '{1}' con metadati in conflitto '{2}': '{3}' e '{4}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
         <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
-        <target state="new">{0} paths are required to end with a slash or backslash: '{1}'</target>
+        <target state="translated">{0} percorsi devono terminare con una barra o una barra rovesciata: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
         <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
-        <target state="new">{0} items must include at least one top-level (not nested) item when {1} is true</target>
+        <target state="translated">{0} elementi devono includere almeno un elemento di primo livello (non annidato) quando {1} è true</target>
         <note />
       </trans-unit>
       <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
         <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
-        <target state="new">The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</target>
+        <target state="translated">Il valore di {0} non è stato trovato negli elementi {1} oppure l'elemento corrispondente non è una radice di origine di primo livello: '{2}'</target>
         <note />
       </trans-unit>
     </body>

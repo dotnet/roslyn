@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             // write nothing, always read/deserialized as global Instance

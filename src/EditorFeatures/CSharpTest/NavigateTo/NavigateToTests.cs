@@ -16,6 +16,7 @@ using Roslyn.Test.EditorUtilities.NavigateTo;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+#pragma warning disable CS0618 // MatchKind is obsolete
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 {
     public class NavigateToTests : AbstractNavigateToTests
@@ -1020,7 +1021,8 @@ class D
 </Workspace>
 ", exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
             {
-                _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+                _provider = new NavigateToItemProvider(
+                    workspace, AsynchronousOperationListenerProvider.NullListener, documentTrackingService: null);
                 _aggregator = new NavigateToTestAggregator(_provider);
 
                 var items = await _aggregator.GetItemsAsync("VisibleMethod");
@@ -1071,3 +1073,4 @@ class D
         }
     }
 }
+#pragma warning restore CS0618 // MatchKind is obsolete

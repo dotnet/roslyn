@@ -16,10 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -30,50 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     [UseExportProvider]
     public class FormattingEngineTestBase
     {
-        protected async Task AssertFormatAsync(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
-        {
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var hostdoc = workspace.Documents.First();
-
-                // get original buffer
-                var buffer = hostdoc.GetTextBuffer();
-
-                // create new buffer with cloned content
-                var clonedBuffer = EditorFactory.CreateBuffer(
-                    buffer.ContentType.TypeName,
-                    workspace.ExportProvider,
-                    buffer.CurrentSnapshot.GetText());
-
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                var options = workspace.Options;
-                if (changedOptionSet != null)
-                {
-                    foreach (var entry in changedOptionSet)
-                    {
-                        options = options.WithChangedOption(entry.Key, entry.Value);
-                    }
-                }
-
-                options = options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTab);
-
-                var root = await syntaxTree.GetRootAsync();
-                var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
-
-                AssertFormat(workspace, expected, options, rules, clonedBuffer, root);
-
-                if (testWithTransformation)
-                {
-                    // format with node and transform
-                    AssertFormatWithTransformation(workspace, expected, options, rules, root);
-                }
-            }
-        }
-
         internal static void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<IFormattingRule> rules, SyntaxNode root)
         {
             var newRootNode = Formatter.Format(root, SpecializedCollections.SingletonEnumerable(root.FullSpan), workspace, optionSet, rules, CancellationToken.None);
@@ -173,18 +126,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             Assert.Equal(expected, actual);
         }
 
-        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
+        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
-            var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
-            var editorOperationsFactoryService = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
-
-            editorOperations.Setup(o => o.AddAfterTextBufferChangePrimitive());
-            editorOperations.Setup(o => o.AddBeforeTextBufferChangePrimitive());
-
-            editorOperationsFactoryService.Setup(s => s.GetEditorOperations(It.IsAny<ITextView>())).Returns(editorOperations.Object);
-
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
+                if (options != null)
+                {
+                    foreach (var option in options)
+                    {
+                        workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
+                    }
+                }
+
                 // set up caret position
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();
@@ -193,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var commandHandler = new FormatCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), editorOperationsFactoryService.Object);
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
 
                 var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
                 commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
@@ -223,18 +176,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 if (isPaste)
                 {
-                    var commandHandler = new FormatCommandHandler(null, null);
+                    var commandHandler = workspace.GetService<FormatCommandHandler>();
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
                 else
                 {
                     // Return Key Command
-                    var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-                    var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-                    var editorOperations = new Mock<IEditorOperations>();
-                    editorOperationsFactory.Setup(x => x.GetEditorOperations(testDocument.GetTextView())).Returns(editorOperations.Object);
-                    var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                    var commandHandler = workspace.GetService<FormatCommandHandler>();
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
@@ -261,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         }
 
         /// <summary>
-        /// Asserts formatting on an arbitrary <see cref="SyntaxNode"/> that is not part of a <see cref="SyntaxTree"/> 
+        /// Asserts formatting on an arbitrary <see cref="SyntaxNode"/> that is not part of a <see cref="SyntaxTree"/>
         /// </summary>
         /// <param name="node">the <see cref="SyntaxNode"/> to format.</param>
         /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>

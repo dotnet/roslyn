@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public TPresenterSession PresenterSession { get; }
 
         public Session(TController controller, ModelComputation<TModel> computation, TPresenterSession presenterSession)
+            : base(computation.ThreadingContext)
         {
             this.Controller = controller;
             this.Computation = computation;

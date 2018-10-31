@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Execution
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
     internal class SerializerServiceFactory : IWorkspaceServiceFactory
     {
-        [Obsolete("This is the factory method for " + nameof(SerializerService) + ".", error: true)]
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new SerializerService(workspaceServices);

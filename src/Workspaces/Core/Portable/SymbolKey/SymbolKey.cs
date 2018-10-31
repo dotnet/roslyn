@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Tries to resolve the provided <paramref name="symbolKey"/> in the given 
         /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
-        /// should only be given <code>true</code> if the symbol was produced from a compilation
+        /// should only be given <see langword="true"/> if the symbol was produced from a compilation
         /// that has the exact same source as the compilation we're resolving against.  Otherwise
         /// the locations resolved may not actually be correct in the final compilation.
         /// </summary>

@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
             private bool TryInitialize(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var classType))
+                if (!service.TryInitializeState(semanticDocument, textSpan, cancellationToken, out var classType))
                 {
                     return false;
                 }
@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = this.ClassType.InstanceConstructors;
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 

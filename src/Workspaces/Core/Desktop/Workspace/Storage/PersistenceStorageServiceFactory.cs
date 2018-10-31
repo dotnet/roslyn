@@ -28,13 +28,7 @@ namespace Microsoft.CodeAnalysis.Storage
             switch (database)
             {
                 case StorageDatabase.SQLite:
-                    if (!SQLitePersistentStorageService.TryInitializeLibraries())
-                    {
-                        break;
-                    }
-
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
-
                     if (locationService != null)
                     {
                         return new SQLitePersistentStorageService(optionService, locationService, _solutionSizeTracker);

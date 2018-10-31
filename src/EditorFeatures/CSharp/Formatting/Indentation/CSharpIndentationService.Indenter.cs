@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 else
                 {
                     // there must be trivia that contains or touch this position
-                    Contract.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
+                    Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
 
                     // okay, now check whether the trivia is at the beginning of the line
                     var firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition();
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 if (token.IsSemicolonOfEmbeddedStatement() ||
                     token.IsCloseBraceOfEmbeddedBlock())
                 {
-                    Contract.Requires(
+                    Debug.Assert(
                         token.Parent != null &&
                         (token.Parent.Parent is StatementSyntax || token.Parent.Parent is ElseClauseSyntax));
 

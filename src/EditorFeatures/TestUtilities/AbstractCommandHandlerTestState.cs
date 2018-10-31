@@ -31,10 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
+            IList<Type> excludedTypes = null,
             ComposableCatalog extraParts = null,
             bool useMinimumCatalog = false,
             string workspaceKind = null)
-            : this(workspaceElement, GetExportProvider(useMinimumCatalog, extraParts), workspaceKind)
+            : this(workspaceElement, GetExportProvider(useMinimumCatalog, excludedTypes, extraParts), workspaceKind)
         {
         }
 
@@ -130,9 +131,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return Workspace.GetService<T>();
         }
 
-        private static ExportProvider GetExportProvider(bool useMinimumCatalog, ComposableCatalog extraParts)
+        private static ExportProvider GetExportProvider(bool useMinimumCatalog, IList<Type> excludedTypes, ComposableCatalog extraParts)
         {
-            if (extraParts == null || extraParts.Parts.Count == 0)
+            excludedTypes = excludedTypes ?? Type.EmptyTypes;
+
+            if (excludedTypes.Count == 0 && (extraParts == null || extraParts.Parts.Count == 0))
             {
                 return useMinimumCatalog
                     ? TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider()
@@ -143,7 +146,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 ? TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 : TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
 
-            return ExportProviderCache.GetOrCreateExportProviderFactory(baseCatalog.WithParts(extraParts)).CreateExportProvider();
+            var filteredCatalog = baseCatalog.WithoutPartsOfTypes(excludedTypes);
+
+            return ExportProviderCache.GetOrCreateExportProviderFactory(filteredCatalog.WithParts(extraParts)).CreateExportProvider();
         }
 
         public virtual ITextView TextView

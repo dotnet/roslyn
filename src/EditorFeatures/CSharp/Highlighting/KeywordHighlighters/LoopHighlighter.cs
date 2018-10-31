@@ -2,40 +2,26 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
-    internal class LoopHighlighter : AbstractKeywordHighlighter<SyntaxNode>
+    internal class LoopHighlighter : AbstractKeywordHighlighter
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
+        protected override bool IsHighlightableNode(SyntaxNode node)
+            => node.IsContinuableConstruct();
+
+        protected override IEnumerable<TextSpan> GetHighlightsForNode(
             SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var loop = node.GetAncestorsOrThis<SyntaxNode>()
-                           .FirstOrDefault(ancestor => ancestor.IsContinuableConstruct());
-
-            if (loop != null)
-            {
-                return KeywordHighlightsForLoop(loop);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<TextSpan>();
-        }
-
-        private IEnumerable<TextSpan> KeywordHighlightsForLoop(SyntaxNode loopNode)
         {
             var spans = new List<TextSpan>();
 
-            switch (loopNode)
+            switch (node)
             {
                 case DoStatementSyntax doStatement:
                     HighlightDoStatement(doStatement, spans);
@@ -51,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                     break;
             }
 
-            HighlightRelatedKeywords(loopNode, spans, highlightBreaks: true, highlightContinues: true);
+            HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
 
             return spans;
         }

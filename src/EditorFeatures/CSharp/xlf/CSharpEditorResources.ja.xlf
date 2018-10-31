@@ -17,11 +17,6 @@
         <target state="translated">文字列を分割します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Split_String_Literal_Command_Handler">
-        <source>Split String Literal Command Handler</source>
-        <target state="new">Split String Literal Command Handler</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

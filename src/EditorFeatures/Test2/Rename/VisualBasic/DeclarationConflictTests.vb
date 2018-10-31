@@ -1213,5 +1213,34 @@ End Class
                 result.AssertLabeledSpansAre("second", "C.Method", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(18566, "https://github.com/dotnet/roslyn/issues/18566")>
+        Public Sub ParameterInPartialMethodDefinitionConflictingWithLocalInPartialMethodImplementation()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Partial Class C
+    Partial Private Sub M({|parameter0:$$x|} As Integer)
+    End Sub
+End Class
+                        </Document>
+                        <Document>
+Partial Class C
+    Private Sub M({|parameter1:x|} As Integer)
+        Dim {|local0:y|} = 1
+    End Sub
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="y")
+
+                result.AssertLabeledSpansAre("parameter0", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("parameter1", "y", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("local0", type:=RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
     End Class
 End Namespace

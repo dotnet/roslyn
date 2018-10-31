@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,6 +137,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static ComposableCatalog WithPart(this ComposableCatalog catalog, Type t)
         {
             return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
+        /// parts assignable to type <paramref name="t"/> removed from the catalog.
+        /// </summary>
+        public static ComposableCatalog WithoutPartsOfType(this ComposableCatalog catalog, Type t)
+        {
+            return catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
+        /// parts assignable to any type in <paramref name="types"/> removed from the catalog.
+        /// </summary>
+        public static ComposableCatalog WithoutPartsOfTypes(this ComposableCatalog catalog, IEnumerable<Type> types)
+        {
+            var parts = catalog.Parts.Where(composablePartDefinition => !IsExcludedPart(composablePartDefinition));
+            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
+
+            bool IsExcludedPart(ComposablePartDefinition part)
+            {
+                return types.Any(excludedType => excludedType.IsAssignableFrom(part.Type));
+            }
         }
 
         public static IExportProviderFactory GetOrCreateExportProviderFactory(ComposableCatalog catalog)

@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Protected Overrides Function InferTypesWorker_DoNotCallDirectly(position As Integer) As IEnumerable(Of TypeInferenceInfo)
-                Dim tree = TryCast(Me.SemanticModel.SyntaxTree, SyntaxTree)
+                Dim tree = Me.SemanticModel.SyntaxTree
                 Dim token = tree.FindTokenOnLeftOfPosition(position, CancellationToken)
                 token = token.GetPreviousTokenIfTouchingWord(position)
 

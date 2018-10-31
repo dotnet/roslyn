@@ -640,7 +640,7 @@ B");
         var f = E = null;
     }
 }";
-            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var f = E = null;

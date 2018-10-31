@@ -7,12 +7,11 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 {
@@ -31,13 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         private int _lastProcessedTimeInMS;
 
         [ImportingConstructor]
-        public ForegroundNotificationService()
+        public ForegroundNotificationService(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
             // Only start the background processing task if foreground work is allowed
-            if (ForegroundKind != ForegroundThreadDataKind.Unknown)
+            if (threadingContext.HasMainThread)
             {
                 Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
             }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
-            Contract.Requires(delay >= 0);
+            Debug.Assert(delay >= 0);
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             // Assert we have some kind of foreground thread
-            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
 
             var current = Environment.TickCount;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
-            Contract.Requires(delay >= 0);
+            Debug.Assert(delay >= 0);
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             // Assert we have some kind of foreground thread
-            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
 
             var current = Environment.TickCount;
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                     await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
 
                     // run them in UI thread
-                    await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
+                    await InvokeBelowInputPriorityAsync(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
                 }
                 catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
                 {
@@ -196,26 +196,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         private async Task WaitForPendingWorkAsync()
         {
-            await _workQueue.WaitForItemsAsync().ConfigureAwait(false);
             while (true)
             {
-                var current = Environment.TickCount;
-                var nextItem = _workQueue.PeekNextItemTime();
+                await _workQueue.WaitForItemsAsync().ConfigureAwait(false);
+                if (!_workQueue.TryPeekNextItemTime(out var nextItem))
+                {
+                    // Need to go back and wait for an item
+                    continue;
+                }
 
                 // The next item is ready to run
-                if (nextItem - current <= 0)
+                if (nextItem - Environment.TickCount <= 0)
                 {
                     break;
                 }
 
                 // wait some and re-check since there could be another one inserted before the first one while we were waiting.
-                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(continueOnCapturedContext: false);
+                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(false);
             }
 
             // Throttle how often we run by waiting MinimumDelayBetweenProcessing since the last time we processed notifications
             if (Environment.TickCount - _lastProcessedTimeInMS < MinimumDelayBetweenProcessing)
             {
-                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(continueOnCapturedContext: false);
+                await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(false);
             }
         }
 
@@ -344,12 +347,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 return;
             }
 
-            public int PeekNextItemTime()
+            public bool TryPeekNextItemTime(out int minimumRunPoint)
             {
                 lock (_gate)
                 {
-                    Contract.Requires(_list.Count > 0);
-                    return _list.First.Value.MinimumRunPointInMS;
+                    if (_list.Count == 0)
+                    {
+                        minimumRunPoint = 0;
+                        return false;
+                    }
+
+                    minimumRunPoint = _list.First.Value.MinimumRunPointInMS;
+                    return true;
                 }
             }
 

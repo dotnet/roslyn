@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Conditional("DEBUG")]
         private static void Assert(string[] customTags, params string[] tags)
         {
-            Contract.Requires(customTags.Length == tags.Length);
+            Debug.Assert(customTags.Length == tags.Length);
 
             for (int i = 0; i < tags.Length; i++)
             {
-                Contract.Requires(customTags[i] == tags[i]);
+                Debug.Assert(customTags[i] == tags[i]);
             }
         }
     }

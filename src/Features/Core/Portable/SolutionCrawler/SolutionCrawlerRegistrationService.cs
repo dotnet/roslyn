@@ -230,13 +230,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (IsDefaultProvider(lazyProvider.Metadata))
                     {
-                        Contract.Requires(set.Add(Default));
+                        Debug.Assert(set.Add(Default));
                         continue;
                     }
 
                     foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
                     {
-                        Contract.Requires(set.Add(kind));
+                        Debug.Assert(set.Add(kind));
                     }
                 }
 

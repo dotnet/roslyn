@@ -19,7 +19,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        IMethodReference Constructor(EmitContext context);
+        IMethodReference Constructor(EmitContext context, bool reportDiagnostics);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.

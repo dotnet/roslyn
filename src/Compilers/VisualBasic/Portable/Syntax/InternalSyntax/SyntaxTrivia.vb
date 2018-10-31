@@ -49,6 +49,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ObjectBinder.RegisterTypeReader(GetType(SyntaxTrivia), Function(r) New SyntaxTrivia(r))
         End Sub
 
+        Friend Overrides ReadOnly Property ShouldReuseInSerialization As Boolean
+            Get
+                Select Case Me.Kind
+                    Case SyntaxKind.WhitespaceTrivia,
+                        SyntaxKind.EndOfLineTrivia,
+                        SyntaxKind.LineContinuationTrivia,
+                        SyntaxKind.DocumentationCommentExteriorTrivia,
+                        SyntaxKind.ColonTrivia
+
+                        Return True
+                    Case Else
+                        Return False
+                End Select
+            End Get
+        End Property
+
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
             writer.WriteString(Me._text)

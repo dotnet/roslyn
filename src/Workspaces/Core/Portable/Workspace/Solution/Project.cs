@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
-        /// <code>true</code> if this <see cref="Project"/> supports providing data through the
+        /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
 
@@ -222,6 +222,12 @@ namespace Microsoft.CodeAnalysis
         internal TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
         {
             return _projectState.GetAdditionalDocumentState(documentId);
+        }
+
+        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return this.SupportsCompilation &&
+                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
