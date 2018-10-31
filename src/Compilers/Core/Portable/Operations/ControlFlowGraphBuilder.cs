@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
-            switch (body.Kind)
+            switch(body.Kind)
             {
                 case OperationKind.LocalFunction:
                     Debug.Assert(captureIdDispenser != null);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
 #if DEBUG
             Debug.Assert(spillingTheStack || _evalStack.All(
-                slot => slot.operationOpt == null
+                slot => slot.operationOpt == null 
                     || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
                     || slot.operationOpt.Kind == OperationKind.DeclarationExpression
                     || slot.operationOpt.Kind == OperationKind.Discard
@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 jumpIfTrue = false;
 
-                if (unaryOperatorMethod == null ||
+                if (unaryOperatorMethod == null || 
                     (ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType) &&
                      (ITypeSymbolHelpers.IsNullableType(left.Type) || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))))
                 {
@@ -2418,15 +2418,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             AddStatement(new FlowCapture(resultId, binOp.Syntax,
                                          new BinaryOperatorExpression(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
                                                                       PopOperand(),
-                                                                      visitedRight,
-                                                                      isLifted,
-                                                                      binOp.IsChecked,
+                                                                      visitedRight, 
+                                                                      isLifted, 
+                                                                      binOp.IsChecked, 
                                                                       binOp.IsCompareText,
-                                                                      binOp.OperatorMethod,
-                                                                      unaryOperatorMethod: null,
+                                                                      binOp.OperatorMethod, 
+                                                                      unaryOperatorMethod: null, 
                                                                       semanticModel: null,
-                                                                      binOp.Syntax,
-                                                                      binOp.Type,
+                                                                      binOp.Syntax, 
+                                                                      binOp.Type, 
                                                                       binOp.ConstantValue, IsImplicit(binOp))));
 
             PopStackFrameAndLeaveRegion(frame);
@@ -2441,7 +2441,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                         int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
         {
             Debug.Assert(IsBooleanConditionalOperator(condition));
-
+                    
             // we generate:
             //
             // gotoif (a == stopSense) fallThrough
@@ -2806,7 +2806,7 @@ oneMoreTime:
                 LinkBlocks(CurrentBasicBlock, afterCoalesce);
                 _currentBasicBlock = null;
                 PopStackFrame(frame);
-
+                
                 AppendNewBlock(whenNull);
 
                 IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
@@ -3096,7 +3096,7 @@ oneMoreTime:
                 }
                 else
                 {
-                    CaptureResultIfNotAlready(currentConditionalAccess.WhenNotNull.Syntax, resultCaptureId,
+                    CaptureResultIfNotAlready(currentConditionalAccess.WhenNotNull.Syntax, resultCaptureId, 
                                               Visit(currentConditionalAccess.WhenNotNull, resultCaptureId));
                 }
 
@@ -3539,7 +3539,7 @@ oneMoreTime:
             {
                 var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-
+                
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
@@ -3549,7 +3549,7 @@ oneMoreTime:
                 }
 
                 resourceQueue.ReverseContents();
-
+                
                 processQueue(resourceQueue);
             }
             else
@@ -4031,7 +4031,7 @@ oneMoreTime:
             IOperation getEnumerator()
             {
                 IOperation result;
-                EvalStackFrame getEnumeratorFrame = PushStackFrame();
+                EvalStackFrame getEnumeratorFrame = PushStackFrame(); 
 
                 if (info.GetEnumeratorMethod != null)
                 {
@@ -4050,7 +4050,7 @@ oneMoreTime:
                     // This must be an error case
                     AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
                     result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
-                                                  type: null, constantValue: default, isImplicit: true);
+                                                  type: null,constantValue: default, isImplicit: true);
                 }
 
                 PopStackFrameAndLeaveRegion(getEnumeratorFrame);
@@ -4196,8 +4196,8 @@ oneMoreTime:
             IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
             {
                 bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                var loopObjectReference = new LocalReferenceExpression(loopObject,
-                                                                       isDeclaration: isInitialization,
+                var loopObjectReference = new LocalReferenceExpression(loopObject, 
+                                                                       isDeclaration: isInitialization, 
                                                                        semanticModel: null,
                                                                        operation.LoopControlVariable.Syntax, loopObject.Type,
                                                                        constantValue: default, isImplicit: true);
@@ -4366,7 +4366,7 @@ oneMoreTime:
                             }
 
                             IOperation literal = new LiteralExpression(semanticModel: null, stepValue.Syntax, stepValue.Type,
-                                                                       constantValue: ConstantValue.Default(stepValueEnumUnderlyingTypeOrSelf.SpecialType).Value,
+                                                                       constantValue: ConstantValue.Default(stepValueEnumUnderlyingTypeOrSelf.SpecialType).Value, 
                                                                        isImplicit: true);
 
                             isUp = new BinaryOperatorExpression(BinaryOperatorKind.GreaterThanOrEqual,
@@ -4776,13 +4776,13 @@ oneMoreTime:
                                                                     isRef: false,
                                                                     new DefaultValueExpression(semanticModel: null,
                                                                                                controlVariableReferenceForAssignment.Syntax,
-                                                                                               controlVariableReferenceForAssignment.Type,
+                                                                                               controlVariableReferenceForAssignment.Type, 
                                                                                                constantValue: default,
-                                                                                               isImplicit: true),
+                                                                                               isImplicit: true), 
                                                                     semanticModel: null,
-                                                                    controlVariableReferenceForAssignment.Syntax,
-                                                                    type: null,
-                                                                    constantValue: default,
+                                                                    controlVariableReferenceForAssignment.Syntax, 
+                                                                    type: null, 
+                                                                    constantValue: default, 
                                                                     isImplicit: true));
 
                         LinkBlocks(CurrentBasicBlock, afterIncrement);
@@ -4896,7 +4896,7 @@ oneMoreTime:
 
             if (defaultBody != null)
             {
-                LinkBlocks(CurrentBasicBlock, defaultBody);
+                LinkBlocks(CurrentBasicBlock, defaultBody); 
             }
 
             Debug.Assert(_currentRegion == switchRegion);
@@ -5066,8 +5066,8 @@ oneMoreTime:
                         break;
 
                     case CaseKind.Range:
-                    // A switch section with a range case must have a condition associated with it.
-                    // This point should not be reachable.
+                        // A switch section with a range case must have a condition associated with it.
+                        // This point should not be reachable.
                     default:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
@@ -5084,7 +5084,7 @@ oneMoreTime:
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable; 
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
@@ -5715,7 +5715,7 @@ oneMoreTime:
                 PushOperand(Visit(initializer));
                 SpillEvalStack();
                 IOperation captured = PeekOperand(); // Keep it on the stack so that we know it is still used.
-
+                
                 // For VB, previously initialized properties can be referenced in subsequent initializers.
                 // We store the capture Id for the property for such property references.
                 // Note that for VB error cases with duplicate property names, all the property symbols are considered equal.
@@ -5850,7 +5850,7 @@ oneMoreTime:
             }
             else
             {
-                return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type,
+                return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
                                                        operation.ConstantValue, IsImplicit(operation));
             }
         }
@@ -6023,7 +6023,7 @@ oneMoreTime:
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
-            return PopStackFrame(PushStackFrame(),
+            return PopStackFrame(PushStackFrame(), 
                                  Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, VisitArray(operation.Children.ToImmutableArray()), IsImplicit(operation)));
         }
 
@@ -6145,7 +6145,7 @@ oneMoreTime:
             {
                 if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation captured))
                 {
-                    return captured is IFlowCaptureReferenceOperation reference ?
+                    return captured is IFlowCaptureReferenceOperation reference ? 
                                GetCaptureReference(reference.Id.Value, operation) :
                                OperationCloner.CloneOperation(captured);
                 }
@@ -6189,7 +6189,7 @@ oneMoreTime:
         {
             return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
-
+        
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -6307,7 +6307,7 @@ oneMoreTime:
             else
             {
                 Debug.Assert(operation.EventReference != null);
-
+                
                 PushOperand(Visit(operation.EventReference));
                 visitedHandler = Visit(operation.HandlerValue);
                 visitedEventReference = PopOperand();
@@ -6368,7 +6368,7 @@ oneMoreTime:
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
             bool isDecrement = operation.Kind == OperationKind.Decrement;
-            return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod,
+            return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, 
                 semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -6473,7 +6473,7 @@ oneMoreTime:
                 PopStackFrame(frame);
                 return initializedInstance;
             }
-
+        
             IOperation result;
             if (_currentStatement == operation)
             {
@@ -6483,7 +6483,7 @@ oneMoreTime:
             {
                 result = visitInvalidOperationExpression(operation);
             }
-
+            
             children.Free();
             return result;
 
