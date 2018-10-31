@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
@@ -40,31 +41,65 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 var defaultLiteral = (LiteralExpressionSyntax)token.Parent;
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
-                var constant = semanticModel.GetConstantValue(defaultLiteral, context.CancellationToken);
-                if (!constant.HasValue)
+                var type = semanticModel.GetTypeInfo(defaultLiteral, context.CancellationToken).ConvertedType;
+                if (type == null || type.TypeKind == TypeKind.Error)
                 {
                     return;
                 }
 
-                var newLiteral = SyntaxGenerator.GetGenerator(context.Document).LiteralExpression(constant.Value);
+                if (type.IsAnonymousType)
+                {
+                    type = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+                }
+
+                var (newExpression, displayText) = GetReplacementExpressionAndText(
+                    context.Document, defaultLiteral, type, semanticModel, context.CancellationToken);
 
                 context.RegisterCodeFix(
                     new MyCodeAction(
-                        c => FixAsync(context.Document, context.Span, newLiteral, c),
-                        newLiteral.ToString()),
+                        c => ReplaceAsync(context.Document, context.Span, newExpression, c),
+                        displayText),
                     context.Diagnostics);
             }
         }
 
-        private static async Task<Document> FixAsync(Document document, TextSpan span, SyntaxNode newLiteral, CancellationToken cancellationToken)
+        private static async Task<Document> ReplaceAsync(
+            Document document, TextSpan span, SyntaxNode newExpression, CancellationToken cancellationToken)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var defaultToken = syntaxRoot.FindToken(span.Start);
             var defaultLiteral = (LiteralExpressionSyntax)defaultToken.Parent;
 
-            var newRoot = syntaxRoot.ReplaceNode(defaultLiteral, newLiteral.WithTriviaFrom(defaultLiteral));
+            var newRoot = syntaxRoot.ReplaceNode(defaultLiteral, newExpression.WithTriviaFrom(defaultLiteral));
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private static (SyntaxNode newExpression, string displayText) GetReplacementExpressionAndText(
+            Document document,
+            LiteralExpressionSyntax defaultLiteral,
+            ITypeSymbol type,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            var constant = semanticModel.GetConstantValue(defaultLiteral, cancellationToken);
+            if (constant.HasValue)
+            {
+                var newLiteral = SyntaxGenerator.GetGenerator(document).LiteralExpression(constant.Value);
+
+                return (newLiteral, newLiteral.ToString());
+            }
+            else
+            {
+                var defaultExpression =
+                    SyntaxFactory.DefaultExpression(
+                        defaultLiteral.Token.WithoutTrivia(),
+                        SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                        type.GenerateTypeSyntax(allowVar: false),
+                        SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+                return (defaultExpression, $"default({type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)})");
+            }
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

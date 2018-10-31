@@ -150,6 +150,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
+        public async Task TestCSharp7_1_InCaseSwitchLabel_Int_NotOnNumericLiteral()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (1) { case [||]0: }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InCaseSwitchLabel_DateTime()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case [||]default: }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case default(System.DateTime): }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InCaseSwitchLabel_TupleType()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        switch ((0, true)) { case [||]default: }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch ((0, true)) { case default((int, bool)): }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
         public async Task TestCSharp7_1_InCaseSwitchLabel_NotForInvalidType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -197,19 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     void M()
     {
         switch () { case [||]default: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCaseSwitchLabel_NotForTupleType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch ((0, true)) { case [||]default: }
     }
 }", parameters: s_csharp7_1);
         }
@@ -281,6 +321,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
+        public async Task TestCSharp7_1_InCasePatternSwitchLabel_Int_NotOnNumericLiteral()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        switch (1) { case [||]0 when true: }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InCasePatternSwitchLabel_DateTime()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case [||]default when true: }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (System.DateTime.Now) { case default(System.DateTime) when true: }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InCasePatternSwitchLabel_TupleType()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        switch ((0, true)) { case [||]default when true: }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch ((0, true)) { case default((int, bool)) when true: }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
         public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForInvalidType1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -328,19 +421,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     void M()
     {
         switch () { case [||]default when true: }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InCasePatternSwitchLabel_NotForTupleType()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        switch ((0, true)) { case [||]default when true: }
     }
 }", parameters: s_csharp7_1);
         }
@@ -407,6 +487,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     void M()
     {
         if (true is [||]default(bool)) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_Bool_NotOnFalseLiteral()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (true is [||]false) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -720,80 +813,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType1()
+        public async Task TestCSharp7_1_InIsPattern_DateTime()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     void M()
-    { 
-        var value = null;
+    {
+        var value = System.DateTime.Now;
         if (value is [||]default) { }
     }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+}",
 @"class C
 {
     void M()
     {
-        if (value is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (null is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (default is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType5()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if (() => { } is [||]default) { }
-    }
-}", parameters: s_csharp7_1);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForMissingExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        if ( is [||]default) { }
+        var value = System.DateTime.Now;
+        if (value is default(System.DateTime)) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -806,14 +842,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
 {
     void M()
     {
-        if (new { a = 0 } is [||]default) { }
+        var value = new { a = 0 };
+        if (value is [||]default) { }
     }
 }",
 @"class C
 {
     void M()
     {
-        if (new { a = 0 } is null) { }
+        var value = new { a = 0 };
+        if (value is null) { }
     }
 }", parameters: s_csharp7_1);
         }
@@ -907,9 +945,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForCustomStruct()
+        public async Task TestCSharp7_1_InIsPattern_CustomStruct()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     struct Struct { }
@@ -917,18 +955,112 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDefaultLiteral
     {
         if (new Struct() is [||]default) { }
     }
+}",
+@"class C
+{
+    struct Struct { }
+    void M()
+    {
+        if (new Struct() is default(Struct)) { }
+    }
 }", parameters: s_csharp7_1);
         }
 
         [Fact]
-        public async Task TestCSharp7_1_InIsPattern_NotForTupleType()
+        public async Task TestCSharp7_1_InIsPattern_TupleType()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+    {
+        if ((0, true) is [||]default) { }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if ((0, true) is default((int, bool))) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    { 
+        var value;
+        if (value is [||]default) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
     {
-        if ((0, true) is [||]default) { }
+        if (value is [||]default) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (null is [||]default) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (default is [||]default) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForInvalidType5()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (() => { } is [||]default) { }
+    }
+}", parameters: s_csharp7_1);
+        }
+
+        [Fact]
+        public async Task TestCSharp7_1_InIsPattern_NotForMissingExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if ( is [||]default) { }
     }
 }", parameters: s_csharp7_1);
         }
