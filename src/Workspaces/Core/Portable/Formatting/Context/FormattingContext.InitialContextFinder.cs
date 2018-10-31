@@ -163,6 +163,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return true;
                     }
 
+                    if (o.ContainsElasticTrivia(_tokenStream) && !o.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
+                    {
+                        return true;
+                    }
+
                     if (!o.Option.IsMaskOn(mask))
                     {
                         return true;

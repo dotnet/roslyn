@@ -272,6 +272,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var operation = operations[i];
 
+                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia 
+                // ignore the operation 
+                if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
+                {
+                    // don't bother to calculate line alignment between tokens 
+                    valuePairs[i] = (operation, shouldSuppress: false, onSameLine: false);
+                    return;
+                }
+
                 var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
                 valuePairs[i] = (operation, shouldSuppress: true, onSameLine: onSameLine);
             }, cancellationToken);
@@ -315,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var data = new SuppressSpacingData(operation.TextSpan, ignoreElastic: option.IsMaskOn(SuppressOption.IgnoreElastic));
+            var data = new SuppressSpacingData(operation.TextSpan);
 
             _suppressSpacingMap.Add(operation.TextSpan);
             _suppressSpacingTree.AddIntervalInPlace(data);
@@ -342,7 +351,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var data = new SuppressWrappingData(operation.TextSpan, ignoreElastic: option.IsMaskOn(SuppressOption.IgnoreElastic));
+            var ignoreElastic = option.IsMaskOn(SuppressOption.IgnoreElasticWrapping) || 
+                                !operation.ContainsElasticTrivia(_tokenStream);
+
+            var data = new SuppressWrappingData(operation.TextSpan, ignoreElastic: ignoreElastic);
 
             _suppressWrappingMap.Add(operation.TextSpan);
             _suppressWrappingTree.AddIntervalInPlace(data);
@@ -573,14 +585,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool IsSpacingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
-            // use edge exclusive version of GetSmallestContainingInterval
-            var data = _suppressSpacingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
-            if (data == null)
+            // For spaces, never ignore elastic trivia because that can 
+            // generate incorrect code
+            if (containsElasticTrivia)
             {
                 return false;
             }
 
-            if (containsElasticTrivia && !data.IgnoreElastic)
+            // use edge exclusive version of GetSmallestContainingInterval
+            var data = _suppressSpacingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
+            if (data == null)
             {
                 return false;
             }

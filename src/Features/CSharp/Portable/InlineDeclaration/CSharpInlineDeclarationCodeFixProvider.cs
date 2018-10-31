@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             SourceText sourceText, IdentifierNameSyntax identifier,
             TypeSyntax newType, VariableDeclaratorSyntax declaratorOpt)
         {
-            newType = newType.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker).WithAdditionalAnnotations(Formatter.Annotation);
+            newType = newType.WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation);
             var designation = SyntaxFactory.SingleVariableDesignation(identifier.Identifier);
 
             if (declaratorOpt != null)

@@ -1656,26 +1656,21 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatGeneratedNodeInInitializer()
         {
-            var code = @"new int[] {
-    0,
-    1
+            var code = @"new bool[] {
+    true,
+    true
 }";
 
-            var expected = @"new int[] {
-    0,
-Identifier Identifier,
-    1
+            var expected = @"new bool[] {
+    true,
+true == false, true
 }";
 
             var tree = SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script);
             var root = tree.GetRoot();
 
-            var declaration = SyntaxFactory.DeclarationExpression(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Identifier")), SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("Identifier")));
-
-            var newType = declaration.Type.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker).WithAdditionalAnnotations(Formatter.Annotation);
-            var strippedDeclaration = SyntaxFactory.DeclarationExpression(newType, declaration.Designation);
-
-            var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { strippedDeclaration });
+            var entry = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+            var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { entry });
             await AssertFormatOnArbitraryNodeAsync(newRoot, expected);
         }
 
