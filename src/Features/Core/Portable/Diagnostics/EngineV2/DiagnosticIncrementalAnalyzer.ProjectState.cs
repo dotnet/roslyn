@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given project doesnt have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
-                    return new DiagnosticAnalysisResult(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
                 }
 
                 // loading data can be cancelled any time.
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given document doesnt have any diagnostics, return empty.
                 if (IsEmpty(lastResult, document.Id))
                 {
-                    return new DiagnosticAnalysisResult(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
                 }
 
                 // loading data can be cancelled any time.
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given document doesnt have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
-                    return new DiagnosticAnalysisResult(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
                 }
 
                 // loading data can be cancelled any time.
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, s_addOthers, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new DiagnosticAnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
 
                 return builder.ToResult();
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new DiagnosticAnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
 
                 return builder.ToResult();
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, s_addOthers, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new DiagnosticAnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
 
                 return builder.ToResult();

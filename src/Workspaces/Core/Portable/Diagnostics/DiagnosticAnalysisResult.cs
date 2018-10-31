@@ -30,17 +30,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
         private readonly ImmutableArray<DiagnosticData> _others;
 
-        public DiagnosticAnalysisResult(ProjectId projectId, VersionStamp version) : this(
-                projectId, version,
-                documentIds: ImmutableHashSet<DocumentId>.Empty,
-                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                others: ImmutableArray<DiagnosticData>.Empty,
-                fromBuild: false)
-        {
-        }
-
         public DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
         {
@@ -87,6 +76,19 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 builder.SyntaxLocals, builder.SemanticLocals, builder.NonLocals, builder.Others,
                 builder.DocumentIds, fromBuild: false)
         {
+        }
+
+        public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
+        {
+            return new DiagnosticAnalysisResult(
+                projectId,
+                version,
+                documentIds: ImmutableHashSet<DocumentId>.Empty,
+                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                others: ImmutableArray<DiagnosticData>.Empty,
+                fromBuild: false);
         }
 
         // aggregated form means it has aggregated information but no actual data.
