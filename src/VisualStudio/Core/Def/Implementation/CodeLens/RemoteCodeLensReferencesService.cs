@@ -124,12 +124,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
                 var results = await spanMapper.MapSpansAsync(document, SpecializedCollections.SingletonEnumerable(span), cancellationToken).ConfigureAwait(false);
-                if (results.IsDefault)
-                {
-                    // handle external mapper not behavior correctly
-                    list.Add(descriptor);
-                    continue;
-                }
+
+                // external component violated contracts. the mapper should preserve input order/count. 
+                // since we gave in 1 span, it should return 1 span back
+                Contract.ThrowIfTrue(results.IsDefaultOrEmpty);
 
                 var result = results[0];
                 if (result.IsDefault)
