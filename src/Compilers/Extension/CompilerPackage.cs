@@ -147,25 +147,12 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
 
             var dte = (DTE)await GetServiceAsync(typeof(SDTE)).ConfigureAwait(true);
             var parts = dte.Version.Split('.');
-            if (parts.Length == 0)
+            if (parts.Length != 2)
             {
-                throw GetBadVisualStudioVersionException(dte.Version);
+                throw new Exception($"Unrecognized Visual Studio Version: {dte.Version}");
             }
 
-            switch (parts[0])
-            {
-                case "14":
-                    return "14.0";
-                case "15":
-                    return "15.0";
-                default:
-                    throw GetBadVisualStudioVersionException(dte.Version);
-            }
-        }
-
-        private static Exception GetBadVisualStudioVersionException(string version)
-        {
-            return new Exception($"Unrecoginzed Visual Studio Version: {version}");
+            return parts[0] + ".0";
         }
 
         private async Task<string> GetMSBuildPathAsync(CancellationToken cancellationToken)

@@ -186,9 +186,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
 
-        Public Function IsConditionalMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalMemberAccessExpression
+        Public Function IsConditionalAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAccessExpression
             Return TypeOf node Is ConditionalAccessExpressionSyntax
         End Function
+
+        Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalAccessExpression
+            Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
+            expression = conditionalAccess.Expression
+            whenNotNull = conditionalAccess.WhenNotNull
+        End Sub
 
         Public Function IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
             Return TypeOf node Is InvocationExpressionSyntax
@@ -202,8 +208,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is GenericNameSyntax
         End Function
 
+        Public Function IsQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQualifiedName
+            Return node.IsKind(SyntaxKind.QualifiedName)
+        End Function
+
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
+        End Function
+
+        Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFactsService.GetNameOfParameter
+            Return TryCast(node, ParameterSyntax)?.Identifier?.Identifier
         End Function
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetDefaultOfParameter
@@ -300,50 +314,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
             Select Case token.Kind()
-                Case SyntaxKind.GroupKeyword,
-                     SyntaxKind.JoinKeyword,
-                     SyntaxKind.IntoKeyword,
-                     SyntaxKind.AggregateKeyword,
-                     SyntaxKind.DistinctKeyword,
-                     SyntaxKind.SkipKeyword,
-                     SyntaxKind.TakeKeyword,
-                     SyntaxKind.LetKeyword,
-                     SyntaxKind.ByKeyword,
-                     SyntaxKind.OrderKeyword,
-                     SyntaxKind.EqualsKeyword,
-                     SyntaxKind.AscendingKeyword,
-                     SyntaxKind.DescendingKeyword,
-                     SyntaxKind.WhereKeyword
-                    Return True
+                Case _
+                    SyntaxKind.JoinKeyword,
+                    SyntaxKind.IntoKeyword,
+                    SyntaxKind.AggregateKeyword,
+                    SyntaxKind.DistinctKeyword,
+                    SyntaxKind.SkipKeyword,
+                    SyntaxKind.TakeKeyword,
+                    SyntaxKind.LetKeyword,
+                    SyntaxKind.ByKeyword,
+                    SyntaxKind.OrderKeyword,
+                    SyntaxKind.WhereKeyword,
+                    SyntaxKind.OnKeyword,
+                    SyntaxKind.FromKeyword,
+                    SyntaxKind.WhileKeyword,
+                    SyntaxKind.SelectKeyword
+                    Return TypeOf token.Parent Is QueryClauseSyntax
+                Case SyntaxKind.GroupKeyword
+                    Return (TypeOf token.Parent Is QueryClauseSyntax) OrElse (token.Parent.IsKind(SyntaxKind.GroupAggregation))
+                Case SyntaxKind.EqualsKeyword
+                    Return TypeOf token.Parent Is JoinConditionSyntax
+                Case SyntaxKind.AscendingKeyword, SyntaxKind.DescendingKeyword
+                    Return TypeOf token.Parent Is OrderingSyntax
                 Case SyntaxKind.InKeyword
-                    Select Case token.Parent.Kind()
-                        Case SyntaxKind.FromClause,
-                             SyntaxKind.SimpleJoinClause,
-                             SyntaxKind.GroupJoinClause
-                            Return True
-                        Case Else
-                            Return False ' e.g. ForEach ... in
-                    End Select
-                Case SyntaxKind.OnKeyword
-                    Select Case token.Parent.Kind()
-                        Case SyntaxKind.SimpleJoinClause,
-                             SyntaxKind.GroupJoinClause
-                            Return True
-                        Case Else
-                            Return False ' e.g. On Error Goto
-                    End Select
-                Case SyntaxKind.FromKeyword
-                    Return token.Parent.Kind() = SyntaxKind.FromClause ' False for e.g. Object collection initializer
-                Case SyntaxKind.WhileKeyword
-                    Select Case token.Parent.Kind()
-                        Case SyntaxKind.SkipWhileClause,
-                             SyntaxKind.TakeWhileClause
-                            Return True
-                        Case Else
-                            Return False ' e.g. Exit While
-                    End Select
-                Case SyntaxKind.SelectKeyword
-                    Return token.Parent.Kind() = SyntaxKind.SelectClause ' False for e.g. Select Case
+                    Return TypeOf token.Parent Is CollectionRangeVariableSyntax
                 Case Else
                     Return False
             End Select
@@ -597,17 +591,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Public Function GetExpressionOfConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalAccessExpression
-            Return TryCast(node, ConditionalAccessExpressionSyntax)?.Expression
-        End Function
+        Public Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfElementAccessExpression
+            Dim invocation = TryCast(node, InvocationExpressionSyntax)
+            If invocation IsNot Nothing Then
+                expression = invocation?.Expression
+                argumentList = invocation?.ArgumentList
+                Return
+            End If
 
-        Public Function GetExpressionOfElementAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfElementAccessExpression
-            Return TryCast(node, InvocationExpressionSyntax)?.Expression
-        End Function
+            If node.Kind() = SyntaxKind.DictionaryAccessExpression Then
+                GetPartsOfMemberAccessExpression(node, expression, argumentList)
+                Return
+            End If
 
-        Public Function GetArgumentListOfElementAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetArgumentListOfElementAccessExpression
-            Return TryCast(node, InvocationExpressionSyntax)?.ArgumentList
-        End Function
+            Return
+        End Sub
 
         Public Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfInterpolation
             Return TryCast(node, InterpolationSyntax)?.Expression
@@ -1469,6 +1467,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentStatement
+            ' VB only has assignment statements, so this can just delegate to that helper
+            GetPartsOfAssignmentExpressionOrStatement(statement, left, operatorToken, right)
+        End Sub
+
+        Public Sub GetPartsOfAssignmentExpressionOrStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfAssignmentExpressionOrStatement
             Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
             left = assignment.Left
             operatorToken = assignment.OperatorToken
@@ -1774,6 +1777,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLiteralExpression
             Return TypeOf node Is LiteralExpressionSyntax
+        End Function
+
+        Public Function IsThisExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThisExpression
+            Return node.IsKind(SyntaxKind.MeExpression)
+        End Function
+
+        Public Function IsBaseExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBaseExpression
+            Return node.IsKind(SyntaxKind.MyBaseExpression)
         End Function
 
         Public Function IsFalseLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression

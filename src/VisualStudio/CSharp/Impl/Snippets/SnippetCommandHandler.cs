@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
@@ -26,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         ICommandHandler<SurroundWithCommandArgs>
     {
         [ImportingConstructor]
-        public SnippetCommandHandler(IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
-            : base(editorAdaptersFactoryService, serviceProvider)
+        public SnippetCommandHandler(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+            : base(threadingContext, editorAdaptersFactoryService, serviceProvider)
         {
         }
 
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(Guids.CSharpLanguageServiceId, textView, subjectBuffer, EditorAdaptersFactoryService);
+                expansionClient = new SnippetExpansionClient(ThreadingContext, Guids.CSharpLanguageServiceId, textView, subjectBuffer, EditorAdaptersFactoryService);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 

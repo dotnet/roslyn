@@ -49,10 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public event EventHandler<EventArgs> SuggestedActionsChanged;
 
             public SuggestedActionsSource(
+                IThreadingContext threadingContext,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
+                : base(threadingContext)
             {
                 _owner = owner;
                 _textView = textView;
@@ -445,6 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         var nestedActions = fix.Action.NestedCodeActions.SelectAsArray(
                             nestedAction => new CodeFixSuggestedAction(
+                                ThreadingContext,
                                 _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                                 nestedAction, getFixAllSuggestedActionSet(nestedAction)));
 
@@ -453,12 +456,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedActionWithNestedActions(
+                            ThreadingContext,
                             _owner, workspace, _subjectBuffer,
                             fixCollection.Provider, fix.Action, set);
                     }
                     else
                     {
                         suggestedAction = new CodeFixSuggestedAction(
+                            ThreadingContext,
                             _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                             fix.Action, getFixAllSuggestedActionSet(fix.Action));
                     }
@@ -512,6 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
                     var fixAllSuggestedAction = new FixAllSuggestedAction(
+                        ThreadingContext,
                         _owner, workspace, _subjectBuffer, fixAllStateForScope,
                         firstDiagnostic, action);
 
@@ -660,18 +666,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     {
                         var nestedActions = action.NestedCodeActions.SelectAsArray(
                             na => new CodeRefactoringSuggestedAction(
+                                ThreadingContext,
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
                             actions: nestedActions, priority: SuggestedActionSetPriority.Medium, applicableToSpan: applicableSpan);
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
+                            ThreadingContext,
                             _owner, workspace, _subjectBuffer,
                             refactoring.Provider, action, set));
                     }
                     else
                     {
                         refactoringSuggestedActions.Add(new CodeRefactoringSuggestedAction(
+                            ThreadingContext,
                             _owner, workspace, _subjectBuffer, refactoring.Provider, action));
                     }
                 }
@@ -740,7 +749,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 else
                 {
-                    await InvokeBelowInputPriority(() =>
+                    await InvokeBelowInputPriorityAsync(() =>
                     {
                         // Make sure we were not disposed between kicking off this work and getting
                         // to this point.

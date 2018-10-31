@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         protected PreviewEngine engine;
 
         public AbstractChange(PreviewEngine engine)
+            : base(engine.ThreadingContext)
         {
             this.engine = engine;
             if (engine.ShowCheckBoxes)

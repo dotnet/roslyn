@@ -4,6 +4,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -49,9 +50,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim state = New CodeModelState(
-                                mockServiceProvider,
-                                project.LanguageServices,
-                                mockVisualStudioWorkspace)
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    mockServiceProvider,
+                    project.LanguageServices,
+                    mockVisualStudioWorkspace,
+                    Nothing)
 
                 Dim mockTextManagerAdapter = New MockTextManagerAdapter()
 

@@ -18,10 +18,10 @@
   </Target>
 
   <!--
-     Work around to fix Intellisense file generation for XAML projects
-     https://github.com/dotnet/project-system/issues/2488
+    Workaround to fix IntelliSense file generation for XAML projects
+    https://github.com/dotnet/project-system/issues/2488
   -->
-  <Target Name="WorkaroundForXAMLIntellisenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
+  <Target Name="WorkaroundForXamlIntelliSenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
     <PropertyGroup>
       <BuildingProject>false</BuildingProject>
     </PropertyGroup>
@@ -39,13 +39,25 @@
     polluting the output dir. Avoid creating these directories.
     https://github.com/dotnet/sdk/issues/1367
 
-    WPF temp-projects do not import .props and .targets files from NuGet packages.
-    (see https://github.com/dotnet/sourcelink/issues/91)
+     WPF temp-projects do not import .props and .targets files from NuGet packages.
+    (see https://github.com/dotnet/sourcelink/issues/91).
+    
+    This breaks SourceLink and Microsoft.NetFramework.ReferenceAssemblies.
   -->
   <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
     <OutDir/>
     <DeterministicSourcePaths>false</DeterministicSourcePaths>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(UsingToolNetFrameworkReferenceAssemblies)' == 'true'">
+    <TargetFrameworkRootPath>$(NuGetPackageRoot)microsoft.netframework.referenceassemblies.$(TargetFramework)\$(MicrosoftNetFrameworkReferenceAssembliesVersion)\build</TargetFrameworkRootPath>
+    <EnableFrameworkPathOverride>false</EnableFrameworkPathOverride>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsWpfTempProject)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Reference Include="mscorlib" Pack="false" />
+  </ItemGroup>
 
   <!--
     Workaround for a race condition https://github.com/Microsoft/msbuild/issues/1479.
@@ -59,23 +71,74 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
-  <!-- 
-    TODO: Move to Roslyn.Toolsets.XUnit.targets - non-test projects should not reference xunit runner.
-  
-    In order to use Test Explorer in Visual Studio as well as leverage LUT testing we need to have both of the follownig packages in 
-    our build.  
+  <!--
+    Workarounds for insufficient support for tools packages by NuGet Pack: https://github.com/NuGet/Home/issues/6321.
 
-        - xunit.runner.visualstudio
-        - xunit
-
-    Both of these include xunit.abstractions.dll in different forms: None and reference
-    respectively.  This creates a double write violation in our build.  The None item
-    is unnecessary for us since we reference the xunit package hence remove it here. 
-
-    https://github.com/xunit/xunit/issues/1651
-    https://github.com/dotnet/roslyn/issues/18753
+    Project that produce tools packages use .nuspec file in order to include all the needed dependencies.
+    This target translates common msbuild properties to NuSpec properties.
   -->
-  <ItemGroup>
-    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\$(xunitrunnervisualstudioVersion)\build\net20\..\_common\xunit.abstractions.dll" />
-  </ItemGroup>
+  <Target Name="InitializeStandardNuspecProperties"
+          BeforeTargets="GenerateNuspec"
+          DependsOnTargets="_InitializeNuspecRepositoryInformationPropertiesWorkaround"
+          Condition="'$(NuspecFile)' != '' and '$(NuspecProperties)' == ''">
+    
+    <PropertyGroup>
+      <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">$(RepositoryUrl)</PackageProjectUrl>
+    </PropertyGroup>
+
+    <Error Text="PackageDescription must be specified" Condition="'$(PackageDescription)' == ''"/>
+    <Error Text="PackageProjectUrl must be specified" Condition="'$(PackageProjectUrl)' == ''"/>
+
+    <ItemGroup>
+      <NuspecProperty Include="PackageId=$(PackageId)"/>
+      <NuspecProperty Include="Authors=$(Authors)"/>
+      <NuspecProperty Include="PackageDescription=$(PackageDescription)"/>
+      <NuspecProperty Include="Copyright=$(Copyright)"/>
+      <NuspecProperty Include="Version=$(PackageVersion)"/>
+      <NuspecProperty Include="Serviceable=$(Serviceable)"/>
+      <NuspecProperty Include="DevelopmentDependency=$(DevelopmentDependency)"/>
+      <NuspecProperty Include="RequireLicenseAcceptance=$(PackageRequireLicenseAcceptance)"/>
+      <NuspecProperty Include="PackageLicenseUrl=$(PackageLicenseUrl)"/>
+      <NuspecProperty Include="PackageProjectUrl=$(PackageProjectUrl)"/>
+      <NuspecProperty Include="PackageIconUrl=$(PackageIconUrl)" Condition="'$(PackageIconUrl)' != ''" />
+      <NuspecProperty Include="PackageReleaseNotes=$(PackageReleaseNotes)" Condition="'$(PackageReleaseNotes)' != ''" />
+      <NuspecProperty Include="PackageTags=$(PackageTags)" Condition="'$(PackageTags)' != ''" />
+      <NuspecProperty Include="RepositoryUrl=$(RepositoryUrl)" Condition="'$(RepositoryUrl)' != ''" />
+      <NuspecProperty Include="RepositoryType=$(RepositoryType)" Condition="'$(RepositoryType)' != ''" />
+      <NuspecProperty Include="RepositoryCommit=$(RepositoryCommit)" Condition="'$(RepositoryCommit)' != ''" />
+      <NuspecProperty Include="ProjectDirectory=$(MSBuildProjectDirectory)"/>
+    </ItemGroup>
+    <PropertyGroup>
+      <NuspecProperties>@(NuspecProperty, ';')</NuspecProperties>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Initialize Repository* properties from properties set by a source control package, if available in the project.
+  -->
+  <Target Name="_InitializeNuspecRepositoryInformationPropertiesWorkaround"
+          DependsOnTargets="InitializeSourceControlInformation"
+          Condition="'$(SourceControlInformationFeatureSupported)' == 'true'">
+    <PropertyGroup>
+      <!-- The project must specify PublishRepositoryUrl=true in order to publish the URL, in order to prevent inadvertent leak of internal URL. -->
+      <RepositoryUrl Condition="'$(RepositoryUrl)' == '' and '$(PublishRepositoryUrl)' == 'true'">$(PrivateRepositoryUrl)</RepositoryUrl>
+      <RepositoryCommit Condition="'$(RepositoryCommit)' == ''">$(SourceRevisionId)</RepositoryCommit>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    NuGet Restore uses PackageId and project name in the same namespace, so that project reference can be interchanged with a package reference.
+    This causes issues however for leaf packages that are not to be referenced (such as analyzer or tools packages) when we want to name the package 
+    the same as an existing project in the solution. In that case we set PackageId to an invalid but unique value for Restore and override it for Pack
+    with the desired name stored in $(NuspecPackageId).
+  -->
+  <PropertyGroup Condition="'$(NuspecPackageId)' != ''">
+    <PackageId>*$(MSBuildProjectName)*</PackageId>
+  </PropertyGroup>
+  
+  <Target Name="_SetPackageId" BeforeTargets="InitializeStandardNuspecProperties;GenerateNuSpec" Condition="'$(NuspecPackageId)' != ''">
+    <PropertyGroup>
+      <PackageId>$(NuspecPackageId)</PackageId>
+    </PropertyGroup>
+  </Target>
 </Project>

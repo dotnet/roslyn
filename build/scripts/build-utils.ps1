@@ -3,9 +3,10 @@
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-# Declare a number of useful variables for other scripts to use
-[string]$repoDir = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-[string]$binariesDir = Join-Path $repoDir "Binaries"
+# Import Arcade functions
+. (Join-Path $PSScriptRoot "tools.ps1")
+
+[string]$binariesDir = Join-Path $RepoRoot "Binaries"
 
 # Handy function for executing a command in powershell and throwing if it 
 # fails.  
@@ -27,18 +28,14 @@ function Exec-Block([scriptblock]$cmd) {
     } 
 }
 
-function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
+# This will exec a process using the console and return it's exit code. This will not 
+# throw when the process fails.
+function Exec-Process([string]$command, [string]$commandArgs) {
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = $command
     $startInfo.Arguments = $commandArgs
-
     $startInfo.UseShellExecute = $false
     $startInfo.WorkingDirectory = Get-Location
-
-    if (-not $useConsole) {
-       $startInfo.RedirectStandardOutput = $true
-       $startInfo.CreateNoWindow = $true
-    }
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
@@ -46,17 +43,55 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
     $finished = $false
     try {
-        if (-not $useConsole) { 
-            # The OutputDataReceived event doesn't fire as events are sent by the 
-            # process in powershell.  Possibly due to subtlties of how Powershell
-            # manages the thread pool that I'm not aware of.  Using blocking
-            # reading here as an alternative which is fine since this blocks 
-            # on completion already.
-            $out = $process.StandardOutput
-            while (-not $out.EndOfStream) {
-                $line = $out.ReadLine()
-                Write-Output $line
-            }
+        while (-not $process.WaitForExit(100)) { 
+            # Non-blocking loop done to allow ctr-c interrupts
+        }
+
+        $finished = $true
+        $process.ExitCode
+    }
+    finally {
+        # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+        # way kill the process
+        if (-not $finished) {
+            $process.Kill()
+        }
+    }
+}
+
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
+    if ($useConsole) {
+        $exitCode = Exec-Process $command $commandArgs
+        if ($exitCode -ne 0) { 
+            throw "Command failed to execute with exit code $($exitCode): $command $commandArgs" 
+        }
+        return
+    }
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $command
+    $startInfo.Arguments = $commandArgs
+
+    $startInfo.UseShellExecute = $false
+    $startInfo.WorkingDirectory = Get-Location
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.CreateNoWindow = $true
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    $process.Start() | Out-Null
+
+    $finished = $false
+    try {
+        # The OutputDataReceived event doesn't fire as events are sent by the 
+        # process in powershell.  Possibly due to subtlties of how Powershell
+        # manages the thread pool that I'm not aware of.  Using blocking
+        # reading here as an alternative which is fine since this blocks 
+        # on completion already.
+        $out = $process.StandardOutput
+        while (-not $out.EndOfStream) {
+            $line = $out.ReadLine()
+            Write-Output $line
         }
 
         while (-not $process.WaitForExit(100)) { 
@@ -65,7 +100,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
         $finished = $true
         if ($process.ExitCode -ne 0) { 
-            throw "Command failed to execute: $command $commandArgs" 
+            throw "Command failed to execute with exit code $($process.ExitCode): $command $commandArgs" 
         }
     }
     finally {
@@ -110,57 +145,12 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
 # SDK. Returns the location to the dotnet exe
 function Ensure-DotnetSdk() {
-    # Check to see if the specified dotnet installations meets our build requirements
-    function Test-DotnetDir([string]$dotnetDir, [string]$runtimeVersion, [string]$sdkVersion) {
-        $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
-        $runtimePath = Join-Path $dotnetDir "shared\Microsoft.NETCore.App\$runtimeVersion"
-        return (Test-Path $sdkPath) -and (Test-Path $runtimePath)
-    }
+  if (-not (Test-Path global:_dotNetExe)) {
+    $global:_dotNetExe = Join-Path (InitializeDotNetCli -install:$true) "dotnet.exe"
+  }
 
-    $sdkVersion = Get-ToolVersion "dotnetSdk"
-    $runtimeVersion = Get-ToolVersion "dotnetRuntime"
-
-    # Get the path to dotnet.exe. This is the first path on %PATH% that contains the 
-    # dotnet.exe instance. Many SDK tools use this to locate items like the SDK.
-    function Get-DotnetDir() { 
-        foreach ($part in ${env:PATH}.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries)) {
-            $dotnetExe = Join-Path $part "dotnet.exe"
-            if (Test-Path $dotnetExe) {
-                return $part
-            }
-        }
-
-        return $null
-    }
-
-    # First check that dotnet is already on the path with the correct SDK version
-    $dotnetDir = Get-DotnetDir
-    if (($dotnetDir -ne $null) -and (Test-DotnetDir $dotnetDir $runtimeVersion $sdkVersion)) { 
-        return (Join-Path $dotnetDir "dotnet.exe")
-    }
-
-    # Ensure the downloaded dotnet of the appropriate version is located in the 
-    # Binaries\Tools directory
-    $toolsDir = Join-Path $binariesDir "Tools"
-    $cliDir = Join-Path $toolsDir "dotnet"
-    if (-not (Test-DotnetDir $cliDir $runtimeVersion $sdkVersion)) {
-        Write-Host "Downloading CLI $sdkVersion"
-        Create-Directory $cliDir
-        Create-Directory $toolsDir
-        $destFile = Join-Path $toolsDir "dotnet-install.ps1"
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $webClient = New-Object -TypeName "System.Net.WebClient"
-        $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
-        Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
-        Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
-    }
-    else {
-        ${env:PATH} = "$cliDir;${env:PATH}"
-    }
-
-    return (Join-Path $cliDir "dotnet.exe")
+  return $global:_dotNetExe
 }
-
 # Ensure a basic tool used for building our Repo is installed and 
 # return the path to it.
 function Ensure-BasicTool([string]$name, [string]$version = "") {
@@ -170,10 +160,9 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
 
     $p = Join-Path (Get-PackagesDir) "$($name)\$($version)"
     if (-not (Test-Path $p)) {
-        $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
-        $dotnet = Ensure-DotnetSdk
+        $toolsetProject = Join-Path $RepoRoot "build\ToolsetPackages\RoslynToolset.csproj"
         Write-Host "Downloading $name"
-        Restore-Project $dotnet $toolsetProject
+        Restore-Project $toolsetProject
     }
     
     return $p
@@ -193,9 +182,7 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
         }
     }
 
-    $p = Join-Path $msbuildDir "msbuild.exe"
-    $dotnetExe = Ensure-DotnetSdk
-    return $p
+    return Join-Path $msbuildDir "msbuild.exe"
 }
 
 # Returns the msbuild exe path and directory as a single return. This makes it easy 
@@ -233,12 +220,12 @@ function Get-VersionCore([string]$name, [string]$versionFile) {
 
 # Return the version of the NuGet package as used in this repo
 function Get-PackageVersion([string]$name) {
-    return Get-VersionCore $name (Join-Path $repoDir "build\Targets\Packages.props")
+    return Get-VersionCore $name (Join-Path $RepoRoot "build\Targets\Packages.props")
 }
 
 # Return the version of the specified tool
 function Get-ToolVersion([string]$name) {
-    return Get-VersionCore $name (Join-Path $repoDir "build\Targets\Tools.props")
+    return Get-VersionCore $name (Join-Path $RepoRoot "build\Targets\Tools.props")
 }
 
 # Locate the directory where our NuGet packages will be deployed.  Needs to be kept in sync
@@ -354,7 +341,7 @@ function Test-SupportedVisualStudioVersion([string]$version) {
 # meets our minimal requirements for the Roslyn repo.
 function Get-VisualStudioDirAndId() {
     $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
-    $output = Exec-Command $vswhere "-requires Microsoft.Component.MSBuild -format json" | Out-String
+    $output = Exec-Command $vswhere "-prerelease -requires Microsoft.Component.MSBuild -format json" | Out-String
     $j = ConvertFrom-Json $output
     foreach ($obj in $j) { 
 
@@ -391,10 +378,10 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$logFilePath = "") {
+function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
     $projectFilePath = $projectFileName
     if (-not (Test-Path $projectFilePath)) {
-        $projectFilePath = Join-Path $repoDir $projectFileName
+        $projectFilePath = Join-Path $RepoRoot $projectFileName
     }
 
     $logArg = ""
@@ -402,7 +389,7 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$
         $logArg = " /bl:$logFilePath"
     }
 
-    Exec-Console $dotnet "restore --verbosity quiet $projectFilePath $logArg"
+    Exec-Console (Ensure-DotNetSdk) "restore --verbosity quiet $projectFilePath $logArg"
 }
 
 function Unzip-File([string]$zipFilePath, [string]$outputDir) {

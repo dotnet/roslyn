@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return inlines;
 
                 case StandardTableKeyNames2.DefinitionIcon:
-                    return DefinitionItem.Tags.GetGlyph().GetImageMoniker();
+                    return DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
                 }
 
                 return null;

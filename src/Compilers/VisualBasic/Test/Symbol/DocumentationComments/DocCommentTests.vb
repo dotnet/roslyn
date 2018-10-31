@@ -1114,7 +1114,7 @@ BC42024: Unused local variable: 'x'.
         End Sub
 
         <WorkItem(685473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685473")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub Bug685473()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -3043,7 +3043,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub Tags_Summary_Permission_See_SeeAlso_List_Para()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -4318,7 +4318,7 @@ AssemblyName
 withDiagnostics:=False)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub BC42305WRN_XMLDocDuplicateXMLNode()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -4512,7 +4512,7 @@ AssemblyName
 </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsDesktopTypes)>
         Public Sub BC42305WRN_XMLDocDuplicateXMLNode_NoError()
             CompileCheckDiagnosticsAndXmlDocument(
 <compilation name="AssemblyName">
@@ -8441,7 +8441,7 @@ AssemblyName
     </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub Include_Value()
             Dim xmlText =
             <![CDATA[
@@ -8700,7 +8700,7 @@ AssemblyName
     </xml>, ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub Include_TypeParamAndTypeParamRef()
             Dim xmlText =
             <![CDATA[
@@ -11825,7 +11825,7 @@ End Class
  </summary>
  <remarks>nothing</remarks>
 </member>
-]]>.Value.Replace(vbLf, vbCrLf).Trim
+]]>.Value.Replace(vbLf, Environment.NewLine).Trim
 
             Dim sourceSymbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
             Assert.Equal(expectedXmlText, sourceSymbol.GetDocumentationCommentXml())
@@ -12122,10 +12122,10 @@ xmlDoc)
                        DocumentationMode.Diagnose,
                        DocumentationMode.Parse))
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(sources,
-                                                                        additionalRefs,
-                                                                        TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
-                                                                        parseOptions)
+            Dim compilation = CreateCompilation(sources,
+                                                additionalRefs,
+                                                TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
+                                                parseOptions)
             If errors IsNot Nothing Then
                 Dim diagnostics As Diagnostic()
                 Dim saveUICulture As Globalization.CultureInfo = Nothing
@@ -12197,7 +12197,9 @@ xmlDoc)
                         xmlDoc = CStr(stringMapper(xmlDoc))
                     End If
 
-                    Assert.Equal(expectedDocXml.Value.Replace(vbLf, vbCrLf).Trim(), xmlDoc)
+                    Assert.Equal(
+                        expectedDocXml.Value.Trim(),
+                        xmlDoc.Replace(vbCrLf, vbLf).Trim())
                 End Using
             End Using
         End Sub
@@ -12443,6 +12445,66 @@ End Class
             Dim name = FindNodesOfTypeFromText(Of NameSyntax)(tree, "U").Single()
             Dim typeParameter = DirectCast(model.GetSymbolInfo(name).Symbol, TypeParameterSymbol)
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"))
+        End Sub
+
+        <Fact>
+        Public Sub LookupOnCrefOfTupleType()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+''' <summary>
+''' <see cref="ValueTuple(Of U,U)"/>
+''' </summary>
+Public Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim references = TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime)
+            Dim compilation = CreateEmptyCompilationWithReferences(
+                sources,
+                references)
+
+            Dim cMember = compilation.GetMember(Of NamedTypeSymbol)("Test")
+            Dim xmlDocumentationString = cMember.GetDocumentationCommentXml()
+            Dim xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString)
+            Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
+
+            Assert.Equal("T:System.ValueTuple`2", cref)
+        End Sub
+
+        <Fact>
+        Public Sub LookupOnCrefOfTupleTypeField()
+
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+''' <summary>
+''' <see cref="ValueTuple(Of U,U).Item1"/>
+''' </summary>
+Public Class Test
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim references = TargetFrameworkUtil.GetReferences(TargetFramework.StandardAndVBRuntime)
+            Dim compilation = CreateEmptyCompilationWithReferences(
+                sources,
+                references)
+
+            Dim cMember = compilation.GetMember(Of NamedTypeSymbol)("Test")
+            Dim xmlDocumentationString = cMember.GetDocumentationCommentXml()
+            Dim xml = System.Xml.Linq.XDocument.Parse(xmlDocumentationString)
+            Dim cref = xml.Descendants("see").Single().Attribute("cref").Value
+
+            Assert.Equal("F:System.ValueTuple`2.Item1", cref)
         End Sub
 
     End Class

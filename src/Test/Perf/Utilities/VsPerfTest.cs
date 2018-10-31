@@ -19,7 +19,7 @@ namespace Roslyn.Test.Performance.Utilities
         private readonly string[] _scenarios;
         private static readonly string _nugetPackagesPath = System.Environment.GetEnvironmentVariable("NUGET_PACKAGES") ??
             Path.Combine(System.Environment.GetEnvironmentVariable("UserProfile"), ".nuget", "packages");
-        private static readonly string _installerPath = Path.Combine(_nugetPackagesPath, "roslyntools.microsoft.vsixexpinstaller", "0.4.0-beta", "tools", "vsixexpinstaller.exe");
+        private static readonly string _installerPath = Path.Combine(_nugetPackagesPath, "roslyntools.vsixexpinstaller", "1.0.0-beta2-63222-01", "tools", "vsixexpinstaller.exe");
 
         public VsPerfTest(
             string testTemplateName,

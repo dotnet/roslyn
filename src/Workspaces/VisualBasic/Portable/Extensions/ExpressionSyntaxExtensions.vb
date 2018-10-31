@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsInRefContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            Dim simpleArgument = TryCast(expression.Parent, SimpleArgumentSyntax)
+            Dim simpleArgument = TryCast(expression?.Parent, SimpleArgumentSyntax)
 
             If simpleArgument Is Nothing Then
                 Return False
@@ -393,14 +393,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
-                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                If expression.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
+                   expression.Parent.IsParentKind(SyntaxKind.SimpleArgument) Then
+
+                    ' <C(Prop:=1)>
+                    ' this is only a write to Prop
                     Return True
                 End If
 
-                Return False
-            End If
+                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                        Return True
+                    End If
 
-            Return False
+                    Return False
+                End If
+
+                Return False
         End Function
 
         <Extension()>

@@ -43,9 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private readonly IAsynchronousOperationListener _waiter;
 
         public AbstractSnippetInfoService(
+            IThreadingContext threadingContext,
             Shell.SVsServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             AssertIsForeground();
 
@@ -140,10 +142,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             // The rest of the process requires being on the UI thread, see the explanation on
             // PopulateSnippetCacheFromExpansionEnumeration for details
-            await Task.Factory.StartNew(() => PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                ForegroundTaskScheduler).ConfigureAwait(false);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }
 
         /// <remarks>

@@ -431,7 +431,7 @@ BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in m
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Locals()
             Dim sourceTemplate = <![CDATA[
 Class C
@@ -454,7 +454,7 @@ BC42373: Local name '<%= s_longLocalName %>1' is too long for PDB.  Consider sho
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstantLocals()
             Dim sourceTemplate = <![CDATA[
 Class C

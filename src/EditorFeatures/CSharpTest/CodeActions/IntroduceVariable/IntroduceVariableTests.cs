@@ -1,13 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new IntroduceVariableCodeRefactoringProvider();
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => GetNestedActions(actions);
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -5288,7 +5294,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example([|2+2|])]
     public string Bar { get; set; }
@@ -5297,7 +5303,7 @@ class C
 {
     private const int {|Rename:V|} = 2 + 2;
 
-    public string Foo { get; set; }
+    public string Goo { get; set; }
 
     [Example(V)]
     public string Bar { get; set; }
@@ -5740,10 +5746,161 @@ class C
 class C
 {
     [Example( [| |] )]
-    public void Foo()
+    public void Goo()
     {
     }
 }");
+        }
+
+        [WorkItem(28941, "https://github.com/dotnet/roslyn/issues/28941")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestElementAccessExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        var goo = [|getArray()|][0];
+    }
+}",
+@"using System;
+class C
+{
+    byte[] getArray() => null;
+    void test()
+    {
+        byte[] {|Rename:v|} = getArray();
+        var goo = v[0];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIndexExpression()
+        {
+            var code = TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|^1|]);
+    }
+}";
+
+            var expected = TestSources.Index + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Index {|Rename:value|} = ^1;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_None()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = ..;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Right()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|..1|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = ..1;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Left()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = 1..;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestRangeExpression_Both()
+        {
+            var code = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine([|1..2|]);
+    }
+}";
+
+            var expected = TestSources.Index + TestSources.Range + @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Range {|Rename:value|} = 1..2;
+        System.Console.WriteLine(value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
         }
     }
 }

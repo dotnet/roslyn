@@ -1444,6 +1444,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
+            protected override bool ProcessReferencesInCurrentModule
+                => false;
+
             public override void Visit(CommonPEModuleBuilder module)
             {
                 this.Visit(((DeltaMetadataWriter)this.metadataWriter).GetTopLevelTypes(module));

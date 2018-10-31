@@ -141,6 +141,12 @@
   <data name="Invert_If" xml:space="preserve">
     <value>Invert If</value>
   </data>
+  <data name="Add_Await" xml:space="preserve">
+    <value>Add Await</value>
+  </data>
+  <data name="Add_Await_and_ConfigureAwaitFalse" xml:space="preserve">
+    <value>Add Await and 'ConfigureAwait(false)'</value>
+  </data>
   <data name="Move_the_0_statement_to_line_1" xml:space="preserve">
     <value>Move the '{0}' statement to line {1}.</value>
   </data>
@@ -1229,6 +1235,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_Async_Sub" xml:space="preserve">
     <value>Make Async Sub</value>
   </data>
+  <data name="Multiple_Types" xml:space="preserve">
+    <value>&lt;Multiple Types&gt;</value>
+  </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
@@ -1249,5 +1258,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
+  </data>
+  <data name="Add_missing_Imports" xml:space="preserve">
+    <value>Add missing Imports</value>
+    <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
   </data>
 </root>

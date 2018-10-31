@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpAddBracesDiagnosticAnalyzer :
-        AbstractCodeStyleDiagnosticAnalyzer
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,

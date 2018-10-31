@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     }
                 }
 
-                return TryFinishInitializingState(service, document, cancellationToken);
+                return TryFinishInitializingStateAsync(service, document, cancellationToken);
             }
 
             private bool TryInitializeExplicitInterface(

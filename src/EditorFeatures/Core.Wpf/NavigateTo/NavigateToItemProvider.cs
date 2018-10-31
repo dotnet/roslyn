@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 kinds,
                 _cancellationTokenSource.Token);
 
-            searcher.Search();
+            _ = searcher.SearchAsync();
         }
 
         private static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate TryGetNavigateToSearchService(Project project)

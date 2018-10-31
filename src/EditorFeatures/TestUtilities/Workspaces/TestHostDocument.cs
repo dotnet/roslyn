@@ -198,8 +198,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (_textView == null)
             {
-                TestWorkspace.ResetThreadAffinity();
-
                 WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(TestHostDocument)}.{nameof(GetTextView)}");
 
                 var factory = _exportProvider.GetExportedValue<ITextEditorFactoryService>();

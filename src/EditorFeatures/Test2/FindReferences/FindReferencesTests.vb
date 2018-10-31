@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
@@ -160,15 +161,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Function
         End Class
 
-        Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        Private Async Function TestAPI(
+                definition As XElement,
+                Optional searchSingleFileOnly As Boolean = False,
+                Optional uiVisibleOnly As Boolean = False,
+                Optional options As FindReferencesSearchOptions = Nothing) As Task
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=False)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=True)
         End Function
 
         Private Async Function TestAPI(definition As XElement,
                                        searchSingleFileOnly As Boolean,
                                        uiVisibleOnly As Boolean,
+                                       options As FindReferencesSearchOptions,
                                        outOfProcess As Boolean) As Task
+            options = If(options, FindReferencesSearchOptions.Default)
             Using workspace = TestWorkspace.Create(definition)
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
@@ -188,11 +195,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
 
-                        result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope))
+                        Dim project = document.Project
+                        result = result.Concat(
+                            Await SymbolFinder.TestAccessor.FindReferencesAsync(
+                                symbol, project.Solution,
+                                progress:=Nothing, documents:=scope, options, CancellationToken.None))
                     End If
 
                     Dim actualDefinitions =
-                        result.FilterToItemsToShow().
+                        result.FilterToItemsToShow(options).
                                Where(Function(s) Not IsImplicitNamespace(s)).
                                SelectMany(Function(r) r.Definition.GetDefinitionLocationsToShow()).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
@@ -214,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Next
 
                     Dim actualReferences =
-                        result.FilterToItemsToShow().
+                        result.FilterToItemsToShow(options).
                                SelectMany(Function(r) r.Locations.Select(Function(loc) loc.Location)).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
                                Distinct().

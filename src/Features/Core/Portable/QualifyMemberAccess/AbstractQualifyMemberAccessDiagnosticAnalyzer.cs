@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         TLanguageKindEnum,
         TExpressionSyntax,
         TSimpleNameSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax
@@ -86,6 +86,14 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (instanceOperation.Kind != OperationKind.InstanceReference)
+            {
+                return;
+            }
+
+            // Initializer lists are IInvocationOperation which if passed to GetApplicableOptionFromSymbolKind
+            // will incorrectly fetch the options for method call.
+            // We still want to handle InstanceReferenceKind.ContainingTypeInstance
+            if ((instanceOperation as IInstanceReferenceOperation)?.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
             {
                 return;
             }

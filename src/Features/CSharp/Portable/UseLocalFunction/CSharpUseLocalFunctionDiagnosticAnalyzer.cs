@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     ///     }
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var invocationLocations, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
             {
                 return;
             }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
 
-            additionalLocations = additionalLocations.AddRange(invocationLocations);
+            additionalLocations = additionalLocations.AddRange(referenceLocations);
 
             if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
@@ -209,12 +209,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
-            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> invocationLocations, CancellationToken cancellationToken)
+            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> referenceLocations, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
-            var invocations = ArrayBuilder<Location>.GetInstance();
-            invocationLocations = ImmutableArray<Location>.Empty;
+            var references = ArrayBuilder<Location>.GetInstance();
+            referenceLocations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
             {
@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                         if (nodeToCheck.Parent is InvocationExpressionSyntax invocationExpression)
                         {
-                            invocations.Add(invocationExpression.GetLocation());
+                            references.Add(invocationExpression.GetLocation());
                         }
                         else if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
                         {
                             if (memberAccessExpression.Parent is InvocationExpressionSyntax explicitInvocationExpression &&
                                 memberAccessExpression.Name.Identifier.ValueText == WellKnownMemberNames.DelegateInvokeName)
                             {
-                                invocations.Add(explicitInvocationExpression.GetLocation());
+                                references.Add(explicitInvocationExpression.GetLocation());
                             }
                             else
                             {
@@ -263,6 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                                 // local function.
                                 return false;
                             }
+                        }
+                        else
+                        {
+                            references.Add(nodeToCheck.GetLocation());
                         }
 
                         var convertedType = semanticModel.GetTypeInfo(nodeToCheck, cancellationToken).ConvertedType;
@@ -284,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
-            invocationLocations = invocations.ToImmutableAndFree();
+            referenceLocations = references.ToImmutableAndFree();
             return true;
         }
 

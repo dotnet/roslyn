@@ -624,11 +624,11 @@
   <data name="Automatic_Formatting" xml:space="preserve">
     <value>Automatic Formatting</value>
   </data>
-  <data name="Extract_method_failed_with_following_reasons_colon" xml:space="preserve">
-    <value>Extract method failed with following reasons :</value>
+  <data name="Extract_method_encountered_the_following_issues" xml:space="preserve">
+    <value>Extract method encountered the following issues:</value>
   </data>
-  <data name="Do_you_still_want_to_proceed_it_will_generate_broken_code" xml:space="preserve">
-    <value>Do you still want to proceed? it will generate broken code.</value>
+  <data name="Do_you_still_want_to_proceed_This_may_produce_broken_code" xml:space="preserve">
+    <value>Do you still want to proceed? This may produce broken code.</value>
   </data>
   <data name="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed" xml:space="preserve">
     <value>We can fix the error by not making struct "out/ref" parameter(s).
@@ -821,7 +821,13 @@ Do you want to proceed?</value>
   <data name="Applying_changes" xml:space="preserve">
     <value>Applying changes</value>
   </data>
+  <data name="String_Escape_Character" xml:space="preserve">
+    <value>String - Escape Character</value>
+  </data>
   <data name="Change_configuration" xml:space="preserve">
     <value>Change configuration</value>
+  </data>
+  <data name="Paste_Tracking" xml:space="preserve">
+    <value>Paste Tracking</value>
   </data>
 </root>

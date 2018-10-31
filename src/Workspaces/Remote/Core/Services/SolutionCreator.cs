@@ -372,19 +372,19 @@ namespace Microsoft.CodeAnalysis.Remote
             var newDocumentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
             // there is no api to change these once document is created
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Id == newDocumentInfo.Id);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Name == newDocumentInfo.Name);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.FilePath == newDocumentInfo.FilePath);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
+            Contract.ThrowIfFalse(document.State.Attributes.Id == newDocumentInfo.Id);
+            Contract.ThrowIfFalse(document.State.Attributes.Name == newDocumentInfo.Name);
+            Contract.ThrowIfFalse(document.State.Attributes.FilePath == newDocumentInfo.FilePath);
+            Contract.ThrowIfFalse(document.State.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
 
-            if (document.State.Info.Attributes.Folders != newDocumentInfo.Folders)
+            if (document.State.Attributes.Folders != newDocumentInfo.Folders)
             {
                 // additional document can't change folder once created
                 Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id);
             }
 
-            if (document.State.Info.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
+            if (document.State.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
                 // additional document can't change sourcecode kind once created
                 Contract.ThrowIfTrue(additionalText);
@@ -621,9 +621,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
         {
-            // have this to avoid error on async
-            await Task.CompletedTask.ConfigureAwait(false);
-
 #if DEBUG
             var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -631,8 +628,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
-
-            Debug.Assert(false, "checksum not same");
 
             var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
             await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
@@ -649,9 +644,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             Logger.Log(FunctionId.SolutionCreator_AssetDifferences, sb.ToString());
-#endif
 
-            return;
+            Debug.Fail("Differences detected in solution checksum: " + sb.ToString());
+#else
+
+            // have this to avoid error on async
+            await Task.CompletedTask.ConfigureAwait(false);
+#endif
         }
 
         private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)

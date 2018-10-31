@@ -10,17 +10,12 @@
     <When Condition="'$(RoslynProjectType)' == 'UnitTest' OR '$(RoslynProjectType)' == 'UnitTestPortable'">
       <PropertyGroup>
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
-        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
-        <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)UnitTests\$(MSBuildProjectName)\</OutputPath>
         <IsShipping>false</IsShipping>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
       <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
-        <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Vsix\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
     </When>
@@ -34,27 +29,17 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Library'">
       <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_CopyProjectReferences>false</_CopyProjectReferences>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
-        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'Exe'">
       <PropertyGroup>
-        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
-        <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
-        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == '' AND '$(OutputType)' == 'WinExe'">
       <PropertyGroup>
-        <_NeedRuntimeAssets>true</_NeedRuntimeAssets> 
-        <CopyNuGetImplementations>true</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
-        <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
       </PropertyGroup>
     </When>
   </Choose>
@@ -65,16 +50,13 @@
          identifier to the end of the output path
          https://github.com/dotnet/roslyn/issues/23547
     -->
-    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != ''">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
+    <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' != '' AND '$(MSBuildProjectName)' != 'IlAsmDeploy'">$(OutputPath)$(RuntimeIdentifier)\$(PublishDirName)\</PublishDir>
     <PublishDir Condition="'$(PublishDir)' != '' AND '$(RuntimeIdentifier)' == ''">$(OutputPath)$(TargetFramework)\$(PublishDirName)\</PublishDir>
-
-    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFrameworks)' != ''">
     <IntermediateOutputPath>$(IntermediateOutputPath)$(TargetFramework.ToLowerInvariant())\</IntermediateOutputPath>
-    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
-    <DocumentationFile Condition="'$(GenerateDocumentationFile)' == 'true' AND '$(Language)' == 'CSharp'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
+    <OutputPath Condition="'$(RoslynProjectType)' != 'SourcePackage' and '$(RoslynProjectType)' != 'Custom'">$(OutputPath)$(TargetFramework.ToLowerInvariant())\</OutputPath>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -101,20 +83,5 @@
       </PropertyGroup>
     </When>
   </Choose>
-
-  <!--
-    If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
-    Use the latest Framework toolset to build, but set msbuild properties below
-    so to avoid 4.5 specific artifacts to be added to the compilation (references, attributes).
-  -->
-  <PropertyGroup Condition="'$(TargetNetFX20)' == 'true'">
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
-    <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackageRoot)\Microsoft.NetFX20\$(MicrosoftNetFX20Version)\lib\net20</FrameworkPathOverride>
-    <ExecuteAsTool>false</ExecuteAsTool>
-    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
-  </PropertyGroup>
-
 </Project>
 

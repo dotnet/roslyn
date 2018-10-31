@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -49,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         [ImportingConstructor]
         public CodeFixService(
+            IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
             [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany]IEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>> suppressionProviders)
-            : base(assertIsForeground: false)
+            : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
             _diagnosticService = service;
@@ -519,13 +521,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // Have to see if this fix is still applicable.  Jump to the foreground thread
                     // to make that check.
-                    var applicable = await Task.Factory.StartNew(() =>
-                        {
-                            this.AssertIsForeground();
-                            return fix.Action.IsApplicable(document.Project.Solution.Workspace);
-                        },
-                        cancellationToken, TaskCreationOptions.None, ForegroundTaskScheduler).ConfigureAwait(false);
-                    this.AssertIsBackground();
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+                    var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
+
+                    await TaskScheduler.Default;
 
                     if (applicable)
                     {

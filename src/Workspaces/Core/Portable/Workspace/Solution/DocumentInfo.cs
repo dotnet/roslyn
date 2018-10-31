@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        private DocumentInfo(DocumentAttributes attributes, TextLoader loader)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader)
         {
             Attributes = attributes;
             TextLoader = loader;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var newId = id ?? Id;
                 var newName = name ?? Name;
-                var newFolders = folders ?? Folders;
+                var newFolders = folders?.ToImmutableReadOnlyListOrEmpty() ?? Folders;
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;

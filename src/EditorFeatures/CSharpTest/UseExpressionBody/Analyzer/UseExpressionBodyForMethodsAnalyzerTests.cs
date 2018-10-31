@@ -504,5 +504,161 @@ class C
     int M(bool b) => 0;
 }", options: UseExpressionBody, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
         }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async void Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask Goo() [|=>|] await Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async ValueTask Goo()
+    {
+        await Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task<int> Goo() [|=>|] await Bar();
+
+    Task<int> Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    async Task<int> Goo()
+    {
+        return await Bar();
+    }
+
+    Task<int> Bar() { }
+}", options: UseBlockBody);
+        }
+
+        [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyAsync6()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    Task Goo() [|=>|] Bar();
+
+    Task Bar() { }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    Task Goo()
+    {
+        return Bar();
+    }
+
+    Task Bar() { }
+}", options: UseBlockBody);
+        }
     }
 }

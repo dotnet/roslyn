@@ -48,7 +48,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
         {
             var task = _provider.WaitAllAsync(
                 featureNames,
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
                 eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
             WaitForTask(task);
         }
@@ -73,7 +75,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 GC.KeepAlive(tokens);
 
                 // make sure pending task that require UI threads to finish as well.
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
                 Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
             }
         }
     }

@@ -431,18 +431,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return forEachControlVariable IsNot Nothing AndAlso forEachControlVariable.IsTypeInferred(Me.OriginalSemanticModel)
         End Function
 
-        Protected Overrides Function IsInvocableExpression(node As SyntaxNode) As Boolean
-            If node.IsKind(SyntaxKind.InvocationExpression) OrElse node.IsKind(SyntaxKind.ObjectCreationExpression) Then
-                Return True
-            End If
-
-            If node.IsKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
-                Not node.IsParentKind(SyntaxKind.InvocationExpression) AndAlso
-                Not node.IsParentKind(SyntaxKind.ObjectCreationExpression) Then
-                Return True
-            End If
-
-            Return False
+        Protected Overrides Function ExpressionMightReferenceMember(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.InvocationExpression) OrElse
+                node.IsKind(SyntaxKind.SimpleMemberAccessExpression)
         End Function
 
         Protected Overrides Function GetReceiver(expression As ExpressionSyntax) As ExpressionSyntax
@@ -477,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Dim argumentList = GetArgumentList(expression)
             Return If(argumentList IsNot Nothing,
                       argumentList.Arguments.AsImmutable(),
-                      ImmutableArray.Create(Of ArgumentSyntax)())
+                      Nothing)
         End Function
 
         Private Shared Function GetArgumentList(expression As ExpressionSyntax) As ArgumentListSyntax
@@ -544,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
 
-            If originalConversion Is Nothing OrElse newConversion Is Nothing
+            If originalConversion Is Nothing OrElse newConversion Is Nothing Then
                 Return False
             End If
 

@@ -135,9 +135,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return true;
                 }
 
-                if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary)
+                if (symbol.Kind == SymbolKind.Method)
                 {
-                    return true;
+                    var methodSymbol = (IMethodSymbol)symbol;
+                    if (methodSymbol.MethodKind == MethodKind.Ordinary ||
+                        methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -908,6 +914,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);
         }
+
+        public static bool IsValidGetAwaiter(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetAwaiter &&
+            VerifyGetAwaiter(symbol);
 
         private static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
         {

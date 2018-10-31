@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the types of the parameters of a member symbol.  Should be a method, property, or event.
         /// </summary>
-        internal static ImmutableArray<TypeSymbol> GetParameterTypes(this Symbol member)
+        internal static ImmutableArray<TypeSymbolWithAnnotations> GetParameterTypes(this Symbol member)
         {
             switch (member.Kind)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterTypes;
                 case SymbolKind.Event:
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasUnsafeParameter(this Symbol member)
         {
-            foreach (TypeSymbol parameterType in member.GetParameterTypes())
+            foreach (var parameterType in member.GetParameterTypes())
             {
                 if (parameterType.IsUnsafe())
                 {
@@ -168,13 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += method.ReturnTypeCustomModifiers.Length + method.RefCustomModifiers.Length;
-            count += method.ReturnType.CustomModifierCount();
+            var methodReturnType = method.ReturnType;
+            count += methodReturnType.CustomModifiers.Length + method.RefCustomModifiers.Length;
+            count += methodReturnType.TypeSymbol.CustomModifierCount();
 
             foreach (ParameterSymbol param in method.Parameters)
             {
-                count += param.CustomModifiers.Length + param.RefCustomModifiers.Length;
-                count += param.Type.CustomModifierCount();
+                var paramType = param.Type;
+                count += paramType.CustomModifiers.Length + param.RefCustomModifiers.Length;
+                count += paramType.TypeSymbol.CustomModifierCount();
             }
 
             return count;
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static int CustomModifierCount(this EventSymbol e)
         {
-            return e.Type.CustomModifierCount();
+            return e.Type.TypeSymbol.CustomModifierCount();
         }
 
         /// <summary>
@@ -214,13 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += property.TypeCustomModifiers.Length + property.RefCustomModifiers.Length;
-            count += property.Type.CustomModifierCount();
+            var type = property.Type;
+            count += type.CustomModifiers.Length + property.RefCustomModifiers.Length;
+            count += type.TypeSymbol.CustomModifierCount();
 
             foreach (ParameterSymbol param in property.Parameters)
             {
-                count += param.CustomModifiers.Length + param.RefCustomModifiers.Length;
-                count += param.Type.CustomModifierCount();
+                var paramType = param.Type;
+                count += paramType.CustomModifiers.Length + param.RefCustomModifiers.Length;
+                count += paramType.TypeSymbol.CustomModifierCount();
             }
 
             return count;
@@ -304,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
-                    return ((MethodSymbol)symbol).TypeArguments;
+                    return ((MethodSymbol)symbol).TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
-                    return ((NamedTypeSymbol)symbol).TypeArgumentsNoUseSiteDiagnostics;
+                    return ((NamedTypeSymbol)symbol).TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
@@ -424,11 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.ReturnType.ContainsTupleNames() || method.Parameters.Any(p => p.Type.ContainsTupleNames());
+                    return method.ReturnType.TypeSymbol.ContainsTupleNames() || method.Parameters.Any(p => p.Type.TypeSymbol.ContainsTupleNames());
                 case SymbolKind.Property:
-                    return ((PropertySymbol)member).Type.ContainsTupleNames();
+                    return ((PropertySymbol)member).Type.TypeSymbol.ContainsTupleNames();
                 case SymbolKind.Event:
-                    return ((EventSymbol)member).Type.ContainsTupleNames();
+                    return ((EventSymbol)member).Type.TypeSymbol.ContainsTupleNames();
                 default:
                     // We currently don't need to use this method for fields or locals
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);

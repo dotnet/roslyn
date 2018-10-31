@@ -9,10 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -157,31 +157,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement);
                     case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, expression);
                     case NameEqualsSyntax nameEquals: return InferTypeInNameEquals(nameEquals);
-                    case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
+                    case LambdaExpressionSyntax lambdaExpression: return InferTypeInLambdaExpression(lambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
-                    case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement);
                     case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement);
+                    case WhenClauseSyntax whenClause: return InferTypeInWhenClause(whenClause);
                     case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement);
                     case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
-            }
-
-            private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
-            {
-                var parentSymbol = SemanticModel.GetDeclaredSymbol(arrowClause.Parent, CancellationToken);
-                var parentMemberType = GetMemberType(parentSymbol);
-
-                return parentMemberType != null 
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(parentMemberType))
-                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position)
@@ -229,15 +219,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case NameColonSyntax nameColon: return InferTypeInNameColon(nameColon, token);
                     case NameEqualsSyntax nameEquals: return InferTypeInNameEquals(nameEquals, token);
                     case ObjectCreationExpressionSyntax objectCreation: return InferTypeInObjectCreationExpression(objectCreation, token);
-                    case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token);
+                    case LambdaExpressionSyntax lambdaExpression: return InferTypeInLambdaExpression(lambdaExpression, token);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary, token);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary, token);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement, token);
-                    case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression, token);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel, token);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement, token);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement, token);
                     case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement, token);
+                    case WhenClauseSyntax whenClause: return InferTypeInWhenClause(whenClause, token);
                     case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement, token);
                     case YieldStatementSyntax yieldStatement: return InferTypeInYieldStatement(yieldStatement, token);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1439,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Object)));
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInLambdaExpression(LambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
             {
                 // If we have a position, it has to be after the lambda arrow.
                 if (previousToken.HasValue && previousToken.Value != lambdaExpression.ArrowToken)
@@ -1447,24 +1437,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return InferTypeInLambdaExpression(lambdaExpression);
+                return InferTypeInAnonymousFunctionExpression(lambdaExpression);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInSimpleLambdaExpression(SimpleLambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
-            {
-                // If we have a position, it has to be after the lambda arrow.
-                if (previousToken.HasValue && previousToken.Value != lambdaExpression.ArrowToken)
-                {
-                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
-
-                return InferTypeInLambdaExpression(lambdaExpression);
-            }
-
-            private IEnumerable<TypeInferenceInfo> InferTypeInLambdaExpression(ExpressionSyntax lambdaExpression)
+            private IEnumerable<TypeInferenceInfo> InferTypeInAnonymousFunctionExpression(AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 // Func<int,string> = i => Goo();
-                var types = InferTypes(lambdaExpression);
+                // Func<int,string> = delegate (int i) { return Goo(); };
+                var types = InferTypes(anonymousFunction);
                 var type = types.FirstOrDefault().InferredType.GetDelegateType(this.Compilation);
 
                 if (type != null)
@@ -1472,7 +1452,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var invoke = type.DelegateInvokeMethod;
                     if (invoke != null)
                     {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(invoke.ReturnType));
+                        var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
+                        return SpecializedCollections.SingletonEnumerable(
+                            new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
                     }
                 }
 
@@ -1791,9 +1773,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
+                var declaration = yieldStatement.FirstAncestorOrSelf<SyntaxNode>(n => n.IsReturnableConstruct());
+                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
 
-                var memberType = GetMemberType(memberSymbol);
+                var memberType = GetMemberType(memberSymbol, out _);
 
                 if (memberType is INamedTypeSymbol namedType)
                 {
@@ -1807,12 +1790,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private static ITypeSymbol GetMemberType(ISymbol memberSymbol)
+            private static ITypeSymbol GetMemberType(ISymbol memberSymbol, out bool isAsync)
             {
+                isAsync = false;
+
                 switch (memberSymbol)
                 {
-                    case IMethodSymbol method: return method.ReturnType;
-                    case IPropertySymbol property: return property.Type;
+                    case IMethodSymbol method:
+                        isAsync = method.IsAsync;
+                        return method.ReturnType;
+                    case IPropertySymbol property:
+                        return property.Type;
+                    case IFieldSymbol field:
+                        return field.Type;
                 }
 
                 return null;
@@ -1821,108 +1811,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInRefExpression(RefExpressionSyntax refExpression)
                 => InferTypes(refExpression);
 
-            private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
+            private ITypeSymbol UnwrapTaskLike(ITypeSymbol type, bool isAsync)
             {
-                InferTypeForReturnStatement(returnStatement, previousToken,
-                    out var isAsync, out var types);
-
-                if (!isAsync)
+                if (isAsync)
                 {
-                    return types;
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskOfTType()))
+                    {
+                        return ((INamedTypeSymbol)type).TypeArguments[0];
+                    }
+
+                    if (type.OriginalDefinition.Equals(this.Compilation.TaskType()))
+                    {
+                        return this.Compilation.GetSpecialType(SpecialType.System_Void);
+                    }
                 }
 
-                var taskOfT = this.Compilation.TaskOfTType();
-                if (taskOfT == null || types == null)
+                return type;
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(
+                ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
+            {
+                // If we are position based, then we have to be after the return statement.
+                if (previousToken.HasValue && previousToken.Value != returnStatement.ReturnKeyword)
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return from t in types
-                       where t.InferredType != null && t.InferredType.OriginalDefinition.Equals(taskOfT)
-                       let nt = (INamedTypeSymbol)t.InferredType
-                       where nt.TypeArguments.Length == 1
-                       select new TypeInferenceInfo(nt.TypeArguments[0]);
+                var ancestor = returnStatement.FirstAncestorOrSelf<SyntaxNode>(n => n.IsReturnableConstruct());
+
+                return ancestor is AnonymousFunctionExpressionSyntax anonymousFunction
+                    ? InferTypeInAnonymousFunctionExpression(anonymousFunction)
+                    : InferTypeInMethodLikeDeclaration(ancestor);
             }
 
-            private void InferTypeForReturnStatement(
-                ReturnStatementSyntax returnStatement, SyntaxToken? previousToken, out bool isAsync, out IEnumerable<TypeInferenceInfo> types)
+            private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
+                => InferTypeInMethodLikeDeclaration(arrowClause.Parent);
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInMethodLikeDeclaration(SyntaxNode declaration)
             {
-                isAsync = false;
-                types = SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                // `declaration` can be a base-method member, property, accessor or local function
 
-                // If we are position based, then we have to be after the return statement.
-                if (previousToken.HasValue && previousToken.Value != returnStatement.ReturnKeyword)
-                {
-                    return;
-                }
+                var symbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(declaration);
+                var type = GetMemberType(symbol, out var isAsync);
 
-                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e => e is AnonymousFunctionExpressionSyntax || e is LocalFunctionStatementSyntax);
-
-                if (ancestor is LambdaExpressionSyntax lambdaExpression)
-                {
-                    // If we're in a lambda, then use the return type of the lambda to figure out what to
-                    // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                    types = InferTypeInLambdaExpression(lambdaExpression);
-                    isAsync = lambdaExpression.AsyncKeyword.Kind() != SyntaxKind.None;
-                    return;
-                }
-                else if (ancestor is AnonymousMethodExpressionSyntax delegateExpression)
-                {
-                    // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
-                    var delegateType = InferTypes(delegateExpression).FirstOrDefault().InferredType;
-                    if (delegateType != null && delegateType.IsDelegateType())
-                    {
-                        var delegateInvokeMethod = delegateType.GetDelegateType(this.Compilation).DelegateInvokeMethod;
-                        if (delegateInvokeMethod != null)
-                        {
-                            types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(delegateInvokeMethod.ReturnType));
-                            isAsync = delegateExpression.AsyncKeyword.Kind() != SyntaxKind.None;
-                            return;
-                        }
-                    }
-                }
-                else if (ancestor is LocalFunctionStatementSyntax localFunctionStatement)
-                {
-                    // If we are inside a local function then use the return type of the local function
-                    var methodSymbol = (IMethodSymbol)SemanticModel.GetDeclaredSymbol(localFunctionStatement);
-                    types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType));
-                    isAsync = methodSymbol.IsAsync;
-                    return;
-                }
-
-                var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
-
-                switch (memberSymbol)
-                {
-                    case IMethodSymbol method:
-                        isAsync = method.IsAsync;
-                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(method.ReturnType));
-                        return;
-                    case IPropertySymbol property:
-                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(property.Type));
-                        return;
-                    case IFieldSymbol field:
-                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(field.Type));
-                        return;
-                }
+                return type != null
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(UnwrapTaskLike(type, isAsync)))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel currentSemanticModel, MemberDeclarationSyntax declarationInCurrentTree)
+            private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SyntaxNode declarationInCurrentTree)
             {
+                var currentSemanticModel = SemanticModel;
                 var originalSemanticModel = currentSemanticModel.GetOriginalSemanticModel();
-                MemberDeclarationSyntax declaration;
 
-                if (currentSemanticModel.IsSpeculativeSemanticModel)
+                if (declarationInCurrentTree is MemberDeclarationSyntax &&
+                    currentSemanticModel.IsSpeculativeSemanticModel)
                 {
                     var tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(CancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation);
-                    declaration = tokenInOriginalTree.GetAncestor<MemberDeclarationSyntax>();
-                }
-                else
-                {
-                    declaration = declarationInCurrentTree;
+                    var declaration = tokenInOriginalTree.GetAncestor<MemberDeclarationSyntax>();
+                    return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken);
                 }
 
-                return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken);
+                return declarationInCurrentTree != null
+                    ? currentSemanticModel.GetDeclaredSymbol(declarationInCurrentTree, CancellationToken)
+                    : null;
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInSwitchLabel(
@@ -2089,9 +2042,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
                         }
-                        else if (expr.IsKind(SyntaxKind.IdentifierName))
+                        else if (expr is IdentifierNameSyntax name)
                         {
-                            elementNamesBuilder.Add(((IdentifierNameSyntax)expr).Identifier.ValueText);
+                            elementNamesBuilder.Add(name.Identifier.ValueText == "" ? null : 
+                                name.Identifier.ValueText);
                             elementTypesBuilder.Add(GetTypes(expr).FirstOrDefault().InferredType ?? this.Compilation.ObjectType);
                         }
                         else
@@ -2147,6 +2101,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tupleType = GetTupleType(tuple);
                 elementTypesBuilder.Add(tupleType);
                 elementNamesBuilder.Add(null);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInWhenClause(WhenClauseSyntax whenClause, SyntaxToken? previousToken = null)
+            {
+                // If we have a position, we have to be after the "when"
+                if (previousToken.HasValue && previousToken.Value != whenClause.WhenKeyword)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Boolean)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInWhileStatement(WhileStatementSyntax whileStatement, SyntaxToken? previousToken = null)

@@ -19,19 +19,42 @@
   
   <PropertyGroup>
     <RepoRoot Condition="'$(RepoRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'global.json'))\</RepoRoot>
-   
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Respect environment variable for the .NET install directory if set; otherwise, use the repo default location -->
+    <_DotNetRoot>$(DOTNET_INSTALL_DIR)</_DotNetRoot>
+    <_DotNetRoot Condition="'$(_DotNetRoot)' == ''">$(RepoRoot).dotnet\</_DotNetRoot>
+    <_DotNetRoot Condition="!HasTrailingSlash('$(_DotNetRoot)')">$(_DotNetRoot)\</_DotNetRoot>
+
+    <!-- Let the exec task find dotnet on PATH -->
+    <_DotNetRoot Condition="!Exists($(_DotNetRoot))"/>
+
+    <DotNetTool Condition="'$(OS)' == 'Windows_NT'">$(_DotNetRoot)dotnet.exe</DotNetTool>
+    <DotNetTool Condition="'$(OS)' != 'Windows_NT'">$(_DotNetRoot)dotnet</DotNetTool>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!--
       TODO: values differ from RepoToolset 
     -->
 
-    <_EngDir>$(RepoRoot)build\Targets\</_EngDir>
+    <RepositoryEngineeringDir>$(RepoRoot)build\Targets\</RepositoryEngineeringDir>
 
-    <VersionsPropsPath>$(_EngDir)Packages.props</VersionsPropsPath>
-    <FixedVersionsPropsPath>$(_EngDir)FixedPackages.props</FixedVersionsPropsPath>
+    <VersionsPropsPath>$(RepositoryEngineeringDir)Packages.props</VersionsPropsPath>
+    <FixedVersionsPropsPath>$(RepositoryEngineeringDir)FixedPackages.props</FixedVersionsPropsPath>
 
     <ArtifactsDir Condition="'$(ArtifactsDir)' == ''">$(RepoRoot)Binaries\</ArtifactsDir>
     <ArtifactsToolsetDir>$(ArtifactsDir)toolset\</ArtifactsToolsetDir>
     <ArtifactsConfigurationDir>$(ArtifactsDir)$(Configuration)\</ArtifactsConfigurationDir>
     <ArtifactsSymStoreDirectory>$(ArtifactsConfigurationDir)SymStore\</ArtifactsSymStoreDirectory>
+    <ArtifactsTmpDir>$(ArtifactsConfigurationDir)tmp\</ArtifactsTmpDir>
+    <ArtifactsLogDir>$(ArtifactsConfigurationDir)Logs\</ArtifactsLogDir>
+    <ArtifactsPackagesDir>$(ArtifactsConfigurationDir)NuGet\</ArtifactsPackagesDir>
+    <ArtifactsShippingPackagesDir>$(ArtifactsPackagesDir)Shipping\</ArtifactsShippingPackagesDir>
+    <ArtifactsNonShippingPackagesDir>$(ArtifactsPackagesDir)NonShipping\</ArtifactsNonShippingPackagesDir>
+    <VisualStudioSetupOutputPath>$(ArtifactsDir)VSSetup\$(Configuration)\</VisualStudioSetupOutputPath>
+    <VisualStudioSetupInsertionPath>$(VisualStudioSetupOutputPath)Insertion\</VisualStudioSetupInsertionPath>
+    <VisualStudioSetupIntermediateOutputPath>$(ArtifactsDir)VSSetup.obj\$(Configuration)\</VisualStudioSetupIntermediateOutputPath>
   </PropertyGroup>
 </Project>

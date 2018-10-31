@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             _root = root;
         }
 
-        public IList<TextChange> FormatRange(
+        public Task<IList<TextChange>> FormatRangeAsync(
             Workspace workspace, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(startToken.Kind() == SyntaxKind.None || startToken.Kind() == SyntaxKind.EndOfFileToken);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 smartTokenformattingRules = (new NoLineChangeFormattingRule()).Concat(_formattingRules);
             }
 
-            return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
+            return Formatter.GetFormattedTextChangesAsync(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
         private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)

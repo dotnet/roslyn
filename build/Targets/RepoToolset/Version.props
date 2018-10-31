@@ -45,7 +45,7 @@
     
         <VersionSuffixDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(_BuildNumberFiveDigitDateStamp))), $([MSBuild]::Multiply($(_BuildNumberFiveDigitDateStampYearsToOffset), 8800))))</VersionSuffixDateStamp>
         <VersionSuffixBuildOfTheDay>$(_BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(1))))</VersionSuffixBuildOfTheDay>
-        <VersionSuffixBuildOfTheDayPadded>$(_BuildNumberBuildOfTheDay.PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</VersionSuffixBuildOfTheDayPadded>
+        <VersionSuffixBuildOfTheDayPadded>$(VersionSuffixBuildOfTheDay.PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</VersionSuffixBuildOfTheDayPadded>
 
         <_BuildNumberSuffix Condition="'$(SemanticVersioningV1)' != 'true'">.$(VersionSuffixDateStamp).$(VersionSuffixBuildOfTheDay)</_BuildNumberSuffix>
         <_BuildNumberSuffix Condition="'$(SemanticVersioningV1)' == 'true'">-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_BuildNumberSuffix>
@@ -69,8 +69,8 @@
   
   <PropertyGroup>
     <_PreReleaseLabel>$(PreReleaseVersionLabel)</_PreReleaseLabel>
-    <_PreReleaseLabel Condition="'$(CIBuild)' == 'true' and '$(OfficialBuild)' != 'true'">ci</_PreReleaseLabel>
-    <_PreReleaseLabel Condition="'$(CIBuild)' != 'true'">dev</_PreReleaseLabel>
+    <_PreReleaseLabel Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(OfficialBuild)' != 'true'">ci</_PreReleaseLabel>
+    <_PreReleaseLabel Condition="'$(ContinuousIntegrationBuild)' != 'true'">dev</_PreReleaseLabel>
 
     <!--
       If DotNetFinalVersionKind is specified, overrides the package version produced by the build like so:

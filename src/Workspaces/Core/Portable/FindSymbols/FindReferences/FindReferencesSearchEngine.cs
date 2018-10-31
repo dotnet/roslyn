@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
+        private readonly FindReferencesSearchOptions _options;
 
         /// <summary>
         /// Mapping from a document to the list of reference locations found in it.  Kept around so
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             _documents = documents;
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
+            _options = options;
 
             _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }

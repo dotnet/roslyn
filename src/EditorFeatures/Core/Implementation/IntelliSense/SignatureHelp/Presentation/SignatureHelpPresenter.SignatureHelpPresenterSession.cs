@@ -36,9 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             public bool EditorSessionIsActive => _editorSessionOpt?.IsDismissed == false;
 
             public SignatureHelpPresenterSession(
+                IThreadingContext threadingContext,
                 ISignatureHelpBroker sigHelpBroker,
                 ITextView textView,
                 ITextBuffer subjectBuffer)
+                : base(threadingContext)
             {
                 _sigHelpBroker = sigHelpBroker;
                 _textView = textView;

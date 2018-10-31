@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out IteratorStateMachine stateMachineType)
         {
             TypeSymbol elementType = method.IteratorElementType;
-            if ((object)elementType == null)
+            if ((object)elementType == null || method.IsAsync)
             {
                 stateMachineType = null;
                 return body;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Figure out what kind of iterator we are generating.
             bool isEnumerable;
-            switch (method.ReturnType.OriginalDefinition.SpecialType)
+            switch (method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType)
             {
                 case SpecialType.System_Collections_IEnumerable:
                 case SpecialType.System_Collections_Generic_IEnumerable_T:
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.OriginalDefinition.SpecialType);
+                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType);
             }
 
             stateMachineType = new IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, isEnumerable, elementType);
@@ -174,10 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if it is an enumerable, and either Environment.CurrentManagedThreadId or Thread.ManagedThreadId are available
             // add a field: int initialThreadId
-            bool addInitialThreadId =
-                   _isEnumerable &&
-                   ((object)F.WellKnownMember(WellKnownMember.System_Threading_Thread__ManagedThreadId, isOptional: true) != null ||
-                    (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null);
+            bool addInitialThreadId = _isEnumerable && CanGetThreadId();
 
             _initialThreadIdField = addInitialThreadId
                 ? F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeIteratorCurrentThreadIdFieldName())
@@ -284,23 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)_initialThreadIdField != null)
             {
-                MethodSymbol currentManagedThreadIdMethod = null;
-
-                PropertySymbol currentManagedThreadIdProperty = F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) as PropertySymbol;
-
-                if ((object)currentManagedThreadIdProperty != null)
-                {
-                    currentManagedThreadIdMethod = currentManagedThreadIdProperty.GetMethod;
-                }
-
-                if ((object)currentManagedThreadIdMethod != null)
-                {
-                    managedThreadId = F.Call(null, currentManagedThreadIdMethod);
-                }
-                else
-                {
-                    managedThreadId = F.Property(F.Property(WellKnownMember.System_Threading_Thread__CurrentThread), WellKnownMember.System_Threading_Thread__ManagedThreadId);
-                }
+                managedThreadId = MakeCurrentThreadId();
 
                 makeIterator = F.If(
                     condition: F.LogicalAnd(                                   // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)

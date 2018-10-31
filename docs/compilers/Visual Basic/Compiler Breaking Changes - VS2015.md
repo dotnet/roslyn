@@ -107,4 +107,3 @@ This list tracks known cases where the Roslyn compiler intentionally deviates fr
 According to @AlekseyTs , "Dev10 considers some expressions as invalid in context of a constant expression, even if those expressions are not going to be evaluated. Lambdas, Query Expressions, and probably Object Initializers fall into that category."
 
 These rules are being relaxed in Roslyn.  A constant expression will be allowed of the form expr.ID where ID is a constant member of the type of the expression.  The expression will not be evaluated and a warning will be issued.  There are no restrictions on the form of expr, other than that it must be syntactically and semantically valid.
-

@@ -5,13 +5,13 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="new">Analyzer '{0}' threw the following exception:
-'{1}'.</target>
+        <target state="translated">アナライザー '{0}'が、次の例をスローしました:
+'{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
         <source>Given operation block does not belong to the current analysis context.</source>
-        <target state="new">Given operation block does not belong to the current analysis context.</target>
+        <target state="translated">指定した操作ブロックが現在の分析コンテストに属していません。</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
@@ -26,12 +26,17 @@
       </trans-unit>
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
-        <target state="new">Given operation has a non-null parent.</target>
+        <target state="translated">指定した操作の親が null 以外です。</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
-        <target state="new">Given operation has a null semantic model.</target>
+        <target state="translated">指定した操作のセマンティック モデルが null です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -52,6 +57,11 @@
       <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">モジュールのコピーは、アセンブリ メタデータの作成には使用できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -518,12 +528,12 @@
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>
-        <target state="translated">PE イメージには、管理されたメタデータが含まれていません。</target>
+        <target state="translated">PE イメージには、マネージド メタデータが含まれていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="needs-review-translation">変更は順序付けする必要があり、重複は許可されません。</target>
+        <target state="translated">変更が重なっていてはなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -598,7 +608,7 @@
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
         <source>Node to track is not a descendant of the root.</source>
-        <target state="translated">追跡するノードは、ルートの子孫ではありません。</target>
+        <target state="translated">追跡する Node、ルートの子孫ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="NodeOrTokenOutOfSequence">
@@ -765,7 +775,7 @@
       </trans-unit>
       <trans-unit id="TupleElementNameCountMismatch">
         <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNameEmpty">
@@ -775,7 +785,7 @@
       </trans-unit>
       <trans-unit id="TupleElementLocationCountMismatch">
         <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TuplesNeedAtLeastTwoElements">
@@ -851,11 +861,6 @@
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
         <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="FlowAnalysisFeatureDisabled">
-        <source>Feature 'Flow-Analysis' is disabled.</source>
-        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
         <note />
       </trans-unit>
     </body>

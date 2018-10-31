@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 string displayText)
+                : base(stateMachine.ThreadingContext)
             {
                 _stateMachine = stateMachine;
                 _snapshotSpan = snapshotSpan;

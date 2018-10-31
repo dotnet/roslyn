@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
 #if NET46
             _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture, useUserOverride: false));
             _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture, useUserOverride: false));
-#elif NETCOREAPP2_0
+#elif NETCOREAPP2_1
             _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture));
             _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture));
 #else
@@ -83,7 +83,7 @@ namespace Roslyn.Test.Utilities
             _originalCulture = CultureInfo.CurrentCulture;
             _originalUICulture = CultureInfo.CurrentUICulture;
 
-#if NET46 || NETCOREAPP2_0
+#if NET46 || NETCOREAPP2_1
             CultureInfo.CurrentCulture = Culture;
             CultureInfo.CurrentUICulture = UICulture;
 
@@ -103,7 +103,7 @@ namespace Roslyn.Test.Utilities
         /// <param name="methodUnderTest">The method under test</param>
         public override void After(MethodInfo methodUnderTest)
         {
-#if NET46 || NETCOREAPP2_0
+#if NET46 || NETCOREAPP2_1
             CultureInfo.CurrentCulture = _originalCulture;
             CultureInfo.CurrentUICulture = _originalUICulture;
 
