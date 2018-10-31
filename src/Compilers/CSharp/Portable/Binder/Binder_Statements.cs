@@ -3277,7 +3277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return PatternLookupResult.NoResults;
                 }
 
-                // we have succeeded or almost succeded to bind the method
+                // we have succeeded or almost succeeded to bind the method
                 // report additional binding diagnostics that we have seen so far
                 diagnostics.AddRange(bindingDiagnostics);
 
