@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     return;
                 }
 
-                analysisData.SetAbstactValue(analysisEntity, value);
+                analysisData.SetAbstractValue(analysisEntity, value);
             }
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);

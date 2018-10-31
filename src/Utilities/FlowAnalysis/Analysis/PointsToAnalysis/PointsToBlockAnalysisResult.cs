@@ -23,10 +23,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         private static ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> GetResult(PointsToAnalysisData analysisData, ImmutableDictionary<AnalysisEntity, PointsToAbstractValue> defaultPointsToValues)
         {
+            PointsToAnalysisData.AssertValidPointsToAnalysisData(defaultPointsToValues);
+
             if (analysisData == null || analysisData.CoreAnalysisData.Count == 0)
             {
                 return defaultPointsToValues;
             }
+
+            analysisData.AssertValidPointsToAnalysisData();
 
             var builder = ImmutableDictionary.CreateBuilder<AnalysisEntity, PointsToAbstractValue>();
             builder.AddRange(analysisData.CoreAnalysisData);
