@@ -502,13 +502,13 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (arg.Length > optionName.Length && !(arg[optionName.Length] == ':' || arg[optionName.Length] == '='))
-                {
-                    return false;
-                }
-
                 if (arg.Length > optionName.Length)
                 {
+                    if (!(arg[optionName.Length] == ':' || arg[optionName.Length] == '='))
+                    {
+                        return false;
+                    }
+
                     hasValue = true;
                     optionValue = arg.Substring(optionName.Length + 1).Trim('"');
                 }
