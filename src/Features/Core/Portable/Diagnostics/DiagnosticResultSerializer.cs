@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var others = diagnosticDataSerializer.ReadFrom(reader, project, cancellationToken);
 
                 var analysisResult = DiagnosticAnalysisResult.CreateFromSerialization(
-                    project.Id,
+                    project,
                     version,
                     syntaxLocalMap,
                     semanticLocalMap,
@@ -143,7 +143,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             for (var i = 0; i < count; i++)
             {
                 var documentId = DocumentId.ReadFrom(reader);
-                var diagnostics = serializer.ReadFrom(reader, project.GetDocument(documentId), cancellationToken);
+                var document = project.GetDocument(documentId);
+
+                var diagnostics = serializer.ReadFrom(reader, document, cancellationToken);
+
+                if (document?.SupportsDiagnostics() == false)
+                {
+                    // drop diagnostics for document that doesn't support
+                    // diagnostics
+                    continue;
+                }
 
                 map.Add(documentId, GetOrDefault(diagnostics));
             }
