@@ -18,6 +18,7 @@
   <Import Project="RepoToolset\ProjectLayout.props" />
   <Import Project="RepoToolset\DefaultVersions.props"/>
   <Import Project="RepoToolset\ProjectDefaults.props" />
+  <Import Project="RepoToolset\BuildTasks.props" />
   <Import Project="RepoToolset\StrongName.props" />
   <Import Project="RepoToolset\VisualStudio.props"/>
   <Import Project="Tools.props" />
@@ -27,7 +28,7 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
-    <RoslynPortableTargetFrameworks>net46;netcoreapp2.0</RoslynPortableTargetFrameworks>
+    <RoslynPortableTargetFrameworks>net472;netcoreapp2.0</RoslynPortableTargetFrameworks>
     <RoslynPortableRuntimeIdentifiers>win;win-x64;linux-x64;osx-x64</RoslynPortableRuntimeIdentifiers>
     <RoslynDesktopRuntimeIdentifier>win</RoslynDesktopRuntimeIdentifier>
     <RoslynDesktopRuntimeIdentifierX86>win-x86</RoslynDesktopRuntimeIdentifierX86>
@@ -40,12 +41,13 @@
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>    
-    <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
-
+    
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VisualStudioReferenceMajorVersion Condition="'$(VisualStudioReferenceMajorVersion)' == ''">$(VisualStudioVersion.Substring($([System.Convert]::ToInt32(0)), $(VisualStudioVersion.IndexOf('.'))))</VisualStudioReferenceMajorVersion>
     <VisualStudioReferenceAssemblyVersion Condition="'$(VisualStudioReferenceAssemblyVersion)' == ''">$(VisualStudioReferenceMajorVersion).0.0.0</VisualStudioReferenceAssemblyVersion>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+
+    <IbcOptimizationDataDir>$(NuGetPackageRoot)roslyndependencies.optimizationdata\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData\</IbcOptimizationDataDir>
 
     <!-- Disable AppX packaging for the Roslyn source. Not setting this to false has the side effect
          that any builds of portable projects end up in a sub folder of $(OutputPath). Search for this flag in
@@ -133,7 +135,7 @@
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
-
+  
   <!--
     Language specifc settings
   -->
@@ -153,7 +155,7 @@
         <Import Include="System.Collections.Generic" />
         <Import Include="System.Diagnostics" />
       </ItemGroup>
-      <ItemGroup Condition="'$(TargetNetFX20)' != 'true'">
+      <ItemGroup Condition="'$(TargetFramework)' != 'net20'">
         <Import Include="System.Linq" />
       </ItemGroup>
       <PropertyGroup>
