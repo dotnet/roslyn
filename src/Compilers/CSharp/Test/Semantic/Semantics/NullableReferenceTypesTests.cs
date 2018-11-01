@@ -6824,6 +6824,7 @@ class B : A
         }
 
         [Fact]
+        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_23()
         {
             var source = @"
@@ -6856,8 +6857,6 @@ class B : A
 }
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/28684: Should report return type mismatch
-            // for M2 as well.
             compilation.VerifyDiagnostics(
                 // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override string?[] M1()
@@ -6865,6 +6864,9 @@ class B : A
                 // (24,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override S?[] M2<S>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(24, 22),
+                // (24,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(24, 26),
                 // (18,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override string?[] M1()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 27),
@@ -7039,7 +7041,6 @@ class B : IA
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/28684: missing a warning on IA.M2
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
@@ -7048,6 +7049,9 @@ class B : IA
                 // (17,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     S?[] IA.M2<S>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 6),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
+                //     S?[] IA.M2<S>()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(17, 13),
                 // (11,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string?[] IA.M1()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 11),
@@ -7209,6 +7213,9 @@ class B : A
                 // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override void M1(string?[] x)
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
+                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(18, 26),
                 // (18,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override void M2<T>(T?[] x)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 33),
@@ -7216,7 +7223,6 @@ class B : A
                 //     public override void M1(string?[] x)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35)
                 );
-            // https://github.com/dotnet/roslyn/issues/28684: should warn WRN_NullabilityMismatchInParameterTypeOnOverride on B.M2 too
         }
 
         [Fact]
@@ -10866,18 +10872,18 @@ public class C
     public void Main(string key)
     {
         CopyOrDefault(key, out var s);
-        s/*T:string?[]*/[0].ToString(); // warn
+        s/*T:string?[]!*/[0].ToString(); // warn
     }
     public static void CopyOrDefault<T>(T key, out T?[] value) where T : class => throw null;
 }
 " }, options: WithNonNullTypesTrue());
 
-            VerifyOutVar(c, "string?[]");
+            VerifyOutVar(c, "string?[]!");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         s/*T:string?[]*/[0].ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s/*T:string?[]*/[0]").WithLocation(7, 9)
+                //         s/*T:string?[]!*/[0].ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s/*T:string?[]!*/[0]").WithLocation(7, 9)
                 );
         }
 
@@ -10890,21 +10896,21 @@ public class C
     public void Main(string? key)
     {
         CopyOrDefault(key, out var s);
-        s/*T:string?[]*/[0].ToString(); // warn
+        s/*T:string?[]!*/[0].ToString(); // warn
     }
     public static void CopyOrDefault<T>(T key, out T?[] value) where T : class => throw null;
 }
 " }, options: WithNonNullTypesTrue());
 
-            VerifyOutVar(c, "string?[]");
+            VerifyOutVar(c, "string?[]!");
             c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (6,9): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'C.CopyOrDefault<T>(T, out T?[])'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         CopyOrDefault(key, out var s);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "CopyOrDefault").WithArguments("C.CopyOrDefault<T>(T, out T?[])", "T", "string?").WithLocation(6, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         s/*T:string?[]*/[0].ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s/*T:string?[]*/[0]").WithLocation(7, 9)
+                //         s/*T:string?[]!*/[0].ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s/*T:string?[]!*/[0]").WithLocation(7, 9)
                 );
         }
 
@@ -10917,13 +10923,13 @@ public class C
     public void Main(string key)
     {
         CopyOrDefault(key, out var s);
-        s/*T:string![]*/[0].ToString(); // ok
+        s/*T:string![]!*/[0].ToString(); // ok
     }
     public static void CopyOrDefault<T>(T key, out T[] value) => throw null;
 }
 " }, options: WithNonNullTypesTrue());
 
-            VerifyOutVar(c, "string![]");
+            VerifyOutVar(c, "string![]!");
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -10938,13 +10944,13 @@ public class C
     {
         key = ""hello"";
         CopyOrDefault(key, out var s);
-        s/*T:string![]*/[0].ToString(); // ok
+        s/*T:string![]!*/[0].ToString(); // ok
     }
     public static void CopyOrDefault<T>(T key, out T[] value) => throw null;
 }
 " }, options: WithNonNullTypesTrue());
 
-            VerifyOutVar(c, "string![]"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?[]
+            VerifyOutVar(c, "string![]!"); // https://github.com/dotnet/roslyn/issues/29856: expecting string?[]!
             c.VerifyTypes();
             c.VerifyDiagnostics();
         }
@@ -11339,7 +11345,7 @@ public class C
         x1 /*T:string!*/ .ToString();
 
         var listNS = List.Create(ns);
-        listNS /*T:List<string?>*/ .ToString();
+        listNS /*T:List<string?>!*/ .ToString();
         var x2 = F2(listNS);
         x2 /*T:string!*/ .ToString();
     }
@@ -11374,15 +11380,15 @@ public class C
         {
             var listS = List.Create(s);
             var listNS = List.Create(ns);
-            listS /*T:List<string!>*/ .ToString();
-            listNS /*T:List<string?>*/ .ToString();
+            listS /*T:List<string!>!*/ .ToString();
+            listNS /*T:List<string?>!*/ .ToString();
             listS = listNS!; // warn 1
         }
 
         {
             var listS = List.Create(s);
             var listO = List.Create(o);
-            listO /*T:List<string>*/ .ToString();
+            listO /*T:List<string>!*/ .ToString();
             listS = listO; // ok
         }
 
@@ -15814,6 +15820,7 @@ class C
         }
 
         [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         [Fact]
         public void ConditionalOperator_NestedNullability_Invariant()
         {
@@ -15826,7 +15833,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateB(A.F) returns B<object> rather than B<object>!.
             var source =
 @"class B<T> { }
 class C
@@ -15837,17 +15843,17 @@ class C
     }
     static void F(bool b, B<object?> x, B<object> y)
     {
-        var z = CreateB(A.F)/*T:B<object>*/;
+        var z = CreateB(A.F)/*T:B<object>!*/;
         object o;
         o = (b ? x : x)/*T:B<object?>!*/;
         o = (b ? x : y)/*T:B<object>!*/;
-        o = (b ? x : z)/*T:B<object?>*/;
+        o = (b ? x : z)/*T:B<object?>!*/;
         o = (b ? y : x)/*T:B<object>!*/;
         o = (b ? y : y)/*T:B<object!>!*/;
-        o = (b ? y : z)/*T:B<object!>*/;
-        o = (b ? z : x)/*T:B<object?>*/;
-        o = (b ? z : y)/*T:B<object!>*/;
-        o = (b ? z : z)/*T:B<object>*/;
+        o = (b ? y : z)/*T:B<object!>!*/;
+        o = (b ? z : x)/*T:B<object?>!*/;
+        o = (b ? z : y)/*T:B<object!>!*/;
+        o = (b ? z : z)/*T:B<object>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -15862,6 +15868,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void ConditionalOperator_NestedNullability_Variant()
         {
             var source0 =
@@ -15873,7 +15880,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<object> rather than I<object>!.
             var source =
 @"interface I<T> { }
 interface IIn<in T> { }
@@ -15883,47 +15889,47 @@ class C
     static I<T> CreateI<T>(T t) => throw null;
     static void F1(bool b, I<object> x, I<object?> y)
     {
-        var z = CreateI(A.F)/*T:I<object>*/;
+        var z = CreateI(A.F)/*T:I<object>!*/;
         object o;
         o = (b ? x : x)/*T:I<object!>!*/;
         o = (b ? x : y)/*T:I<object>!*/;
-        o = (b ? x : z)/*T:I<object!>*/;
+        o = (b ? x : z)/*T:I<object!>!*/;
         o = (b ? y : x)/*T:I<object>!*/;
         o = (b ? y : y)/*T:I<object?>!*/;
-        o = (b ? y : z)/*T:I<object?>*/;
-        o = (b ? z : x)/*T:I<object!>*/;
-        o = (b ? z : y)/*T:I<object?>*/;
-        o = (b ? z : z)/*T:I<object>*/;
+        o = (b ? y : z)/*T:I<object?>!*/;
+        o = (b ? z : x)/*T:I<object!>!*/;
+        o = (b ? z : y)/*T:I<object?>!*/;
+        o = (b ? z : z)/*T:I<object>!*/;
     }
     static IIn<T> CreateIIn<T>(T t) => throw null;
     static void F2(bool b, IIn<object> x, IIn<object?> y)
     {
-        var z = CreateIIn(A.F)/*T:IIn<object>*/;
+        var z = CreateIIn(A.F)/*T:IIn<object>!*/;
         object o;
         o = (b ? x : x)/*T:IIn<object!>!*/;
         o = (b ? x : y)/*T:IIn<object!>!*/;
-        o = (b ? x : z)/*T:IIn<object!>*/;
+        o = (b ? x : z)/*T:IIn<object!>!*/;
         o = (b ? y : x)/*T:IIn<object!>!*/;
         o = (b ? y : y)/*T:IIn<object?>!*/;
-        o = (b ? y : z)/*T:IIn<object>*/;
-        o = (b ? z : x)/*T:IIn<object!>*/;
-        o = (b ? z : y)/*T:IIn<object>*/;
-        o = (b ? z : z)/*T:IIn<object>*/;
+        o = (b ? y : z)/*T:IIn<object>!*/;
+        o = (b ? z : x)/*T:IIn<object!>!*/;
+        o = (b ? z : y)/*T:IIn<object>!*/;
+        o = (b ? z : z)/*T:IIn<object>!*/;
     }
     static IOut<T> CreateIOut<T>(T t) => throw null;
     static void F3(bool b, IOut<object> x, IOut<object?> y)
     {
-        var z = CreateIOut(A.F)/*T:IOut<object>*/;
+        var z = CreateIOut(A.F)/*T:IOut<object>!*/;
         object o;
         o = (b ? x : x)/*T:IOut<object!>!*/;
         o = (b ? x : y)/*T:IOut<object?>!*/;
-        o = (b ? x : z)/*T:IOut<object>*/;
+        o = (b ? x : z)/*T:IOut<object>!*/;
         o = (b ? y : x)/*T:IOut<object?>!*/;
         o = (b ? y : y)/*T:IOut<object?>!*/;
-        o = (b ? y : z)/*T:IOut<object?>*/;
-        o = (b ? z : x)/*T:IOut<object>*/;
-        o = (b ? z : y)/*T:IOut<object?>*/;
-        o = (b ? z : z)/*T:IOut<object>*/;
+        o = (b ? y : z)/*T:IOut<object?>!*/;
+        o = (b ? z : x)/*T:IOut<object>!*/;
+        o = (b ? z : y)/*T:IOut<object?>!*/;
+        o = (b ? z : z)/*T:IOut<object>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -15938,6 +15944,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void ConditionalOperator_NestedNullability_VariantAndInvariant()
         {
             var source0 =
@@ -15950,7 +15957,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateIIn(A.F1, A.F2) returns IIn<object, string> rather than IIn<object, string>!.
             var source =
 @"interface IIn<in T, U> { }
 interface IOut<T, out U> { }
@@ -15959,32 +15965,32 @@ class C
     static IIn<T, U> CreateIIn<T, U>(T t, U u) => throw null;
     static void F1(bool b, IIn<object, string> x1, IIn<object?, string?> y1)
     {
-        var z1 = CreateIIn(A.F1, A.F2)/*T:IIn<object, string>*/;
+        var z1 = CreateIIn(A.F1, A.F2)/*T:IIn<object, string>!*/;
         object o;
         o = (b ? x1 : x1)/*T:IIn<object!, string!>!*/;
         o = (b ? x1 : y1)/*T:IIn<object!, string>!*/;
-        o = (b ? x1 : z1)/*T:IIn<object!, string!>*/;
+        o = (b ? x1 : z1)/*T:IIn<object!, string!>!*/;
         o = (b ? y1 : x1)/*T:IIn<object!, string>!*/;
         o = (b ? y1 : y1)/*T:IIn<object?, string?>!*/;
-        o = (b ? y1 : z1)/*T:IIn<object, string?>*/;
-        o = (b ? z1 : x1)/*T:IIn<object!, string!>*/;
-        o = (b ? z1 : y1)/*T:IIn<object, string?>*/;
-        o = (b ? z1 : z1)/*T:IIn<object, string>*/;
+        o = (b ? y1 : z1)/*T:IIn<object, string?>!*/;
+        o = (b ? z1 : x1)/*T:IIn<object!, string!>!*/;
+        o = (b ? z1 : y1)/*T:IIn<object, string?>!*/;
+        o = (b ? z1 : z1)/*T:IIn<object, string>!*/;
     }
     static IOut<T, U> CreateIOut<T, U>(T t, U u) => throw null;
     static void F2(bool b, IOut<object, string> x2, IOut<object?, string?> y2)
     {
-        var z2 = CreateIOut(A.F1, A.F2)/*T:IOut<object, string>*/;
+        var z2 = CreateIOut(A.F1, A.F2)/*T:IOut<object, string>!*/;
         object o;
         o = (b ? x2 : x2)/*T:IOut<object!, string!>!*/;
         o = (b ? x2 : y2)/*T:IOut<object, string?>!*/;
-        o = (b ? x2 : z2)/*T:IOut<object!, string>*/;
+        o = (b ? x2 : z2)/*T:IOut<object!, string>!*/;
         o = (b ? y2 : x2)/*T:IOut<object, string?>!*/;
         o = (b ? y2 : y2)/*T:IOut<object?, string?>!*/;
-        o = (b ? y2 : z2)/*T:IOut<object?, string?>*/;
-        o = (b ? z2 : x2)/*T:IOut<object!, string>*/;
-        o = (b ? z2 : y2)/*T:IOut<object?, string?>*/;
-        o = (b ? z2 : z2)/*T:IOut<object, string>*/;
+        o = (b ? y2 : z2)/*T:IOut<object?, string?>!*/;
+        o = (b ? z2 : x2)/*T:IOut<object!, string>!*/;
+        o = (b ? z2 : y2)/*T:IOut<object?, string?>!*/;
+        o = (b ? z2 : z2)/*T:IOut<object, string>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -16074,7 +16080,7 @@ class C
     static I<T> CreateI<T>(T t) => throw null;
     static void F1(bool b, I<object> x1, I<object?> y1)
     {
-        var z1 = CreateI(A.F)/*T:I<object>*/;
+        var z1 = CreateI(A.F)/*T:I<object>!*/;
         ref var xx = ref b ? ref x1 : ref x1;
         ref var xy = ref b ? ref x1 : ref y1;
         ref var xz = ref b ? ref x1 : ref z1;
@@ -16088,7 +16094,7 @@ class C
     static IIn<T> CreateIIn<T>(T t) => throw null;
     static void F2(bool b, IIn<object> x2, IIn<object?> y2)
     {
-        var z2 = CreateIIn(A.F)/*T:IIn<object>*/;
+        var z2 = CreateIIn(A.F)/*T:IIn<object>!*/;
         ref var xx = ref b ? ref x2 : ref x2;
         ref var xy = ref b ? ref x2 : ref y2;
         ref var xz = ref b ? ref x2 : ref z2;
@@ -16102,7 +16108,7 @@ class C
     static IOut<T> CreateIOut<T>(T t) => throw null;
     static void F3(bool b, IOut<object> x3, IOut<object?> y3)
     {
-        var z3 = CreateIOut(A.F)/*T:IOut<object>*/;
+        var z3 = CreateIOut(A.F)/*T:IOut<object>!*/;
         ref var xx = ref b ? ref x3 : ref x3;
         ref var xy = ref b ? ref x3 : ref y3;
         ref var xz = ref b ? ref x3 : ref z3;
@@ -16846,21 +16852,21 @@ class C
     }
     static void F3(A<object> x3, B<object?>? y3)
     {
-        (y3 ?? x3)/*T:B<object?>*/.F.ToString();
+        (y3 ?? x3)/*T:B<object?>!*/.F.ToString();
     }
     static void F4(A<object?> x4, B<object>? y4)
     {
-        (y4 ?? x4)/*T:B<object!>*/.F.ToString();
+        (y4 ?? x4)/*T:B<object!>!*/.F.ToString();
     }
     static void F5(A<object>? x5, B<object?>? y5)
     {
         (x5 ?? y5)/*T:B<object?>?*/.F.ToString();
-        (y5 ?? x5)/*T:B<object?>*/.F.ToString();
+        (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
     }
     static void F6(A<object?>? x6, B<object>? y6)
     {
         (x6 ?? y6)/*T:B<object!>?*/.F.ToString();
-        (y6 ?? x6)/*T:B<object!>*/.F.ToString();
+        (y6 ?? x6)/*T:B<object!>!*/.F.ToString();
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -16879,13 +16885,13 @@ class C
                 //         (x2 ?? y2)/*T:B<object!>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("A<object?>", "B<object>").WithLocation(18, 10),
                 // (22,16): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'B<object?>'.
-                //         (y3 ?? x3)/*T:B<object?>*/.F.ToString();
+                //         (y3 ?? x3)/*T:B<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("B<object>", "B<object?>").WithLocation(22, 16),
                 // (22,9): warning CS8602: Possible dereference of a null reference.
-                //         (y3 ?? x3)/*T:B<object?>*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y3 ?? x3)/*T:B<object?>*/.F").WithLocation(22, 9),
+                //         (y3 ?? x3)/*T:B<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y3 ?? x3)/*T:B<object?>!*/.F").WithLocation(22, 9),
                 // (26,16): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
-                //         (y4 ?? x4)/*T:B<object!>*/.F.ToString();
+                //         (y4 ?? x4)/*T:B<object!>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x4").WithArguments("B<object?>", "B<object>").WithLocation(26, 16),
                 // (30,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
                 //         (x5 ?? y5)/*T:B<object?>?*/.F.ToString();
@@ -16897,11 +16903,11 @@ class C
                 //         (x5 ?? y5)/*T:B<object?>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x5 ?? y5)/*T:B<object?>?*/.F").WithLocation(30, 9),
                 // (31,16): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'B<object?>'.
-                //         (y5 ?? x5)/*T:B<object?>*/.F.ToString();
+                //         (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x5").WithArguments("B<object>", "B<object?>").WithLocation(31, 16),
                 // (31,9): warning CS8602: Possible dereference of a null reference.
-                //         (y5 ?? x5)/*T:B<object?>*/.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y5 ?? x5)/*T:B<object?>*/.F").WithLocation(31, 9),
+                //         (y5 ?? x5)/*T:B<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y5 ?? x5)/*T:B<object?>!*/.F").WithLocation(31, 9),
                 // (35,10): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'B<object>'.
                 //         (x6 ?? y6)/*T:B<object!>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("A<object?>", "B<object>").WithLocation(35, 10),
@@ -16909,7 +16915,7 @@ class C
                 //         (x6 ?? y6)/*T:B<object!>?*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x6 ?? y6").WithLocation(35, 10),
                 // (36,16): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
-                //         (y6 ?? x6)/*T:B<object!>*/.F.ToString();
+                //         (y6 ?? x6)/*T:B<object!>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>", "B<object>").WithLocation(36, 16));
         }
 
@@ -18779,7 +18785,7 @@ class Program
     static B<T> CreateB<T>(T t) => throw null;
     static void F(B<object?> x, B<object> y, C0 cz, C1 cx, C2 cy)
     {
-        var z = CreateB(A.F)/*T:B<object>*/;
+        var z = CreateB(A.F)/*T:B<object>!*/;
         object o;
         o = (new[] { x, cx })[0]/*B<object?>*/;
         o = (new[] { x, cy })[0]/*B<object>*/;
@@ -18973,13 +18979,13 @@ class Program
         var z = Create(A.F); // B<object~>
         object o;
         o = (new[] { x, y })[0]/*T:B<object>!*/;
-        o = (new[] { x, z })[0]/*T:B<object?>*/;
+        o = (new[] { x, z })[0]/*T:B<object?>!*/;
         o = (new[] { y, x })[0]/*T:B<object>!*/;
-        o = (new[] { y, z })[0]/*T:B<object!>*/;
-        o = (new[] { z, x })[0]/*T:B<object?>*/;
-        o = (new[] { z, y })[0]/*T:B<object!>*/;
-        o = (new[] { x, y, z })[0]/*T:B<object>*/;
-        o = (new[] { z, y, x })[0]/*T:B<object>*/;
+        o = (new[] { y, z })[0]/*T:B<object!>!*/;
+        o = (new[] { z, x })[0]/*T:B<object?>!*/;
+        o = (new[] { z, y })[0]/*T:B<object!>!*/;
+        o = (new[] { x, y, z })[0]/*T:B<object>!*/;
+        o = (new[] { z, y, x })[0]/*T:B<object>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -19000,6 +19006,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void ImplicitlyTypedArrayCreation_NestedNullability_Variant_01()
         {
             var source0 =
@@ -19011,7 +19018,6 @@ class Program
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<object> rather than I<object>!.
             var source =
 @"interface I<T> { }
 interface IIn<in T> { }
@@ -19021,47 +19027,47 @@ class C
     static I<T> CreateI<T>(T t) => throw null;
     static void F(I<object> x, I<object?> y)
     {
-        var z = CreateI(A.F)/*T:I<object>*/;
+        var z = CreateI(A.F)/*T:I<object>!*/;
         object o;
         o = (new[] { x, x })[0]/*T:I<object!>!*/;
         o = (new[] { x, y })[0]/*T:I<object>!*/;
-        o = (new[] { x, z })[0]/*T:I<object!>*/;
+        o = (new[] { x, z })[0]/*T:I<object!>!*/;
         o = (new[] { y, x })[0]/*T:I<object>!*/;
         o = (new[] { y, y })[0]/*T:I<object?>!*/;
-        o = (new[] { y, z })[0]/*T:I<object?>*/;
-        o = (new[] { z, x })[0]/*T:I<object!>*/;
-        o = (new[] { z, y })[0]/*T:I<object?>*/;
-        o = (new[] { z, z })[0]/*T:I<object>*/;
+        o = (new[] { y, z })[0]/*T:I<object?>!*/;
+        o = (new[] { z, x })[0]/*T:I<object!>!*/;
+        o = (new[] { z, y })[0]/*T:I<object?>!*/;
+        o = (new[] { z, z })[0]/*T:I<object>!*/;
     }
     static IIn<T> CreateIIn<T>(T t) => throw null;
     static void F(IIn<object> x, IIn<object?> y)
     {
-        var z = CreateIIn(A.F)/*T:IIn<object>*/;
+        var z = CreateIIn(A.F)/*T:IIn<object>!*/;
         object o;
         o = (new[] { x, x })[0]/*T:IIn<object!>!*/;
         o = (new[] { x, y })[0]/*T:IIn<object!>!*/;
-        o = (new[] { x, z })[0]/*T:IIn<object!>*/;
+        o = (new[] { x, z })[0]/*T:IIn<object!>!*/;
         o = (new[] { y, x })[0]/*T:IIn<object!>!*/;
         o = (new[] { y, y })[0]/*T:IIn<object?>!*/;
-        o = (new[] { y, z })[0]/*T:IIn<object>*/;
-        o = (new[] { z, x })[0]/*T:IIn<object!>*/;
-        o = (new[] { z, y })[0]/*T:IIn<object>*/;
-        o = (new[] { z, z })[0]/*T:IIn<object>*/;
+        o = (new[] { y, z })[0]/*T:IIn<object>!*/;
+        o = (new[] { z, x })[0]/*T:IIn<object!>!*/;
+        o = (new[] { z, y })[0]/*T:IIn<object>!*/;
+        o = (new[] { z, z })[0]/*T:IIn<object>!*/;
     }
     static IOut<T> CreateIOut<T>(T t) => throw null;
     static void F(IOut<object> x, IOut<object?> y)
     {
-        var z = CreateIOut(A.F)/*T:IOut<object>*/;
+        var z = CreateIOut(A.F)/*T:IOut<object>!*/;
         object o;
         o = (new[] { x, x })[0]/*T:IOut<object!>!*/;
         o = (new[] { x, y })[0]/*T:IOut<object?>!*/;
-        o = (new[] { x, z })[0]/*T:IOut<object>*/;
+        o = (new[] { x, z })[0]/*T:IOut<object>!*/;
         o = (new[] { y, x })[0]/*T:IOut<object?>!*/;
         o = (new[] { y, y })[0]/*T:IOut<object?>!*/;
-        o = (new[] { y, z })[0]/*T:IOut<object?>*/;
-        o = (new[] { z, x })[0]/*T:IOut<object>*/;
-        o = (new[] { z, y })[0]/*T:IOut<object?>*/;
-        o = (new[] { z, z })[0]/*T:IOut<object>*/;
+        o = (new[] { y, z })[0]/*T:IOut<object?>!*/;
+        o = (new[] { z, x })[0]/*T:IOut<object>!*/;
+        o = (new[] { z, y })[0]/*T:IOut<object?>!*/;
+        o = (new[] { z, z })[0]/*T:IOut<object>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -19076,6 +19082,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void ImplicitlyTypedArrayCreation_NestedNullability_Variant_02()
         {
             var source0 =
@@ -19087,7 +19094,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns IIn<IOut<string>> rather than IIn<IOut<string>>!.
             var source =
 @"interface I<T> { }
 interface IIn<in T> { }
@@ -19098,47 +19104,47 @@ class C
     static I<IOut<T>> Create1<T>(T t) => throw null;
     static void G1(I<IOut<string?>> x1, I<IOut<string>> y1)
     {
-        var z1 = Create1(A.F)/*T:I<IOut<string>>*/;
+        var z1 = Create1(A.F)/*T:I<IOut<string>!>!*/;
         object o;
         o = (new [] { x1, x1 })[0]/*T:I<IOut<string?>!>!*/;
         o = (new [] { x1, y1 })[0]/*T:I<IOut<string>!>!*/; // 1
-        o = (new [] { x1, z1 })[0]/*T:I<IOut<string?>!>*/;
+        o = (new [] { x1, z1 })[0]/*T:I<IOut<string?>!>!*/;
         o = (new [] { y1, x1 })[0]/*T:I<IOut<string>!>!*/; // 2
         o = (new [] { y1, y1 })[0]/*T:I<IOut<string!>!>!*/;
-        o = (new [] { y1, z1 })[0]/*T:I<IOut<string!>!>*/;
-        o = (new [] { z1, x1 })[0]/*T:I<IOut<string?>!>*/;
-        o = (new [] { z1, y1 })[0]/*T:I<IOut<string!>!>*/;
-        o = (new [] { z1, z1 })[0]/*T:I<IOut<string>>*/;
+        o = (new [] { y1, z1 })[0]/*T:I<IOut<string!>!>!*/;
+        o = (new [] { z1, x1 })[0]/*T:I<IOut<string?>!>!*/;
+        o = (new [] { z1, y1 })[0]/*T:I<IOut<string!>!>!*/;
+        o = (new [] { z1, z1 })[0]/*T:I<IOut<string>!>!*/;
     }
     static IOut<IIn<T>> Create2<T>(T t) => throw null;
     static void G2(IOut<IIn<string?>> x2, IOut<IIn<string>> y2)
     {
-        var z2 = Create2(A.F)/*T:IOut<IIn<string>>*/;
+        var z2 = Create2(A.F)/*T:IOut<IIn<string>!>!*/;
         object o;
         o = (new [] { x2, x2 })[0]/*T:IOut<IIn<string?>!>!*/;
         o = (new [] { x2, y2 })[0]/*T:IOut<IIn<string!>!>!*/;
-        o = (new [] { x2, z2 })[0]/*T:IOut<IIn<string>>*/;
+        o = (new [] { x2, z2 })[0]/*T:IOut<IIn<string>!>!*/;
         o = (new [] { y2, x2 })[0]/*T:IOut<IIn<string!>!>!*/;
         o = (new [] { y2, y2 })[0]/*T:IOut<IIn<string!>!>!*/;
-        o = (new [] { y2, z2 })[0]/*T:IOut<IIn<string!>>*/;
-        o = (new [] { z2, x2 })[0]/*T:IOut<IIn<string>>*/;
-        o = (new [] { z2, y2 })[0]/*T:IOut<IIn<string!>>*/;
-        o = (new [] { z2, z2 })[0]/*T:IOut<IIn<string>>*/;
+        o = (new [] { y2, z2 })[0]/*T:IOut<IIn<string!>!>!*/;
+        o = (new [] { z2, x2 })[0]/*T:IOut<IIn<string>!>!*/;
+        o = (new [] { z2, y2 })[0]/*T:IOut<IIn<string!>!>!*/;
+        o = (new [] { z2, z2 })[0]/*T:IOut<IIn<string>!>!*/;
     }
     static IIn<IOut<T>> Create3<T>(T t) => throw null;
     static void G3(IIn<IOut<string?>> x3, IIn<IOut<string>> y3)
     {
-        var z3 = Create3(A.F)/*T:IIn<IOut<string>>*/;
+        var z3 = Create3(A.F)/*T:IIn<IOut<string>!>!*/;
         object o;
         o = (new [] { x3, x3 })[0]/*T:IIn<IOut<string?>!>!*/;
         o = (new [] { x3, y3 })[0]/*T:IIn<IOut<string!>!>!*/;
-        o = (new [] { x3, z3 })[0]/*T:IIn<IOut<string>!>*/;
+        o = (new [] { x3, z3 })[0]/*T:IIn<IOut<string>!>!*/;
         o = (new [] { y3, x3 })[0]/*T:IIn<IOut<string!>!>!*/;
         o = (new [] { y3, y3 })[0]/*T:IIn<IOut<string!>!>!*/;
-        o = (new [] { y3, z3 })[0]/*T:IIn<IOut<string!>!>*/;
-        o = (new [] { z3, x3 })[0]/*T:IIn<IOut<string>!>*/;
-        o = (new [] { z3, y3 })[0]/*T:IIn<IOut<string!>!>*/;
-        o = (new [] { z3, z3 })[0]/*T:IIn<IOut<string>>*/;
+        o = (new [] { y3, z3 })[0]/*T:IIn<IOut<string!>!>!*/;
+        o = (new [] { z3, x3 })[0]/*T:IIn<IOut<string>!>!*/;
+        o = (new [] { z3, y3 })[0]/*T:IIn<IOut<string!>!>!*/;
+        o = (new [] { z3, z3 })[0]/*T:IIn<IOut<string>!>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -19153,6 +19159,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void ImplicitlyTypedArrayCreation_NestedNullability_Variant_03()
         {
             var source0 =
@@ -19165,7 +19172,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F1, A.F2) returns I<string> rather than I<string>!.
             var source =
 @"class B<T>
 {
@@ -19180,62 +19186,62 @@ class C
     static B<T>.INone CreateINone<T>(T t) => throw null;
     static void G0(B<object>.INone x0, B<object?>.INone y0)
     {
-        var z0 = CreateINone(A.F1)/*T:B<object>.INone*/;
+        var z0 = CreateINone(A.F1)/*T:B<object>.INone!*/;
         object o;
         o = (new[] { x0, x0 })[0]/*T:B<object!>.INone!*/;
         o = (new[] { x0, y0 })[0]/*T:B<object>.INone!*/;
-        o = (new[] { x0, z0 })[0]/*T:B<object!>.INone*/;
+        o = (new[] { x0, z0 })[0]/*T:B<object!>.INone!*/;
         o = (new[] { y0, x0 })[0]/*T:B<object>.INone!*/;
         o = (new[] { y0, y0 })[0]/*T:B<object?>.INone!*/;
-        o = (new[] { y0, z0 })[0]/*T:B<object?>.INone*/;
-        o = (new[] { z0, x0 })[0]/*T:B<object!>.INone*/;
-        o = (new[] { z0, y0 })[0]/*T:B<object?>.INone*/;
-        o = (new[] { z0, z0 })[0]/*T:B<object>.INone*/;
+        o = (new[] { y0, z0 })[0]/*T:B<object?>.INone!*/;
+        o = (new[] { z0, x0 })[0]/*T:B<object!>.INone!*/;
+        o = (new[] { z0, y0 })[0]/*T:B<object?>.INone!*/;
+        o = (new[] { z0, z0 })[0]/*T:B<object>.INone!*/;
     }
     static B<T>.I<U> CreateI<T, U>(T t, U u) => throw null;
     static void G1(B<object>.I<string> x1, B<object?>.I<string?> y1)
     {
-        var z1 = CreateI(A.F1, A.F2)/*T:B<object>.I<string>*/;
+        var z1 = CreateI(A.F1, A.F2)/*T:B<object>.I<string>!*/;
         object o;
         o = (new[] { x1, x1 })[0]/*T:B<object!>.I<string!>!*/;
         o = (new[] { x1, y1 })[0]/*T:B<object>.I<string>!*/;
-        o = (new[] { x1, z1 })[0]/*T:B<object!>.I<string!>*/;
+        o = (new[] { x1, z1 })[0]/*T:B<object!>.I<string!>!*/;
         o = (new[] { y1, x1 })[0]/*T:B<object>.I<string>!*/;
         o = (new[] { y1, y1 })[0]/*T:B<object?>.I<string?>!*/;
-        o = (new[] { y1, z1 })[0]/*T:B<object?>.I<string?>*/;
-        o = (new[] { z1, x1 })[0]/*T:B<object!>.I<string!>*/;
-        o = (new[] { z1, y1 })[0]/*T:B<object?>.I<string?>*/;
-        o = (new[] { z1, z1 })[0]/*T:B<object>.I<string>*/;
+        o = (new[] { y1, z1 })[0]/*T:B<object?>.I<string?>!*/;
+        o = (new[] { z1, x1 })[0]/*T:B<object!>.I<string!>!*/;
+        o = (new[] { z1, y1 })[0]/*T:B<object?>.I<string?>!*/;
+        o = (new[] { z1, z1 })[0]/*T:B<object>.I<string>!*/;
     }
     static B<T>.IIn<U> CreateIIn<T, U>(T t, U u) => throw null;
     static void G2(B<object>.IIn<string> x2, B<object?>.IIn<string?> y2)
     {
-        var z2 = CreateIIn(A.F1, A.F2)/*T:B<object>.IIn<string>*/;
+        var z2 = CreateIIn(A.F1, A.F2)/*T:B<object>.IIn<string>!*/;
         object o;
         o = (new[] { x2, x2 })[0]/*T:B<object!>.IIn<string!>!*/;
         o = (new[] { x2, y2 })[0]/*T:B<object>.IIn<string!>!*/;
-        o = (new[] { x2, z2 })[0]/*T:B<object!>.IIn<string!>*/;
+        o = (new[] { x2, z2 })[0]/*T:B<object!>.IIn<string!>!*/;
         o = (new[] { y2, x2 })[0]/*T:B<object>.IIn<string!>!*/;
         o = (new[] { y2, y2 })[0]/*T:B<object?>.IIn<string?>!*/;
-        o = (new[] { y2, z2 })[0]/*T:B<object?>.IIn<string>*/;
-        o = (new[] { z2, x2 })[0]/*T:B<object!>.IIn<string!>*/;
-        o = (new[] { z2, y2 })[0]/*T:B<object?>.IIn<string>*/;
-        o = (new[] { z2, z2 })[0]/*T:B<object>.IIn<string>*/;
+        o = (new[] { y2, z2 })[0]/*T:B<object?>.IIn<string>!*/;
+        o = (new[] { z2, x2 })[0]/*T:B<object!>.IIn<string!>!*/;
+        o = (new[] { z2, y2 })[0]/*T:B<object?>.IIn<string>!*/;
+        o = (new[] { z2, z2 })[0]/*T:B<object>.IIn<string>!*/;
     }
     static B<T>.IOut<U> CreateIOut<T, U>(T t, U u) => throw null;
     static void G3(B<object>.IOut<string> x3, B<object?>.IOut<string?> y3)
     {
-        var z3 = CreateIOut(A.F1, A.F2)/*T:B<object>.IOut<string>*/;
+        var z3 = CreateIOut(A.F1, A.F2)/*T:B<object>.IOut<string>!*/;
         object o;
         o = (new[] { x3, x3 })[0]/*T:B<object!>.IOut<string!>!*/;
         o = (new[] { x3, y3 })[0]/*T:B<object>.IOut<string?>!*/;
-        o = (new[] { x3, z3 })[0]/*T:B<object!>.IOut<string>*/;
+        o = (new[] { x3, z3 })[0]/*T:B<object!>.IOut<string>!*/;
         o = (new[] { y3, x3 })[0]/*T:B<object>.IOut<string?>!*/;
         o = (new[] { y3, y3 })[0]/*T:B<object?>.IOut<string?>!*/;
-        o = (new[] { y3, z3 })[0]/*T:B<object?>.IOut<string?>*/;
-        o = (new[] { z3, x3 })[0]/*T:B<object!>.IOut<string>*/;
-        o = (new[] { z3, y3 })[0]/*T:B<object?>.IOut<string?>*/;
-        o = (new[] { z3, z3 })[0]/*T:B<object>.IOut<string>*/;
+        o = (new[] { y3, z3 })[0]/*T:B<object?>.IOut<string?>!*/;
+        o = (new[] { z3, x3 })[0]/*T:B<object!>.IOut<string>!*/;
+        o = (new[] { z3, y3 })[0]/*T:B<object?>.IOut<string?>!*/;
+        o = (new[] { z3, z3 })[0]/*T:B<object>.IOut<string>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -21925,6 +21931,7 @@ class C
         }
 
         [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         [Fact]
         public void LambdaReturnValue_NestedNullability_Invariant()
         {
@@ -21937,7 +21944,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns B<object> rather than B<object>!.
             var source =
 @"using System;
 class B<T> { }
@@ -21947,7 +21953,7 @@ class C
     static B<T> Create<T>(T t) => throw null;
     static void F(B<object?> x, B<object> y)
     {
-        var z = Create(A.F)/*T:B<object>*/;
+        var z = Create(A.F)/*T:B<object>!*/;
         F(i => { switch (i) { case 0: return x; default: return x; }})/*T:B<object?>!*/;
         F(i => { switch (i) { case 0: return x; default: return y; }})/*T:B<object>*/;
         F(i => { switch (i) { case 0: return x; default: return z; }})/*T:B<object?>*/;
@@ -21968,6 +21974,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void LambdaReturnValue_NestedNullability_Variant_01()
         {
             var source0 =
@@ -21979,7 +21986,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<object> rather than I<object>!.
             var source =
 @"using System;
 interface I<T> { }
@@ -21991,7 +21997,7 @@ class C
     static I<T> CreateI<T>(T t) => throw null;
     static void F1(I<object> x, I<object?> y)
     {
-        var z = CreateI(A.F)/*T:I<object>*/;
+        var z = CreateI(A.F)/*T:I<object>!*/;
         F(b => { if (b) return x; else return x; })/*T:I<object!>!*/;
         F(b => { if (b) return x; else return y; })/*T:I<object>*/;
         F(b => { if (b) return x; else return z; })/*T:I<object!>*/;
@@ -22005,7 +22011,7 @@ class C
     static IIn<T> CreateIIn<T>(T t) => throw null;
     static void F2(IIn<object> x, IIn<object?> y)
     {
-        var z = CreateIIn(A.F)/*T:IIn<object>*/;
+        var z = CreateIIn(A.F)/*T:IIn<object>!*/;
         F(b => { if (b) return x; else return x; })/*T:IIn<object!>!*/;
         F(b => { if (b) return x; else return y; })/*T:IIn<object!>!*/;
         F(b => { if (b) return x; else return z; })/*T:IIn<object!>*/;
@@ -22019,7 +22025,7 @@ class C
     static IOut<T> CreateIOut<T>(T t) => throw null;
     static void F3(IOut<object> x, IOut<object?> y)
     {
-        var z = CreateIOut(A.F)/*T:IOut<object>*/;
+        var z = CreateIOut(A.F)/*T:IOut<object>!*/;
         F(b => { if (b) return x; else return x; })/*T:IOut<object!>!*/;
         F(b => { if (b) return x; else return y; })/*T:IOut<object?>!*/;
         F(b => { if (b) return x; else return z; })/*T:IOut<object>*/;
@@ -22038,6 +22044,7 @@ class C
         }
 
         [WorkItem(27961, "https://github.com/dotnet/roslyn/issues/27961")]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         [Fact]
         public void LambdaReturnValue_NestedNullability_Variant_02()
         {
@@ -22050,7 +22057,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns B<object> rather than B<object>!.
             var source =
 @"using System;
 class B<T> { }
@@ -22060,8 +22066,8 @@ class C
     static Func<int, T> CreateFunc<T>(T t) => throw null;
     static void F(B<object?> x, B<object> y)
     {
-        var z = CreateB(A.F)/*T:B<object>*/;
-        var f = CreateFunc(y)/*Func<B<object!>>*/;
+        var z = CreateB(A.F)/*T:B<object>!*/;
+        var f = CreateFunc(y)/*Func<B<object!>>!*/;
         f = i => { switch (i) { case 0: return x; default: return x; }};
         f = i => { switch (i) { case 0: return x; default: return y; }};
         f = i => { switch (i) { case 0: return x; default: return z; }};
@@ -36264,7 +36270,11 @@ static class E
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t3").WithArguments("(string?, string)", "(string, string?)", "t", "string C.F<string>(ref (string, string?) t)").WithLocation(11, 15),
                 // (13,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(ref (T, T?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(ref t4).ToString();
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(ref t4)").WithArguments("C.F<T>(ref (T, T?))").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(ref t4)").WithArguments("C.F<T>(ref (T, T?))").WithLocation(13, 9),
+                // (13,15): warning CS8620: Nullability of reference types in argument of type '(string?, string?)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(ref (string, string?) t)'.
+                //         F(ref t4).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "t4").WithArguments("(string?, string?)", "(string, string?)", "t", "string C.F<string>(ref (string, string?) t)").WithLocation(13, 15)
+                );
         }
 
         [Fact]
@@ -36295,7 +36305,11 @@ static class E
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string?, string) t3").WithArguments("(string?, string)", "(string, string?)", "t", "string C.F<string>(out (string, string?) t)").WithLocation(8, 15),
                 // (9,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(out (T, T?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(out (string?, string?) t4).ToString();
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(out (string?, string?) t4)").WithArguments("C.F<T>(out (T, T?))").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(out (string?, string?) t4)").WithArguments("C.F<T>(out (T, T?))").WithLocation(9, 9),
+                // (9,15): warning CS8620: Nullability of reference types in argument of type '(string?, string?)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(out (string, string?) t)'.
+                //         F(out (string?, string?) t4).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(string?, string?) t4").WithArguments("(string?, string?)", "(string, string?)", "t", "string C.F<string>(out (string, string?) t)").WithLocation(9, 15)
+                );
         }
 
         [Fact]
@@ -36346,6 +36360,9 @@ class C
                 // (12,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(w).ToString();
                 Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(I<(T, T?)>)").WithLocation(12, 9),
+                // (12,11): warning CS8620: Nullability of reference types in argument of type 'I<(string?, string?)>' doesn't match target type 'I<(string, string?)>' for parameter 't' in 'string C.F<string>(I<(string, string?)> t)'.
+                //         F(w).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "w").WithArguments("I<(string?, string?)>", "I<(string, string?)>", "t", "string C.F<string>(I<(string, string?)> t)").WithLocation(12, 11),
                 // (17,11): warning CS8620: Nullability of reference types in argument of type 'IIn<(string, string)>' doesn't match target type 'IIn<(string, string?)>' for parameter 't' in 'string C.F<string>(IIn<(string, string?)> t)'.
                 //         F(x).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IIn<(string, string)>", "IIn<(string, string?)>", "t", "string C.F<string>(IIn<(string, string?)> t)").WithLocation(17, 11),
@@ -36358,6 +36375,9 @@ class C
                 // (20,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IIn<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(w).ToString();
                 Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(IIn<(T, T?)>)").WithLocation(20, 9),
+                // (20,11): warning CS8620: Nullability of reference types in argument of type 'IIn<(string?, string?)>' doesn't match target type 'IIn<(string, string?)>' for parameter 't' in 'string C.F<string>(IIn<(string, string?)> t)'.
+                //         F(w).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "w").WithArguments("IIn<(string?, string?)>", "IIn<(string, string?)>", "t", "string C.F<string>(IIn<(string, string?)> t)").WithLocation(20, 11),
                 // (25,11): warning CS8620: Nullability of reference types in argument of type 'IOut<(string, string)>' doesn't match target type 'IOut<(string, string?)>' for parameter 't' in 'string C.F<string>(IOut<(string, string?)> t)'.
                 //         F(x).ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IOut<(string, string)>", "IOut<(string, string?)>", "t", "string C.F<string>(IOut<(string, string?)> t)").WithLocation(25, 11),
@@ -36369,7 +36389,11 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IOut<(string?, string)>", "IOut<(string, string?)>", "t", "string C.F<string>(IOut<(string, string?)> t)").WithLocation(27, 11),
                 // (28,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(IOut<(T, T?)>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(w).ToString();
-                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(IOut<(T, T?)>)").WithLocation(28, 9));
+                Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(w)").WithArguments("C.F<T>(IOut<(T, T?)>)").WithLocation(28, 9),
+                // (28,11): warning CS8620: Nullability of reference types in argument of type 'IOut<(string?, string?)>' doesn't match target type 'IOut<(string, string?)>' for parameter 't' in 'string C.F<string>(IOut<(string, string?)> t)'.
+                //         F(w).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "w").WithArguments("IOut<(string?, string?)>", "IOut<(string, string?)>", "t", "string C.F<string>(IOut<(string, string?)> t)").WithLocation(28, 11)
+                );
         }
 
         [Fact]
@@ -37644,19 +37668,19 @@ class C<T> where T : class
     {
         B<T?> x;
         B<T> y;
-        x = ((B<T?>)x1)/*T:B<T?>*/;
-        y = ((B<T>)x1)/*T:B<T!>*/;
-        x = ((B<T?>)y1)/*T:B<T?>*/;
-        y = ((B<T>)y1)/*T:B<T!>*/;
+        x = ((B<T?>)x1)/*T:B<T?>!*/;
+        y = ((B<T>)x1)/*T:B<T!>!*/;
+        x = ((B<T?>)y1)/*T:B<T?>!*/;
+        y = ((B<T>)y1)/*T:B<T!>!*/;
     }
     static void F2(A2<T?> x2, A2<T> y2)
     {
         B<T?> x;
         B<T> y;
-        x = ((B<T?>)x2)/*T:B<T?>*/;
-        y = ((B<T>)x2)/*T:B<T!>*/;
-        x = ((B<T?>)y2)/*T:B<T?>*/;
-        y = ((B<T>)y2)/*T:B<T!>*/;
+        x = ((B<T?>)x2)/*T:B<T?>!*/;
+        y = ((B<T>)x2)/*T:B<T!>!*/;
+        x = ((B<T?>)y2)/*T:B<T?>!*/;
+        y = ((B<T>)y2)/*T:B<T!>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -38635,6 +38659,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void TypeInference_LowerBounds_NestedNullability_Variant_01()
         {
             var source0 =
@@ -38646,7 +38671,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<string> rather than I<string>!.
             var source =
 @"interface I<T> { }
 interface IIn<in T> { }
@@ -38657,44 +38681,44 @@ class C
     static I<T> CreateI<T>(T t) => throw null;
     static void G1(I<string> x1, I<string?> y1)
     {
-        var z1 = CreateI(A.F)/*T:I<string>*/;
+        var z1 = CreateI(A.F)/*T:I<string>!*/;
         F(x1, x1)/*T:I<string!>!*/;
         F(x1, y1)/*T:I<string>!*/; // 1
-        F(x1, z1)/*T:I<string!>*/;
+        F(x1, z1)/*T:I<string!>!*/;
         F(y1, x1)/*T:I<string>!*/; // 2
         F(y1, y1)/*T:I<string?>!*/;
-        F(y1, z1)/*T:I<string?>*/;
-        F(z1, x1)/*T:I<string!>*/;
-        F(z1, y1)/*T:I<string?>*/;
-        F(z1, z1)/*T:I<string>*/;
+        F(y1, z1)/*T:I<string?>!*/;
+        F(z1, x1)/*T:I<string!>!*/;
+        F(z1, y1)/*T:I<string?>!*/;
+        F(z1, z1)/*T:I<string>!*/;
     }
     static IIn<T> CreateIIn<T>(T t) => throw null;
     static void G2(IIn<string> x2, IIn<string?> y2)
     {
-        var z2 = CreateIIn(A.F)/*T:IIn<string>*/;
+        var z2 = CreateIIn(A.F)/*T:IIn<string>!*/;
         F(x2, x2)/*T:IIn<string!>!*/;
         F(x2, y2)/*T:IIn<string!>!*/;
-        F(x2, z2)/*T:IIn<string!>*/;
+        F(x2, z2)/*T:IIn<string!>!*/;
         F(y2, x2)/*T:IIn<string!>!*/;
         F(y2, y2)/*T:IIn<string?>!*/;
-        F(y2, z2)/*T:IIn<string>*/;
-        F(z2, x2)/*T:IIn<string!>*/;
-        F(z2, y2)/*T:IIn<string>*/;
-        F(z2, z2)/*T:IIn<string>*/;
+        F(y2, z2)/*T:IIn<string>!*/;
+        F(z2, x2)/*T:IIn<string!>!*/;
+        F(z2, y2)/*T:IIn<string>!*/;
+        F(z2, z2)/*T:IIn<string>!*/;
     }
     static IOut<T> CreateIOut<T>(T t) => throw null;
     static void G3(IOut<string> x3, IOut<string?> y3)
     {
-        var z3 = CreateIOut(A.F)/*T:IOut<string>*/;
+        var z3 = CreateIOut(A.F)/*T:IOut<string>!*/;
         F(x3, x3)/*T:IOut<string!>!*/;
         F(x3, y3)/*T:IOut<string?>!*/;
-        F(x3, z3)/*T:IOut<string>*/;
+        F(x3, z3)/*T:IOut<string>!*/;
         F(y3, x3)/*T:IOut<string?>!*/;
         F(y3, y3)/*T:IOut<string?>!*/;
-        F(y3, z3)/*T:IOut<string?>*/;
-        F(z3, x3)/*T:IOut<string>*/;
-        F(z3, y3)/*T:IOut<string?>*/;
-        F(z3, z3)/*T:IOut<string>*/;
+        F(y3, z3)/*T:IOut<string?>!*/;
+        F(z3, x3)/*T:IOut<string>!*/;
+        F(z3, y3)/*T:IOut<string?>!*/;
+        F(z3, z3)/*T:IOut<string>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -38709,6 +38733,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void TypeInference_LowerBounds_NestedNullability_Variant_02()
         {
             var source0 =
@@ -38720,7 +38745,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateI(A.F) returns I<string> rather than I<string>!.
             var source =
 @"interface IOut<out T, out U> { }
 class C
@@ -38731,11 +38755,11 @@ class C
     static void G(string x, string? y)
     {
         var z = A.F/*T:string*/;
-        F(CreateIOut(x, x), CreateIOut(x, y))/*T:IOut<string!, string?>*/;
-        F(CreateIOut(x, x), CreateIOut(x, z))/*T:IOut<string!, string>*/;
-        F(CreateIOut(y, x), CreateIOut(x, x))/*T:IOut<string?, string!>*/;
-        F(CreateIOut(y, z), CreateIOut(z, x))/*T:IOut<string?, string>*/;
-        F(CreateIOut(x, x), CreateIOut(x, y), CreateIOut(x, z))/*T:IOut<string!, string?>*/;
+        F(CreateIOut(x, x), CreateIOut(x, y))/*T:IOut<string!, string?>!*/;
+        F(CreateIOut(x, x), CreateIOut(x, z))/*T:IOut<string!, string>!*/;
+        F(CreateIOut(y, x), CreateIOut(x, x))/*T:IOut<string?, string!>!*/;
+        F(CreateIOut(y, z), CreateIOut(z, x))/*T:IOut<string?, string>!*/;
+        F(CreateIOut(x, x), CreateIOut(x, y), CreateIOut(x, z))/*T:IOut<string!, string?>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -38744,6 +38768,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void TypeInference_LowerBounds_NestedNullability_Variant_03()
         {
             var source0 =
@@ -38755,7 +38780,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: Create(A.F) returns IIn<IOut<string>> rather than IIn<IOut<string>>!.
             var source =
 @"interface I<T> { }
 interface IIn<in T> { }
@@ -38766,44 +38790,44 @@ class C
     static I<IOut<T>> Create1<T>(T t) => throw null;
     static void G1(I<IOut<string?>> x1, I<IOut<string>> y1)
     {
-        var z1 = Create1(A.F)/*T:I<IOut<string>>*/;
+        var z1 = Create1(A.F)/*T:I<IOut<string>!>!*/;
         F(x1, x1)/*T:I<IOut<string?>!>!*/;
         F(x1, y1)/*T:I<IOut<string>!>!*/; // 1
-        F(x1, z1)/*T:I<IOut<string?>!>*/;
+        F(x1, z1)/*T:I<IOut<string?>!>!*/;
         F(y1, x1)/*T:I<IOut<string>!>!*/; // 2
         F(y1, y1)/*T:I<IOut<string!>!>!*/;
-        F(y1, z1)/*T:I<IOut<string!>!>*/;
-        F(z1, x1)/*T:I<IOut<string?>!>*/;
-        F(z1, y1)/*T:I<IOut<string!>!>*/;
-        F(z1, z1)/*T:I<IOut<string>>*/;
+        F(y1, z1)/*T:I<IOut<string!>!>!*/;
+        F(z1, x1)/*T:I<IOut<string?>!>!*/;
+        F(z1, y1)/*T:I<IOut<string!>!>!*/;
+        F(z1, z1)/*T:I<IOut<string>!>!*/;
     }
     static IOut<IIn<T>> Create2<T>(T t) => throw null;
     static void G2(IOut<IIn<string?>> x2, IOut<IIn<string>> y2)
     {
-        var z2 = Create2(A.F)/*T:IOut<IIn<string>>*/;
+        var z2 = Create2(A.F)/*T:IOut<IIn<string>!>!*/;
         F(x2, x2)/*T:IOut<IIn<string?>!>!*/;
         F(x2, y2)/*T:IOut<IIn<string!>!>!*/;
-        F(x2, z2)/*T:IOut<IIn<string>>*/;
+        F(x2, z2)/*T:IOut<IIn<string>!>!*/;
         F(y2, x2)/*T:IOut<IIn<string!>!>!*/;
         F(y2, y2)/*T:IOut<IIn<string!>!>!*/;
-        F(y2, z2)/*T:IOut<IIn<string!>>*/;
-        F(z2, x2)/*T:IOut<IIn<string>>*/;
-        F(z2, y2)/*T:IOut<IIn<string!>>*/;
-        F(z2, z2)/*T:IOut<IIn<string>>*/;
+        F(y2, z2)/*T:IOut<IIn<string!>!>!*/;
+        F(z2, x2)/*T:IOut<IIn<string>!>!*/;
+        F(z2, y2)/*T:IOut<IIn<string!>!>!*/;
+        F(z2, z2)/*T:IOut<IIn<string>!>!*/;
     }
     static IIn<IOut<T>> Create3<T>(T t) => throw null;
     static void G3(IIn<IOut<string?>> x3, IIn<IOut<string>> y3)
     {
-        var z3 = Create3(A.F)/*T:IIn<IOut<string>>*/;
+        var z3 = Create3(A.F)/*T:IIn<IOut<string>!>!*/;
         F(x3, x3)/*T:IIn<IOut<string?>!>!*/;
         F(x3, y3)/*T:IIn<IOut<string!>!>!*/;
-        F(x3, z3)/*T:IIn<IOut<string>!>*/;
+        F(x3, z3)/*T:IIn<IOut<string>!>!*/;
         F(y3, x3)/*T:IIn<IOut<string!>!>!*/;
         F(y3, y3)/*T:IIn<IOut<string!>!>!*/;
-        F(y3, z3)/*T:IIn<IOut<string!>!>*/;
-        F(z3, x3)/*T:IIn<IOut<string>!>*/;
-        F(z3, y3)/*T:IIn<IOut<string!>!>*/;
-        F(z3, z3)/*T:IIn<IOut<string>>*/;
+        F(y3, z3)/*T:IIn<IOut<string!>!>!*/;
+        F(z3, x3)/*T:IIn<IOut<string>!>!*/;
+        F(z3, y3)/*T:IIn<IOut<string!>!>!*/;
+        F(z3, z3)/*T:IIn<IOut<string>!>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -38837,7 +38861,7 @@ class C
     static B<T> CreateB<T>(T t) => throw null;
     static void G(B<string?> x, B<string> y)
     {
-        var z = CreateB(A.F)/*T:B<string>*/;
+        var z = CreateB(A.F)/*T:B<string>!*/;
         F(x, x)/*T:string?*/;
         F(x, y)/*T:string*/; // 1
         F(x, z)/*T:string?*/;
@@ -38880,34 +38904,34 @@ class Program
     static B<T> CreateB<T>(T t) => throw null;
     static void G(B<object?> x, B<object> y)
     {
-        var z = CreateB(A.F)/*T:B<object>*/;
+        var z = CreateB(A.F)/*T:B<object>!*/;
         F(x, x, x)/*T:B<object?>!*/;
         F(x, x, y)/*T:B<object>!*/;
-        F(x, x, z)/*T:B<object?>*/;
+        F(x, x, z)/*T:B<object?>!*/;
         F(x, y, x)/*T:B<object>!*/;
         F(x, y, y)/*T:B<object>!*/;
-        F(x, y, z)/*T:B<object>*/;
-        F(x, z, x)/*T:B<object?>*/;
-        F(x, z, y)/*T:B<object>*/;
-        F(x, z, z)/*T:B<object?>*/;
+        F(x, y, z)/*T:B<object>!*/;
+        F(x, z, x)/*T:B<object?>!*/;
+        F(x, z, y)/*T:B<object>!*/;
+        F(x, z, z)/*T:B<object?>!*/;
         F(y, x, x)/*T:B<object>!*/;
         F(y, x, y)/*T:B<object>!*/;
-        F(y, x, z)/*T:B<object>*/;
+        F(y, x, z)/*T:B<object>!*/;
         F(y, y, x)/*T:B<object>!*/;
         F(y, y, y)/*T:B<object!>!*/;
-        F(y, y, z)/*T:B<object!>*/;
-        F(y, z, x)/*T:B<object>*/;
-        F(y, z, y)/*T:B<object!>*/;
-        F(y, z, z)/*T:B<object!>*/;
-        F(z, x, x)/*T:B<object?>*/;
-        F(z, x, y)/*T:B<object>*/;
-        F(z, x, z)/*T:B<object?>*/;
-        F(z, y, x)/*T:B<object>*/;
-        F(z, y, y)/*T:B<object!>*/;
-        F(z, y, z)/*T:B<object!>*/;
-        F(z, z, x)/*T:B<object?>*/;
-        F(z, z, y)/*T:B<object!>*/;
-        F(z, z, z)/*T:B<object>*/;
+        F(y, y, z)/*T:B<object!>!*/;
+        F(y, z, x)/*T:B<object>!*/;
+        F(y, z, y)/*T:B<object!>!*/;
+        F(y, z, z)/*T:B<object!>!*/;
+        F(z, x, x)/*T:B<object?>!*/;
+        F(z, x, y)/*T:B<object>!*/;
+        F(z, x, z)/*T:B<object?>!*/;
+        F(z, y, x)/*T:B<object>!*/;
+        F(z, y, y)/*T:B<object!>!*/;
+        F(z, y, z)/*T:B<object!>!*/;
+        F(z, z, x)/*T:B<object?>!*/;
+        F(z, z, y)/*T:B<object!>!*/;
+        F(z, z, z)/*T:B<object>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -39034,6 +39058,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29837, "https://github.com/dotnet/roslyn/issues/29837")]
         public void TypeInference_MixedBounds_NestedNullability()
         {
             var source0 =
@@ -39046,7 +39071,6 @@ class C
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            // https://github.com/dotnet/roslyn/issues/29837: CreateIIn(A.F1, A.F2) returns IIn<object, string> rather than IIn<object, string>!.
             var source =
 @"interface IIn<in T, U> { }
 interface IOut<T, out U> { }
@@ -39056,30 +39080,30 @@ class C
     static IIn<T, U> CreateIIn<T, U>(T t, U u) => throw null;
     static void F1(bool b, IIn<object, string> x1, IIn<object?, string?> y1)
     {
-        var z1 = CreateIIn(A.F1, A.F2)/*T:IIn<object, string>*/;
+        var z1 = CreateIIn(A.F1, A.F2)/*T:IIn<object, string>!*/;
         F(x1, x1)/*T:IIn<object!, string!>!*/;
         F(x1, y1)/*T:IIn<object!, string>!*/;
-        F(x1, z1)/*T:IIn<object!, string!>*/;
+        F(x1, z1)/*T:IIn<object!, string!>!*/;
         F(y1, x1)/*T:IIn<object!, string>!*/;
         F(y1, y1)/*T:IIn<object?, string?>!*/;
-        F(y1, z1)/*T:IIn<object, string?>*/;
-        F(z1, x1)/*T:IIn<object!, string!>*/;
-        F(z1, y1)/*T:IIn<object, string?>*/;
-        F(z1, z1)/*T:IIn<object, string>*/;
+        F(y1, z1)/*T:IIn<object, string?>!*/;
+        F(z1, x1)/*T:IIn<object!, string!>!*/;
+        F(z1, y1)/*T:IIn<object, string?>!*/;
+        F(z1, z1)/*T:IIn<object, string>!*/;
     }
     static IOut<T, U> CreateIOut<T, U>(T t, U u) => throw null;
     static void F2(bool b, IOut<object, string> x2, IOut<object?, string?> y2)
     {
-        var z2 = CreateIOut(A.F1, A.F2)/*T:IOut<object, string>*/;
+        var z2 = CreateIOut(A.F1, A.F2)/*T:IOut<object, string>!*/;
         F(x2, x2)/*T:IOut<object!, string!>!*/;
         F(x2, y2)/*T:IOut<object, string?>!*/;
-        F(x2, z2)/*T:IOut<object!, string>*/;
+        F(x2, z2)/*T:IOut<object!, string>!*/;
         F(y2, x2)/*T:IOut<object, string?>!*/;
         F(y2, y2)/*T:IOut<object?, string?>!*/;
-        F(y2, z2)/*T:IOut<object?, string?>*/;
-        F(z2, x2)/*T:IOut<object!, string>*/;
-        F(z2, y2)/*T:IOut<object?, string?>*/;
-        F(z2, z2)/*T:IOut<object, string>*/;
+        F(y2, z2)/*T:IOut<object?, string?>!*/;
+        F(z2, x2)/*T:IOut<object!, string>!*/;
+        F(z2, y2)/*T:IOut<object?, string?>!*/;
+        F(z2, z2)/*T:IOut<object, string>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -39264,16 +39288,16 @@ class C
     {
         var t3 = A.F/*T:object*/;
         var u3 = A.G/*T:string*/;
-        var x = CreateB(t1, u2)/*T:B<object?, string!>*/;
-        var y = CreateB(t2, u1)/*T:B<object!, string?>*/;
-        var z = CreateB(t1, u3)/*T:B<object?, string>*/;
-        var w = CreateB(t3, u2)/*T:B<object, string!>*/;
-        F(x, y)/*T:B<object, string>*/;
-        F(x, z)/*T:B<object?, string!>*/;
-        F(x, w)/*T:B<object?, string!>*/;
-        F(y, z)/*T:B<object, string?>*/;
-        F(y, w)/*T:B<object!, string>*/;
-        F(w, z)/*T:B<object?, string!>*/;
+        var x = CreateB(t1, u2)/*T:B<object?, string!>!*/;
+        var y = CreateB(t2, u1)/*T:B<object!, string?>!*/;
+        var z = CreateB(t1, u3)/*T:B<object?, string>!*/;
+        var w = CreateB(t3, u2)/*T:B<object, string!>!*/;
+        F(x, y)/*T:B<object, string>!*/;
+        F(x, z)/*T:B<object?, string!>!*/;
+        F(x, w)/*T:B<object?, string!>!*/;
+        F(y, z)/*T:B<object, string?>!*/;
+        F(y, w)/*T:B<object!, string>!*/;
+        F(w, z)/*T:B<object?, string!>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -39314,16 +39338,16 @@ class C
     {
         var t3 = A.F/*T:object*/;
         var u3 = A.G/*T:string*/;
-        var x = CreateB(t1, u2)/*T:IIn<B<object?, string!>>*/;
-        var y = CreateB(t2, u1)/*T:IIn<B<object!, string?>>*/;
-        var z = CreateB(t1, u3)/*T:IIn<B<object?, string>>*/;
-        var w = CreateB(t3, u2)/*T:IIn<B<object, string!>>*/;
-        F(x, y)/*T:B<object, string>*/;
-        F(x, z)/*T:B<object?, string!>*/;
-        F(x, w)/*T:B<object?, string!>*/;
-        F(y, z)/*T:B<object, string?>*/;
-        F(y, w)/*T:B<object!, string>*/;
-        F(w, z)/*T:B<object?, string!>*/;
+        var x = CreateB(t1, u2)/*T:IIn<B<object?, string!>!>!*/;
+        var y = CreateB(t2, u1)/*T:IIn<B<object!, string?>!>!*/;
+        var z = CreateB(t1, u3)/*T:IIn<B<object?, string>!>!*/;
+        var w = CreateB(t3, u2)/*T:IIn<B<object, string!>!>!*/;
+        F(x, y)/*T:B<object, string>!*/;
+        F(x, z)/*T:B<object?, string!>!*/;
+        F(x, w)/*T:B<object?, string!>!*/;
+        F(y, z)/*T:B<object, string?>!*/;
+        F(y, w)/*T:B<object!, string>!*/;
+        F(w, z)/*T:B<object?, string!>!*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
@@ -39566,10 +39590,10 @@ class C
     {
         var t3 = A.F/*T:object*/;
         var u3 = A.G/*T:string*/;
-        var x0 = CreateB(t1, u2)/*T:B<object?, string!>*/;
-        var y0 = CreateB(t2, u1)/*T:B<object!, string?>*/;
-        var z0 = CreateB(t1, u3)/*T:B<object?, string>*/;
-        var w0 = CreateB(t3, u2)/*T:B<object, string!>*/;
+        var x0 = CreateB(t1, u2)/*T:B<object?, string!>!*/;
+        var y0 = CreateB(t2, u1)/*T:B<object!, string?>!*/;
+        var z0 = CreateB(t1, u3)/*T:B<object?, string>!*/;
+        var w0 = CreateB(t3, u2)/*T:B<object, string!>!*/;
         var x = x0;
         var y = y0;
         var z = z0;
@@ -39720,12 +39744,18 @@ class C
                 // (14,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<T>, I<T?>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(y1, x1).ToString(); // 2 and 3
                 Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, x1)").WithArguments("C.F<T>(I<T>, I<T?>)").WithLocation(14, 9),
+                // (14,11): warning CS8620: Nullability of reference types in argument of type 'I<string?>' doesn't match target type 'I<string>' for parameter 'x' in 'string C.F<string>(I<string> x, I<string?> y)'.
+                //         F(y1, x1).ToString(); // 2 and 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y1").WithArguments("I<string?>", "I<string>", "x", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(14, 11),
                 // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
                 //         F(y1, x1).ToString(); // 2 and 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(14, 15),
                 // (15,9): warning CS8638: The nullability of type arguments for method 'C.F<T>(I<T>, I<T?>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(y1, y1).ToString(); // 4
                 Diagnostic(ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs, "F(y1, y1)").WithArguments("C.F<T>(I<T>, I<T?>)").WithLocation(15, 9),
+                // (15,11): warning CS8620: Nullability of reference types in argument of type 'I<string?>' doesn't match target type 'I<string>' for parameter 'x' in 'string C.F<string>(I<string> x, I<string?> y)'.
+                //         F(y1, y1).ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y1").WithArguments("I<string?>", "I<string>", "x", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(15, 11),
                 // (23,15): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
                 //         F(x2, x2).ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(23, 15),
@@ -48947,22 +48977,23 @@ class B4 : A<string?>
 
             void verifyAllConstraintTypes()
             {
+                string bangOrEmpty = comp0.Options.Nullable == true ? "!" : "";
                 verifyConstraintTypes("B1.F1", "System.String", "I<System.String>");
                 verifyConstraintTypes("B1.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B1.F3", "System.String", "I<System.String>");
-                verifyConstraintTypes("B1.F4", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B1.F3", "System.String" + bangOrEmpty, "I<System.String" + bangOrEmpty + ">!");
+                verifyConstraintTypes("B1.F4", "System.String?", "I<System.String?>!");
                 verifyConstraintTypes("B2.F1", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B2.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B2.F3", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B2.F4", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B2.F3", "System.String?", "I<System.String?>!");
+                verifyConstraintTypes("B2.F4", "System.String?", "I<System.String?>!");
                 verifyConstraintTypes("B3.F1", "System.String!", "I<System.String!>");
                 verifyConstraintTypes("B3.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B3.F3", "System.String!", "I<System.String!>");
-                verifyConstraintTypes("B3.F4", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B3.F3", "System.String!", "I<System.String!>!");
+                verifyConstraintTypes("B3.F4", "System.String?", "I<System.String?>!");
                 verifyConstraintTypes("B4.F1", "System.String?", "I<System.String?>");
                 verifyConstraintTypes("B4.F2", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B4.F3", "System.String?", "I<System.String?>");
-                verifyConstraintTypes("B4.F4", "System.String?", "I<System.String?>");
+                verifyConstraintTypes("B4.F3", "System.String?", "I<System.String?>!");
+                verifyConstraintTypes("B4.F4", "System.String?", "I<System.String?>!");
             }
 
             void verifyConstraintTypes(string methodName, params string[] expectedTypes)
@@ -49710,11 +49741,14 @@ public class A6<T> where T : IEquatable<int?> { }";
             comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
             ref0 = comp0.EmitToImageReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/30001: Should report a nullability mismatch warning for A0<string?>().
+
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A0<string?>(); // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22),
+                // (5,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A0<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
+                //         new A0<string?>(); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A0<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(5, 16),
                 // (9,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A5<string?>(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 22),
@@ -49806,6 +49840,9 @@ public class A2<T> where T : class, IEquatable<T?> { }
                 // (5,16): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
                 //         new A2<string?>(); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("A2<T>", "T", "string?").WithLocation(5, 16),
+                // (5,16): warning CS8631: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. Nullability of type argument 'string?' doesn't match constraint type 'System.IEquatable<string?>'.
+                //         new A2<string?>(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "string?").WithArguments("A2<T>", "System.IEquatable<string?>", "T", "string?").WithLocation(5, 16),
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A2<string?>(); // 2
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 22)
@@ -50013,8 +50050,6 @@ class A<T1, T2> where T1 : class where T2 : class
 ";
             var comp = CreateCompilation(new[] { source });
 
-            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 3"
-            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 5"
             comp.VerifyDiagnostics(
                 // (5,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T1, T2> where T1 : class where T2 : class
@@ -50028,14 +50063,20 @@ class A<T1, T2> where T1 : class where T2 : class
                 // (21,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         F = null; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 13),
+                // (30,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(30, 17),
                 // (40,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             F = null; // 4
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 17)
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(40, 17),
+                // (50,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(50, 17)
                 );
 
             var b = comp.GetTypeByMetadataName("A`2+B");
             Assert.NotNull(b);
-            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
+            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50112,7 +50153,7 @@ class A<T1, T2> where T1 : class where T2 : class
 
             var b = comp.GetTypeByMetadataName("A`2+B");
             Assert.NotNull(b);
-            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false.
+            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50131,7 +50172,7 @@ class A<T> where T : class
 
             var b = comp.GetTypeByMetadataName("A`1+B");
             Assert.NotNull(b);
-            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
+            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50151,7 +50192,7 @@ class A<T> where T : class
 
             var b = comp.GetTypeByMetadataName("A`1+B");
             Assert.NotNull(b);
-            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false
+            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50208,15 +50249,19 @@ class A<T1, T2> where T1 : class where T2 : class
 ";
             var comp = CreateCompilation(new[] { source });
 
-            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 1"
-            // https://github.com/dotnet/roslyn/issues/30178 Missing warning for "F = null; // 4"
             comp.VerifyDiagnostics(
                 // (8,8): warning CS0414: The field 'A<T1, T2>.F' is assigned but its value is never used
                 //     T1 F;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("A<T1, T2>.F").WithLocation(8, 8),
+                // (14,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 17),
                 // (27,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             F = null; // 3
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 17),
+                // (35,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //             F = null; // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 17),
                 // (43,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             F = null; // 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(43, 17)
@@ -50224,7 +50269,7 @@ class A<T1, T2> where T1 : class where T2 : class
 
             var b = comp.GetTypeByMetadataName("A`2+B");
             Assert.NotNull(b);
-            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false
+            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50300,7 +50345,7 @@ class A<T1, T2> where T1 : class where T2 : class
 
             var b = comp.GetTypeByMetadataName("A`2+B");
             Assert.NotNull(b);
-            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition); // https://github.com/dotnet/roslyn/issues/30178 Should be false
+            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50484,10 +50529,11 @@ class A<T1> where T1 : class
 class C {}
 ";
             var comp = CreateCompilation(new[] { source });
-            // https://github.com/dotnet/roslyn/issues/30220: Missing warnings for
-            // B<T1?> b1;
-            // A<T1>.B<T1?> d1;
+
             comp.VerifyDiagnostics(
+                // (20,17): warning CS8631: The type 'T1?' cannot be used as type parameter 'T2' in the generic type or method 'A<T1>.B<T2>'. Nullability of type argument 'T1?' doesn't match constraint type 'T1'.
+                //         A<T1>.B<T1?> d1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "T1?").WithArguments("A<T1>.B<T2>", "T1", "T2", "T1?").WithLocation(20, 17),
                 // (22,16): warning CS8631: The type 'C?' cannot be used as type parameter 'T2' in the generic type or method 'A<C>.B<T2>'. Nullability of type argument 'C?' doesn't match constraint type 'C'.
                 //         A<C>.B<C?> f1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C?").WithArguments("A<C>.B<T2>", "C", "T2", "C?").WithLocation(22, 16)
@@ -51274,6 +51320,91 @@ class Program
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         y2.GetEnumerator(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(18, 9));
+        }
+        
+        [Fact]
+        public void SpecialAndWellKnownMemberLookup()
+        {
+            var source0 =
+@"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public class Type { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+
+    public struct Nullable<T>
+    {
+        public static implicit operator Nullable<T>(T x)
+        {
+            throw null;
+        }
+        public static explicit operator T(Nullable<T> x)
+        {
+            throw null;
+        }
+    }
+
+    namespace Collections.Generic
+    {
+        public class EqualityComparer<T>
+        {
+            public static EqualityComparer<T> Default => throw null;
+        }
+    }
+}
+";
+            var comp = CreateEmptyCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
+
+            var implicitOp = comp.GetSpecialTypeMember(SpecialMember.System_Nullable_T__op_Implicit_FromT);
+            var explicitOp = comp.GetSpecialTypeMember(SpecialMember.System_Nullable_T__op_Explicit_ToT);
+            var getDefault = comp.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
+
+            Assert.NotNull(implicitOp);
+            Assert.NotNull(explicitOp);
+            Assert.NotNull(getDefault);
+
+            Assert.True(implicitOp.IsDefinition);
+            Assert.True(explicitOp.IsDefinition);
+            Assert.True(getDefault.IsDefinition);
+        }
+
+        [Fact]
+        public void AccessPropertyWithoutArguments()
+        {
+            var source1 =
+@"Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)> 
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Interface I
+    Property Value(Optional index As Object = Nothing) As Object
+End Interface";
+            var ref1 = BasicCompilationUtils.CompileToMetadata(source1);
+
+            var source2 =
+@"class C : I
+{
+    public dynamic get_Value(object index = null) => ""Test"";
+    public void set_Value(object index = null, object value = null) { }
+}
+class Test
+{
+    static void Main()
+    {
+        I x = new C();
+        System.Console.WriteLine(x.Value.Length);
+    }
+}";
+            var comp = CreateCompilation(source2, new[] { ref1.WithEmbedInteropTypes(true), CSharpRef }, options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
+            CompileAndVerify(comp, expectedOutput: "4");
         }
     }
 }

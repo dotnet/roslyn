@@ -27,7 +27,6 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.Net.Compilers" Version="$(MicrosoftNetCompilersVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" ExcludeAssets="all" />
-    <PackageReference Include="Roslyn.Build.Util" Version="$(RoslynBuildUtilVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynDependencies.OptimizationData" Version="$(RoslynDependenciesOptimizationDataVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.Microsoft.LocateVS" Version="$(RoslynToolsMicrosoftLocateVSVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" ExcludeAssets="all" />
