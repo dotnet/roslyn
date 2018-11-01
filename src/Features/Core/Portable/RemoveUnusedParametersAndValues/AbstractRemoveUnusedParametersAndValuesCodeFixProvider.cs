@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 var currentRoot = editor.GetChangedRoot();
                 var newRoot = await PostProcessDocumentAsync(document, currentRoot,
-                        editor.Generator, diagnosticId, preference, cancellationToken).ConfigureAwait(false);
+                    diagnosticId, preference, cancellationToken).ConfigureAwait(false);
                 if (currentRoot != newRoot)
                 {
                     editor.ReplaceNode(root, newRoot);
@@ -535,7 +535,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private async Task<SyntaxNode> PostProcessDocumentAsync(
             Document document,
             SyntaxNode currentRoot,
-            SyntaxGenerator generator,
             string diagnosticId,
             UnusedValuePreference preference,
             CancellationToken cancellationToken)
@@ -547,7 +546,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (preference == UnusedValuePreference.DiscardVariable)
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
-                    RemoveDiscardDeclarationsAsync, currentRoot, document, generator, cancellationToken).ConfigureAwait(false);
+                    RemoveDiscardDeclarationsAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
             }
 
             // If we added new variable declaration statements, move these as close as possible to their
@@ -555,7 +554,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             if (NeedsToMoveNewLocalDeclarationsNearReference(diagnosticId))
             {
                 currentRoot = await PostProcessDocumentCoreAsync(
-                    MoveNewLocalDeclarationsNearReferenceAsync, currentRoot, document, generator, cancellationToken).ConfigureAwait(false);
+                    MoveNewLocalDeclarationsNearReferenceAsync, currentRoot, document, cancellationToken).ConfigureAwait(false);
             }
 
             return currentRoot;
@@ -565,7 +564,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Func<SyntaxNode, Document, CancellationToken, Task<SyntaxNode>> processMemberDeclarationAsync,
             SyntaxNode currentRoot,
             Document document,
-            SyntaxGenerator generator,
             CancellationToken cancellationToken)
         {
             var newDocument = document.WithSyntaxRoot(currentRoot);
