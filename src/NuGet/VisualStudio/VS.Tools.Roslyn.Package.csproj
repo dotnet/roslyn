@@ -45,7 +45,6 @@
   <!-- 
     Workaround for https://github.com/dotnet/roslyn/issues/17864.
   -->
-  <Import Project="..\..\..\build\Targets\RepoToolset\BuildTasks.props"/>
   <UsingTask TaskName="RoslynTools.SetCorFlags" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
 
   <Target Name="_Generate32BitCsc" 
