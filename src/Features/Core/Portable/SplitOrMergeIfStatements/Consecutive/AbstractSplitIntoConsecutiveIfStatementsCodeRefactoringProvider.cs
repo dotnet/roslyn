@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +76,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 //     return;
 
                 // At this point, ifLikeStatement must be a standalone if statement with no else clause.
+                Debug.Assert(syntaxFacts.IsExecutableStatement(ifLikeStatement));
+                Debug.Assert(ifGenerator.GetElseLikeClauses(ifLikeStatement).Length == 0);
 
                 var secondIfStatement = ifGenerator.WithCondition(ifLikeStatement, rightCondition)
                     .WithPrependedLeadingTrivia(generator.ElasticCarriageReturnLineFeed);

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,6 +100,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 // and then remove the second one.
                 // The opposite refactoring (SplitIntoConsecutiveIfStatements) never generates a separate statement
                 // with an else clause but we support it anyway (in inserts an else-if instead).
+                Debug.Assert(syntaxFacts.IsExecutableStatement(ifLikeStatement));
+                Debug.Assert(syntaxFacts.IsExecutableStatement(previousIfLikeStatement));
+                Debug.Assert(ifGenerator.GetElseLikeClauses(previousIfLikeStatement).Length == 0);
 
                 editor.ReplaceNode(
                     root.GetCurrentNode(previousIfLikeStatement),
