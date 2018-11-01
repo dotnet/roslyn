@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
