@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     var fa = (BoundFieldAccess)initializerOpt;
-                    if (fa.FieldSymbol.IsFixed)
+                    if (fa.FieldSymbol.IsFixedSizeBuffer)
                     {
                         elementType = ((PointerTypeSymbol)fa.Type).PointedAtType.TypeSymbol;
                         break;

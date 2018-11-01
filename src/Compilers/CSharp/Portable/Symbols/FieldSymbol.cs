@@ -82,18 +82,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
-        public virtual bool IsFixed { get { return false; } }
+        public virtual bool IsFixedSizeBuffer { get { return false; } }
 
         /// <summary>
-        /// If IsFixed is true, the value between brackets in the fixed-size-buffer declaration.
-        /// If IsFixed is false FixedSize is 0.
+        /// If IsFixedSizeBuffer is true, the value between brackets in the fixed-size-buffer declaration.
+        /// If IsFixedSizeBuffer is false FixedSize is 0.
         /// Note that for fixed-a size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
         public virtual int FixedSize { get { return 0; } }
 
         /// <summary>
-        /// If this.IsFixed is true, returns the underlying implementation type for the
+        /// If this.IsFixedSizeBuffer is true, returns the underlying implementation type for the
         /// fixed-size buffer when emitted.  Otherwise returns null.
         /// </summary>
         internal virtual NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)

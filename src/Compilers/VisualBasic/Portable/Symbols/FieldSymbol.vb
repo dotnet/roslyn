@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IFieldSymbol_IsFixed As Boolean Implements IFieldSymbol.IsFixed
+        Private ReadOnly Property IFieldSymbol_IsFixedSizeBuffer As Boolean Implements IFieldSymbol.IsFixedSizeBuffer
             Get
                 Return False
             End Get

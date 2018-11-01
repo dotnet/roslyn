@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
-        bool IsFixed { get; }
+        bool IsFixedSizeBuffer { get; }
 
         /// <summary>
         /// Gets the type of this field.
