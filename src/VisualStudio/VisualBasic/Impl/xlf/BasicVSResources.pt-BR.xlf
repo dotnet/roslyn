@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Inserir Trecho</target>
+        <target state="translated">Inserir Snippet</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
@@ -229,22 +229,22 @@
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="translated">Sempre incluir trechos</target>
+        <target state="translated">Sempre incluir snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Incluir trechos quando ?-Tab for digitado após um identificador</target>
+        <target state="translated">Incluir snippets quando ?-Tab for digitado após um identificador</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="translated">Nunca incluir trechos</target>
+        <target state="translated">Nunca incluir snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="translated">Comportamento de trechos</target>
+        <target state="translated">Comportamento de snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
