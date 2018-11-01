@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 {
-    internal partial class AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<
+    internal partial class AbstractMoveDeclarationNearReferenceService<
         TService,
         TStatementSyntax,
         TLocalDeclarationStatementSyntax,
