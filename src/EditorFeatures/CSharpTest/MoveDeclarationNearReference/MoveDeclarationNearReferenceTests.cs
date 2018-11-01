@@ -1393,5 +1393,67 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_MoveToSwitchStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        System.Console.WriteLine();
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        System.Console.WriteLine();
+        int x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestUsedInMultipleSwitchSections_CannotMove()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [||]x;
+        switch (true)
+        {
+            case true:
+                x = 0;
+                break;
+            case false:
+                x = 0;
+                break;
+        }
+    }
+}");
+        }
     }
 }
