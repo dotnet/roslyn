@@ -19,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     {
         private readonly IAsyncServiceProvider _asyncServiceProvider;
 
-        private object _experimentationServiceOpt;
-        private Optional<MethodInfo> _isCachedFlightEnabledInfo;
+        private Optional<Func<string, bool>> _isCachedFlightEnabled;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,34 +31,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         public async ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            if (!_isCachedFlightEnabledInfo.HasValue)
+            if (!_isCachedFlightEnabled.HasValue)
             {
                 MethodInfo isCachedFlightEnabledInfo;
 
                 try
                 {
-                    _experimentationServiceOpt = await _asyncServiceProvider.GetServiceAsync(typeof(SVsExperimentationService));
-                    isCachedFlightEnabledInfo = _experimentationServiceOpt?.GetType().GetMethod(
+                    var experimentationService = await _asyncServiceProvider.GetServiceAsync(typeof(SVsExperimentationService));
+                    isCachedFlightEnabledInfo = experimentationService?.GetType().GetMethod(
                         "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
+
+                    _isCachedFlightEnabled = (Func<string, bool>)Delegate.CreateDelegate(typeof(Func<string, bool>), experimentationService, isCachedFlightEnabledInfo);
                 }
                 catch
                 {
-                    isCachedFlightEnabledInfo = null;
+                    _isCachedFlightEnabled = null;
                 }
-
-                _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
             }
 
-            if (_isCachedFlightEnabledInfo.Value != null)
+            if (_isCachedFlightEnabled.Value != null)
             {
-                try
-                {
-                    return (bool)_isCachedFlightEnabledInfo.Value.Invoke(_experimentationServiceOpt, new object[] { experimentName });
-                }
-                catch
-                {
-
-                }
+                return _isCachedFlightEnabled.Value(experimentName);
             }
 
             return false;
