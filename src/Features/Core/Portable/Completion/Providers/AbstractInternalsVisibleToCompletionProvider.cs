@@ -148,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var projectGuid = project.Id.Id.ToString();
                 var completionItem = CommonCompletionItem.Create(
                     displayText: project.AssemblyName,
+                    displayTextSuffix: "",
                     rules: CompletionItemRules.Default,
                     glyph: project.GetGlyph(),
                     properties: ImmutableDictionary.Create<string, string>().Add(ProjectGuidKey, projectGuid));

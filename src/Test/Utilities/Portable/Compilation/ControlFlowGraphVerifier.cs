@@ -311,6 +311,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 ControlFlowGraph g = localFunctionsMap[m];
                 Assert.Same(g, graph.GetLocalFunctionControlFlowGraph(m));
+                Assert.Same(g, graph.GetLocalFunctionControlFlowGraphInScope(m));
+                Assert.Same(graph, g.Parent);
             }
 
             Assert.Equal(graph.LocalFunctions.Length, localFunctionsMap.Count);
@@ -318,6 +320,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             foreach (KeyValuePair<IFlowAnonymousFunctionOperation, ControlFlowGraph> pair in anonymousFunctionsMap)
             {
                 Assert.Same(pair.Value, graph.GetAnonymousFunctionControlFlowGraph(pair.Key));
+                Assert.Same(pair.Value, graph.GetAnonymousFunctionControlFlowGraphInScope(pair.Key));
+                Assert.Same(graph, pair.Value.Parent);
             }
 
             bool doCaptureVerification = true;

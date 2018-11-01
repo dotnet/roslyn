@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            InvokeBelowInputPriority(() =>
+            InvokeBelowInputPriorityAsync(() =>
             {
                 if (!_isDisposed)
                 {

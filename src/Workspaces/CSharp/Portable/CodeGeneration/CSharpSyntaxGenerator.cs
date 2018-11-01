@@ -2139,41 +2139,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
 
                 case SyntaxKind.VariableDeclaration:
-                {
-                    var vd = (VariableDeclarationSyntax)declaration;
-                    if (vd.Variables.Count == 1 && vd.Parent == null)
                     {
-                        // this node is the declaration if it contains only one variable and has no parent.
-                        return DeclarationKind.Variable;
-                    }
-                    else
-                    {
-                        return DeclarationKind.None;
-                    }
-                }
-
-                case SyntaxKind.VariableDeclarator:
-                {
-                    var vd = declaration.Parent as VariableDeclarationSyntax;
-
-                    // this node is considered the declaration if it is one among many, or it has no parent
-                    if (vd == null || vd.Variables.Count > 1)
-                    {
-                        if (ParentIsFieldDeclaration(vd))
+                        var vd = (VariableDeclarationSyntax)declaration;
+                        if (vd.Variables.Count == 1 && vd.Parent == null)
                         {
-                            return DeclarationKind.Field;
-                        }
-                        else if (ParentIsEventFieldDeclaration(vd))
-                        {
-                            return DeclarationKind.Event;
+                            // this node is the declaration if it contains only one variable and has no parent.
+                            return DeclarationKind.Variable;
                         }
                         else
                         {
-                            return DeclarationKind.Variable;
+                            return DeclarationKind.None;
                         }
                     }
-                    break;
-                }
+
+                case SyntaxKind.VariableDeclarator:
+                    {
+                        var vd = declaration.Parent as VariableDeclarationSyntax;
+
+                        // this node is considered the declaration if it is one among many, or it has no parent
+                        if (vd == null || vd.Variables.Count > 1)
+                        {
+                            if (ParentIsFieldDeclaration(vd))
+                            {
+                                return DeclarationKind.Field;
+                            }
+                            else if (ParentIsEventFieldDeclaration(vd))
+                            {
+                                return DeclarationKind.Event;
+                            }
+                            else
+                            {
+                                return DeclarationKind.Variable;
+                            }
+                        }
+                        break;
+                    }
 
                 case SyntaxKind.AttributeList:
                     var list = (AttributeListSyntax)declaration;
@@ -2680,6 +2680,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList;
                 case SyntaxKind.SimpleLambdaExpression:
                     return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter));
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).ParameterList;
                 default:
                     return null;
             }
@@ -4222,7 +4224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode IdentifierName(SyntaxToken identifier)
             => SyntaxFactory.IdentifierName(identifier);
 
-        internal override SyntaxToken Identifier(string identifier) 
+        internal override SyntaxToken Identifier(string identifier)
             => SyntaxFactory.Identifier(identifier);
 
         internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)

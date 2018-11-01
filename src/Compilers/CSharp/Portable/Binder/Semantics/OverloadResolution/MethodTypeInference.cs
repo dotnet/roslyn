@@ -529,34 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeSymbolWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
-            // error type, then we want to set it to the generic error type 
-            // that has no name text. This is because of the following scenario:
-            //
-            // void M<T>(T t) { }
-            // void Goo()
-            // {
-            //     UnknownType t;
-            //     M(t);
-            //     M(undefinedVariable);
-            // }
-            //
-            // In the first call to M, we'll have an EXPRLOCAL with an error type,
-            // which is correct - we want the parameter help to display that we've
-            // got an inferred type of UnknownType, which is an error type since 
-            // its undefined.
-            //
-            // However, for the M in the second call, we DON'T want to display parameter
-            // help that gives undefinedVariable as the type parameter for T, because
-            // there is no parameter of that name, let alone that type. This appears
-            // as an EXPRTYPEORNAMESPACEERROR with an ErrorType. We create a new error sym
-            // without the type name.
-
-            // UNDONE: if (pExpr->isTYPEORNAMESPACEERROR() && pSource->IsErrorType())
-            // UNDONE:{
-            // UNDONE:    pSource = GetTypeManager().GetErrorSym();
-            // UNDONE:}
-
             // SPEC: * If Ei is an anonymous function, an explicit type parameter
             // SPEC:   inference is made from Ei to Ti.
 

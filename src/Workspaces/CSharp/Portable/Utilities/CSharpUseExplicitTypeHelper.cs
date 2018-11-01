@@ -88,10 +88,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // check assignment for variable declarations.
-                var variable = ((VariableDeclarationSyntax)typeName.Parent).Variables.First();
+                var variableDeclaration = (VariableDeclarationSyntax)typeName.Parent;
+                var variable = variableDeclaration.Variables.First();
                 if (!AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, variable.Initializer.Value,
                         semanticModel, optionSet, cancellationToken))
+                {
+                    return false;
+                }
+
+                // This error case is handled by a separate code fix (UseExplicitTypeForConst).
+                if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
                     return false;
                 }

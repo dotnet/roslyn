@@ -5183,7 +5183,8 @@ class UsePia5
             CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
-        [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"

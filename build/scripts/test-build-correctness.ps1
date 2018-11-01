@@ -11,7 +11,7 @@
 
 [CmdletBinding(PositionalBinding=$false)]
 param(
-    [switch]$release = $false,
+    [string]$configuration = "Debug",
     [switch]$cibuild = $false)
 
 Set-StrictMode -version 2.0
@@ -19,19 +19,18 @@ $ErrorActionPreference="Stop"
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
-    $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $releaseArg = if ($release) { "-release" } else { "" }
-    $configDir = Join-Path $binariesDir $buildConfiguration
+    Push-Location $RepoRoot
+    $releaseArg = if ($configuration -eq "Release") { "-release" } else { "" }
+    $configDir = Join-Path $binariesDir $configuration
 
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -cibuild:$cibuild -release:$release -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -cibuild:$cibuild -configuration:$configuration -pack -binaryLog }
 
 
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln -r $repoDir $releaseArg"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln -r $RepoRoot $releaseArg"
     Write-Host ""
 
     # Verify the state of our generated syntax files

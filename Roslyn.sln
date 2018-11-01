@@ -403,6 +403,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Comp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-format", "src\Tools\dotnet-format\dotnet-format.csproj", "{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Installer.Package", "src\Setup\Installer\Installer.Package.csproj", "{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -1068,6 +1070,10 @@ Global
 		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1257,6 +1263,7 @@ Global
 		{952808C5-799A-4CAA-964C-2AA78458CEC7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{03607817-6800-40B6-BEAA-D6F437CD62B7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
