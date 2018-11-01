@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((thisIsOriginalDefinition || otherIsOriginalDefinition) &&
-                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.CompareNullableModifiersForReferenceTypes)) == TypeCompareKind.CompareNullableModifiersForReferenceTypes)
+                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
             {
                 return false;
             }
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((thisIsNotConstructed || otherIsNotConstructed) &&
-                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.CompareNullableModifiersForReferenceTypes)) == TypeCompareKind.CompareNullableModifiersForReferenceTypes)
+                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
             {
                 return false;
             }
@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (!IsGenericType)
             {
@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hadNullabilityMismatch)
         {
             Debug.Assert(typeA.IsGenericType);
-            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             hadNullabilityMismatch = false;
 
