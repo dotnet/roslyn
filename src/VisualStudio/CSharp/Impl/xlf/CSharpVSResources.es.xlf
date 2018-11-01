@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
         <source>Use 'var' when generating locals</source>
-        <target state="translated">Usar 'var' al generar variables locales</target>
+        <target state="translated">Usar "var" al generar variables locales</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
@@ -384,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
         <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">_No colocar 'out' o 'ref' en estructura personalizada</target>
+        <target state="translated">_No colocar "out" o "ref" en estructura personalizada</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">Al ordenar instrucciones Using, _colocar primero las directivas 'System'</target>
+        <target state="translated">Al ordenar instrucciones Using, _colocar primero las directivas "System"</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
@@ -534,22 +534,22 @@
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_this">
         <source>Qualify event access with 'this'</source>
-        <target state="translated">Calificar acceso a evento con 'this'</target>
+        <target state="translated">Calificar acceso a evento con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_this">
         <source>Qualify field access with 'this'</source>
-        <target state="translated">Calificar acceso a campo con 'this'</target>
+        <target state="translated">Calificar acceso a campo con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_this">
         <source>Qualify method access with 'this'</source>
-        <target state="translated">Calificar acceso a método con 'this'</target>
+        <target state="translated">Calificar acceso a método con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_this">
         <source>Qualify property access with 'this'</source>
-        <target state="translated">Calificar acceso a propiedad con 'this'</target>
+        <target state="translated">Calificar acceso a propiedad con "this"</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicit_type">
@@ -564,17 +564,17 @@
       </trans-unit>
       <trans-unit id="Prefer_var">
         <source>Prefer 'var'</source>
-        <target state="translated">Preferir 'var'</target>
+        <target state="translated">Preferir "var"</target>
         <note />
       </trans-unit>
       <trans-unit id="this_preferences_colon">
         <source>'this.' preferences:</source>
-        <target state="translated">'Preferencias de "this.":</target>
+        <target state="translated">"Preferencias de "this.":</target>
         <note />
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
-        <target state="translated">'Preferencias de 'var':</target>
+        <target state="translated">"Preferencias de "var":</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="null_checking_colon">
         <source>'null' checking:</source>
-        <target state="translated">'Comprobación de "null":</target>
+        <target state="translated">"Comprobación de "null":</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_throw_expression">
