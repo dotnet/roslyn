@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         public async Task FixAllInDocument3()
         {
 
+
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -93,6 +95,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         GetExeAndArguments(useCmdShell, executable, arguments, out string finalExecutable, out string finalArguments);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [WorkItem(29935, "https://github.com/dotnet/roslyn/issues/29935")]
+        public async Task FixAllInDocumentSymbolResolution()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C 
+{
+    void M()
+    {
+        string {|FixAllInDocument:s|};
+        bool b;
+        A(out s, out b);
+    }
+
+    void A(out string s, out bool b)
+    {
+        s = string.Empty;
+        b = false;
+    }
+
+    void A(out string s, out string s2)
+    {
+        s = s2 = string.Empty;
+    }
+}",
+@"class C 
+{
+    void M()
+    {
+        A(out string s, out bool b);
+    }
+
+    void A(out string s, out bool b)
+    {
+        s = string.Empty;
+        b = false;
+    }
+
+    void A(out string s, out string s2)
+    {
+        s = s2 = string.Empty;
     }
 }");
         }
