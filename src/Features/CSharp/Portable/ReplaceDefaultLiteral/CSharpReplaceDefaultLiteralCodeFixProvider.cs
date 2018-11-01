@@ -96,18 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 else if (semanticModel.GetConstantValue(defaultLiteral, cancellationToken) is var constant && constant.HasValue)
                 {
                     var newLiteral = generator.LiteralExpression(constant.Value);
-
                     return (newLiteral, newLiteral.ToString());
                 }
                 else if (!type.ContainsAnonymousType())
                 {
-                    var defaultExpression =
-                        SyntaxFactory.DefaultExpression(
-                            defaultLiteral.Token.WithoutTrivia(),
-                            SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                            type.GenerateTypeSyntax(allowVar: false),
-                            SyntaxFactory.Token(SyntaxKind.CloseParenToken));
-
+                    var defaultExpression = generator.DefaultExpression(type);
                     return (defaultExpression, $"default({type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)})");
                 }
             }
@@ -116,11 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
             (SyntaxNode newExpression, string displayText) GenerateMemberAccess(string memberName)
             {
-                var memberAccess =
-                    generator.MemberAccessExpression(
-                        generator.TypeExpression(type),
-                        memberName);
-
+                var memberAccess = generator.MemberAccessExpression(generator.TypeExpression(type), memberName);
                 return (memberAccess, $"{type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}.{memberName}");
             }
         }
