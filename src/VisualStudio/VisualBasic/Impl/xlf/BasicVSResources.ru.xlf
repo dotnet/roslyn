@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Создавать комментарии XML-документации для """</target>
+        <target state="translated">_Создавать комментарии XML-документации для '''</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
