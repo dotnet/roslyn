@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode Visit(BoundNode node)
         {
             if (_inExpressionLambda &&
+                !(node is BoundConversion) &&
                 node is BoundExpression expr &&
                 expr.Type is TypeSymbol type &&
                 type.IsByRefLikeType)

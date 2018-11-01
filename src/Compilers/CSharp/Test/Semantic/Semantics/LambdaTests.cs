@@ -1560,6 +1560,58 @@ public ref struct Struct1 { }
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructDefaultExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2(default));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,40): error CS7053: An expression tree may not contain 'ref struct'
+                //         Method((Class1 c) => c.Method2(default(Struct1)));
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "default").WithArguments("ref struct").WithLocation(8, 40));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void RefStructDefaultCastExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method((Class1 c) => c.Method2((Struct1) default));
+    }
+
+    public void Method2(Struct1 s1) { }
+
+    public static void Method<T>(Expression<Action<T>> expression) { }
+}
+
+public ref struct Struct1 { }
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,50): error CS7053: An expression tree may not contain 'ref struct'
+                //         Method((Class1 c) => c.Method2((Struct1) default));
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "default").WithArguments("ref struct").WithLocation(8, 50));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
         public void RefStructNewExpressionTree()
         {
             var text = @"
