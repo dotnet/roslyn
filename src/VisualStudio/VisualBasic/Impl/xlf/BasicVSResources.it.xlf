@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Vai a definizione</target>
+        <target state="translated">Vai alla definizione</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
