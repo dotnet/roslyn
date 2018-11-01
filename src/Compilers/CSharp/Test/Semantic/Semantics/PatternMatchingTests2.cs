@@ -1175,12 +1175,12 @@ class Program1 : Program0
 }
 class Program1 : Program0
 {
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 class Program2
 {
     bool _(object q) => true;
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 ";
             var compilation = CreatePatternCompilation(source);
@@ -1196,7 +1196,7 @@ class Program2
 class Program
 {
     static int Main() => 0;
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1 => true, _ => false };
 }
 ";
             var compilation = CreatePatternCompilation(source);

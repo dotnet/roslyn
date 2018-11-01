@@ -9998,15 +9998,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The discard pattern &apos;_&apos; cannot be used where &apos;{0}&apos; is in scope..
-        /// </summary>
-        internal static string ERR_UnderscoreDeclaredAndDiscardPattern {
-            get {
-                return ResourceManager.GetString("ERR_UnderscoreDeclaredAndDiscardPattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character must be escaped (by doubling) in an interpolated string..
         /// </summary>
         internal static string ERR_UnescapedCurly {
@@ -12798,7 +12789,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name &apos;_&apos; refers to the constant &apos;(0}&apos;, not the discard pattern. Use &apos;var _&apos; to discard the value, or &apos;@_&apos; to refer to a constant by that name..
+        ///   Looks up a localized string similar to The name &apos;_&apos; refers to the constant, not the discard pattern. Use &apos;var _&apos; to discard the value, or &apos;@_&apos; to refer to a constant by that name..
         /// </summary>
         internal static string WRN_CaseConstantNamedUnderscore {
             get {

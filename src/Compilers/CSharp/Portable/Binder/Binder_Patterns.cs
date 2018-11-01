@@ -129,23 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return BindConstantPattern(node, innerExpression, inputType, node.Expression, hasErrors, diagnostics, out _);
+            return BindConstantPattern(node, inputType, node.Expression, hasErrors, diagnostics, out _);
         }
 
         internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
-            TypeSymbol inputType,
-            ExpressionSyntax patternExpression,
-            bool hasErrors,
-            DiagnosticBag diagnostics,
-            out bool wasExpression)
-        {
-            return BindConstantPattern(node, patternExpression.SkipParens(), inputType, patternExpression, hasErrors, diagnostics, out wasExpression);
-        }
-
-        internal BoundConstantPattern BindConstantPattern(
-            CSharpSyntaxNode node,
-            SyntaxNode innerExpression,
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
