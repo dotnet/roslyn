@@ -81,6 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
 
+        /// <summary>
+        /// map original dynamic file path to <see cref="DynamicFileInfo.FilePath"/>
+        /// </summary>
+        private readonly Dictionary<string, string> _dynamicFilePathMaps = new Dictionary<string, string>();
+
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
 
@@ -499,9 +504,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #endregion
 
         #region Non Source File Addition/Removal
-        public void AddDynamicSourceFile(string filePath, ImmutableArray<string> folders)
+        public void AddDynamicSourceFile(string dynamicFilePath, ImmutableArray<string> folders)
         {
-            var extension = FileNameUtilities.GetExtension(filePath)?.TrimStart('.');
+            var extension = FileNameUtilities.GetExtension(dynamicFilePath)?.TrimStart('.');
             if (extension?.Length == 0)
             {
                 return;
@@ -521,37 +526,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // 
                 // also, provider is free-threaded. so find to call Wait rather than JTF
                 var fileInfo = provider.Value.GetDynamicFileInfoAsync(
-                    projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                 if (fileInfo == null)
                 {
                     continue;
                 }
 
-                _sourceFiles.AddDynamicFile(provider.Value, MarkDynamicFilePath(filePath), fileInfo, folders);
+                fileInfo = FixUpDynamicFileInfo(fileInfo, dynamicFilePath);
+
+                // remember map between original dynamic file path to DynamicFileInfo.FilePath
+                _dynamicFilePathMaps.Add(dynamicFilePath, fileInfo.FilePath);
+                _sourceFiles.AddDynamicFile(provider.Value, fileInfo, folders);
                 return;
             }
         }
 
-        public void RemoveDynamicSourceFile(string filePath)
+        private DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
         {
-            var provider = _sourceFiles.RemoveDynamicFile(MarkDynamicFilePath(filePath));
+            // we might change contract and just throw here. but for now, we keep existing contract where one can return null for DynamicFileInfo.FilePath
+            if (string.IsNullOrEmpty(fileInfo.FilePath))
+            {
+                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
+            }
+
+            return fileInfo;
+        }
+
+        public void RemoveDynamicSourceFile(string dynamicFilePath)
+        {
+            var provider = _sourceFiles.RemoveDynamicFile(GetDynamicFileInfoPath(dynamicFilePath));
 
             // provider is free-threaded. so find to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
-                projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None).Wait(CancellationToken.None);
+                projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
         }
 
-        private void OnDynamicFileInfoUpdated(object sender, string filePath)
+        private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
         {
-            _sourceFiles.ProcessFileChange(filePath, MarkDynamicFilePath(filePath));
+            _sourceFiles.ProcessFileChange(dynamicFilePath, GetDynamicFileInfoPath(dynamicFilePath));
         }
 
-        internal static string MarkDynamicFilePath(string filePath)
+        private string GetDynamicFileInfoPath(string dynamicFilePath)
         {
-            // this file path never leaks to Workspace. it only used as a key to distinguish non source files in this type.
-            // for now, we do this until we figure out how to deal with Open/Closed contained document issue.
-            return filePath + "#Generated#";
+            return _dynamicFilePathMaps[dynamicFilePath];
         }
 
         #endregion
@@ -1058,13 +1076,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public void AddDynamicFile(IDynamicFileInfoProvider fileInfoProvider, string filePath, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
+            public void AddDynamicFile(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
                 var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.IsDefault ? null : (IEnumerable<string>)folders);
                 var documentId = documentInfo.Id;
 
                 lock (_project._gate)
                 {
+                    var filePath = documentInfo.FilePath;
                     if (_documentPathsToDocumentIds.ContainsKey(filePath))
                     {
                         throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
@@ -1245,11 +1264,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ProcessFileChange(filePath, filePath);
             }
 
-            public void ProcessFileChange(string originalFilePath, string documentPathMapKey)
+            /// <summary>
+            /// Process file content changes
+            /// </summary>
+            /// <param name="projectSystemFilePath">filepath given from project system</param>
+            /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath. ex) dynamic file</param>
+            public void ProcessFileChange(string projectSystemFilePath, string workspaceFilePath)
             {
                 lock (_project._gate)
                 {
-                    if (_documentPathsToDocumentIds.TryGetValue(documentPathMapKey, out var documentId))
+                    if (_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out var documentId))
                     {
                         // We create file watching prior to pushing the file to the workspace in batching, so it's
                         // possible we might see a file change notification early. In this case, toss it out. Since
@@ -1274,7 +1298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             IDocumentServiceProvider documentServiceProvider;
                             if (fileInfoProvider == null)
                             {
-                                textLoader = new FileTextLoader(originalFilePath, defaultEncoding: null);
+                                textLoader = new FileTextLoader(projectSystemFilePath, defaultEncoding: null);
                                 documentServiceProvider = null;
                             }
                             else
@@ -1283,7 +1307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 // meaning it can't use JTF to go back to UI thread.
                                 // so, it is okay for us to call regular ".Result" on a task here.
                                 var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
-                                    _project.Id, _project._filePath, originalFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                                    _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                                 textLoader = fileInfo.TextLoader;
                                 documentServiceProvider = fileInfo.DocumentServiceProvider;
@@ -1340,29 +1364,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)
             {
-                // if we want "editorconfig" to work for this file, we might at least want something here? even if
-                // the file doesn't actually exist in file system?
+                // we use this file path for editorconfig. 
                 var filePath = fileInfo.FilePath;
 
-                // we don't allow document to have null name
-                var name = FileNameUtilities.GetFileName(filePath) ?? "NoName";
-
-                // now, we put these in same project as others, not sure how we can prevent users from
-                // changing this file through rename or code fix. I checked things like resource files, and currently
-                // we don't block them. so this goes into same bucket until we support modification. untli then,
-                // it will get same behavior as other generated files such as resource or xaml files
+                var name = FileNameUtilities.GetFileName(filePath);
                 var documentId = DocumentId.CreateNewId(_project.Id, filePath);
 
                 var textLoader = fileInfo.TextLoader;
                 var documentServiceProvider = fileInfo.DocumentServiceProvider;
 
-                // for now, all users of non source file API, we assume they use it for generated files. in other words, we
-                // do not expect the content is changed by users directly. it should be generated by something 
-                // possibily due to users changing some other file
-                //
-                // but we don't mark it as generated file for now. since this file is little bit differnt
-                // than our existing generated file concept where generated code is assumbed to not able to be changed 
-                // until a tool itself is changed. for this one, user can change generated code directly through projected buffer
                 return DocumentInfo.Create(
                     documentId,
                     name,
