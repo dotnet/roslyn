@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +70,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // Check whether the statement is a first statement inside an if statement.
             // If it's inside a block, it has to be the first statement of the block.
 
-            // This is a defensive check that should always succeed.
+            Debug.Assert(syntaxFacts.IsStatementContainer(statement.Parent));
+
+            // A statement should always be in a statement container, but we'll do a defensive check anyway so that
+            // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
             if (syntaxFacts.IsStatementContainer(statement.Parent))
             {
                 var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
@@ -131,7 +135,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 // If we have an else-if, get the topmost if statement.
                 var outerIfStatement = ifGenerator.GetRootIfStatement(outerIfLikeStatement);
 
-                // This is a defensive check that should always succeed.
+                Debug.Assert(syntaxFacts.IsStatementContainer(outerIfStatement.Parent));
+
+                // A statement should always be in a statement container, but we'll do a defensive check anyway so that
+                // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
                 if (!syntaxFacts.IsStatementContainer(outerIfStatement.Parent))
                 {
                     return false;
