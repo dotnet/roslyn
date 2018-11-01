@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
                 var (newExpression, displayText) = GetReplacementExpressionAndText(
-                    context.Document, defaultLiteral, semanticModel, context.CancellationToken);
+                    context.Document, semanticModel, defaultLiteral, context.CancellationToken);
 
                 if (newExpression != null)
                 {
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
         private static (SyntaxNode newExpression, string displayText) GetReplacementExpressionAndText(
             Document document,
-            LiteralExpressionSyntax defaultLiteral,
             SemanticModel semanticModel,
+            LiteralExpressionSyntax defaultLiteral,
             CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess("None");
                 }
-                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken")))
+                else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName)))
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
 
         private static bool IsFlagsEnum(ITypeSymbol type, Compilation compilation)
         {
-            var flagsAttribute = compilation.GetTypeByMetadataName("System.FlagsAttribute");
+            var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
             return type.TypeKind == TypeKind.Enum &&
                    type.GetAttributes().Any(attribute => attribute.AttributeClass.Equals(flagsAttribute));
         }
