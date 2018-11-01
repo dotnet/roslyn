@@ -1,21 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 
 namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InlineTemporary)]
-    internal partial class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider :
-        AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<
-            CSharpMoveDeclarationNearReferenceCodeRefactoringProvider,
+    [ExportLanguageService(typeof(IMoveDeclarationNearReferenceService), LanguageNames.CSharp), Shared]
+    internal partial class CSharpMoveDeclarationNearReferenceService :
+        AbstractMoveDeclarationNearReferenceService<
+            CSharpMoveDeclarationNearReferenceService,
             StatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax>
