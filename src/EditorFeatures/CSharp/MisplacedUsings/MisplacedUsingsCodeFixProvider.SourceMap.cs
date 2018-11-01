@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
@@ -50,11 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <returns>A new <see cref="SourceMap"/> object containing the directive trivia information from the passed <paramref name="compilationUnit"/>.</returns>
             internal static SourceMap FromCompilationUnit(CompilationUnitSyntax compilationUnit)
             {
-                TreeTextSpan conditionalRoot;
-                TreeTextSpan regionRoot;
-                TreeTextSpan pragmaWarningRoot;
-
-                BuildDirectiveTriviaMaps(compilationUnit, out conditionalRoot, out regionRoot, out pragmaWarningRoot);
+                var (conditionalRoot, regionRoot, pragmaWarningRoot) = BuildDirectiveTriviaMaps(compilationUnit, CancellationToken.None);
 
                 return new SourceMap(conditionalRoot, regionRoot, pragmaWarningRoot);
             }
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 }
             }
 
-            private static void BuildDirectiveTriviaMaps(CompilationUnitSyntax compilationUnit, out TreeTextSpan conditionalRoot, out TreeTextSpan regionRoot, out TreeTextSpan pragmaWarningRoot)
+            private static (TreeTextSpan conditionalRoot, TreeTextSpan regionRoot, TreeTextSpan pragmaWarningRoot) BuildDirectiveTriviaMaps(CompilationUnitSyntax compilationUnit, CancellationToken cancellationToken)
             {
                 var conditionalStack = new Stack<TreeTextSpan.Builder>();
                 var regionStack = new Stack<TreeTextSpan.Builder>();
@@ -143,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     switch (directiveTrivia.Kind())
                     {
                         case SyntaxKind.IfDirectiveTrivia:
+                            var conditionalDirectives = DirectiveSyntaxExtensions.GetMatchingConditionalDirectives(directiveTrivia, cancellationToken);
                             AddNewDirectiveTriviaSpan(conditionalBuilder, conditionalStack, directiveTrivia);
                             break;
 
@@ -176,9 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     }
                 }
 
-                conditionalRoot = FinalizeBuilder(conditionalBuilder, conditionalStack, compilationUnit.Span.End);
-                regionRoot = FinalizeBuilder(regionBuilder, regionStack, compilationUnit.Span.End);
-                pragmaWarningRoot = BuildPragmaWarningSpans(pragmaWarningList, compilationUnit);
+                var conditionalRoot = FinalizeBuilder(conditionalBuilder, conditionalStack, compilationUnit.Span.End);
+                var regionRoot = FinalizeBuilder(regionBuilder, regionStack, compilationUnit.Span.End);
+                var pragmaWarningRoot = BuildPragmaWarningSpans(pragmaWarningList, compilationUnit);
+                return (conditionalRoot, regionRoot, pragmaWarningRoot);
             }
 
             private static TreeTextSpan.Builder SetupBuilder(CompilationUnitSyntax compilationUnit, Stack<TreeTextSpan.Builder> stack)

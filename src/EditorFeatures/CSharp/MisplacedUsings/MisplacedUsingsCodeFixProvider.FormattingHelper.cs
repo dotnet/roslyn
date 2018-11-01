@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                  *  1. Transform all descendants of the node (nodes, tokens, and trivia), but not the node itself
                  *  2. Transform the resulting node itself
                  */
-                TNode result = node.ReplaceSyntax(
+                var result = node.ReplaceSyntax(
                     node.DescendantNodes(descendIntoTrivia: true),
                     (originalNode, rewrittenNode) => WithoutFormattingImpl(rewrittenNode),
                     node.DescendantTokens(descendIntoTrivia: true),

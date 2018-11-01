@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 {
@@ -18,43 +17,26 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             /// <summary>
             /// Generate a new indentation string.
             /// </summary>
-            /// <param name="options">The settings to use.</param>
             /// <param name="indentationSteps">The number of indentation steps.</param>
+            /// <param name="useTabs">Whether tabs should be used for indentation.</param>
+            /// <param name="tabSize">The width of a tab stop.</param>
+            /// <param name="indentationSize">The width of an indentation level.</param>
             /// <returns>A string containing the amount of whitespace needed for the given indentation steps.</returns>
-            public static string GenerateIndentationString(OptionSet options, int indentationSteps)
+            public static string GenerateIndentationString(int indentationSteps, bool useTabs, int tabSize, int indentationSize)
             {
-                var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp);
-                var indentationSize = options.GetOption(FormattingOptions.IndentationSize, LanguageNames.CSharp);
-                var useTabs = options.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp);
-
-                string result;
-
                 var indentationCount = indentationSteps * indentationSize;
-                if (useTabs)
-                {
-                    var tabCount = indentationCount / tabSize;
-                    var spaceCount = indentationCount % tabSize;
-                    result = new string('\t', tabCount) + new string(' ', spaceCount);
-                }
-                else
-                {
-                    result = new string(' ', indentationCount);
-                }
-
-                return result;
+                return indentationCount.CreateIndentationString(useTabs, tabSize);
             }
 
             /// <summary>
             /// Gets the number of steps that the given node is indented.
             /// </summary>
-            /// <param name="options">The settings to use.</param>
             /// <param name="node">The node to inspect.</param>
+            /// <param name="tabSize">The width of a tab stop.</param>
+            /// <param name="indentationSize">The width of an indentation level.</param>
             /// <returns>The number of steps that the node is indented.</returns>
-            public static int GetIndentationSteps(OptionSet options, SyntaxNode node)
+            public static int GetIndentationSteps(SyntaxNode node, int tabSize, int indentationSize)
             {
-                var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp);
-                var indentationSize = options.GetOption(FormattingOptions.IndentationSize, LanguageNames.CSharp);
-
                 var syntaxTree = node.SyntaxTree;
                 var leadingTrivia = node.GetLeadingTrivia();
                 var triviaSpan = syntaxTree.GetLineSpan(leadingTrivia.FullSpan);

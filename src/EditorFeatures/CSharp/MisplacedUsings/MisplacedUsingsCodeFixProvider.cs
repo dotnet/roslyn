@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
@@ -27,11 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
     {
         private const string SystemUsingDirectiveIdentifier = nameof(System);
 
-        private static readonly List<UsingDirectiveSyntax> s_emptyUsingsList = new List<UsingDirectiveSyntax>();
-        private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
+        // This format is used when checking whether a using directive is importing from the System namespace. 
+        // Omitting the global namespace and not using special types ensures we are able to check whether the
+        // display name root is 'System' or not.
         private static readonly SymbolDisplayFormat s_fullNamespaceDisplayFormat = SymbolDisplayFormat.FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
-            .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+        private static readonly List<UsingDirectiveSyntax> s_emptyUsingsList = new List<UsingDirectiveSyntax>();
+        private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId);
 
@@ -67,11 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
             var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
 
+            var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp);
+            var indentationSize = options.GetOption(FormattingOptions.IndentationSize, LanguageNames.CSharp);
+            var useTabs = options.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp);
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var usingsHelper = new UsingsSorter(options, semanticModel, compilationUnit, fileHeader);
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken);
-            var usingsIndentation = DetermineIndentation(compilationUnit, options, usingDirectivesPlacement);
+            var usingsIndentation = DetermineIndentation(compilationUnit, usingDirectivesPlacement, useTabs, tabSize, indentationSize);
 
             // - The strategy is to strip all using directive that are not inside a conditional directive and replace them later with a sorted list at the correct spot
             // - The using directives that are inside a conditional directive are replaced (in sorted order) on the spot.
@@ -83,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             // When there are multiple namespaces, do not move using statements outside of them, only sort.
             if (usingDirectivesPlacement == UsingDirectivesPlacement.Preserve)
             {
-                BuildReplaceMapForNamespaces(usingsHelper, replaceMap, options, false);
+                BuildReplaceMapForNamespaces(usingsHelper, replaceMap, qualifyNames: false, useTabs, tabSize, indentationSize);
                 stripList = new List<UsingDirectiveSyntax>();
             }
             else
@@ -91,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 stripList = BuildStripList(usingsHelper);
             }
 
-            BuildReplaceMapForConditionalDirectives(usingsHelper, replaceMap, options, usingsHelper.ConditionalRoot);
+            BuildReplaceMapForConditionalDirectives(usingsHelper, replaceMap, usingsHelper.ConditionalRoot, useTabs, tabSize, indentationSize);
 
             var usingSyntaxRewriter = new UsingSyntaxRewriter(stripList, replaceMap, fileHeader);
             var newSyntaxRoot = usingSyntaxRewriter.Visit(syntaxRoot);
@@ -114,15 +121,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return newDocument;
         }
 
-        private static string DetermineIndentation(CompilationUnitSyntax compilationUnit, OptionSet options, UsingDirectivesPlacement usingDirectivesPlacement )
+        private static string DetermineIndentation(
+            CompilationUnitSyntax compilationUnit, UsingDirectivesPlacement usingDirectivesPlacement,
+            bool useTabs, int tabSize, int indentationSize)
         {
             string usingsIndentation;
 
             if (usingDirectivesPlacement  == UsingDirectivesPlacement.InsideNamespace)
             {
                 var rootNamespace = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
-                var indentationLevel = IndentationHelper.GetIndentationSteps(options, rootNamespace);
-                usingsIndentation = IndentationHelper.GenerateIndentationString(options, indentationLevel + 1);
+                var indentationSteps = IndentationHelper.GetIndentationSteps(rootNamespace, tabSize, indentationSize);
+                usingsIndentation = IndentationHelper.GenerateIndentationString(indentationSteps + 1, useTabs, tabSize, indentationSize);
             }
             else
             {
@@ -184,12 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return usingsHelper.GetContainedUsings(TreeTextSpan.Empty).ToList();
         }
 
-        private static void BuildReplaceMapForNamespaces(UsingsSorter usingsHelper, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap, OptionSet options, bool qualifyNames)
+        private static void BuildReplaceMapForNamespaces(
+            UsingsSorter usingsHelper, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap,
+            bool qualifyNames, bool useTabs, int tabSize, int indentationSize)
         {
             var usingsPerNamespace = usingsHelper
                 .GetContainedUsings(TreeTextSpan.Empty)
-                .GroupBy(ud => ud.Parent)
-                .Select(gr => gr.ToList());
+                .GroupBy(usingDirective => usingDirective.Parent)
+                .Select(group => group.ToList());
 
             foreach (var usingList in usingsPerNamespace)
             {
@@ -198,13 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     // sort the original using declarations on Span.Start, in order to have the correct replace mapping.
                     usingList.Sort(CompareSpanStart);
 
-                    var indentationSteps = IndentationHelper.GetIndentationSteps(options, usingList[0].Parent);
+                    var indentationSteps = IndentationHelper.GetIndentationSteps(usingList[0].Parent, tabSize, indentationSize);
                     if (usingList[0].Parent is NamespaceDeclarationSyntax)
                     {
                         indentationSteps++;
                     }
 
-                    var indentation = IndentationHelper.GenerateIndentationString(options, indentationSteps);
+                    var indentation = IndentationHelper.GenerateIndentationString(indentationSteps, useTabs, tabSize, indentationSize);
 
                     var modifiedUsings = usingsHelper.GenerateGroupedUsings(usingList, indentation, false, qualifyNames);
 
@@ -216,7 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             }
         }
 
-        private static void BuildReplaceMapForConditionalDirectives(UsingsSorter usingsHelper, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap, OptionSet options, TreeTextSpan rootSpan)
+        private static void BuildReplaceMapForConditionalDirectives(
+            UsingsSorter usingsHelper, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap,
+            TreeTextSpan rootSpan, bool useTabs, int tabSize, int indentationSize)
         {
             foreach (var childSpan in rootSpan.Children)
             {
@@ -226,13 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     // sort the original using declarations on Span.Start, in order to have the correct replace mapping.
                     originalUsings.Sort(CompareSpanStart);
 
-                    var indentationSteps = IndentationHelper.GetIndentationSteps(options, originalUsings[0].Parent);
+                    var indentationSteps = IndentationHelper.GetIndentationSteps(originalUsings[0].Parent, tabSize, indentationSize);
                     if (originalUsings[0].Parent is NamespaceDeclarationSyntax)
                     {
                         indentationSteps++;
                     }
 
-                    var indentation = IndentationHelper.GenerateIndentationString(options, indentationSteps);
+                    var indentation = IndentationHelper.GenerateIndentationString(indentationSteps, useTabs, tabSize, indentationSize);
 
                     var modifiedUsings = usingsHelper.GenerateGroupedUsings(childSpan, indentation, false, qualifyNames: false);
 
@@ -242,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     }
                 }
 
-                BuildReplaceMapForConditionalDirectives(usingsHelper, replaceMap, options, childSpan);
+                BuildReplaceMapForConditionalDirectives(usingsHelper, replaceMap, childSpan, useTabs, tabSize, indentationSize);
             }
         }
 
@@ -268,7 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         private static SyntaxNode AddUsingsToCompilationRoot(SyntaxNode newSyntaxRoot, UsingsSorter usingsHelper, string usingsIndentation, bool hasConditionalDirectives)
         {
             var newCompilationUnit = (CompilationUnitSyntax)newSyntaxRoot;
-            var withTrailingBlankLine = hasConditionalDirectives || newCompilationUnit.AttributeLists.Any() || newCompilationUnit.Members.Any() || newCompilationUnit.Externs.Any();
+            var withTrailingBlankLine = hasConditionalDirectives 
+                || newCompilationUnit.AttributeLists.Any() 
+                || newCompilationUnit.Members.Any() 
+                || newCompilationUnit.Externs.Any();
 
             var groupedUsings = usingsHelper.GenerateGroupedUsings(TreeTextSpan.Empty, usingsIndentation, withTrailingBlankLine, qualifyNames: true);
             groupedUsings = groupedUsings.AddRange(newCompilationUnit.Usings);
@@ -323,7 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                         var trailingStripCount = Math.Min(totalStripCount, trailingCount);
 
                         var trailingTrivia = usingDirective.SemicolonToken.TrailingTrivia;
-                        replaceMap[usingDirective.SemicolonToken] = usingDirective.SemicolonToken.WithTrailingTrivia(trailingTrivia.Take(trailingTrivia.Count - trailingStripCount));
+                        replaceMap[usingDirective.SemicolonToken] = usingDirective.SemicolonToken.WithTrailingTrivia(
+                            trailingTrivia.Take(trailingTrivia.Count - trailingStripCount));
                         totalStripCount -= trailingStripCount;
                     }
 
