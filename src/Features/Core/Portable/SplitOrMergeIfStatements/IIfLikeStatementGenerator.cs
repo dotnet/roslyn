@@ -50,8 +50,15 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         /// </summary>
         SyntaxNode ToElseIfClause(SyntaxNode ifLikeStatement);
 
+        /// <summary>
+        /// Inserts <paramref name="elseIfClause"/> as a new else-if clause directly below
+        /// <paramref name="afterIfLikeStatement"/>, between it and any of its existing else-if clauses.
+        /// </summary>
         void InsertElseIfClause(SyntaxEditor editor, SyntaxNode afterIfLikeStatement, SyntaxNode elseIfClause);
 
+        /// <summary>
+        /// Removes <paramref name="elseIfClause"/> from a sequence of else-if clauses, preserving any subsequent clauses.
+        /// </summary>
         void RemoveElseIfClause(SyntaxEditor editor, SyntaxNode elseIfClause);
     }
 }
