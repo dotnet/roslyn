@@ -6,6 +6,8 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
+  <UsingTask TaskName="RoslynTools.Unsign" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
+
   <!--
     Required properties:
       IbcOptimizationDataDir           The directory containing IBC optimization data.
@@ -78,6 +80,9 @@
           Condition="'$(_RunIbcMerge)' == 'true'">
       <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
     </Exec>
+
+    <!-- Remove Authenticode signing record if present. -->
+    <RoslynTools.Unsign FilePath="%(OptimizeAssembly.Identity)" />
 
     <Message Text="$(IbcMergeOutput)" />
   </Target>

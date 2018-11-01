@@ -17,6 +17,10 @@
 
     Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.
     NgenApplication is relative to the Roslyn install directory within MSBuild (i.e. MSBuild\15.0\Bin\Roslyn).
+
+    Set OverwriteOptimizationData to true to replace optimization data already embedded in the assembly with data retrieved from VS training scenarios.
+    We only need to specify this for assemblies built outside or Roslyn repo since the projects in Roslyn repo are responsible for embedding 
+    VS training data to the assemblies they produce.
   -->
 
   <Target Name="InitializeCompilerArtifacts">
@@ -44,7 +48,16 @@
       <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.Managed.Core.targets"/>
       <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.CSharp.Core.targets"/>
       <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.VisualBasic.Core.targets"/>
-      <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+
+      <!--
+        Do not overwrite optimization data of System.Threading.Tasks.Extensions.dll
+        This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
+        Arcade SignTool doesn't support signing directly at this point either.
+        https://github.com/dotnet/arcade/issues/1204
+      -->
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" Exclude="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all"  NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="true"/>
+
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="false"/>
     </ItemGroup>
   </Target>
 </Project>

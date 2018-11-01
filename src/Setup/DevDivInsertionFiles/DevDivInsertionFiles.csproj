@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\build\Targets\RepoToolset\BuildTasks.props"/>
 
   <PropertyGroup>
     <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.nugetrepack.buildtasks\$(RoslynToolsNuGetRepackVersion)\tools\net472\RoslynTools.NuGetRepack.BuildTasks.dll</_NuGetRepackAssembly>
@@ -10,7 +9,6 @@
 
   <UsingTask TaskName="RoslynTools.GetAssemblyFullName" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
   <UsingTask TaskName="RoslynTools.Unzip" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
-  <UsingTask TaskName="RoslynTools.Unsign" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
   <UsingTask TaskName="Roslyn.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
 
@@ -55,6 +53,7 @@
       Do not optimize this binary for now.
       This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
       Arcade SignTool doesn't support signing directly at this point either.
+      https://github.com/dotnet/arcade/issues/1204
     -->
     <ExpectedDependency Include="System.Threading.Tasks.Extensions" DevEnvLib="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll" Optimize="false" />
   </ItemGroup>
@@ -165,8 +164,6 @@
 
     <RoslynTools.Unzip SourceFiles="%(_DependencyWithOptimizationData._NuGetPackageDir)%(_DependencyWithOptimizationData._NuGetPackageFileName)" 
                        DestinationFolder="%(_DependencyWithOptimizationData._UnpackDir)" />
-
-    <RoslynTools.Unsign FilePath="%(_DependencyWithOptimizationData._OptimizeAssembly)" />
   </Target>
 
   <!--
