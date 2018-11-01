@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -16,16 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class VisualStudioProject
     {
-        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly string _projectUniqueName;
 
         /// <summary>
-        /// provide source file info for the non source file given.
-        /// 
-        /// we could change name to something like InterimSourceInfoProvider or GeneratedSourceInfoProvider or etc.
-        /// name is just something I made up
+        /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
         /// </summary>
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
@@ -82,11 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly FileChangeWatcher.IContext _fileReferenceChangeContext;
 
         /// <summary>
-        /// the map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
-        /// </summary>
-        private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new Dictionary<DocumentId, IDynamicFileInfoProvider>();
-
-        /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
         /// </summary>
         private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
@@ -98,18 +88,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string Language { get; }
 
         internal VisualStudioProject(
-            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
-            ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             ProjectId id,
             string projectUniqueName,
             string language,
             string directoryNameOpt)
         {
-            _threadingContext = threadingContext;
             _workspace = workspace;
-            _dynamicFileInfoProviders = fileInfoProviders;
+            _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
             Id = id;
@@ -511,9 +499,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #endregion
 
         #region Non Source File Addition/Removal
-        public void AddDynamicFile(string filePath, ImmutableArray<string> folders)
+        public void AddDynamicSourceFile(string filePath, ImmutableArray<string> folders)
         {
-            var extension = GetExtensionWithoutDot(filePath);
+            var extension = FileNameUtilities.GetExtension(filePath)?.TrimStart('.');
             if (extension?.Length == 0)
             {
                 return;
@@ -527,10 +515,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                // _filePath of this type (VSProject) points to csproj/vbproj of the project
-                // where filePath points to dynamic file such as cshtml and etc
-                // for now, we use GetAwaiter().GetResult() until this method itself becomes Async
-                var fileInfo = _threadingContext.JoinableTaskFactory.Run(() => provider.Value.GetDynamicFileInfoAsync(projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None));
+                // don't get confused by _filePath and filePath
+                // VisualStudioProject._filePath points to csproj/vbproj of the project
+                // and the parameter filePath points to dynamic file such as cshtml and etc
+                // 
+                // also, provider is free-threaded. so find to call Wait rather than JTF
+                var fileInfo = provider.Value.GetDynamicFileInfoAsync(
+                    projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
                 if (fileInfo == null)
                 {
                     continue;
@@ -541,27 +533,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        public void RemoveDynamicFile(string filePath)
+        public void RemoveDynamicSourceFile(string filePath)
         {
             var provider = _sourceFiles.RemoveDynamicFile(MarkDynamicFilePath(filePath));
 
-            _threadingContext.JoinableTaskFactory.Run(() => provider.RemoveDynamicFileInfoAsync(projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None));
+            // provider is free-threaded. so find to call Wait rather than JTF
+            provider.RemoveDynamicFileInfoAsync(
+                projectId: Id, projectFilePath: _filePath, filePath: filePath, CancellationToken.None).Wait(CancellationToken.None);
         }
 
         private void OnDynamicFileInfoUpdated(object sender, string filePath)
         {
             _sourceFiles.ProcessFileChange(filePath, MarkDynamicFilePath(filePath));
-        }
-
-        private static string GetExtensionWithoutDot(string filePath)
-        {
-            var extension = FileNameUtilities.GetExtension(filePath);
-            if (extension?.Length == 0)
-            {
-                return null;
-            }
-
-            return extension[0] == '.' ? extension.Substring(1) : extension;
         }
 
         internal static string MarkDynamicFilePath(string filePath)
@@ -948,6 +931,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private IBidirectionalMap<SourceTextContainer, DocumentId> _sourceTextContainersToDocumentIds = BidirectionalMap<SourceTextContainer, DocumentId>.Empty;
 
             /// <summary>
+            /// the map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
+            /// </summary>
+            private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new Dictionary<DocumentId, IDynamicFileInfoProvider>();
+
+            /// <summary>
             /// The current list of documents that are to be added in this batch.
             /// </summary>
             private readonly ImmutableArray<DocumentInfo>.Builder _documentsAddedInBatch = ImmutableArray.CreateBuilder<DocumentInfo>();
@@ -1084,7 +1072,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     _documentPathsToDocumentIds.Add(filePath, documentId);
 
-                    _project._documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
+                    _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
 
                     if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
                     {
@@ -1098,13 +1086,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
+                        // right now, assumption is dynamically generated file can never be opened in editor
                         _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-
-                        // for now, all document added this way is considered closed and never can be opened.
-                        // we will figure on clsoe/open transition in next round when we figure out how to support
-                        // modifications on generated files.
-                        //
-                        // _project._workspace.CheckForOpenDocuments(ImmutableArray.Create(filePath));
                     }
                 }
             }
@@ -1119,12 +1102,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_project._gate)
                 {
                     if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId) ||
-                        !_project._documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
+                        !_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
                     {
-                        throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
+                        throw new ArgumentException($"'{fullPath}' is not a dynamic file of this project.");
                     }
 
-                    _project._documentIdToDynamicFileInfoProvider.Remove(documentId);
+                    _documentIdToDynamicFileInfoProvider.Remove(documentId);
 
                     RemoveFileInternal(documentId, fullPath);
 
@@ -1146,6 +1129,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
                     }
 
+                    _project._documentFileChangeContext.StopWatchingFile(_project._fileWatchingTokens[documentId]);
+                    _project._fileWatchingTokens.Remove(documentId);
+
                     RemoveFileInternal(documentId, fullPath);
                 }
             }
@@ -1153,9 +1139,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private void RemoveFileInternal(DocumentId documentId, string fullPath)
             {
                 _documentPathsToDocumentIds.Remove(fullPath);
-
-                _project._documentFileChangeContext.StopWatchingFile(_project._fileWatchingTokens[documentId]);
-                _project._fileWatchingTokens.Remove(documentId);
 
                 // There are two cases:
                 // 
@@ -1278,7 +1261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return;
                         }
 
-                        _project._documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider);
+                        _documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider);
 
                         _project._workspace.ApplyChangeToWorkspace(w =>
                         {
@@ -1296,7 +1279,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                             else
                             {
-                                var fileInfo = _project._threadingContext.JoinableTaskFactory.Run(() => fileInfoProvider.GetDynamicFileInfoAsync(_project.Id, _project._filePath, originalFilePath, CancellationToken.None));
+                                // we do not expect JTF to be used around this code path. and contract of fileInfoProvider is it being real free-threaded
+                                // meaning it can't use JTF to go back to UI thread.
+                                // so, it is okay for us to call regular ".Result" on a task here.
+                                var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
+                                    _project.Id, _project._filePath, originalFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                                 textLoader = fileInfo.TextLoader;
                                 documentServiceProvider = fileInfo.DocumentServiceProvider;
