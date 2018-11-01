@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.Workspace.StartSolutionCrawler();
 
                 // start remote host
-                EnableRemoteHostClientService();
+                await EnableRemoteHostClientServiceAsync(cancellationToken).ConfigureAwait(true);
             }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
@@ -188,9 +188,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return false;
         }
 
-        private void EnableRemoteHostClientService()
+        private Task EnableRemoteHostClientServiceAsync(CancellationToken cancellationToken)
         {
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
+            return ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).EnableAsync(cancellationToken);
         }
 
         private void DisableRemoteHostClientService()

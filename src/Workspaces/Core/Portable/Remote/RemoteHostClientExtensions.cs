@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
             this Workspace workspace, CancellationToken cancellationToken)
             => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
 
-        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
+        public static async ValueTask<bool> IsOutOfProcessEnabledAsync(this Workspace workspace, Option<bool> featureOption, CancellationToken cancellationToken)
         {
             // If the feature has explicitly opted out of OOP then we won't run it OOP.
             var outOfProcessAllowed = workspace.Options.GetOption(featureOption);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Otherwise we check if the user is in the AB experiment enabling OOP.
             var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
-            if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
+            if (!await experimentEnabled.IsExperimentEnabledAsync(WellKnownExperimentNames.RoslynFeatureOOP, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
@@ -129,15 +129,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(
+        public static async ValueTask<RemoteHostClient> TryGetRemoteHostClientAsync(
             this Workspace workspace, Option<bool> featureOption, CancellationToken cancellationToken)
         {
-            if (!workspace.IsOutOfProcessEnabled(featureOption))
+            if (!await workspace.IsOutOfProcessEnabledAsync(featureOption, cancellationToken))
             {
-                return SpecializedTasks.Default<RemoteHostClient>();
+                return null;
             }
 
-            return workspace.TryGetRemoteHostClientAsync(cancellationToken);
+            return await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<bool> TryRunRemoteAsync(

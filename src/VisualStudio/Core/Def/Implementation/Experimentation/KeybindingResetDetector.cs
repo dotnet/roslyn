@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
     /// </summary>
     /// <remarks>
     /// The only objects to hold permanent references to this object should be callbacks that are registered for in
-    /// <see cref="InitializeCore"/>. No other external objects should hold a reference to this. Unless the user clicks
+    /// <see cref="InitializeAsync"/>. No other external objects should hold a reference to this. Unless the user clicks
     /// 'Never show this again', this will persist for the life of the VS instance, and does not need to be manually disposed
     /// in that case.
     /// </remarks>
@@ -83,24 +84,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             _serviceProvider = serviceProvider;
         }
 
-        public Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             // Immediately bail if the user has asked to never see this bar again.
             if (_workspace.Options.GetOption(KeybindingResetOptions.NeverShowAgain))
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            return InvokeBelowInputPriority(InitializeCore);
-        }
-
-        private void InitializeCore()
-        {
-            AssertIsForeground();
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: IsInputPending(), cancellationToken);
 
             // Ensure one of the flights is enabled, otherwise bail
             _experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
-            if (!_experimentationService.IsExperimentEnabled(ExternalFlightName) && !_experimentationService.IsExperimentEnabled(InternalFlightName))
+            if (!await _experimentationService.IsExperimentEnabledAsync(ExternalFlightName, cancellationToken)
+                && !await _experimentationService.IsExperimentEnabledAsync(InternalFlightName, cancellationToken))
             {
                 return;
             }
@@ -135,12 +132,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 _oleComponent.ModalStateChanged += OnModalStateChanged;
             }
 
-            UpdateStateMachine();
+            await UpdateStateMachineAsync(cancellationToken);
         }
 
-        private void UpdateStateMachine()
+        private async Task UpdateStateMachineAsync(CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var currentStatus = IsReSharperEnabled();
             var options = _workspace.Options;
@@ -177,13 +174,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             if (options.GetOption(KeybindingResetOptions.NeedsReset))
             {
-                ShowGoldBar();
+                await ShowGoldBarAsync(cancellationToken);
             }
         }
 
-        private void ShowGoldBar()
+        private async Task ShowGoldBarAsync(CancellationToken cancellationToken)
         {
-            AssertIsForeground();
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // If the gold bar is already open, do not show
             if (_infoBarOpen)
@@ -193,8 +190,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             _infoBarOpen = true;
 
-            Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
-                         _experimentationService.IsExperimentEnabled(ExternalFlightName));
+            Debug.Assert(await _experimentationService.IsExperimentEnabledAsync(InternalFlightName, cancellationToken) ||
+                         await _experimentationService.IsExperimentEnabledAsync(ExternalFlightName, cancellationToken));
 
             string message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
@@ -319,7 +316,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
-                Task.Run(() => InvokeBelowInputPriority(UpdateStateMachine));
+                ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, CancellationToken.None);
+
+                    await UpdateStateMachineAsync(CancellationToken.None);
+                });
             }
 
             // No matter the command, we never actually want to respond to it, so always return not supported. We're just monitoring.
@@ -335,7 +337,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // extra QueryStatus.
             if (args.TransitionType == StateTransitionType.Exit)
             {
-                InvokeBelowInputPriority(UpdateStateMachine);
+                ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: IsInputPending(), CancellationToken.None);
+
+                    await UpdateStateMachineAsync(CancellationToken.None);
+                });
             }
         }
 

@@ -3,6 +3,9 @@
 using System;
 using System.Composition;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,47 +17,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
     internal class VisualStudioExperimentationService : ForegroundThreadAffinitizedObject, IExperimentationService
     {
-        private readonly object _experimentationServiceOpt;
-        private readonly MethodInfo _isCachedFlightEnabledInfo;
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
+
+        private object _experimentationServiceOpt;
+        private Optional<MethodInfo> _isCachedFlightEnabledInfo;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExperimentationService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
-            object experimentationServiceOpt = null;
-            MethodInfo isCachedFlightEnabledInfo = null;
+            _asyncServiceProvider = (IAsyncServiceProvider)serviceProvider;
+        }
 
-            threadingContext.JoinableTaskFactory.Run(async () =>
+        public async ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        {
+            if (!_isCachedFlightEnabledInfo.HasValue)
             {
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                MethodInfo isCachedFlightEnabledInfo;
 
                 try
                 {
-                    experimentationServiceOpt = serviceProvider.GetService(typeof(SVsExperimentationService));
-                    if (experimentationServiceOpt != null)
-                    {
-                        isCachedFlightEnabledInfo = experimentationServiceOpt.GetType().GetMethod(
-                            "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
-                    }
+                    _experimentationServiceOpt = await _asyncServiceProvider.GetServiceAsync(typeof(SVsExperimentationService));
+                    isCachedFlightEnabledInfo = _experimentationServiceOpt?.GetType().GetMethod(
+                        "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
                 }
                 catch
                 {
+                    isCachedFlightEnabledInfo = null;
                 }
-            });
 
-            _experimentationServiceOpt = experimentationServiceOpt;
-            _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
-        }
+                _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
+            }
 
-        public bool IsExperimentEnabled(string experimentName)
-        {
-            ThisCanBeCalledOnAnyThread();
-            if (_isCachedFlightEnabledInfo != null)
+            if (_isCachedFlightEnabledInfo.Value != null)
             {
                 try
                 {
-                    return (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName });
+                    return (bool)_isCachedFlightEnabledInfo.Value.Invoke(_experimentationServiceOpt, new object[] { experimentName });
                 }
                 catch
                 {

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
+                if (!await RemoteFeatureOptions.ShouldComputeIndexAsync(project.Solution.Workspace, cancellationToken).ConfigureAwait(false))
                 {
                     return;
                 }

@@ -55,8 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public Workspace Workspace => _workspace;
             public IAsynchronousOperationListener Listener => _listener;
 
-            public void Enable()
+            public async Task EnableAsync(CancellationToken cancellationToken)
             {
+                var force64Bit = await _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabledAsync(
+                    WellKnownExperimentNames.RoslynOOP64bit, cancellationToken).ConfigureAwait(false);
+
                 lock (_gate)
                 {
                     if (_remoteClientTask != null)
@@ -84,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // set bitness
-                    SetRemoteHostBitness();
+                    SetRemoteHostBitness(force64Bit);
 
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
@@ -94,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // create solution checksum updater
                     _checksumUpdater = new SolutionChecksumUpdater(this, token);
 
-                    _remoteClientTask = Task.Run(() => EnableAsync(token), token);
+                    _remoteClientTask = Task.Run(() => EnableCoreAsync(token), token);
                 }
             }
 
@@ -158,14 +161,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return remoteClientTask;
             }
 
-            private void SetRemoteHostBitness()
+            private void SetRemoteHostBitness(bool force64Bit)
             {
-                var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
-                if (!x64)
-                {
-                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
-                        WellKnownExperimentNames.RoslynOOP64bit);
-                }
+                var x64 = force64Bit || _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
 
                 // log OOP bitness
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
@@ -175,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 WellKnownServiceHubServices.Set64bit(x64);
             }
 
-            private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
+            private async Task<RemoteHostClient> EnableCoreAsync(CancellationToken cancellationToken)
             {
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
@@ -286,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     // create new remote host client
                     var token = _shutdownCancellationTokenSource.Token;
-                    _remoteClientTask = Task.Run(() => EnableAsync(token), token);
+                    _remoteClientTask = Task.Run(() => EnableCoreAsync(token), token);
                 }
 
                 // shutdown 

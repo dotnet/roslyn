@@ -15,21 +15,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
             var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
             var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            return client == null ? null : new RazorLanguageServiceClient(client, GetServiceName(workspace));
+            return client == null ? null : new RazorLanguageServiceClient(client, await GetServiceNameAsync(workspace, cancellationToken).ConfigureAwait(false));
         }
 
         #region support a/b testing. after a/b testing, we can remove all this code
         private static string s_serviceNameDoNotAccessDirectly = null;
 
-        private static string GetServiceName(Workspace workspace)
+        private static async ValueTask<string> GetServiceNameAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             if (s_serviceNameDoNotAccessDirectly == null)
             {
                 var x64 = workspace.Options.GetOption(OOP64Bit);
                 if (!x64)
                 {
-                    x64 = workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
-                        WellKnownExperimentNames.RoslynOOP64bit);
+                    x64 = await workspace.Services.GetService<IExperimentationService>().IsExperimentEnabledAsync(
+                        WellKnownExperimentNames.RoslynOOP64bit,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 Interlocked.CompareExchange(

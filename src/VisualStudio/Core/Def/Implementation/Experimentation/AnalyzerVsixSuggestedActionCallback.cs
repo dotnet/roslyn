@@ -3,6 +3,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 {
@@ -69,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 !IsVsixInstalled() &&
                 IsCandidate())
             {
-                ShowInfoBarIfNecessary();
+                ThreadingContext.JoinableTaskFactory.Run(() => ShowInfoBarIfNecessaryAsync(CancellationToken.None));
             }
         }
 
@@ -154,11 +157,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             return isCandidate;
         }
 
-        private void ShowInfoBarIfNecessary()
+        private async Task ShowInfoBarIfNecessaryAsync(CancellationToken cancellationToken)
         {
             // Only check for whether we should show an info bar once per session.
             _infoBarChecked = true;
-            if (_experimentationService.IsExperimentEnabled(AnalyzerEnabledFlight))
+            if (await _experimentationService.IsExperimentEnabledAsync(AnalyzerEnabledFlight, cancellationToken).ConfigureAwait(false))
             {
                 AnalyzerABTestLogger.Log(nameof(AnalyzerEnabledFlight));
 

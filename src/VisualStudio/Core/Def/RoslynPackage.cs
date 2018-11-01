@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var experiments = this.ComponentModel.DefaultExportProvider.GetExportedValues<IExperiment>();
             foreach (var experiment in experiments)
             {
-                await experiment.InitializeAsync().ConfigureAwait(true);
+                await experiment.InitializeAsync(cancellationToken).ConfigureAwait(true);
             }
         }
 

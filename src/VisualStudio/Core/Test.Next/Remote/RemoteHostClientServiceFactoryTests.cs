@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var service = CreateRemoteHostClientService();
 
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             var enabledClient = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             Assert.NotNull(enabledClient);
@@ -56,7 +56,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public async Task ClientId()
         {
             var service = CreateRemoteHostClientService();
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
             var id1 = client1.ClientId;
@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
             var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
 
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
@@ -103,7 +103,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
             var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
 
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None) as InProcRemoteHostClient;
@@ -126,7 +126,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listenerProvider);
 
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
@@ -152,7 +152,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var service = CreateRemoteHostClientService();
 
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
@@ -172,7 +172,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             // enable local remote host service
             var service = CreateRemoteHostClientService();
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
 
@@ -205,7 +205,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var service = CreateRemoteHostClientService();
 
-            service.Enable();
+            await service.EnableAsync(CancellationToken.None);
 
             var completionTask = new TaskCompletionSource<bool>();
 

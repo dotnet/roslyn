@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Experiments;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -51,10 +51,20 @@ namespace Microsoft.CodeAnalysis.Remote
         private static ImmutableArray<Option<bool>> AllFeatureOptions { get; } =
             ImmutableArray.Create(AddImportEnabled, DocumentHighlightingEnabled, NavigateToEnabled, SymbolSearchEnabled, SymbolFinderEnabled);
 
-        public static bool AnyFeatureRunsInProcess(Workspace workspace)
-            => AllFeatureOptions.Any(o => !workspace.IsOutOfProcessEnabled(o));
+        public static async ValueTask<bool> AnyFeatureRunsInProcessAsync(Workspace workspace, CancellationToken cancellationToken)
+        {
+            foreach (var option in AllFeatureOptions)
+            {
+                if (!await workspace.IsOutOfProcessEnabledAsync(option, cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
 
-        public static bool ShouldComputeIndex(Workspace workspace)
+            return false;
+        }
+
+        public static async ValueTask<bool> ShouldComputeIndexAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             switch (workspace.Kind)
             {
@@ -69,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 case WorkspaceKind.Host:
                     // If any features are going to run in-process, then we need to create an index in the
                     // host workspace.
-                    return AnyFeatureRunsInProcess(workspace);
+                    return await AnyFeatureRunsInProcessAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
