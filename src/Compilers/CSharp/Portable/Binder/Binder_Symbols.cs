@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (a.QuestionToken.IsKind(SyntaxKind.QuestionToken))
                             {
-                                type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true);
+                                type = TypeSymbolWithAnnotations.Create(array, isNullableIfReferenceType: true, fromDeclaration: true);
                                 reportNullableReferenceTypesIfNeeded(a.QuestionToken);
                             }
                             else

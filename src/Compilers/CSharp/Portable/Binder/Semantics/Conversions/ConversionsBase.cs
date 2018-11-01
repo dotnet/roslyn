@@ -80,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceType = sourceExpression.Type;
 
+            if (IncludeNullability)
+            {
+                sourceType = sourceType?.SetPossiblyNullableReferenceTypeTypeParametersAsNullable();
+            }
+
             //PERF: identity conversion is by far the most common implicit conversion, check for that first
             if ((object)sourceType != null && HasIdentityConversionInternal(sourceType, destination))
             {

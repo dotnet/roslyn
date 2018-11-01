@@ -3624,7 +3624,10 @@ class E
         {
             Assert.Equal(expectNonNullTypes, method.NonNullTypes);
 
-            Assert.Equal(expectNonNullTypes, method.ReturnType.NonNullTypesContext.NonNullTypes);
+            if (method.ReturnType.NullableAnnotation != NullableAnnotation.Nullable)
+            {
+                Assert.Equal(expectNonNullTypes == true, method.ReturnType.NullableAnnotation != NullableAnnotation.Unknown);
+            }
 
             foreach (var parameter in method.Parameters)
             {
@@ -4770,30 +4773,29 @@ class C3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 11)
                 );
 
-            verify("C1.F1", "System.String", isAnnotated: false, isNullable: null);
-            verify("C1.F2", "System.String?", isAnnotated: true, isNullable: true);
-            verify("C1.F3", "System.Int32", isAnnotated: false, isNullable: false);
-            verify("C1.F4", "System.Int32?", isAnnotated: true, isNullable: true);
-            verify("C1.F5", "System.Int32?", isAnnotated: true, isNullable: true);
-            verify("C2.F1", "System.String", isAnnotated: false, isNullable: null);
-            verify("C2.F2", "System.String?", isAnnotated: true, isNullable: true);
-            verify("C2.F3", "System.Int32", isAnnotated: false, isNullable: false);
-            verify("C2.F4", "System.Int32?", isAnnotated: true, isNullable: true);
-            verify("C2.F5", "System.Int32?", isAnnotated: true, isNullable: true);
-            verify("C3.F1", "System.String!", isAnnotated: false, isNullable: false);
-            verify("C3.F2", "System.String?", isAnnotated: true, isNullable: true);
-            verify("C3.F3", "System.Int32", isAnnotated: false, isNullable: false);
-            verify("C3.F4", "System.Int32?", isAnnotated: true, isNullable: true);
-            verify("C3.F5", "System.Int32?", isAnnotated: true, isNullable: true);
+            verify("C1.F1", "System.String", isNullable: null);
+            verify("C1.F2", "System.String?", isNullable: true);
+            verify("C1.F3", "System.Int32", isNullable: false);
+            verify("C1.F4", "System.Int32?", isNullable: true);
+            verify("C1.F5", "System.Int32?", isNullable: true);
+            verify("C2.F1", "System.String", isNullable: null);
+            verify("C2.F2", "System.String?", isNullable: true);
+            verify("C2.F3", "System.Int32", isNullable: false);
+            verify("C2.F4", "System.Int32?", isNullable: true);
+            verify("C2.F5", "System.Int32?", isNullable: true);
+            verify("C3.F1", "System.String!", isNullable: false);
+            verify("C3.F2", "System.String?", isNullable: true);
+            verify("C3.F3", "System.Int32", isNullable: false);
+            verify("C3.F4", "System.Int32?", isNullable: true);
+            verify("C3.F5", "System.Int32?", isNullable: true);
 
             // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
 
-            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable)
+            void verify(string methodName, string displayName, bool? isNullable)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
                 var type = method.ReturnType;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
-                Assert.Equal(isAnnotated, type.IsAnnotated);
                 Assert.Equal(isNullable, type.IsNullable);
             }
         }
@@ -4867,37 +4869,36 @@ class C3
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(19, 5)
             );
 
-            verify("C1.F1", "T", isAnnotated: false, isNullable: null);
-            verify("C1.F2", "T?", isAnnotated: true, isNullable: true);
-            verify("C1.F3", "T", isAnnotated: false, isNullable: null);
-            verify("C1.F4", "T?", isAnnotated: true, isNullable: true);
-            verify("C1.F5", "T", isAnnotated: false, isNullable: false);
-            verify("C1.F6", "T?", isAnnotated: true, isNullable: true);
-            verify("C1.F7", "T?", isAnnotated: true, isNullable: true);
-            verify("C2.F1", "T", isAnnotated: false, isNullable: null);
-            verify("C2.F2", "T?", isAnnotated: true, isNullable: true);
-            verify("C2.F3", "T", isAnnotated: false, isNullable: null);
-            verify("C2.F4", "T?", isAnnotated: true, isNullable: true);
-            verify("C2.F5", "T", isAnnotated: false, isNullable: false);
-            verify("C2.F6", "T?", isAnnotated: true, isNullable: true);
-            verify("C2.F7", "T?", isAnnotated: true, isNullable: true);
-            verify("C3.F1", "T", isAnnotated: false, isNullable: true);
-            verify("C3.F2", "T?", isAnnotated: true, isNullable: true);
-            verify("C3.F3", "T!", isAnnotated: false, isNullable: false);
-            verify("C3.F4", "T?", isAnnotated: true, isNullable: true);
-            verify("C3.F5", "T", isAnnotated: false, isNullable: false);
-            verify("C3.F6", "T?", isAnnotated: true, isNullable: true);
-            verify("C3.F7", "T?", isAnnotated: true, isNullable: true);
+            verify("C1.F1", "T", isNullable: null);
+            verify("C1.F2", "T?", isNullable: true);
+            verify("C1.F3", "T", isNullable: null);
+            verify("C1.F4", "T?", isNullable: true);
+            verify("C1.F5", "T", isNullable: false);
+            verify("C1.F6", "T?", isNullable: true);
+            verify("C1.F7", "T?", isNullable: true);
+            verify("C2.F1", "T", isNullable: null);
+            verify("C2.F2", "T?", isNullable: true);
+            verify("C2.F3", "T", isNullable: null);
+            verify("C2.F4", "T?", isNullable: true);
+            verify("C2.F5", "T", isNullable: false);
+            verify("C2.F6", "T?", isNullable: true);
+            verify("C2.F7", "T?", isNullable: true);
+            verify("C3.F1", "T", isNullable: false);
+            verify("C3.F2", "T?", isNullable: true);
+            verify("C3.F3", "T!", isNullable: false);
+            verify("C3.F4", "T?", isNullable: true);
+            verify("C3.F5", "T", isNullable: false);
+            verify("C3.F6", "T?", isNullable: true);
+            verify("C3.F7", "T?", isNullable: true);
 
             // https://github.com/dotnet/roslyn/issues/29845: Test nested nullability.
             // https://github.com/dotnet/roslyn/issues/29845: Test all combinations of overrides.
 
-            void verify(string methodName, string displayName, bool isAnnotated, bool? isNullable)
+            void verify(string methodName, string displayName, bool? isNullable)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
                 var type = method.ReturnType;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
-                Assert.Equal(isAnnotated, type.IsAnnotated);
                 Assert.Equal(isNullable, type.IsNullable);
             }
         }
@@ -7065,7 +7066,7 @@ class B : IA
         }
 
         [Fact]
-        public void ImplementingNullableWithNonNull()
+        public void ImplementingNullableWithNonNull_ReturnType()
         {
             var source = @"
 interface IA
@@ -7099,6 +7100,45 @@ class B : IA
                 // (5,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string?[] M1();
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 11)
+                );
+        }
+
+        [Fact]
+        public void ImplementingNullableWithNonNull_Parameter()
+        {
+            var source = @"
+interface IA
+{
+" + NonNullTypesOff() + @"
+    void M1(string?[] x);
+" + NonNullTypesOff() + @"
+    void M2<T>(T?[] x) where T : class;
+}
+" + NonNullTypesOn() + @"
+class B : IA
+{
+    void IA.M1(string[] x) => throw null;
+    void IA.M2<S>(S[] x)
+        => throw null;
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            compilation.VerifyDiagnostics(
+                // (5,19): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void M1(string?[] x);
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 19),
+                // (7,16): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     void M2<T>(T?[] x) where T : class;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 16),
+                // (7,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void M2<T>(T?[] x) where T : class;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 17),
+                // (12,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M1(string?[] x)'.
+                //     void IA.M1(string[] x) => throw null;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M1").WithArguments("x", "void IA.M1(string?[] x)").WithLocation(12, 13),
+                // (13,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T?[] x)'.
+                //     void IA.M2<S>(S[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M2").WithArguments("x", "void IA.M2<T>(T?[] x)").WithLocation(13, 13)
                 );
         }
 
@@ -24461,7 +24501,7 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(true, symbol.Type.IsNullable);
+            Assert.False(symbol.Type.IsNullable);
         }
 
         [Fact]
@@ -50126,7 +50166,7 @@ class A<T1, T2> where T1 : class where T2 : class
 
             var b = comp.GetTypeByMetadataName("A`2+B");
             Assert.NotNull(b);
-            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]
@@ -50222,7 +50262,7 @@ class A<T> where T : class
 
             var b = comp.GetTypeByMetadataName("A`1+B");
             Assert.NotNull(b);
-            Assert.False(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
+            Assert.True(b.BaseTypeNoUseSiteDiagnostics.IsDefinition);
         }
 
         [Fact]

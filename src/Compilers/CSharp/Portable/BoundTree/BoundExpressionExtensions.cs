@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default;
             }
             var isNullable = expr.IsNullableInternal();
-            return TypeSymbolWithAnnotations.Create(type, isNullable);
+            return TypeSymbolWithAnnotations.Create(type, isNullable, fromDeclaration: true);
         }
 
         // https://github.com/dotnet/roslyn/issues/29618 Remove this method. Initial binding should not infer nullability.
