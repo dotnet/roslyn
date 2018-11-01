@@ -12,11 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
         Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
 
-        Protected Overrides ReadOnly Property CodeActionTitle As String
-            Get
-                Return VBFeaturesResources.Introduce_Using_statement
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement
 
         Protected Overrides Function CanRefactorToContainBlockStatements(parent As SyntaxNode) As Boolean
             ' We don’t care enough about declarations in single-line If, Else, lambdas, etc, to support them.

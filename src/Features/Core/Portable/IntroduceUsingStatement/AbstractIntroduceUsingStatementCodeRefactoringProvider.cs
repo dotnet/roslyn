@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
@@ -85,12 +86,16 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 return default;
             }
 
-            var initializer = (localDeclaration.Initializer ?? declarator.Initializer).Value;
+            var initializer = (localDeclaration.Initializer ?? declarator.Initializer)?.Value;
+
+            // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
             if (initializer is null || initializer.Kind == OperationKind.Invalid)
             {
                 return default;
             }
 
+            // Infer the intent of the selection. Offer the refactoring only if the selection
+            // appears to be aimed at the declaration statement but not at its initializer expression.
             var isValidSelection = await CodeRefactoringHelpers.RefactoringSelectionIsValidAsync(
                 document,
                 selection,
@@ -111,6 +116,10 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             return (declarationSyntax, declarator.Symbol);
         }
 
+        /// <summary>
+        /// Up to date with C# 7.3. Pattern-based disposal is likely to be added to C# 8.0,
+        /// in which case accessible instance and extension methods will need to be detected.
+        /// </summary>
         private static bool IsLegalUsingStatementType(Compilation compilation, ITypeSymbol disposableType, ITypeSymbol type)
         {
             if (disposableType == null)
@@ -154,21 +163,23 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 var newParent = WithStatements(
                     declarationStatement.Parent,
-                    new SyntaxList<TStatementSyntax>(
-                        parentStatements.Take(declarationStatementIndex)
-                        .Concat(new[] { usingStatement })
+                    new SyntaxList<TStatementSyntax>(parentStatements
+                        .Take(declarationStatementIndex)
+                        .Concat(usingStatement)
                         .Concat(parentStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
 
-                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement.Parent, newParent
-                    .WithAdditionalAnnotations(Formatter.Annotation)));
+                return document.WithSyntaxRoot(root.ReplaceNode(
+                    declarationStatement.Parent,
+                    newParent.WithAdditionalAnnotations(Formatter.Annotation)));
             }
             else
             {
                 // Either the parent is not blocklike, meaning WithStatements can’t be used as in the other branch,
                 // or there’s just no need to replace more than the statement itself because no following statements
                 // will be surrounded.
-                return document.WithSyntaxRoot(root.ReplaceNode(declarationStatement, usingStatement
-                    .WithAdditionalAnnotations(Formatter.Annotation)));
+                return document.WithSyntaxRoot(root.ReplaceNode(
+                    declarationStatement,
+                    usingStatement.WithAdditionalAnnotations(Formatter.Annotation)));
             }
         }
 
