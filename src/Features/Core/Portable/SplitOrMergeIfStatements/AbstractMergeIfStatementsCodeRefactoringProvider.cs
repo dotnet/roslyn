@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected static IReadOnlyList<SyntaxNode> WalkDownBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+        protected static IReadOnlyList<SyntaxNode> WalkDownPureBlocks(
+            ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements only contain a single block, walk down the block and any subsequent nested blocks
             // to get the real statements inside.
@@ -69,15 +70,24 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return statements;
         }
 
-        protected static IReadOnlyList<SyntaxNode> WalkUpBlocks(ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
+        protected static IReadOnlyList<SyntaxNode> WalkUpPureBlocks(
+            ISyntaxFactsService syntaxFacts, IReadOnlyList<SyntaxNode> statements)
         {
             // If our statements are inside a block, walk up the block and any subsequent nested blocks that contain
-            // no other statements to get the topmost block.
+            // no other statements to get the topmost block. The last check is necessary to make sure we stop
+            // walking upwards if there are other statements next to our current block:
+            // {
+            //     {
+            //         <original statements>
+            //     }
+            //     AnotherStatement();
+            // }
 
-            while (statements.Count > 0 && syntaxFacts.IsPureBlock(statements[0].Parent) &&
-                   syntaxFacts.GetExecutableBlockStatements(statements[0].Parent).Count == statements.Count)
+            while (statements.Count > 0 && statements[0].Parent is var parent &&
+                   syntaxFacts.IsPureBlock(parent) &&
+                   syntaxFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
             {
-                statements = ImmutableArray.Create(statements[0].Parent);
+                statements = ImmutableArray.Create(parent);
             }
 
             return statements;

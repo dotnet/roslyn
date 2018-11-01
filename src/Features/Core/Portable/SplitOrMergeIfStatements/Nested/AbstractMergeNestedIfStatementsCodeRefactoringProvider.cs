@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 var statements = syntaxFacts.GetStatementContainerStatements(statement.Parent);
                 if (statements.FirstOrDefault() == statement)
                 {
-                    var rootStatements = WalkUpBlocks(syntaxFacts, statements);
+                    var rootStatements = WalkUpPureBlocks(syntaxFacts, statements);
                     if (rootStatements.Count > 0 && ifGenerator.IsIfLikeStatement(rootStatements[0].Parent))
                     {
                         ifLikeStatement = rootStatements[0].Parent;
@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 }
             }
 
-            var statements1 = WalkDownBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseLikeClause1));
-            var statements2 = WalkDownBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseLikeClause2));
+            var statements1 = WalkDownPureBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseLikeClause1));
+            var statements2 = WalkDownPureBlocks(syntaxFacts, syntaxFacts.GetStatementContainerStatements(elseLikeClause2));
 
             return statements1.SequenceEqual(statements2, syntaxFacts.AreEquivalent);
         }
