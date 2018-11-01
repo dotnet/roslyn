@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     ' No matching declaration, synthesize a property reference with an implicit receiver to be assigned.
                     Dim [property] As IPropertySymbol = properties(i)
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
-                    target = New PropertyReferenceExpression(
+                    target = New PropertyReferenceOperation(
                         [property],
                         instance,
                         ImmutableArray(Of IArgumentOperation).Empty,
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
+                Dim assignment = New SimpleAssignmentOperation(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
 
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
                 End If
 
-                builder.Add(New VariableDeclaration(declarators,
+                builder.Add(New VariableDeclarationOperation(declarators,
                                                          initializer,
                                                          _semanticModel,
                                                          declarationGroup.Key,
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     If boundLocalDeclaration.IdentifierInitializerOpt IsNot Nothing Then
                         Dim syntax = boundLocalDeclaration.Syntax
                         Dim initializerValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLocalDeclaration.IdentifierInitializerOpt))
-                        Return New LazyVariableInitializer(initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                        Return New LazyVariableInitializerOperation(initializerValue, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
                     Else
                         Return Nothing
                     End If
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim ignoredArguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function() ImmutableArray(Of IOperation).Empty)
 
-            Return New LazyVariableDeclarator(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
+            Return New LazyVariableDeclaratorOperation(boundLocalDeclaration.LocalSymbol, initializer, ignoredArguments, _semanticModel, boundLocalDeclaration.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=boundLocalDeclaration.WasCompilerGenerated)
         End Function
 
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
@@ -482,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             If boundOperand.Kind = BoundKind.Parenthesized Then
                 Dim adjustedInfo = TryGetAdjustedConversionInfo(topLevelConversion, DirectCast(boundOperand, BoundParenthesized).Expression)
                 If adjustedInfo.Operation IsNot Nothing Then
-                    Return (Operation:=New ParenthesizedExpression(adjustedInfo.Operation,
+                    Return (Operation:=New ParenthesizedOperation(adjustedInfo.Operation,
                                                                    _semanticModel,
                                                                    boundOperand.Syntax,
                                                                    adjustedInfo.Operation.Type,

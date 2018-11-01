@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
 
-            VerifySubTree(((BaseSwitchCase)operation).Condition);
+            VerifySubTree(((BaseSwitchCaseOperation)operation).Condition);
         }
 
         internal static void VerifySubTree(IOperation root)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitLoop(operation);
             Assert.Equal(LoopKind.ForTo, operation.LoopKind);
             _ = operation.IsChecked;
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
 
             if (userDefinedInfo != null)
             {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
-            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
             visitArguments(info.GetEnumeratorArguments);
             visitArguments(info.MoveNextArguments);
             visitArguments(info.CurrentArguments);
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitMemberReference(IMemberReferenceOperation operation)
         {
-            VisitMemberReference(operation, Array.Empty<IOperation>()); 
+            VisitMemberReference(operation, Array.Empty<IOperation>());
         }
 
         private void VisitMemberReference(IMemberReferenceOperation operation, IEnumerable<IOperation> additionalChildren)
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.BinaryOperator, operation.Kind);
             var operatorMethod = operation.OperatorMethod;
-            var unaryOperatorMethod = ((BaseBinaryOperatorExpression)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;

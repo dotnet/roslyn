@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         public static IVariableInitializerOperation CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
         {
-            return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
+            return new VariableInitializerOperation(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
         }
 
         public static IConditionalOperation CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, bool isRef, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
@@ -28,24 +28,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public static IExpressionStatementOperation CreateSimpleAssignmentExpressionStatement(IOperation target, bool isRef, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            var expression = new SimpleAssignmentExpression(target, isRef, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
-            return new ExpressionStatement(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
+            var expression = new SimpleAssignmentOperation(target, isRef, value, semanticModel, syntax, target.Type, default(Optional<object>), isImplicit);
+            return new ExpressionStatementOperation(expression, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
         public static ILiteralOperation CreateLiteralExpression(long value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new LiteralExpression(semanticModel, syntax, resultType, constantValue: new Optional<object>(value), isImplicit: isImplicit);
+            return new LiteralOperation(semanticModel, syntax, resultType, constantValue: new Optional<object>(value), isImplicit: isImplicit);
         }
 
         public static ILiteralOperation CreateLiteralExpression(ConstantValue value, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
-            return new LiteralExpression(semanticModel, syntax, resultType, new Optional<object>(value.Value), isImplicit);
+            return new LiteralOperation(semanticModel, syntax, resultType, new Optional<object>(value.Value), isImplicit);
         }
 
         public static IBinaryOperation CreateBinaryOperatorExpression(
             BinaryOperatorKind operatorKind, IOperation left, IOperation right, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isLifted, bool isChecked, bool isCompareText, bool isImplicit)
         {
-            return new BinaryOperatorExpression(
+            return new BinaryOperation(
                 operatorKind, left, right,
                 isLifted: isLifted, isChecked: isChecked,
                 isCompareText: isCompareText, operatorMethod: null, unaryOperatorMethod: null,

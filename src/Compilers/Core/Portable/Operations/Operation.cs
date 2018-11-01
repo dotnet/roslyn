@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true);
+        private static readonly IOperation s_unset = new EmptyOperation(null, null, null, default, isImplicit: true);
         private readonly SemanticModel _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once

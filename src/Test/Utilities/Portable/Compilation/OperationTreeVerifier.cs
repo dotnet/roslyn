@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Clauses, "Clauses", logElementCount: false);
             VisitArray(operation.Body, "Body", logElementCount: false);
             Unindent();
-            _ = ((BaseSwitchCase)operation).Condition;
+            _ = ((BaseSwitchCaseOperation)operation).Condition;
         }
 
         public override void VisitWhileLoop(IWhileLoopOperation operation)
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
 
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
 
             if (userDefinedInfo != null)
             {
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
-            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
             _ = info.GetEnumeratorArguments?.Value;
             _ = info.MoveNextArguments?.Value;
             _ = info.CurrentArguments?.Value;
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
-            var unaryOperatorMethod = ((BaseBinaryOperatorExpression)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.LeftOperand, "Left");
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogNewLine();
                 Indent();
-                LogString($"({((BaseConversionExpression)operation).ConvertibleConversion})");
+                LogString($"({((BaseConversionOperation)operation).ConvertibleConversion})");
                 Unindent();
             }
 
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogConversion(operation.ValueConversion, "ValueConversion");
             LogNewLine();
             Indent();
-            LogString($"({((BaseCoalesceExpression)operation).ConvertibleValueConversion})");
+            LogString($"({((BaseCoalesceOperation)operation).ConvertibleValueConversion})");
             Unindent();
             LogNewLine();
             Unindent();

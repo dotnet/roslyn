@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private IInstanceReferenceOperation CreateImplicitReciever(SyntaxNode syntax, ITypeSymbol type) =>
-            new InstanceReferenceExpression(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
+            new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, _semanticModel, syntax, type, constantValue: default, isImplicit: true);
 
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
         {
@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default;
             bool isImplicit = false;
 
-            return new VariableDeclarator(symbol, initializer, ignoredArguments, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new VariableDeclaratorOperation(symbol, initializer, ignoredArguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
-            return new VariableDeclarator(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
+            return new VariableDeclaratorOperation(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
         private Lazy<IOperation> CreateReceiverOperation(BoundNode instance, ISymbol symbol)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new LazyEventReferenceExpression(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
+            return new LazyEventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
         }
 
         private ImmutableArray<IArgumentOperation> DeriveArguments(
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // We can simply return empty array only if both parameters and boundArguments are empty, because:
             // - if only parameters is empty, there's error in code but we still need to return provided expression.
-            // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
+            // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters.
             if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 bool isImplicitAssignment;
 
                 // Synthesize an implicit receiver for property reference being assigned.
-                var instance = new InstanceReferenceExpression(
+                var instance = new InstanceReferenceOperation(
                         referenceKind: InstanceReferenceKind.ImplicitReceiver,
                         semanticModel: _semanticModel,
                         syntax: syntax,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     (object)property != declarations[currentDeclarationIndex].Property)
                 {
                     // No matching declaration, synthesize a property reference to be assigned.
-                    target = new PropertyReferenceExpression(
+                    target = new PropertyReferenceOperation(
                         property,
                         instance,
                         arguments: ImmutableArray<IArgumentOperation>.Empty,
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ITypeSymbol assignmentType = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
                 bool isRef = false;
-                var assignment = new SimpleAssignmentExpression(target, isRef, value, _semanticModel, assignmentSyntax, assignmentType, constantValue, isImplicitAssignment);
+                var assignment = new SimpleAssignmentOperation(target, isRef, value, _semanticModel, assignmentSyntax, assignmentType, constantValue, isImplicitAssignment);
                 builder.Add(assignment);
             }
 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
                 var locals = switchSection.Locals.CastArray<ILocalSymbol>();
 
-                return (ISwitchCaseOperation)new SwitchCase(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
+                return (ISwitchCaseOperation)new SwitchCaseOperation(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
                                                             type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
                 ImmutableArray<ILocalSymbol> locals = switchSection.Locals.CastArray<ILocalSymbol>();
 
-                return (ISwitchCaseOperation)new SwitchCase(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
+                return (ISwitchCaseOperation)new SwitchCaseOperation(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
                                                             type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
