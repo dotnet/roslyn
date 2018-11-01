@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
             return ifStatement.WithCondition((ExpressionSyntax)condition);
         }
 
-        public SyntaxNode WithStatement(SyntaxNode ifLikeStatement, SyntaxNode statement)
+        public SyntaxNode WithStatementInBlock(SyntaxNode ifLikeStatement, SyntaxNode statement)
         {
             var ifStatement = (IfStatementSyntax)ifLikeStatement;
             return ifStatement.WithStatement(SyntaxFactory.Block((StatementSyntax)statement));

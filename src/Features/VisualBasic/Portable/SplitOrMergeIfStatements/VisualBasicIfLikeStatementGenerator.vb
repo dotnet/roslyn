@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
             End If
         End Function
 
-        Public Function WithStatement(ifLikeStatement As SyntaxNode, statement As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.WithStatement
+        Public Function WithStatementInBlock(ifLikeStatement As SyntaxNode, statement As SyntaxNode) As SyntaxNode Implements IIfLikeStatementGenerator.WithStatementInBlock
             Return ifLikeStatement.ReplaceStatements(SyntaxFactory.SingletonList(DirectCast(statement, StatementSyntax)))
         End Function
 

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             // else-if or else clauses following the outer if statement, they will be copied and placed inside too.
 
             var innerIfStatement = ifGenerator.WithCondition(ifGenerator.ToIfStatement(ifLikeStatement), rightCondition);
-            var outerIfLikeStatement = ifGenerator.WithCondition(ifGenerator.WithStatement(ifLikeStatement, innerIfStatement), leftCondition);
+            var outerIfLikeStatement = ifGenerator.WithCondition(ifGenerator.WithStatementInBlock(ifLikeStatement, innerIfStatement), leftCondition);
 
             return Task.FromResult(
                 root.ReplaceNode(ifLikeStatement, outerIfLikeStatement.WithAdditionalAnnotations(Formatter.Annotation)));

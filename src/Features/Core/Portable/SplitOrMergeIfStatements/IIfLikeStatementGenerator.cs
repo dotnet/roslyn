@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         SyntaxNode WithCondition(SyntaxNode ifLikeStatement, SyntaxNode condition);
 
-        SyntaxNode WithStatement(SyntaxNode ifLikeStatement, SyntaxNode statement);
+        SyntaxNode WithStatementInBlock(SyntaxNode ifLikeStatement, SyntaxNode statement);
 
         SyntaxNode WithStatementsOf(SyntaxNode ifLikeStatement, SyntaxNode otherIfLikeStatement);
 
