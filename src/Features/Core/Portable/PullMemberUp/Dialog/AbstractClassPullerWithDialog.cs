@@ -5,13 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
-    internal abstract class AbstractClassPullerWithDialog : AbstractMemberPullerWithDialog, ILanguageService
+    internal abstract partial class AbstractClassPullerWithDialog : AbstractMemberPullerWithDialog, ILanguageService
     {
          internal async Task<Solution> ComputeChangedSolution(
             PullMemberDialogResult result,
@@ -71,14 +70,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             CancellationToken cancellationToken)
         {
             var pullUpMemberSymbols = result.SelectedMembers.Select(userSelection => userSelection.member);
-            if (result.Target.IsAbstract)
-            {
-                var abstractMembersSymbol = result.SelectedMembers.Where(selectionPair => selectionPair.makeAbstract).
-                    Select(selectionPair => GetAbstractMemberSymbol(selectionPair.member));
+            var abstractMembersSymbol = result.SelectedMembers.Where(selectionPair => selectionPair.makeAbstract).
+                Select(selectionPair => GetAbstractMemberSymbol(selectionPair.member));
 
-                pullUpMemberSymbols = result.SelectedMembers.Where(selectionPair => !selectionPair.makeAbstract).
-                    Select(selection => selection.member).Concat(abstractMembersSymbol);
-            }
+            pullUpMemberSymbols = result.SelectedMembers.Where(selectionPair => !selectionPair.makeAbstract).
+                Select(selection => selection.member).Concat(abstractMembersSymbol);
 
             var options = new CodeGenerationOptions(generateMembers: false, generateMethodBodies: false, reuseSyntax: true);
             var membersAddedTarget = codeGenerationService.AddMembers(targetNodeSyntax, pullUpMemberSymbols, options: options, cancellationToken);
@@ -94,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
             // If user want to make it abstract then don't remove the original member
             await ChangeMembers(
                 result,
+                solutionEditor,
+                contextDocument,
                 selectionPair => !selectionPair.makeAbstract,
-                async (syntax, symbol, containingTypeNode) =>
+                (syntax, symbol, containingTypeNode, editor) =>
                 {
-                    var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-
                     RemoveNode(editor, syntax, symbol);
                 },
                 cancellationToken);

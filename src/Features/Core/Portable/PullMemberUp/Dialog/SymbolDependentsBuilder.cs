@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal class SymbolDependentsBuilder : SyntaxWalker
     {

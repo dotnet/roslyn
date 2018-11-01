@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp.QuickActio
     {
         protected override void RemoveNode(DocumentEditor editor, SyntaxNode node, ISymbol symbol)
         {
-            var remover = new PullMemberUpSyntaxEditor();
+            var remover = new PullMemberUpSyntaxRemover();
             remover.RemoveNode(editor, node, symbol);
         }
     }

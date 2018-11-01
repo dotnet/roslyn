@@ -4,14 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings.PullMembrUp.Dialog;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp.QuickAction;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
+    internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
+        protected readonly IPullMemberUpOptionsService _pullMemberUpOptionsService;
+
+        internal AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService pullMemberUpService)
+        {
+            _pullMemberUpOptionsService = pullMemberUpService;
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
@@ -119,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             SyntaxNode root,
             SemanticModel semanticModel)
         {
-            var dialogAction = new PullMemberUpWithDialogCodeAction(semanticModel, context, userSelectedNodeSymbol);
+            var dialogAction = new PullMemberUpWithDialogCodeAction(semanticModel, context, userSelectedNodeSymbol, this);
             context.RegisterRefactoring(dialogAction);
         }
 

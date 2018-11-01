@@ -22,15 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 
             if (targetSyntaxNode != null )
             {
+                var targetDocument = contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree);
                 var solutionEditor = new SolutionEditor(contextDocument.Project.Solution);
                 var targetDocumentEditor = await solutionEditor.GetDocumentEditorAsync(
-                   contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
+                    contextDocument.Project.Solution.GetDocumentId(targetSyntaxNode.SyntaxTree));
 
                 AddMembersToTarget(result, targetDocumentEditor, targetSyntaxNode, codeGenerationService);
-
-                await ChangeMembersToPublic(result, contextDocument ,solutionEditor, codeGenerationService, cancellationToken);
-
-                await ChangeMembersToNonStatic(result, contextDocument, solutionEditor, codeGenerationService, cancellationToken);
+                await ChangeMembersToPublicAndNonStatic(result, contextDocument, solutionEditor, codeGenerationService, cancellationToken);
 
                 return solutionEditor.GetChangedSolution();
             }
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
             }
         }
 
-        private async Task ChangeMembersToPublic(
+        private async Task ChangeMembersToPublicAndNonStatic(
             PullMemberDialogResult result,
             Document contextDocument,
             SolutionEditor solutionEditor,
@@ -49,53 +47,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
         {
             await ChangeMembers(
                 result,
-                selectionPair => selectionPair.member.DeclaredAccessibility != Accessibility.Public,
-                async (syntax, symbol, containingTypeNode) =>
+                solutionEditor,
+                contextDocument,
+                selectionPair => selectionPair.member.IsStatic || selectionPair.member.DeclaredAccessibility != Accessibility.Public,
+                (syntax, symbol, containingTypeNode, editor) =>
                 {
-                    var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    ChangeMemberToPublic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
+                    ChangeMemberToPublicAndNonStatic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
                 },
                 cancellationToken);
         }
 
-        private async Task ChangeMembersToNonStatic(
-            PullMemberDialogResult result,
-            Document contextDocument,
-            SolutionEditor solutionEditor,
-            ICodeGenerationService codeGenerationService,
-            CancellationToken cancellationToken)
-        {
-            await ChangeMembers(
-                result,
-                selectionPair => selectionPair.member.IsStatic,
-                async (syntax, symbol, containingTypeNode) =>
-                {
-                    var editor = await solutionEditor.GetDocumentEditorAsync(contextDocument.Project.Solution.GetDocumentId(containingTypeNode.SyntaxTree));
-                    ChangeMemberToNonStatic(editor, symbol, syntax, containingTypeNode, codeGenerationService);
-                },
-                cancellationToken);
-        }
-
-        private IMethodSymbol CreatePublicGetterAndSetter(IMethodSymbol setterOrGetter)
+        private IMethodSymbol CreatePublicGetterAndSetter(IMethodSymbol setterOrGetter, IPropertySymbol containingProperty)
         {
             if (setterOrGetter == null || setterOrGetter.DeclaredAccessibility == Accessibility.Public)
             {
                 return setterOrGetter;
             }
-            else
+
+            if (containingProperty.DeclaredAccessibility == Accessibility.Public)
             {
-                return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                   setterOrGetter.GetAttributes(),
-                   Accessibility.Public,
-                   DeclarationModifiers.From(setterOrGetter),
-                   setterOrGetter.ReturnType,
-                   setterOrGetter.RefKind,
-                   setterOrGetter.ExplicitInterfaceImplementations,
-                   setterOrGetter.Name,
-                   setterOrGetter.TypeParameters,
-                   setterOrGetter.Parameters,
-                   methodKind: setterOrGetter.MethodKind);
+                return setterOrGetter.DeclaredAccessibility == Accessibility.Public ? setterOrGetter : null;
             }
+
+            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                setterOrGetter.GetAttributes(),
+                Accessibility.Public,
+                DeclarationModifiers.From(setterOrGetter),
+                setterOrGetter.ReturnType,
+                setterOrGetter.RefKind,
+                setterOrGetter.ExplicitInterfaceImplementations,
+                setterOrGetter.Name,
+                setterOrGetter.TypeParameters,
+                setterOrGetter.Parameters,
+                methodKind: setterOrGetter.MethodKind);
         }
 
         private void AddMembersToTarget(
@@ -117,8 +101,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
                                 propertySymbol.ExplicitInterfaceImplementations,
                                 propertySymbol.Name,
                                 propertySymbol.IsIndexer,
-                                CreatePublicGetterAndSetter(propertySymbol.GetMethod),
-                                CreatePublicGetterAndSetter(propertySymbol.SetMethod));
+                                CreatePublicGetterAndSetter(propertySymbol.GetMethod, propertySymbol),
+                                CreatePublicGetterAndSetter(propertySymbol.SetMethod, propertySymbol));
                     }
                     else
                     {
@@ -130,8 +114,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
             editor.ReplaceNode(targetNode, codeGenerationService.AddMembers(targetNode, symbolsToPullUp, options: options));
         }
 
-        protected abstract void ChangeMemberToNonStatic(DocumentEditor editor, ISymbol symbol, SyntaxNode node, SyntaxNode containingTypeNode, ICodeGenerationService codeGenerationService);
-
-        protected abstract void ChangeMemberToPublic(DocumentEditor editor, ISymbol symbol, SyntaxNode node, SyntaxNode containingTypeNode, ICodeGenerationService codeGenerationService);
+        protected abstract void ChangeMemberToPublicAndNonStatic(DocumentEditor editor, ISymbol symbol, SyntaxNode node, SyntaxNode containingTypeNode, ICodeGenerationService codeGenerationService);
     }
 }

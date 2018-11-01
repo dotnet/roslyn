@@ -80,3 +80,4 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
     }
 }
+
