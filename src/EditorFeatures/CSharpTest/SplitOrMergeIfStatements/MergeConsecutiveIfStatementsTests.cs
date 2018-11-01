@@ -15,22 +15,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider();
 
-        [Fact]
-        public async Task MergedOnElseIfCaret1()
+        [Theory]
+        [InlineData("[||]else if (b)")]
+        [InlineData("el[||]se if (b)")]
+        [InlineData("else[||] if (b)")]
+        [InlineData("else [||]if (b)")]
+        [InlineData("else i[||]f (b)")]
+        [InlineData("else if[||] (b)")]
+        [InlineData("else if [||](b)")]
+        [InlineData("else if (b)[||]")]
+        [InlineData("else [|if|] (b)")]
+        [InlineData("else [|if (b)|]")]
+        [InlineData("[|else if (b)|]")]
+        public async Task MergedOnElseIfSpans(string elseIfLine)
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M(bool a, bool b)
-    {
+    {{
         if (a)
-        {
-        }
-        else [||]if (b)
-        {
-        }
-    }
-}",
+        {{
+        }}
+        {elseIfLine}
+        {{
+        }}
+    }}
+}}",
 @"class C
 {
     void M(bool a, bool b)
@@ -43,250 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedOnElseIfCaret2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else i[||]f (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfCaret3()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if[||] (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfCaret4()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if [||](b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfCaret5()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if (b)[||]
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfCaret6()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        [||]else if (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfCaret7()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else[||] if (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfIfKeywordSelection()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else [|if|] (b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfHeaderSelection1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else [|if (b)|]
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfHeaderSelection2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        [|else if (b)|]
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnElseIfHeaderSelection3()
+        public async Task MergedOnElseIfExtendedHeaderSelection()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -313,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedOnElseIfFullSelectionWithoutElseClause1()
+        public async Task MergedOnElseIfFullSelectionWithoutElseClause()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -346,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedOnElseIfFullSelectionWithoutElseClause2()
+        public async Task MergedOnElseIfExtendedFullSelectionWithoutElseClause()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -379,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedOnElseIfFullSelectionWithElseClause1()
+        public async Task NotMergedOnElseIfFullSelectionWithElseClause()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -400,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedOnElseIfFullSelectionWithElseClause2()
+        public async Task NotMergedOnElseIfExtendedFullSelectionWithElseClause()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -420,98 +188,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 }");
         }
 
-        [Fact]
-        public async Task NotMergedOnElseIfParenthesisSelection()
+        [Theory]
+        [InlineData("else if ([||]b)")]
+        [InlineData("[|else|] if (b)")]
+        [InlineData("[|else if|] (b)")]
+        [InlineData("else [|i|]f (b)")]
+        [InlineData("else [|if (|]b)")]
+        [InlineData("else if [|(|]b)")]
+        [InlineData("else if (b[|)|]")]
+        [InlineData("else if ([|b|])")]
+        [InlineData("else if [|(b)|]")]
+        public async Task NotMergedOnElseIfSpans(string elseIfLine)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M(bool a, bool b)
-    {
+    {{
         if (a)
-        {
-        }
-        else if (b[|)|]
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnElseIfElseKeywordSelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        [|else|] if (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnElseIfElseIfKeywordsSelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        [|else if|] (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnElseIfIfKeywordPartialSelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else [|i|]f (b)
-        {
-        }
-    }
-}");
+        {{
+        }}
+        {elseIfLine}
+        {{
+        }}
+    }}
+}}");
         }
 
         [Fact]
         public async Task NotMergedOnElseIfOverreachingSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else [|if (|]b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnElseIfOverreachingSelection2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -529,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedOnElseIfOverreachingSelection3()
+        public async Task NotMergedOnElseIfOverreachingSelection2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -545,43 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
     }
 }");
         }
-
-        [Fact]
-        public async Task NotMergedOnElseIfConditionSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if ([|b|])
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnElseIfConditionSelection2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if [|(b)|]
-        {
-        }
-    }
-}");
-        }
-
+        
         [Fact]
         public async Task NotMergedOnElseIfBodySelection()
         {
@@ -596,24 +265,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         else if (b)
         [|{
         }|]
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnElseIfConditionCaret()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if ([||]b)
-        {
-        }
     }
 }");
         }

@@ -15,22 +15,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpMergeNestedIfStatementsCodeRefactoringProvider();
 
-        [Fact]
-        public async Task MergedOnNestedIfCaret1()
+        [Theory]
+        [InlineData("[||]if (b)")]
+        [InlineData("i[||]f (b)")]
+        [InlineData("if[||] (b)")]
+        [InlineData("if [||](b)")]
+        [InlineData("if (b)[||]")]
+        [InlineData("[|if|] (b)")]
+        [InlineData("[|if (b)|]")]
+        public async Task MergedOnNestedIfSpans(string ifLine)
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M(bool a, bool b)
-    {
+    {{
         if (a)
-        {
-            [||]if (b)
-            {
-            }
-        }
-    }
-}",
+        {{
+            {ifLine}
+            {{
+            }}
+        }}
+    }}
+}}",
 @"class C
 {
     void M(bool a, bool b)
@@ -43,169 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task MergedOnNestedIfCaret2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            i[||]f (b)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfCaret3()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if[||] (b)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfCaret4()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if [||](b)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfCaret5()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if (b)[||]
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfIfKeywordSelection()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if|] (b)
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfHeaderSelection1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if (b)|]
-            {
-            }
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a && b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task MergedOnNestedIfHeaderSelection2()
+        public async Task MergedOnNestedIfExtendedHeaderSelection()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -318,62 +163,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 }");
         }
 
-        [Fact]
-        public async Task NotMergedOnNestedIfParenthesisSelection()
+        [Theory]
+        [InlineData("if ([||]b)")]
+        [InlineData("[|i|]f (b)")]
+        [InlineData("[|if (|]b)")]
+        [InlineData("if [|(|]b)")]
+        [InlineData("if (b[|)|]")]
+        [InlineData("if ([|b|])")]
+        [InlineData("if [|(b)|]")]
+        public async Task NotMergedOnNestedIfSpans(string ifLine)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M(bool a, bool b)
-    {
+    {{
         if (a)
-        {
-            if (b[|)|]
-            {
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfIfKeywordPartialSelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|i|]f (b)
-            {
-            }
-        }
-    }
-}");
+        {{
+            {ifLine}
+            {{
+            }}
+        }}
+    }}
+}}");
         }
 
         [Fact]
         public async Task NotMergedOnNestedIfOverreachingSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            [|if (|]b)
-            {
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfOverreachingSelection2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -391,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
-        public async Task NotMergedOnNestedIfOverreachingSelection3()
+        public async Task NotMergedOnNestedIfOverreachingSelection2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -402,42 +218,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         {
             [|if (b)
             {|]
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfConditionSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if ([|b|])
-            {
-            }
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfConditionSelection2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if [|(b)|]
-            {
             }
         }
     }
@@ -457,24 +237,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
             if (b)
             [|{
             }|]
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotMergedOnNestedIfConditionCaret()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-            if ([||]b)
-            {
-            }
         }
     }
 }");

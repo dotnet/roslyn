@@ -15,19 +15,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider();
 
-        [Fact]
-        public async Task SplitOnOrOperatorCaret1()
+        [Theory]
+        [InlineData("a [||]|| b")]
+        [InlineData("a |[||]| b")]
+        [InlineData("a ||[||] b")]
+        [InlineData("a [||||] b")]
+        public async Task SplitOnOrOperatorSpans(string condition)
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M(bool a, bool b)
-    {
-        if (a [||]|| b)
-        {
-        }
-    }
-}",
+    {{
+        if ({condition})
+        {{
+        }}
+    }}
+}}",
 @"class C
 {
     void M(bool a, bool b)
@@ -42,130 +46,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
 }");
         }
 
-        [Fact]
-        public async Task SplitOnOrOperatorCaret2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a |[||]| b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task SplitOnOrOperatorCaret3()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a ||[||] b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task SplitOnOrOperatorSelection()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a [||||] b)
-        {
-        }
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-        {
-        }
-        else if (b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotSplitOnOrOperatorPartialSelection()
+        [Theory]
+        [InlineData("a [|||]| b")]
+        [InlineData("a[| |||] b")]
+        [InlineData("a[||] || b")]
+        public async Task NotSplitOnOrOperatorSpans(string condition)
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
+$@"class C
+{{
     void M(bool a, bool b)
-    {
-        if (a [|||]| b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotSplitOnOrOperatorOverreachingSelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a[| |||] b)
-        {
-        }
-    }
-}");
-        }
-
-        [Fact]
-        public async Task NotSplitOnOperandCaret()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a[||] || b)
-        {
-        }
-    }
-}");
+    {{
+        if ({condition})
+        {{
+        }}
+    }}
+}}");
         }
 
         [Fact]

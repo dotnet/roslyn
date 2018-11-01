@@ -13,12 +13,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitOrMergeIfStat
             Return New VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider()
         End Function
 
-        <Fact>
-        Public Async Function SplitOnOrElseOperatorCaret1() As Task
+        <Theory>
+        <InlineData("a [||]orelse b")>
+        <InlineData("a ore[||]lse b")>
+        <InlineData("a orelse[||] b")>
+        <InlineData("a [|orelse|] b")>
+        Public Async Function SplitOnOrElseOperatorSpans(condition As String) As Task
             Await TestInRegularAndScriptAsync(
-"class C
+$"class C
     sub M(a as boolean, b as boolean)
-        if a [||]orelse b then
+        if {condition} then
         end if
     end sub
 end class",
@@ -31,88 +35,15 @@ end class",
 end class")
         End Function
 
-        <Fact>
-        Public Async Function SplitOnOrElseOperatorCaret2() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a ore[||]lse b then
-        end if
-    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean)
-        if a then
-        ElseIf b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitOnOrElseOperatorCaret3() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a orelse[||] b then
-        end if
-    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean)
-        if a then
-        ElseIf b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function SplitOnOrElseOperatorSelection() As Task
-            Await TestInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a [|orelse|] b then
-        end if
-    end sub
-end class",
-"class C
-    sub M(a as boolean, b as boolean)
-        if a then
-        ElseIf b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOrElseOperatorPartialSelection() As Task
+        <Theory>
+        <InlineData("a [|or|]else b")>
+        <InlineData("a[| orelse|] b")>
+        <InlineData("a[||] orelse b")>
+        Public Async Function NotSplitOnOrElseOperatorSpans(condition As String) As Task
             Await TestMissingInRegularAndScriptAsync(
-"class C
+$"class C
     sub M(a as boolean, b as boolean)
-        if a [|or|]else b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOrElseOperatorOverreachingSelection() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a[| orelse|] b then
-        end if
-    end sub
-end class")
-        End Function
-
-        <Fact>
-        Public Async Function NotSplitOnOperandCaret() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"class C
-    sub M(a as boolean, b as boolean)
-        if a[||] orelse b then
+        if {condition} then
         end if
     end sub
 end class")
