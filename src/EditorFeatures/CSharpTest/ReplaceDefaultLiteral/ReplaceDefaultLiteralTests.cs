@@ -420,91 +420,26 @@ $@"class C
         [InlineData("float", "0F")]
         [InlineData("double", "0D")]
         [InlineData("decimal", "0M")]
-        public async Task TestCSharp7_1_InIsPattern_NumericType(string type, string expectedLiteral)
+        [InlineData("char", "'\\0'")]
+        [InlineData("string", "null")]
+        [InlineData("object", "null")]
+        public async Task TestCSharp7_1_InIsPattern_BuiltInType(string type, string expectedLiteral)
         {
             await TestWithLanguageVersionsAsync(
 $@"class C
 {{
-    void M()
+    void M({type} value)
     {{
-        {type} value = 1;
         if (value is [||]default) {{ }}
     }}
 }}",
 $@"class C
 {{
-    void M()
+    void M({type} value)
     {{
-        {type} value = 1;
         if (value is {expectedLiteral}) {{ }}
     }}
 }}", s_csharp7_1above);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Char()
-        {
-            await TestWithLanguageVersionsAsync(
-@"class C
-{
-    void M()
-    {
-        char value = '1';
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        char value = '1';
-        if (value is '\0') { }
-    }
-}", s_csharp7_1above);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_String()
-        {
-            await TestWithLanguageVersionsAsync(
-@"class C
-{
-    void M()
-    {
-        string value = "";
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        string value = "";
-        if (value is null) { }
-    }
-}", s_csharp7_1above);
-        }
-
-        [Fact]
-        public async Task TestCSharp7_1_InIsPattern_Object()
-        {
-            await TestWithLanguageVersionsAsync(
-@"class C
-{
-    void M()
-    {
-        var value = new object();
-        if (value is [||]default) { }
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        var value = new object();
-        if (value is null) { }
-    }
-}", s_csharp7_1above);
         }
 
         [Fact]
