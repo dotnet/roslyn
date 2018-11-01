@@ -3,18 +3,15 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
@@ -29,6 +26,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return TestStateFactory.GetAllCompletionImplementations()
             End Get
         End Property
+
+        Private Sub ChangeBlockForCompletionItemsFlag(state As TestStateBase, completionImplementation As CompletionImplementation)
+            If completionImplementation = CompletionImplementation.Legacy Then
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+            Else
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.NonBlockingCompletion, LanguageNames.CSharp, True)
+            End If
+        End Sub
 
         <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
         <MemberData(NameOf(AllCompletionImplementations))>
@@ -1838,27 +1843,27 @@ class Program
 
 #If False Then
     <Scenario Name="Verify correct intellisense selection on ENTER">
-                    <SetEditorText>
-                        <![CDATA[class Class1
+        <SetEditorText>
+            <![CDATA[class Class1
 {
     void Main(string[] args)
     {
         //
     }
 }]]>
-                    </SetEditorText>
-                    <PlaceCursor Marker="//"/>
-                    <SendKeys>var a = System.TimeSpan.FromMin{ENTER}{(}</SendKeys>
-                    <VerifyEditorContainsText>
-                        <![CDATA[class Class1
+        </SetEditorText>
+        <PlaceCursor Marker="//"/>
+        <SendKeys>var a = System.TimeSpan.FromMin{ENTER}{(}</SendKeys>
+        <VerifyEditorContainsText>
+            <![CDATA[class Class1
 {
     void Main(string[] args)
     {
         var a = System.TimeSpan.FromMinutes(
     }
 }]]>
-                    </VerifyEditorContainsText>
-                </Scenario>
+        </VerifyEditorContainsText>
+    </Scenario>
 #End If
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
@@ -2606,11 +2611,11 @@ class C
         Public Async Function NoCompletionWithBoxSelection(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
-        class C
-        {
-            {|Selection:$$int x;|}
-            {|Selection:int y;|}
-        }]]></Document>)
+class C
+{
+    {|Selection:$$int x;|}
+    {|Selection:int y;|}
+}]]></Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("goo")
@@ -3399,8 +3404,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
 
                 state.SendTypeChars("Sys.")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3420,8 +3424,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
 
                 state.SendTypeChars("Sys")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3441,8 +3444,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
 
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()
@@ -3469,8 +3471,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
 
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()
@@ -3982,6 +3983,7 @@ class C
                 state.SendReturn()
                 Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
             End Using
         End Function
 

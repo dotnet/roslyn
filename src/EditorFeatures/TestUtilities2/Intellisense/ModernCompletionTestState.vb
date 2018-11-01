@@ -29,11 +29,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
 
-            MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler, workspaceKind)
+            MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, UpdateExportedTypes(extraExportedTypes), includeFormatCommandHandler, workspaceKind)
 
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
         End Sub
+
+        Private Shared Function UpdateExportedTypes(types As List(Of Type)) As List(Of Type)
+            If types Is Nothing Then
+                Return New List(Of Type) From {GetType(MockCompletionPresenterProvider)}
+            Else
+                types.Add(GetType(MockCompletionPresenterProvider))
+                Return types
+            End If
+        End Function
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
@@ -93,11 +102,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overrides Sub SendDownKey()
-            Throw New ArgumentException("Up Key test should be implemented on the Editor/VSSDK side")
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendUpKey()
-            Throw New ArgumentException("Up Key test should be implemented on the Editor/VSSDK side")
+            ' TODO temp
+            Dim presenter = MockCompletionPresenterProvider.CompletionPresenter
+            presenter.Close()
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of UpKeyCommandArgs))
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendTab()

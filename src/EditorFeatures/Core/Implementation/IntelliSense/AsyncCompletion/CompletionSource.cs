@@ -176,7 +176,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
             session.Properties.AddProperty(InitialTrigger, roslynTrigger);
-            session.Properties.AddProperty(ExcludedCommitCharacters, GetExcludedCommitCharacters(completionList.Items));
+            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+            if (excludedCommitCharacters.Length > 0)
+            {
+                session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
+            }
 
             return new AsyncCompletionData.CompletionContext(
                 items,

@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var completionRules = completionService.GetRules();
 
-            var disconnectedBufferGraph = new DisconnectedBufferGraph(session.ApplicableToSpan.TextBuffer, session.TextView.TextBuffer);
             if (data.Trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
                 session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
@@ -384,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             foreach (var item in filterResults)
             {
                 var highlightedSpans = highlightMatchingPortions
-                                        ? _completionHelper.GetHighlightedSpans(item.VSCompletionItem.FilterText, filterText, CultureInfo.CurrentCulture)
+                                        ? _completionHelper.GetHighlightedSpans(item.VSCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture)
                                         : ImmutableArray<TextSpan>.Empty;
                 highlightedList.Add(new AsyncCompletionData.CompletionItemWithHighlight(item.VSCompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
             }

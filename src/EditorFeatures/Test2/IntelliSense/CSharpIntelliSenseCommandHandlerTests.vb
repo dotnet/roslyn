@@ -36,9 +36,9 @@ class C
             End Using
         End Function
 
-        'No need to run in the modern completion because this Escape is supported on the VSSDK side.
+
         <WorkItem(543913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543913")>
-        <InlineData(CompletionImplementation.Legacy)>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestEscapeDismissesCompletionFirst(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
