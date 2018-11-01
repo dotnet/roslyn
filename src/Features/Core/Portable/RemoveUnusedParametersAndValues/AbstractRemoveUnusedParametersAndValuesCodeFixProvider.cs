@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 var currentRoot = editor.GetChangedRoot();
                 var newRoot = await PostProcessDocumentAsync(document, currentRoot,
-                    editor.Generator, diagnosticId, preference, cancellationToken).ConfigureAwait(false);
+                        editor.Generator, diagnosticId, preference, cancellationToken).ConfigureAwait(false);
                 if (currentRoot != newRoot)
                 {
                     editor.ReplaceNode(root, newRoot);
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         }
 
         private static async Task<SyntaxNode> PostProcessDocumentCoreAsync(
-            Func<SyntaxNode, SyntaxEditor, Document, CancellationToken, Task> processMemberDeclarationAsync,
+            Func<SyntaxNode, Document, CancellationToken, Task<SyntaxNode>> processMemberDeclarationAsync,
             SyntaxNode currentRoot,
             Document document,
             SyntaxGenerator generator,
@@ -570,30 +570,47 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             var newDocument = document.WithSyntaxRoot(currentRoot);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newEditor = new SyntaxEditor(newRoot, generator);
-            foreach (var memberDecl in newRoot.DescendantNodes().Where(n => n.HasAnnotation(s_memberAnnotation)))
+            var memberDeclReplacementsMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
+            try
             {
-                await processMemberDeclarationAsync(memberDecl, newEditor, newDocument, cancellationToken).ConfigureAwait(false);
-            }
+                foreach (var memberDecl in newRoot.DescendantNodes().Where(n => n.HasAnnotation(s_memberAnnotation)))
+                {
+                    var newMemberDecl = await processMemberDeclarationAsync(memberDecl, newDocument, cancellationToken).ConfigureAwait(false);
+                    memberDeclReplacementsMap.Add(memberDecl, newMemberDecl);
+                }
 
-            return newEditor.GetChangedRoot();
+                return newRoot.ReplaceNodes(memberDeclReplacementsMap.Keys,
+                    computeReplacementNode: (node, _) => memberDeclReplacementsMap[node]);
+            }
+            finally
+            {
+                memberDeclReplacementsMap.Free();
+            }
         }
 
-        protected abstract Task RemoveDiscardDeclarationsAsync(
+        /// <summary>
+        /// Returns an updated <paramref name="memberDeclaration"/> with all the
+        /// local declarations named '_' converted to simple assignments to discard.
+        /// For example, <code>int _ = Computation();</code> is converted to
+        /// <code>_ = Computation();</code>.
+        /// This is needed to prevent the code fix/FixAll from generating code with
+        /// multiple local variables named '_', which is a compiler error.
+        /// </summary>
+        protected abstract Task<SyntaxNode> RemoveDiscardDeclarationsAsync(
             SyntaxNode memberDeclaration,
-            SyntaxEditor editor,
             Document document,
             CancellationToken cancellationToken);
 
-        private async Task MoveNewLocalDeclarationsNearReferenceAsync(
+        /// <summary>
+        /// Returns an updated <paramref name="memberDeclaration"/> with all the
+        /// local declaration statements annotated with <see cref="s_newLocalDeclarationStatementAnnotation"/>
+        /// moved closer to first reference.
+        /// </summary>
+        private async Task<SyntaxNode> MoveNewLocalDeclarationsNearReferenceAsync(
             SyntaxNode memberDeclaration,
-            SyntaxEditor editor,
             Document document,
             CancellationToken cancellationToken)
         {
-            var originalEditor = editor;
-            var originalMemberDeclaration = memberDeclaration;
-
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var originalDeclStatementsToMove = memberDeclaration.DescendantNodes()
@@ -601,7 +618,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                                                 .ToImmutableArray();
             if (originalDeclStatementsToMove.IsEmpty)
             {
-                return;
+                return memberDeclaration;
             }
 
             // Moving declarations closer to a reference can lead to conflicting edits.
@@ -613,37 +630,45 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
             rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMove.Select(s => s.Span), document.Project.Solution.Workspace, cancellationToken: cancellationToken);
-            
-            await OnUpdatedRootAsync(rootWithTrackedNodes).ConfigureAwait(false);
+
+            document = document.WithSyntaxRoot(rootWithTrackedNodes);
+            await OnDocumentUpdatedAsync().ConfigureAwait(false);
 
             foreach (TLocalDeclarationStatementSyntax originalDeclStatement in originalDeclStatementsToMove)
             {
                 // Get the current declaration statement.
                 var declStatement = memberDeclaration.GetCurrentNode(originalDeclStatement);
 
+                var documentUpdated = false;
+
                 // Check if the new variable declaration is unused after all the fixes, and hence can be removed.
-                if (!await TryRemoveUnusedLocalAsync(declStatement).ConfigureAwait(false))
+                if (await TryRemoveUnusedLocalAsync(declStatement).ConfigureAwait(false))
                 {
-                    // Otherwise, move the declaration closer to the first reference.
-                    await service.MoveDeclarationNearReferenceAsync(declStatement, document, editor, cancellationToken).ConfigureAwait(false);
+                    documentUpdated = true;
+                }
+                else
+                {
+                    // Otherwise, move the declaration closer to the first reference if possible.
+                    if (await service.CanMoveDeclarationNearReferenceAsync(document, declStatement, canMovePastOtherDeclarationStatements: true, cancellationToken).ConfigureAwait(false))
+                    {
+                        document = await service.MoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
+                        documentUpdated = true;
+                    }
                 }
 
-                await OnUpdatedRootAsync(editor.GetChangedRoot()).ConfigureAwait(false);
+                if (documentUpdated)
+                {
+                    await OnDocumentUpdatedAsync().ConfigureAwait(false);
+                }
             }
 
-            originalEditor.ReplaceNode(originalMemberDeclaration, memberDeclaration);
-            return;
+            return memberDeclaration;
 
             // Local functions.
-            async Task OnUpdatedRootAsync(SyntaxNode updatedRoot)
+            async Task OnDocumentUpdatedAsync()
             {
-                if (updatedRoot != root)
-                {
-                    document = document.WithSyntaxRoot(updatedRoot);
-                    root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    editor = new SyntaxEditor(root, editor.Generator);
-                    memberDeclaration = syntaxFacts.GetContainingMemberDeclaration(root, memberDeclaration.SpanStart);
-                }
+                root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                memberDeclaration = syntaxFacts.GetContainingMemberDeclaration(root, memberDeclaration.SpanStart);
             }
 
             async Task<bool> TryRemoveUnusedLocalAsync(TLocalDeclarationStatementSyntax newDecl)
@@ -658,7 +683,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     if (referencedSymbols.Count() == 1 &&
                         referencedSymbols.Single().Locations.IsEmpty())
                     {
-                        editor.RemoveNode(newDecl);
+                        document = document.WithSyntaxRoot(
+                            root.RemoveNode(newDecl, SyntaxGenerator.DefaultRemoveOptions));
                         return true;
                     }
                 }

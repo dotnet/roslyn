@@ -31,20 +31,28 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
         protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
-        public async Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<bool> CanMoveDeclarationNearReferenceAsync(
+            Document document,
+            SyntaxNode node,
+            bool canMovePastOtherDeclarationStatements,
+            CancellationToken cancellationToken)
         {
-            var state = await ComputeStateAsync(document, node, cancellationToken).ConfigureAwait(false);
+            var state = await ComputeStateAsync(document, node, canMovePastOtherDeclarationStatements, cancellationToken).ConfigureAwait(false);
             return state != null;
         }
 
-        private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        private async Task<State> ComputeStateAsync(
+            Document document,
+            SyntaxNode node,
+            bool canMovePastOtherDeclarationStatements,
+            CancellationToken cancellationToken)
         {
             if (!(node is TLocalDeclarationStatementSyntax statement))
             {
                 return null;
             }
 
-            var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateAsync((TService)this, document, statement, canMovePastOtherDeclarationStatements, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
                 return null;
@@ -61,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         public async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken)
         {
-            var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken);
+            var state = await ComputeStateAsync(document, localDeclarationStatement, canMovePastOtherDeclarationStatements: true, cancellationToken);
             if (state == null)
             {
                 return document;
@@ -75,16 +83,24 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 ? WarningAnnotation.Create(FeaturesResources.Warning_colon_Declaration_changes_scope_and_may_change_meaning)
                 : null;
 
-            editor.RemoveNode(state.DeclarationStatement);
-
             var canMergeDeclarationAndAssignment = await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false);
             if (canMergeDeclarationAndAssignment)
             {
+                editor.RemoveNode(state.DeclarationStatement);
                 MergeDeclarationAndAssignment(
                     document, state, editor, warningAnnotation);
             }
             else
             {
+                var statementIndex = state.OutermostBlockStatements.IndexOf(state.DeclarationStatement);
+                if (statementIndex + 1 < state.OutermostBlockStatements.Count &&
+                    state.OutermostBlockStatements[statementIndex + 1] == state.FirstStatementAffectedInInnermostBlock)
+                {
+                    // Already at the correct location.
+                    return document;
+                }
+
+                editor.RemoveNode(state.DeclarationStatement);
                 await MoveDeclarationToFirstReferenceAsync(
                     document, state, editor, warningAnnotation, cancellationToken).ConfigureAwait(false);
             }
@@ -222,8 +238,9 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             return state.DeclarationStatement.ReplaceNode(
                 state.VariableDeclarator,
                 generator.WithInitializer(
-                    state.VariableDeclarator,
-                    generator.EqualsValueClause(operatorToken, right)));
+                    state.VariableDeclarator.WithoutTrailingTrivia(),
+                    generator.EqualsValueClause(operatorToken, right))
+                    .WithTrailingTrivia(state.VariableDeclarator.GetTrailingTrivia()));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

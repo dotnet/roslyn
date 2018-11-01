@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,12 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
         }
 
-        protected override Task RemoveDiscardDeclarationsAsync(
+        protected override Task<SyntaxNode> RemoveDiscardDeclarationsAsync(
             SyntaxNode memberDeclaration,
-            SyntaxEditor editor,
             Document document,
             CancellationToken cancellationToken)
         {
+            var editor = new SyntaxEditor(memberDeclaration, SyntaxGenerator.GetGenerator(document));
             foreach (var child in memberDeclaration.DescendantNodes(descendIntoChildren: n => !(n is ExpressionSyntax)))
             {
                 if (child is LocalDeclarationStatementSyntax localDeclarationStatement &&
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                 }
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(editor.GetChangedRoot());
         }
 
         private static void ProcessVariableDeclarationWithDiscard(

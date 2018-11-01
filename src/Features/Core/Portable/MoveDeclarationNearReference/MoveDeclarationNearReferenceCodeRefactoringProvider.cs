@@ -53,8 +53,22 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-            if (!await service.CanMoveDeclarationNearReferenceAsync(
-                    document, statement, cancellationToken))
+
+            // Don't want to move a decl past other decls in order to move it to the first
+            // affected statement.  If we do we can end up in the following situation: 
+#if false
+                    int x = 0;
+                    int y = 0;
+                    Console.WriteLine(x + y);
+#endif
+            // Each of these declarations will want to 'move' down to the WriteLine
+            // statement and we don't want to keep offering the refactoring.  Note: this
+            // solution is overly aggressive.  Technically if 'y' weren't referenced in
+            // Console.Writeline, then it might be a good idea to move the 'x'.  But this
+            // gives good enough behavior most of the time.
+            var canMovePastOtherDeclarationStatements = false;
+
+            if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, canMovePastOtherDeclarationStatements, cancellationToken))
             {
                 return;
             }

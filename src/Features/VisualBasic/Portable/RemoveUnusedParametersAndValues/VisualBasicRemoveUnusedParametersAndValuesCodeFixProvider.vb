@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Return DirectCast(semanticModel.GetDeclaredSymbol(localDeclaration.Declarators(0).Names(0), cancellationToken), ILocalSymbol)
         End Function
 
-        Protected Overrides Function RemoveDiscardDeclarationsAsync(memberDeclaration As SyntaxNode, editor As SyntaxEditor, document As Document, cancellationToken As CancellationToken) As Task
+        Protected Overrides Function RemoveDiscardDeclarationsAsync(memberDeclaration As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Throw ExceptionUtilities.Unreachable
         End Function
 
