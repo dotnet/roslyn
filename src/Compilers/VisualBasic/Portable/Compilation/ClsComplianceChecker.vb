@@ -777,10 +777,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetDeclaredComplianceHelper(symbol As Symbol, <Out> ByRef attributeLocation As Location, <Out> ByRef isAttributeInherited As Boolean) As Boolean?
             attributeLocation = Nothing
             isAttributeInherited = False
-            For Each data In symbol.GetAttributes()
+            For Each attributeData In symbol.GetAttributes()
                 ' Check signature before HasErrors to avoid realizing symbols for other attributes.
-                If data.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
-                    Dim attributeClass = data.AttributeClass
+                If attributeData.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
+                    Dim attributeClass = attributeData.AttributeClass
                     If attributeClass IsNot Nothing Then
                         Dim info = attributeClass.GetUseSiteErrorInfo()
                         If info IsNot Nothing Then
@@ -790,15 +790,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    If Not data.HasErrors Then
-                        If Not TryGetAttributeWarningLocation(data, attributeLocation) Then
+                    If Not attributeData.HasErrors Then
+                        If Not TryGetAttributeWarningLocation(attributeData, attributeLocation) Then
                             attributeLocation = Nothing
                         End If
 
-                        Debug.Assert(Not data.AttributeClass.IsErrorType(), "Already checked HasErrors.")
-                        isAttributeInherited = data.AttributeClass.GetAttributeUsageInfo().Inherited
+                        Debug.Assert(Not attributeData.AttributeClass.IsErrorType(), "Already checked HasErrors.")
+                        isAttributeInherited = attributeData.AttributeClass.GetAttributeUsageInfo().Inherited
 
-                        Dim args As ImmutableArray(Of TypedConstant) = data.CommonConstructorArguments
+                        Dim args As ImmutableArray(Of TypedConstant) = attributeData.CommonConstructorArguments
                         Debug.Assert(args.Length = 1, "We already checked the signature and HasErrors.")
 
                         ' Duplicates are reported elsewhere - we only care about the first (error-free) occurrence.

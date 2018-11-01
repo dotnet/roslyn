@@ -30,44 +30,8 @@
       <SuggestedBindingRedirects Include="System.Collections.Immutable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>1.2.3.0</MaxVersion>
       </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Diagnostics.FileVersionInfo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Diagnostics.StackTrace, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.3.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.IO.Compression, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-        <MaxVersion>4.1.2.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.IO.FileSystem, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.2.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.IO.FileSystem.Primitives, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.2.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.IO.Pipes, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
       <SuggestedBindingRedirects Include="System.Reflection.Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>1.4.3.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Threading.Thread, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Security.Cryptography.Primitives, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Security.Principal.Windows, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.ValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-        <MaxVersion>4.0.1.0</MaxVersion>
-      </SuggestedBindingRedirects>
-      <SuggestedBindingRedirects Include="System.Xml.ReaderWriter, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <MaxVersion>4.1.0.0</MaxVersion>
       </SuggestedBindingRedirects>
     </ItemGroup>
   </Target>
