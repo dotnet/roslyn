@@ -1187,6 +1187,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task MergedWithPreservedSingleLineFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a) System.Console.WriteLine();
+        else [||]if (b) System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b) System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact]
         public async Task MergedIntoPreviousStatementIfControlFlowQuits1()
         {
             await TestInRegularAndScriptAsync(
@@ -1473,6 +1494,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
             return;
         else if (a && b)
             System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task MergedIntoPreviousStatementIfControlFlowQuitsWithPreservedSingleLineFormatting()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a) return;
+        [||]if (b) return;
+    }
+}",
+@"class C
+{
+    void M(bool a, bool b)
+    {
+        if (a || b) return;
     }
 }");
         }
