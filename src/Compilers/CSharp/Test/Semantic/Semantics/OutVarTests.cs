@@ -34263,7 +34263,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation blockBodyOperation = model.GetOperation(blockBodySyntax);
-            Assert.Equal(OperationKind.ConstructorBodyOperation, blockBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.ConstructorBody, blockBodyOperation.Parent.Kind);
             Assert.Same(initializerOperation.Parent.Parent, blockBodyOperation.Parent);
             Assert.Null(blockBodyOperation.Parent.Parent);
 
@@ -34384,7 +34384,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
             IOperation expressionBodyOperation = model.GetOperation(expressionBodySyntax);
-            Assert.Equal(OperationKind.MethodBodyOperation, expressionBodyOperation.Parent.Kind);
+            Assert.Equal(OperationKind.MethodBody, expressionBodyOperation.Parent.Kind);
             Assert.Null(expressionBodyOperation.Parent.Parent);
 
             var blockBodySyntax = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();

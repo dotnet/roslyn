@@ -443,7 +443,7 @@ class C
             var methodDeclSyntax = literal.Ancestors().OfType<MethodDeclarationSyntax>().Single();
             var model = compilation.GetSemanticModel(tree);
             IOperation operation = model.GetOperation(literal);
-            VerifyRootAndModelForOperationAncestors(operation, model, expectedRootOperationKind: OperationKind.MethodBodyOperation, expectedRootSyntax: methodDeclSyntax);
+            VerifyRootAndModelForOperationAncestors(operation, model, expectedRootOperationKind: OperationKind.MethodBody, expectedRootSyntax: methodDeclSyntax);
         }
 
         [Fact]

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -71,10 +72,16 @@ namespace Microsoft.CodeAnalysis
         PropertyReference = 0x1c,
         /// <summary>Indicates an <see cref="IEventReferenceOperation"/>.</summary>
         EventReference = 0x1e,
-        /// <summary>Indicates an <see cref="IUnaryOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="IUnaryOperation"/>. Use <see cref="Unary"/> instead.</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         UnaryOperator = 0x1f,
-        /// <summary>Indicates an <see cref="IBinaryOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="IUnaryOperation"/>.</summary>
+        Unary = 0x1f,
+        /// <summary>Indicates an <see cref="IBinaryOperation"/>. Use <see cref="Binary"/> instead.</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         BinaryOperator = 0x20,
+        /// <summary>Indicates an <see cref="IBinaryOperation"/>.</summary>
+        Binary = 0x20,
         /// <summary>Indicates an <see cref="IConditionalOperation"/>.</summary>
         Conditional = 0x21,
         /// <summary>Indicates an <see cref="ICoalesceOperation"/>.</summary>
@@ -184,12 +191,21 @@ namespace Microsoft.CodeAnalysis
         ConstantPattern = 0x55,
         /// <summary>Indicates an <see cref="IDeclarationPatternOperation"/>.</summary>
         DeclarationPattern = 0x56,
-        /// <summary>Indicates an <see cref="ITupleBinaryOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="ITupleBinaryOperation"/>. Use <see cref="TupleBinary"/> instead.</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         TupleBinaryOperator = 0x57,
-        /// <summary>Indicates an <see cref="IMethodBodyOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="ITupleBinaryOperation"/>.</summary>
+        TupleBinary = 0x57,
+        /// <summary>Indicates an <see cref="IMethodBodyOperation"/>. Use <see cref="MethodBody"/> instead.</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         MethodBodyOperation = 0x58,
-        /// <summary>Indicates an <see cref="IConstructorBodyOperation"/>.</summary>
+        /// <summary>Indicates an <see cref="IMethodBodyOperation"/>.</summary>
+        MethodBody = 0x58,
+        /// <summary>Indicates an <see cref="IConstructorBodyOperation"/>. Use <see cref="ConstructorBody"/> instead.</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         ConstructorBodyOperation = 0x59,
+        /// <summary>Indicates an <see cref="IConstructorBodyOperation"/>.</summary>
+        ConstructorBody = 0x59,
         /// <summary>Indicates an <see cref="IDiscardOperation"/>.</summary>
         Discard = 0x5A,
         /// <summary>Indicates an <see cref="IFlowCaptureOperation"/>.</summary>

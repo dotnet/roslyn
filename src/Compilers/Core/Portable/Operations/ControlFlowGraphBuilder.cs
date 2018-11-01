@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 Debug.Assert(body.Parent == null);
                 Debug.Assert(body.Kind == OperationKind.Block ||
-                    body.Kind == OperationKind.MethodBodyOperation ||
-                    body.Kind == OperationKind.ConstructorBodyOperation ||
+                    body.Kind == OperationKind.MethodBody ||
+                    body.Kind == OperationKind.ConstructorBody ||
                     body.Kind == OperationKind.FieldInitializer ||
                     body.Kind == OperationKind.PropertyInitializer ||
                     body.Kind == OperationKind.ParameterInitializer,
@@ -2512,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 break;
             } while (true);
 
-            if (condition.Kind == OperationKind.BinaryOperator)
+            if (condition.Kind == OperationKind.Binary)
             {
                 var binOp = (IBinaryOperation)condition;
                 if (IsBooleanConditionalOperator(binOp))
@@ -2572,7 +2572,7 @@ oneMoreTime:
 
             switch (condition.Kind)
             {
-                case OperationKind.BinaryOperator:
+                case OperationKind.Binary:
                     var binOp = (IBinaryOperation)condition;
 
                     if (IsBooleanConditionalOperator(binOp))
@@ -2605,7 +2605,7 @@ oneMoreTime:
                     // then it is regular binary expression - Or, And, Xor ...
                     goto default;
 
-                case OperationKind.UnaryOperator:
+                case OperationKind.Unary:
                     var unOp = (IUnaryOperation)condition;
 
                     if (IsBooleanLogicalNot(unOp))
@@ -5457,7 +5457,7 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.BinaryOperator, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();

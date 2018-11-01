@@ -60,7 +60,7 @@ End Module
             Dim expression1 As IOperation = DirectCast(statement1, IExpressionStatementOperation).Operation
             Assert.Equal(expression1.Kind, OperationKind.SimpleAssignment)
             Dim assignment1 As ISimpleAssignmentOperation = DirectCast(expression1, ISimpleAssignmentOperation)
-            Assert.Equal(assignment1.Value.Kind, OperationKind.BinaryOperator)
+            Assert.Equal(assignment1.Value.Kind, OperationKind.Binary)
             Dim add1 As IBinaryOperation = DirectCast(assignment1.Value, IBinaryOperation)
             Assert.Equal(add1.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.Null(add1.OperatorMethod)
@@ -93,7 +93,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
             Dim expression2 As IOperation = DirectCast(statement2, IExpressionStatementOperation).Operation
             Assert.Equal(expression2.Kind, OperationKind.SimpleAssignment)
             Dim assignment2 As ISimpleAssignmentOperation = DirectCast(expression2, ISimpleAssignmentOperation)
-            Assert.Equal(assignment2.Value.Kind, OperationKind.BinaryOperator)
+            Assert.Equal(assignment2.Value.Kind, OperationKind.Binary)
             Dim add2 As IBinaryOperation = DirectCast(assignment2.Value, IBinaryOperation)
             Assert.Equal(add2.OperatorKind, Operations.BinaryOperatorKind.Add)
             Assert.NotNull(add2.OperatorMethod)
@@ -126,7 +126,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             Dim expression3 As IOperation = DirectCast(statement3, IExpressionStatementOperation).Operation
             Assert.Equal(expression3.Kind, OperationKind.SimpleAssignment)
             Dim assignment3 As ISimpleAssignmentOperation = DirectCast(expression3, ISimpleAssignmentOperation)
-            Assert.Equal(assignment3.Value.Kind, OperationKind.UnaryOperator)
+            Assert.Equal(assignment3.Value.Kind, OperationKind.Unary)
             Dim negate3 As IUnaryOperation = DirectCast(assignment3.Value, IUnaryOperation)
             Assert.Equal(negate3.OperatorKind, Operations.UnaryOperatorKind.Minus)
             Assert.Null(negate3.OperatorMethod)

@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.Operations
         protected BaseBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText,
                                                IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel,
                                                SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.BinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.Binary, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
             IsLifted = isLifted;
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseTupleBinaryOperation : Operation, ITupleBinaryOperation
     {
         public BaseTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(OperationKind.TupleBinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
+            : base(OperationKind.TupleBinary, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
         }
@@ -5447,7 +5447,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class BaseUnaryOperation : Operation, IUnaryOperation
     {
         protected BaseUnaryOperation(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.UnaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.Unary, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = unaryOperationKind;
             IsLifted = isLifted;
@@ -6741,7 +6741,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseMethodBodyOperation : BaseMethodBodyBaseOperation, IMethodBodyOperation
     {
         protected BaseMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) :
-            base(OperationKind.MethodBodyOperation, semanticModel, syntax)
+            base(OperationKind.MethodBody, semanticModel, syntax)
         {
         }
 
@@ -6806,7 +6806,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseConstructorBodyOperation : BaseMethodBodyBaseOperation, IConstructorBodyOperation
     {
         protected BaseConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) :
-            base(OperationKind.ConstructorBodyOperation, semanticModel, syntax)
+            base(OperationKind.ConstructorBody, semanticModel, syntax)
         {
             Locals = locals;
         }

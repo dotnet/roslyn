@@ -626,6 +626,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitUnaryOperator(IUnaryOperation operation)
         {
             Assert.Equal(OperationKind.UnaryOperator, operation.Kind);
+            Assert.Equal(OperationKind.Unary, operation.Kind);
             var operatorMethod = operation.OperatorMethod;
             var unaryOperationKind = operation.OperatorKind;
             var isLifted = operation.IsLifted;
@@ -637,6 +638,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitBinaryOperator(IBinaryOperation operation)
         {
             Assert.Equal(OperationKind.BinaryOperator, operation.Kind);
+            Assert.Equal(OperationKind.Binary, operation.Kind);
             var operatorMethod = operation.OperatorMethod;
             var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
@@ -650,6 +652,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
         {
             Assert.Equal(OperationKind.TupleBinaryOperator, operation.Kind);
+            Assert.Equal(OperationKind.TupleBinary, operation.Kind);
             var binaryOperationKind = operation.OperatorKind;
 
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
@@ -1178,6 +1181,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
         {
             Assert.Equal(OperationKind.ConstructorBodyOperation, operation.Kind);
+            Assert.Equal(OperationKind.ConstructorBody, operation.Kind);
             VisitLocals(operation.Locals);
 
             var builder = ArrayBuilder<IOperation>.GetInstance();
@@ -1204,6 +1208,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitMethodBodyOperation(IMethodBodyOperation operation)
         {
             Assert.Equal(OperationKind.MethodBodyOperation, operation.Kind);
+            Assert.Equal(OperationKind.MethodBody, operation.Kind);
 
             if (operation.BlockBody != null)
             {
