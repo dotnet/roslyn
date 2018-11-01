@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string F1Help = nameof(F1Help);
             public const string FindReferences = nameof(FindReferences);
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
+            public const string FixInterpolatedVerbatimString = nameof(FixInterpolatedVerbatimString);
             public const string Formatting = nameof(Formatting);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
