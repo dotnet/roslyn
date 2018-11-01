@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
             newCondition = newCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
+            // The syntax editor will be operating on both nodes and removing ifLikeStatement. If we did this replacement
+            // using the syntax editor, it wouldn't be able to do the sebsequent removal since its parent was modified.
+            // We need to do this in a separate step and track the nodes for later use.
             root = root.TrackNodes(previousIfLikeStatement, ifLikeStatement);
             root = root.ReplaceNode(
                 root.GetCurrentNode(previousIfLikeStatement),

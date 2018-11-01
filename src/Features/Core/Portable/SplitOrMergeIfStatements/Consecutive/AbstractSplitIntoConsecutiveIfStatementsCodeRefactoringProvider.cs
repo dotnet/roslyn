@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             leftCondition = leftCondition.WithAdditionalAnnotations(Formatter.Annotation);
             rightCondition = rightCondition.WithAdditionalAnnotations(Formatter.Annotation);
 
+            // The syntax editor will be operating on ifLikeStatement. If we did this replacement
+            // using the syntax editor, it wouldn't be able to do the subsequent modifications (insert an else clause).
+            // We need to do this in a separate step and track the nodes for later use.
             root = root.TrackNodes(ifLikeStatement);
             root = root.ReplaceNode(
                 root.GetCurrentNode(ifLikeStatement),
