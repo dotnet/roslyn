@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var value = kvp.Value;
                 if (!newValue.TryGetValue(key, out TValue otherValue))
                 {
+                    Debug.Fail("Non-monotonic Merge function");
                     return 1;
                 }
 
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (result > 0)
                 {
+                    Debug.Fail("Non-monotonic Merge function");
                     return 1;
                 }
                 else if (result < 0)

@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
-    using InterproceduralPointsToAnalysisData = InterproceduralAnalysisData<PointsToAnalysisData, PointsToAnalysisContext, PointsToAbstractValue>;
     using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyAnalysis.CopyBlockAnalysisResult, CopyAnalysis.CopyAbstractValue>;
 
@@ -55,6 +56,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             var operationVisitor = new PointsToDataFlowOperationVisitor(defaultPointsToValueGenerator, analysisDomain, analysisContext);
             var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
             return pointsToAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+        }
+
+        [Conditional("DEBUG")]
+        public static void AssertValidPointsToAnalysisData(PointsToAnalysisData data)
+        {
+            data.AssertValidPointsToAnalysisData();
         }
 
         internal override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, PointsToAnalysisResult dataFlowAnalysisResult)
