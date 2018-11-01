@@ -915,6 +915,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return getAwaiters.Any(VerifyGetAwaiter);
         }
 
+        public static bool IsValidGetAwaiter(this IMethodSymbol symbol)
+            => symbol.Name == WellKnownMemberNames.GetAwaiter &&
+            VerifyGetAwaiter(symbol);
+
         private static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
         {
             var returnType = getAwaiter.ReturnType;

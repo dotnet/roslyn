@@ -102,9 +102,9 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\netcoreapp2.0\publish",
-                @"Exes\Vbc\netcoreapp2.0\publish",
-                @"Exes\VBCSCompiler\netcoreapp2.0\publish");
+                @"Exes\Csc\netcoreapp2.1\publish",
+                @"Exes\Vbc\netcoreapp2.1\publish",
+                @"Exes\VBCSCompiler\netcoreapp2.1\publish");
             if (!allGood)
             {
                 return false;

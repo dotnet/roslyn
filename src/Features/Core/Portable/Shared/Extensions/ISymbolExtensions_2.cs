@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case MethodKind.EventRemove:
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
-                    return method.ContainingSymbol.GetDocumentationComment().SummaryText;
+                    return method.AssociatedSymbol.GetDocumentationComment().SummaryText;
                 default:
                     return method.GetDocumentationComment().SummaryText;
             }

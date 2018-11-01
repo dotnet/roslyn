@@ -1,7 +1,7 @@
 phases:
 - phase: Windows_Desktop_Unit_Tests
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
     parallel: 4
     matrix:
@@ -19,7 +19,8 @@ phases:
         _testKind: Test64
 
   steps:
-    - script: build/scripts/cibuild.cmd -$(_configuration) -testDesktop -$(_testKind)
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testDesktop -$(_testKind)
+      displayName: Build and Test
 
     - task: PublishTestResults@1
       inputs:
@@ -37,9 +38,34 @@ phases:
       continueOnError: true
       condition: failed()
 
+- phase: Windows_Desktop_Spanish_Unit_Tests
+  queue:
+    name: dnceng-windows-spanish-external-temp
+    timeoutInMinutes: 90
+
+  steps:
+    - script: build/scripts/cibuild.cmd -configuration Debug -testDesktop
+      displayName: Build and Test
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Windows Desktop Spanish'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Windows Desktop Spanish' 
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
 - phase: Windows_CoreClr_Unit_Tests
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
     parallel: 2
     matrix:
@@ -49,7 +75,8 @@ phases:
         _configuration: Release
 
   steps:
-    - script: build/scripts/cibuild.cmd -$(_configuration) -testCoreClr -buildCoreClr
+    - script: build/scripts/cibuild.cmd -configuration $(_configuration) -testCoreClr -buildCoreClr
+      displayName: Build and Test
 
     - task: PublishTestResults@1
       inputs:
@@ -69,10 +96,11 @@ phases:
            
 - phase: Windows_Determinism_Test
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
   steps:
     - script: build/scripts/cibuild.cmd -testDeterminism
+      displayName: Build - Validate determinism
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -84,10 +112,11 @@ phases:
 
 - phase: Windows_Correctness_Test
   queue:
-    name: Helix
+    name: dotnet-external-temp
     timeoutInMinutes: 90
   steps:
-    - script: build/scripts/test-build-correctness.cmd -cibuild -release
+    - script: build/scripts/test-build-correctness.cmd -configuration Release -cibuild
+      displayName: Build - Validate correctness
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -104,13 +133,17 @@ phases:
     parallel: 2
     matrix:
       coreclr:
-        _args: --debug
+        _args: --configuration Debug
         _name: CoreClr 
       mono:
-        _args: --debug --docker --mono
+        _args: --configuration Debug --docker --mono
         _name: Mono
   steps:
     - script: ./build/scripts/cibuild.sh $(_args)
+      displayName: Build and Test
+    - script: ./build/scripts/dockerstop.sh
+      displayName: Stop Docker
+      condition: eq(variables['_name'], 'Mono')
     - task: PublishTestResults@1
       inputs:
         testRunner: XUnit
@@ -121,7 +154,7 @@ phases:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/Binaries/$(_configuration)/Logs'
+        PathtoPublish: '$(Build.SourcesDirectory)/Binaries/Debug/Logs'
         ArtifactName: 'Linux $(_name)'
         publishLocation: Container
       continueOnError: true

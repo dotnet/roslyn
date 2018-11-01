@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioRuleSetManager : IWorkspaceService
     {
-        private readonly IVsFileChangeEx _fileChangeService;
+        private readonly FileChangeWatcher _fileChangeWatcher;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             new Dictionary<string, ReferenceCountedDisposable<RuleSetFile>.WeakReference>();
 
         public VisualStudioRuleSetManager(
-            IVsFileChangeEx fileChangeService, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
+            FileChangeWatcher fileChangeWatcher, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
         {
-            _fileChangeService = fileChangeService;
+            _fileChangeWatcher = fileChangeWatcher;
             _foregroundNotificationService = foregroundNotificationService;
             _listener = listener;
         }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Call InitializeFileTracking outside the lock, so we don't have requests for other files blocking behind the initialization of this one.
             // RuleSetFile itself will ensure InitializeFileTracking is locked as appropriate.
-            disposable.Target.InitializeFileTracking(_fileChangeService);
+            disposable.Target.InitializeFileTracking(_fileChangeWatcher);
 
             return disposable;
         }

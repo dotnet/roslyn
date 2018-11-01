@@ -34,7 +34,7 @@ $ErrorActionPreference="Stop"
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $repoDir
+    Push-Location $RepoRoot
 
     # Find the merge base, then the list of files that changed since then.
     $mergeBase = & git merge-base $base $head

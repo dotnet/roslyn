@@ -12,10 +12,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -62,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     sortValue++;
                 }
 
-                completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
+                completionContext.SuggestionModeItem = CommonCompletionItem.Create(
+                    CSharpFeaturesResources.Name, displayTextSuffix: "", CompletionItemRules.Default);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -217,9 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
-            var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
             var result = new Dictionary<string, SymbolKind>();
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
@@ -254,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return CommonCompletionItem.Create(
                 name, 
+                displayTextSuffix: "",
                 CompletionItemRules.Default, 
                 glyph: glyph, 
                 sortText: sortText, 

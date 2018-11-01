@@ -1341,8 +1341,8 @@ class C : G<C[,][]>
             var garg = c.BaseType().TypeArguments()[0];
             Assert.Equal(SymbolKind.ArrayType, garg.Kind);
             var carr1 = garg as ArrayTypeSymbol;
-            var carr2 = carr1.ElementType as ArrayTypeSymbol;
-            Assert.Equal(c, carr2.ElementType);
+            var carr2 = carr1.ElementType.TypeSymbol as ArrayTypeSymbol;
+            Assert.Equal(c, carr2.ElementType.TypeSymbol);
             Assert.Equal(2, carr1.Rank);
             Assert.Equal(1, carr2.Rank);
             Assert.True(carr2.IsSZArray);
@@ -2070,8 +2070,11 @@ namespace CrashTest
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
+    // (2,14): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
+    // using static CrashTest.Crash<object>;
+    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "CrashTest.Crash<object>").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(2, 14),
     // (6,11): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
-    //     class Class2 : AbstractClass 
+    //     class Class2 : AbstractClass
     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Class2").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(6, 11),
     // (21,23): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
     //         AbstractClass Test()

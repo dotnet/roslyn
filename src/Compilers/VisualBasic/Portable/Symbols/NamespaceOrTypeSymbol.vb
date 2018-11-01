@@ -58,13 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '' Default implementation Is to use ordered version. When performance indicates, we specialize to have
             '' separate implementation.
 
-#If DEBUG Then
-            '' In DEBUG, swap first And last elements so that use of Unordered in a place it isn't warranted is caught
-            '' more obviously.
-            Return GetMembers().DeOrder()
-#Else
-            Return GetMembers()
-#End If
+            Return GetMembers().ConditionallyDeOrder()
         End Function
 
         ''' <summary>
@@ -88,13 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '' Default implementation Is to use ordered version. When performance indicates, we specialize to have
             '' separate implementation.
 
-#If DEBUG Then
-            '' In DEBUG, swap first And last elements so that use of Unordered in a place it isn't warranted is caught
-            '' more obviously.
-            Return GetTypeMembers().DeOrder()
-#Else
-            Return GetTypeMembers()
-#End If
+            Return GetTypeMembers().ConditionallyDeOrder()
         End Function
 
         ''' <summary>

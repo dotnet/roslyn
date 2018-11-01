@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.ValueUsageInfo);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)
