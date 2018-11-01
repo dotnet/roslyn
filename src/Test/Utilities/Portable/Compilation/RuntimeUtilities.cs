@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return new DesktopAnalyzerAssemblyLoader();
 #elif NETCOREAPP2_1
             return new CoreClrAnalyzerAssemblyLoader();
-#elif NETSTANDARD1_3
+#elif NETSTANDARD2_0
             return new ThrowingAnalyzerAssemblyLoader();
 #else
 #error Unsupported configuration
