@@ -331,11 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsExpressionTree(this TypeSymbol _type)
         {
-            // TODO: add Compilation/Binder parameter to get WellKnownType and compare
-            // TODO: there must be a better way!
-            var type = _type.OriginalDefinition as NamedTypeSymbol;
-            return
-                (object)type != null &&
+            return _type.OriginalDefinition is NamedTypeSymbol type &&
                 type.Arity == 1 &&
                 type.MangleName &&
                 type.Name == "Expression" &&
