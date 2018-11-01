@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         //    if (b)
         //        return;
 
+        // The second case is applied if control flow quits from inside the body.
+
         protected sealed override int GetLogicalExpressionKind(ISyntaxKindsService syntaxKinds)
             => syntaxKinds.LogicalOrExpression;
 

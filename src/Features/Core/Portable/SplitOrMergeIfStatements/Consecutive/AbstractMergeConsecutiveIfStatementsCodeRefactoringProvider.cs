@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         //    if (a || b)
         //        return;
 
+        // The body statements need to be equivalent. In the second case, control flow must quit from inside the body.
+
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(createChangedDocument, ifKeywordText);
 
