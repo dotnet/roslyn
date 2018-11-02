@@ -117,6 +117,11 @@
         <target state="new">Sort accessibility modifiers</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="new">Use '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="new">'if' statement can be simplified</target>
