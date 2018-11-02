@@ -9864,7 +9864,7 @@ class C
                 result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "TODO")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void LoadingAnalyzerNetStandard13()
         {
             var analyzerFileName = "AnalyzerNS13.dll";
