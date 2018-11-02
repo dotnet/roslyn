@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 {
     public class CSharpCompleteStatementCommandHandlerTests : AbstractCompleteStatementTests
     {
-        private string CreateTestWithMethodCall(string initial)
+        private string CreateTestWithMethodCall(string code)
         {
             return
 @"class C
@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            " + initial + @"
+            " + code + @"
+
+            int z = 4;
         }
     }
 
@@ -36,354 +38,776 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 }";
         }
 
+
+        #region ArgumentListOfMethodInvocation
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_SemicolonBeforeClassDeclaration()
+        public void ArgumentListOfMethodInvocation1()
         {
-            var code =
-@"$$
-class C
-{
-}";
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation3()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x,$$ y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation4()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, $$y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation5()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y$$)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation6()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y)$$");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_MissingParen()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y$$");
 
             var expected =
-@";$$
-class C
-{
+                @"class C
+    {
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x, y
+
+            int z = 4);$$;
+        }
+    }
+
+    static class ClassC
+    {
+        internal static int MethodM(int a, int b)
+            => a * b;
+    }
+}";
+
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_CommentsAfter()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y) //Comments");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$ //Comments");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_SemicolonAlreadyExists()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_MultiLine()
+        {
+            var code = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+    x$$, 
+    y)");
+
+            var expected = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+    x, 
+    y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_MultiLine3()
+        {
+            var code = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+    x$$, 
+    y
+    )");
+
+            var expected = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+    x, 
+    y
+    );$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        #endregion
+
+        #region ArgumentListOfNestedMethodInvocation
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation1()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y.ToString())");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y.ToString())");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation3()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, $$y.ToString())");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation4()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToS$$tring())");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToS;$$tring())");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation5()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString$$())");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString;$$())");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation6()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$))");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation7()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString()$$)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation8()
+        {
+
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString())$$");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation9()
+        {
+
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, ClassC.MethodM(4,ClassC.MethodM(5,ClassC.MethodM(6,7$$))))");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, ClassC.MethodM(4,ClassC.MethodM(5,ClassC.MethodM(6,7))));$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation8_SemicolonAlreadyExists()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$));");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$;");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_DualPosition1()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_DualPosition2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x.ToString(), y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_DualPosition3()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_DualPosition4()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString()$$, y)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_DualPosition5()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y$$)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_DualPosition_SemicolonAlreadyExists()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_MultiLine()
+        {
+            var code = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+                x.ToString(), 
+                y$$)");
+
+            var expected = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+                x.ToString(), 
+                y);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_MultiLine2()
+        {
+            var code = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+                x.ToString(), 
+                y$$
+                )");
+
+            var expected = CreateTestWithMethodCall(@"
+var test = ClassC.MethodM(
+                x.ToString(), 
+                y
+                );$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_MissingBothParens()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y");
+
+            var expected = @"class C
+    {
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x.ToString(, y
+
+            int z = 4));$$;
+        }
+    }
+
+    static class ClassC
+    {
+        internal static int MethodM(int a, int b)
+            => a * b;
+    }
+}";
+            
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_MissingInnerParen()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y)");
+
+            var expected = @"class C
+    {
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x.ToString(, y)
+
+            int z = 4);$$;
+        }
+    }
+
+    static class ClassC
+    {
+        internal static int MethodM(int a, int b)
+            => a * b;
+    }
+}";
+            
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfNestedMethodInvocation_MissingOuterParen()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y");
+
+            var expected = @"class C
+    {
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x.ToString(), y
+
+            int z = 4);$$;
+        }
+    }
+
+    static class ClassC
+    {
+        internal static int MethodM(int a, int b)
+            => a * b;
+    }
+}";
+
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        #endregion
+
+        #region ArgumentList_Array
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array1()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x[0], x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$[0], x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array3()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[$$0], x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array4()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0$$], x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array5()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0]$$, x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array6()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0],$$ x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array7()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], $$x[1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array8()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[$$1])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array9()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$])");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array10()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]$$)");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array11()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1])$$");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_Array_MissingBoth()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$");
+
+            var expected = 
+@"class C
+    {
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x[0], x[1
+
+            int z = 4]);$$;
+        }
+    }
+
+    static class ClassC
+    {
+        internal static int MethodM(int a, int b)
+            => a * b;
+    }
 }";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontCompleteStatment_DocComments()
+        public void ArgumentList_Array_MissingOuter()
         {
-            var code =
-@"
-/// Testing $$
-class C
-{
-}";
+
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]$$");
 
             var expected =
-@"
-/// Testing ;$$
-class C
-{
+@"class C
+    {
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x[0], x[1])
+
+            int z = 4);$$;
+        }
+    }
+
+    static class ClassC
+    {
+        internal static int MethodM(int a, int b)
+            => a * b;
+    }
 }";
+
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_FormatString()
+        public void ArgumentList_Array_MissingInner()
         {
-            var code =
-@"
-class C
-{
-    void Main()
-    {
-        Console.WriteLine(String.Format(""{0:##;(##)$$**Zero**}"", 0));
-    }
-}";
+
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1)$$");
 
             var expected =
-@"
-class C
-{
-    void Main()
+@"class C
     {
-        Console.WriteLine(String.Format(""{0:##;(##);$$**Zero**}"", 0));
-    }
-}";
+        static void Main(string[] args)
+        {
+            int x = 1;
+            int y = 2;
+            int[] a = { 1,2 }
+            var test = ClassC.MethodM(x[0], x[1)
 
-            VerifyTypingSemicolon(code, expected);
+            int z = 4]);$$;
         }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_EmptyStatement()
-        {
-            var code =
-@"
-class C
-{
-    void Main()
-    {
-        ;$$
     }
-}";
 
-            var expected =
-@"
-class C
-{
-    void Main()
+    static class ClassC
     {
-        ;;$$
+        internal static int MethodM(int a, int b)
+            => a * b;
     }
 }";
 
             VerifyTypingSemicolon(code, expected);
         }
 
+
+        #endregion
+
+        #region FieldInitializer
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_EmptyStatement2()
+        public void FieldInitializer_NoParens()
         {
             var code =
 @"
 class C
 {
-    void Main()
-    {
-        ; $$
-    }
-}";
-
-            var expected =
-@"
-class C
-{
-    void Main()
-    {
-        ; ;$$
-    }
-}";
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void Indexer()
-        {
-            var code =
-@"
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i]$$ }
-        set { arr[i] = value; }
-    }
-}";
-
-            var expected =
-@"
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i];$$ }
-        set { arr[i] = value; }
-    }
-}";
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopObjectInitializer()
-        {
-            // unsure about desired behavior
-            var code =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (Goo f = new Goo { i = 0, s = ""abc""$$
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
+    int i = 4$$
+    int j = 5;
 ";
 
             var expected =
 @"
 class C
 {
-    static void Main(string[] args)
-    {
-        for (Goo f = new Goo { i = 0, s = ""abc"";$$ }
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
+    int i = 4;$$
+    int j = 5;
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ObjectInitializer_knownfailure()
+        public void FieldInitializer2()
         {
-            // putting a new line before the };  could formatter be doing this?  other code is moving to new lines as well
             var code =
 @"
 class C
 {
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i = 0, s = ""abc""$$
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
+    int i = Min(2$$,3)
+    int j = 5;
 ";
 
             var expected =
 @"
 class C
 {
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i = 0, s = ""abc"" };$$
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
+    int i = Min(2,3);$$
+    int j = 5;
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_DoWhile()
+        public void FieldInitializer2b_MissingParen()
         {
             var code =
 @"
-public class C
+class C
 {
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-        } while (n < 5)$$
-    }
-}";
+    int i = Min(2$$,3
+    int j = 5;
+";
 
             var expected =
 @"
-public class C
+class C
 {
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-        } while (n < 5);$$
-    }
-}";
+    int i = Min(2,3
+    int j = 5);$$;
+";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_Break()
+        public void FieldInitializer3()
         {
             var code =
 @"
-public class C
+class C
 {
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-            break$$
-        } while (n < 5);
-    }
-}";
+    int i = Min(Max(4,5$$),3)
+    int j = 5;
+";
 
             var expected =
 @"
-public class C
+class C
 {
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-            break;$$
-        } while (n < 5);
-    }
-}";
+    int i = Min(Max(4,5),3);$$
+    int j = 5;
+";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_Continue()
+        public void FieldInitializer3b_MissingInner()
         {
             var code =
 @"
-class ContinueTest
+class C
+{
+    int i = Min(Max(4,5$$,3)
+    int j = 5;
+";
+
+            var expected =
+@"
+class C
+{
+    int i = Min(Max(4,5,3)
+    int j = 5);$$;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        #endregion
+
+        #region ForLoop
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopSingleInitializer1()
+        {
+            var code =
+@"
+class C
 {
     static void Main()
     {
-        for (int i = 1; i <= 10; i++)
-        {
-            if (i < 9)
-            {
-                continue$$
-            }
-            Console.WriteLine(i);
-        }
-    }
-}";
-
-            var expected =
-@"
-class ContinueTest
-{
-    static void Main()
-    {
-        for (int i = 1; i <= 10; i++)
-        {
-            if (i < 9)
-            {
-                continue;$$
-            }
-            Console.WriteLine(i);
-        }
-    }
-}";
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopSingleInitializer()
-        {
-            var code =
-@"
-class C
-{
-    static void Main()
-    {
-        for (int i = 0$$
+        for (int i = 0$$ )
+        int j;
 ";
 
             var expected =
@@ -392,7 +816,8 @@ class C
 {
     static void Main()
     {
-        for (int i = 0;$$
+        for (int i = 0;$$ )
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -400,6 +825,32 @@ class C
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ForLoopSingleInitializer2()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for (int i = 0$$ i < 5; i++)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for (int i = 0;$$ i < 5; i++)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopSingleInitializer3()
         {
             var code =
 @"
@@ -435,6 +886,33 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopSingleInitializer_MissingParen()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for (int i = 0$$
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for (int i = 0;$$
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ForLoopNoStatements()
         {
             var code =
@@ -444,6 +922,7 @@ class C
     static void Main()
     {
         for ($$
+        int j;
 ";
 
             var expected =
@@ -453,6 +932,7 @@ class C
     static void Main()
     {
         for (;$$
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -468,6 +948,7 @@ class C
     static void Main()
     {
         for ( $$
+        int j;
 ";
 
             var expected =
@@ -477,6 +958,7 @@ class C
     static void Main()
     {
         for ( ;$$
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -492,6 +974,7 @@ class C
     static void Main()
     {
         for ( ; $$
+        int j;
 ";
 
             var expected =
@@ -501,6 +984,7 @@ class C
     static void Main()
     {
         for ( ; ;$$
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -516,6 +1000,7 @@ class C
     static void Main()
     {
         for ( ; ;$$
+        int j;
 ";
 
             var expected =
@@ -525,6 +1010,7 @@ class C
     static void Main()
     {
         for ( ; ;;$$
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -540,6 +1026,7 @@ class C
     static void Main()
     {
         for ( $$ ;)
+        int j;
 ";
 
             var expected =
@@ -549,13 +1036,144 @@ class C
     static void Main()
     {
         for ( ;$$ ;)
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopMultistatementInitializer()
+        public void ForLoopMultistatementInitializer1()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( $$int i = 0, int j = 0)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( ;$$int i = 0, int j = 0)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopMultistatementInitializer2()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int$$ i = 0, int j = 0)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int;$$ i = 0, int j = 0)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopMultistatementInitializer3()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i$$ = 0, int j = 0)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i;$$ = 0, int j = 0)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopMultistatementInitializer4()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i = 0, $$int j = 0)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i = 0, ;$$int j = 0)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopMultistatementInitializer5()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i = 0, int j =$$ 0)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i = 0, int j =;$$ 0)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopMultistatementInitializer6()
         {
             var code =
 @"
@@ -564,6 +1182,7 @@ class C
     static void Main()
     {
         for ( int i = 0, int j = 0$$)
+        int j;
 ";
 
             var expected =
@@ -573,13 +1192,84 @@ class C
     static void Main()
     {
         for ( int i = 0, int j = 0;$$)
+        int j;
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopNewInInitializer()
+        public void ForLoopMultistatementInitializer7()
+        {
+            var code =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i = 0, int j = 0$$)
+        int j;
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main()
+    {
+        for ( int i = 0, int j = 0;$$)
+        int j;
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopNewInInitializer1()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (C1 i = new C1($$))
+        int j;
+    }
+}
+public class C1
+{
+    public static C1 operator ++(C1 obj)
+    {
+        return obj;
+    }
+}
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (C1 i = new C1();$$)
+        int j;
+    }
+}
+public class C1
+{
+    public static C1 operator ++(C1 obj)
+    {
+        return obj;
+    }
+}
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopNewInInitializer_MissingOneParen()
         {
             var code =
 @"
@@ -588,6 +1278,7 @@ class C
     static void Main(string[] args)
     {
         for (C1 i = new C1()$$
+        int j;
     }
 }
 public class C1
@@ -606,6 +1297,7 @@ class C
     static void Main(string[] args)
     {
         for (C1 i = new C1();$$
+        int j;
     }
 }
 public class C1
@@ -621,8 +1313,9 @@ public class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopNewInInitializer2()
+        public void ForLoopNewInInitializer2_MissingBothParens()
         {
+            // only adding one closing paren
             var code =
 @"
 class C
@@ -630,6 +1323,7 @@ class C
     static void Main(string[] args)
     {
         for (C1 i = new C1($$
+        int j;
     }
 }
 public class C1
@@ -647,7 +1341,8 @@ class C
 {
     static void Main(string[] args)
     {
-        for (C1 i = new C1();$$
+        for (C1 i = new C1(
+        int j);$$;
     }
 }
 public class C1
@@ -689,342 +1384,347 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void FieldInitialzer()
+        public void ForLoopObjectInitializer_MissingParen()
         {
             var code =
 @"
 class C
 {
-    int i = 4$$
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc""$$ }
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             var expected =
 @"
 class C
 {
-    int i = 4;$$
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc"";$$ }
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void FieldInitialzer2()
+        public void ForLoopObjectInitializer()
         {
             var code =
 @"
 class C
 {
-    int i = Min(2$$,3)
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc""$$ } )
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             var expected =
 @"
 class C
 {
-    int i = Min(2,3);$$
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc"" };$$ )
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void FieldInitialzer2b()
+        public void ForLoopObjectInitializer_MissingBrace()
         {
             var code =
 @"
 class C
 {
-    int i = Min(2$$,3
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc""$$
+    }
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             var expected =
 @"
 class C
 {
-    int i = Min(2,3);$$
+    static void Main(string[] args)
+    {
+        for (Goo f = new Goo { i = 0, s = ""abc""
+    };$$
+}
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
+        #endregion
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void FieldInitialzer3()
+        public void Indexer()
+        {
+            var code =
+@"
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i]
+    {
+        get { return arr[i]$$ }
+        set { arr[i] = value; }
+    }
+}";
+
+            var expected =
+@"
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+    public T this[int i]
+    {
+        get { return arr[i];$$ }
+        set { arr[i] = value; }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ObjectInitializer()
         {
             var code =
 @"
 class C
 {
-    int i = Min(Max(4,5$$),3)
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" }$$
+    }
+}
+
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             var expected =
 @"
 class C
 {
-    int i = Min(Max(4,5),3);$$
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
+
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void FieldInitialzer3b()
+        public void ObjectInitializer2()
         {
             var code =
 @"
 class C
 {
-    int i = Min(Max(4,5$$),3)
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc""$$ }
+    }
+}
+
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             var expected =
 @"
 class C
 {
-    int i = Min(Max(4,5),3);$$
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
+
+public class Goo
+{
+    public int i;
+    public string s;
+}
 ";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_ClassNameOfMethodInvocation1()
+        public void ObjectInitializer3()
         {
-            var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0$$, s = ""abc"" }
+    }
+}
 
-            var expected = CreateTestWithMethodCall(@"var test = ;$$ClassC.MethodM(x,y);");
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
+
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_ClassNameOfMethodInvocation2()
+        public void ObjectInitializer4()
         {
-            var code = CreateTestWithMethodCall(@"var test = C$$lassC.MethodM(x,y);");
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i =$$ 0, s = ""abc"" }
+    }
+}
 
-            var expected = CreateTestWithMethodCall(@"var test = C;$$lassC.MethodM(x,y);");
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc"" };$$
+    }
+}
+
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_ClassNameOfMethodInvocation3()
+        public void ObjectInitializer_MissingBrace()
         {
-            var code = CreateTestWithMethodCall(@"var test = Class$$C.MethodM(x,y);");
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc""$$
+    }
+}
 
-            var expected = CreateTestWithMethodCall(@"var test = Class;$$C.MethodM(x,y);");
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
 
-            VerifyTypingSemicolon(code, expected);
-        }
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        Goo f = new Goo { i = 0, s = ""abc""
+    };$$
+}
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_ClassNameOfMethodInvocation4()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC$$.MethodM(x,y);");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC;$$.MethodM(x,y);");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_MethodNameOfMethodInvocation1()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.Meth$$odM(x,y);");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.Meth;$$odM(x,y);");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_MethodNameOfMethodInvocation2()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.$$MethodM(x,y);");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.;$$MethodM(x,y);");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_MethodNameOfMethodInvocation3()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM$$(x,y);");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM;$$(x,y);");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_SemicolonBeforeEquals()
-        {
-            var code = CreateTestWithMethodCall(@"var test $$= ClassC.MethodM(x,y);");
-
-            var expected = CreateTestWithMethodCall(@"var test ;$$= ClassC.MethodM(x,y);");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_SemicolonAfterEquals()
-        {
-            var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y);");
-
-            var expected = CreateTestWithMethodCall(@"var test =;$$ ClassC.MethodM(x,y);");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation1_MissingParen()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation2_MissingParen()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation3_MissingParen()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x,$$ y");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation4_MissingParen()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, $$y");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation5_MissingParen()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y$$");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation6()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, $$y)");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation7()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y)");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation_CommentsAfter()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y) //Comments");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$ //Comments");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation_CommentsAfter2()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y) //Comments");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$ //Comments");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation8_SemicolonAlreadyExists()
-        {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
-
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation_MultiLine()
-        {
-            var code = CreateTestWithMethodCall(@"
-var test = ClassC.MethodM(
-    x$$, 
-    y)");
-
-            var expected = CreateTestWithMethodCall(@"
-var test = ClassC.MethodM(
-    x, 
-    y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation_MultiLine2()
-        {
-            var code = CreateTestWithMethodCall(@"
-var test = ClassC.MethodM(
-    x$$, 
-    y");
-
-            var expected = CreateTestWithMethodCall(@"
-var test = ClassC.MethodM(
-    x, 
-    y);$$");
-
-            VerifyTypingSemicolon(code, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfMethodInvocation_MultiLine3_knownfailure()
-        {
-            // Not yet handling scenario where closing paren is on the next line
-            var code = CreateTestWithMethodCall(@"
-var test = ClassC.MethodM(
-    x$$, 
-    y
-    )");
-
-            var expected = CreateTestWithMethodCall(@"
-var test = ClassC.MethodM(
-    x, 
-    y
-    );$$");
+public class Goo
+{
+    public int i;
+    public string s;
+}
+";
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1232,9 +1932,9 @@ public class SaleItem
 
             VerifyTypingSemicolon(code, expected);
         }
-        
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ThrowStatement()
+        public void ThrowStatement_MissingBoth()
         {
             var code = @"
 public class Class1
@@ -1262,128 +1962,621 @@ public class Class1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation1_MissingOuterParen()
+        public void ThrowStatement()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$)");
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        throw new Exception(s.ToUpper($$))
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        throw new Exception(s.ToUpper());$$
+
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        #region Don't Complete
+
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_SemicolonBeforeClassDeclaration()
+        {
+            var code =
+@"$$
+class C
+{
+}";
+
+            var expected =
+@";$$
+class C
+{
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation2_MissingBothParens()
+        public void DontCompleteStatment_DocComments()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$");
+            var code =
+@"
+/// Testing $$
+class C
+{
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+            var expected =
+@"
+/// Testing ;$$
+class C
+{
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation3_DualPosition_MissingOuter()
+        public void DontComplete_FormatString()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y");
+            var code =
+@"
+class C
+{
+    void Main()
+    {
+        Console.WriteLine(String.Format(""{0:##;(##)$$**Zero**}"", 0));
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+            var expected =
+@"
+class C
+{
+    void Main()
+    {
+        Console.WriteLine(String.Format(""{0:##;(##);$$**Zero**}"", 0));
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation3_DualPosition()
+        public void DontComplete_EmptyStatement()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y)");
+            var code =
+@"
+class C
+{
+    void Main()
+    {
+        ;$$
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+            var expected =
+@"
+class C
+{
+    void Main()
+    {
+        ;;$$
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation3_DualPosition2()
+        public void DontComplete_EmptyStatement2()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
+            var code =
+@"
+class C
+{
+    void Main()
+    {
+        ; $$
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
+            var expected =
+@"
+class C
+{
+    void Main()
+    {
+        ; ;$$
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation4()
+        public void DoWhile()
         {
-            // Because of the open paren, thinks everything after is the first argument
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n$$ < 5)
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(, y));$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < 5);$$
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentListOfNestedMethodInvocation5()
+        public void DoWhile2()
         {
-            // only get one closing paren because it doesn't know about the other parameter's missing closing paren
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y.ToString(");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < 5)$$
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString();$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < 5);$$
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentList_Array_MissingBoth()
+        public void DoWhile3()
         {
-            // closing delimiters are swapped, caret not moving correct number
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while $$(n < 5)
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while ;$$(n < 5)
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentList_Array2_MissingOuter()
+        public void DoWhile4()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]$$");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,$$5))
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5));$$
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentList_Array3()
+        public void DontComplete_Break()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1])$$");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+            break$$
+        } while (n < 5);
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+            break;$$
+        } while (n < 5);
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentList_Array4_MissingOuter()
+        public void DontComplete_Break2()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$]");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+            bre$$ak
+        } while (n < 5);
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+            bre;$$ak
+        } while (n < 5);
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ArgumentList_Array5()
+        public void DontComplete_Break3()
         {
-            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$])");
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+            $$break
+        } while (n < 5);
+    }
+}";
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+            ;$$break
+        } while (n < 5);
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Continue()
+        {
+            var code =
+@"
+class ContinueTest
+{
+    static void Main()
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            if (i < 9)
+            {
+                continue$$
+            }
+            Console.WriteLine(i);
+        }
+    }
+}";
+
+            var expected =
+@"
+class ContinueTest
+{
+    static void Main()
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            if (i < 9)
+            {
+                continue;$$
+            }
+            Console.WriteLine(i);
+        }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Continue2()
+        {
+            var code =
+@"
+class ContinueTest
+{
+    static void Main()
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            if (i < 9)
+            {
+                cont$$inue
+            }
+            Console.WriteLine(i);
+        }
+    }
+}";
+
+            var expected =
+@"
+class ContinueTest
+{
+    static void Main()
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            if (i < 9)
+            {
+                cont;$$inue
+            }
+            Console.WriteLine(i);
+        }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_Continue3()
+        {
+            var code =
+@"
+class ContinueTest
+{
+    static void Main()
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            if (i < 9)
+            {
+                $$continue
+            }
+            Console.WriteLine(i);
+        }
+    }
+}";
+
+            var expected =
+@"
+class ContinueTest
+{
+    static void Main()
+    {
+        for (int i = 1; i <= 10; i++)
+        {
+            if (i < 9)
+            {
+                ;$$continue
+            }
+            Console.WriteLine(i);
+        }
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_ClassNameOfMethodInvocation1()
+        {
+            var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ;$$ClassC.MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_ClassNameOfMethodInvocation2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = C$$lassC.MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = C;$$lassC.MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_ClassNameOfMethodInvocation3()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Class$$C.MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = Class;$$C.MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_ClassNameOfMethodInvocation4()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC$$.MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC;$$.MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_MethodNameOfMethodInvocation1()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.Meth$$odM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.Meth;$$odM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_MethodNameOfMethodInvocation2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.$$MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.;$$MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_MethodNameOfMethodInvocation3()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM$$(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM;$$(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_SemicolonBeforeEquals()
+        {
+            var code = CreateTestWithMethodCall(@"var test $$= ClassC.MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test ;$$= ClassC.MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_SemicolonAfterEquals()
+        {
+            var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y);");
+
+            var expected = CreateTestWithMethodCall(@"var test =;$$ ClassC.MethodM(x,y);");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        #endregion
 
         internal override VSCommanding.ICommandHandler CreateCommandHandler(
         IWaitIndicator waitIndicator,

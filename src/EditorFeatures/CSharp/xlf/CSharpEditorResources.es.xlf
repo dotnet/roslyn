@@ -7,6 +7,11 @@
         <target state="new">Fix interpolated verbatim string</target>
         <note />
       </trans-unit>
+      <trans-unit id="Complete_statement">
+        <source>Complete statement</source>
+        <target state="new">Complete statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Presione TAB para insertar)</target>
