@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type2 != null);
 
             var compareKind = includeNullability ?
-                TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny :
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes :
                 TypeCompareKind.AllIgnoreOptions;
             return type1.Equals(type2, compareKind);
         }

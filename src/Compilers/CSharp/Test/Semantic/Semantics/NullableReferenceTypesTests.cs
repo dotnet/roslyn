@@ -5918,11 +5918,11 @@ class B2 : A
                 foreach (string memberName in new[] { "E1", "E2" })
                 {
                     var member = type.GetMember<EventSymbol>(memberName);
-                    Assert.False(member.Type.Equals(member.OverriddenEvent.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.False(member.Type.Equals(member.OverriddenEvent.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
                 }
 
                 var e3 = type.GetMember<EventSymbol>("E3");
-                Assert.True(e3.Type.Equals(e3.OverriddenEvent.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(e3.Type.Equals(e3.OverriddenEvent.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "A", "B1", "B2" })
@@ -5931,8 +5931,8 @@ class B2 : A
 
                 foreach (var ev in type.GetMembers().OfType<EventSymbol>())
                 {
-                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -6042,8 +6042,8 @@ public class B2 : A
             void verifyMethodMatchesOverridden(bool expectMatch, NamedTypeSymbol type, string methodName)
             {
                 var member = type.GetMember<MethodSymbol>(methodName);
-                Assert.Equal(expectMatch, member.ReturnType.Equals(member.OverriddenMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                Assert.Equal(expectMatch, member.Parameters.Single().Type.Equals(member.OverriddenMethod.Parameters.Single().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.Equal(expectMatch, member.ReturnType.Equals(member.OverriddenMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(expectMatch, member.Parameters.Single().Type.Equals(member.OverriddenMethod.Parameters.Single().Type, TypeCompareKind.ConsiderEverything));
             }
         }
 
@@ -6301,7 +6301,7 @@ class B2 : IA
                     var type = compilation.GetTypeByMetadataName(typeName);
 
                     var impl = (EventSymbol)type.FindImplementationForInterfaceMember(member);
-                    Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
                 }
             }
 
@@ -6312,7 +6312,7 @@ class B2 : IA
                 var type = compilation.GetTypeByMetadataName(typeName);
 
                 var impl = (EventSymbol)type.FindImplementationForInterfaceMember(e3);
-                Assert.True(impl.Type.Equals(e3.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(impl.Type.Equals(e3.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "B1", "B2" })
@@ -6321,8 +6321,8 @@ class B2 : IA
 
                 foreach (var ev in type.GetMembers().OfType<EventSymbol>())
                 {
-                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -6403,13 +6403,13 @@ class B2 : IB
                 var member = ia.GetMember<EventSymbol>(memberName);
 
                 var impl = (EventSymbol)b1.FindImplementationForInterfaceMember(member);
-                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             var e3 = ia.GetMember<EventSymbol>("E3");
             {
                 var impl = (EventSymbol)b1.FindImplementationForInterfaceMember(e3);
-                Assert.True(impl.Type.Equals(e3.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(impl.Type.Equals(e3.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "B1" })
@@ -6418,8 +6418,8 @@ class B2 : IB
 
                 foreach (var ev in type.GetMembers().OfType<EventSymbol>())
                 {
-                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -6500,12 +6500,12 @@ class B2 : A2
 
             foreach (var member in compilation.GetTypeByMetadataName("B1").GetMembers().OfType<PropertySymbol>())
             {
-                Assert.False(member.Type.Equals(member.OverriddenProperty.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.False(member.Type.Equals(member.OverriddenProperty.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("B2").GetMembers().OfType<PropertySymbol>())
             {
-                Assert.True(member.Type.Equals(member.OverriddenProperty.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(member.Type.Equals(member.OverriddenProperty.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "A1", "B1", "A2", "B2" })
@@ -6514,8 +6514,8 @@ class B2 : A2
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -6651,13 +6651,13 @@ class B : IA, IA2
             foreach (var member in compilation.GetTypeByMetadataName("IA").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("IA2").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.True(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "IA2", "B" })
@@ -6666,8 +6666,8 @@ class B : IA, IA2
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -6742,13 +6742,13 @@ class B : IA, IA2
             foreach (var member in compilation.GetTypeByMetadataName("IA").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("IA2").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.True(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "IA2", "B" })
@@ -6757,8 +6757,8 @@ class B : IA, IA2
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -6815,12 +6815,12 @@ class B : A
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
                 Assert.False(member.ReturnType.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).ReturnType,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             var m3 = b.GetMember<MethodSymbol>("M3");
             Assert.True(m3.ReturnType.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).ReturnType,
-                TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
         [Fact]
@@ -6935,7 +6935,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
@@ -6943,7 +6943,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
 
@@ -7003,7 +7003,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
@@ -7011,7 +7011,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
 
@@ -7173,12 +7173,12 @@ class B : A
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
                 Assert.False(member.Parameters[0].Type.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).Parameters[0].Type,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             var m3 = b.GetMember<MethodSymbol>("M3");
             Assert.True(m3.Parameters[0].Type.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).Parameters[0].Type,
-                TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
         [Fact]
@@ -7396,7 +7396,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
@@ -7404,7 +7404,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
 
@@ -7459,7 +7459,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
@@ -7467,7 +7467,7 @@ class B : IA
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
                 var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
                 Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
 
@@ -7535,13 +7535,13 @@ class B3 : A3
             {
                 foreach (var member in compilation.GetTypeByMetadataName(typeName).GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.False(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.False(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
                 }
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("B3").GetMembers().OfType<PropertySymbol>())
             {
-                Assert.True(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "A1", "A2", "A3", "B1", "B2", "B3" })
@@ -7550,8 +7550,8 @@ class B3 : A3
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -7620,13 +7620,13 @@ class B3 : IA3
             {
                 var implemented = compilation.GetTypeByMetadataName(typeName[0]).GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName(typeName[1]).FindImplementationForInterfaceMember(implemented);
-                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var implemented = compilation.GetTypeByMetadataName("IA3").GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName("B3").FindImplementationForInterfaceMember(implemented);
-                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA1", "IA2", "IA3", "B1", "B2", "B3" })
@@ -7635,8 +7635,8 @@ class B3 : IA3
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -7705,13 +7705,13 @@ class B3 : IA3
             {
                 var implemented = compilation.GetTypeByMetadataName(typeName[0]).GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName(typeName[1]).FindImplementationForInterfaceMember(implemented);
-                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var implemented = compilation.GetTypeByMetadataName("IA3").GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName("B3").FindImplementationForInterfaceMember(implemented);
-                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA1", "IA2", "IA3", "B1", "B2", "B3" })
@@ -7720,8 +7720,8 @@ class B3 : IA3
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -7770,11 +7770,11 @@ partial class C1
             for (int i = 0; i < 3; i++)
             {
                 Assert.False(m1Impl.Parameters[i].Type.Equals(m1Def.Parameters[i].Type,
-                    TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             Assert.True(m1Impl.Parameters[3].Type.Equals(m1Def.Parameters[3].Type,
-                TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
         [Fact]
@@ -51372,6 +51372,324 @@ namespace System
             Assert.True(implicitOp.IsDefinition);
             Assert.True(explicitOp.IsDefinition);
             Assert.True(getDefault.IsDefinition);
+        }
+
+        [Fact]
+        public void ExpressionTrees_ByRefDynamic()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+ 
+class Program
+{
+    static void Main()
+    {
+        Expression<Action<dynamic>> e = x => Goo(ref x);
+    }
+ 
+    static void Goo<T>(ref T x) { }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, options: WithNonNullTypesTrue());
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        public void TestErrorsImplementingGenericNestedInterfaces_Explicit()
+        {
+            var text = @"
+using System.Collections.Generic;
+class Outer<T>
+{
+    internal class Inner<U>
+    {
+        protected internal interface Interface<V, W>
+        {
+            T Property { set; }
+            void Method<Z>(T a, U[] b, List<V> c, Dictionary<W, Z> d);
+        }
+        internal class Derived4
+        {
+            internal class Derived5 : Outer<T>.Inner<U>.Interface<U, T>
+            {
+                T Outer<T>.Inner<U>.Interface<U, T>.Property
+                {
+                    set { }
+                }
+                void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<K, T> D)
+                {
+                }
+            }
+            internal class Derived6 : Outer<T>.Inner<U>.Interface<U, T>
+            {
+                T Outer<T>.Inner<U>.Interface<U, T>.Property
+                {
+                    set { }
+                }
+                void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<T, K> D)
+                {
+                }
+            }
+        }
+    }
+}
+";
+
+            // https://github.com/dotnet/roslyn/issues/30677 - The following errors are unexpected:
+            // (24,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived6' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], List<U>, Dictionary<T, Z>)'
+            // (20,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], List<U>, Dictionary<K, T>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
+            // (30,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived6.Outer<T>.Inner<U>.Interface<U, T>.Method<K>(T, U[], List<U>, Dictionary<T, K>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
+            CreateCompilation(text, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (14,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived5' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], List<U>, Dictionary<T, Z>)'
+                //             internal class Derived5 : Outer<T>.Inner<U>.Interface<U, T>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<T>.Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5", "Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)").WithLocation(14, 39),
+                // (20,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], List<U>, Dictionary<K, T>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
+                //                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<K, T> D)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<K, T>)", "Outer<T>.Inner<U>.Interface<U, T>").WithLocation(20, 22),
+                // (20,47): error CS0539: 'Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], List<U>, Dictionary<K, T>)' in explicit interface declaration is not a member of interface
+                //                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<K, T> D)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method").WithArguments("Outer<T>.Inner<U>.Derived4.Derived5.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<K, T>)").WithLocation(20, 47),
+                // (24,39): error CS0535: 'Outer<T>.Inner<U>.Derived4.Derived6' does not implement interface member 'Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], List<U>, Dictionary<T, Z>)'
+                //             internal class Derived6 : Outer<T>.Inner<U>.Interface<U, T>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Outer<T>.Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived6", "Outer<T>.Inner<U>.Interface<U, T>.Method<Z>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, Z>)").WithLocation(24, 39),
+                // (30,22): error CS0540: 'Outer<T>.Inner<U>.Derived4.Derived6.Outer<T>.Inner<U>.Interface<U, T>.Method<K>(T, U[], List<U>, Dictionary<T, K>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<U, T>'
+                //                 void Inner<U>.Interface<U, T>.Method<K>(T a, U[] b, List<U> c, Dictionary<T, K> D)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<U>.Interface<U, T>").WithArguments("Outer<T>.Inner<U>.Derived4.Derived6.Outer<T>.Inner<U>.Interface<U, T>.Method<K>(T, U[], System.Collections.Generic.List<U>, System.Collections.Generic.Dictionary<T, K>)", "Outer<T>.Inner<U>.Interface<U, T>").WithLocation(30, 22)
+                );
+        }
+
+        [Fact]
+        [WorkItem(30677, "https://github.com/dotnet/roslyn/issues/30677")]
+        public void TestErrorsImplementingGenericNestedInterfaces_Explicit_IncorrectPartialQualification()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Outer<T>
+{
+    internal class Inner<U>
+    {
+        protected internal interface Interface<V, W>
+        {
+            T Property { set; }
+            void Method<Z>(T a, U[] b, List<V> c, Dictionary<W, Z> d);
+        }
+        internal class Derived3 : Interface<long, string>
+        {
+            T Interface<long, string>.Property
+            {
+                set { }
+            }
+            void Inner<U>.Interface<long, string>.Method<K>(T a, U[] B, List<long> C, Dictionary<string, K> d)
+            {
+            }
+        }
+    }
+}
+";
+
+            // https://github.com/dotnet/roslyn/issues/30677 - Expect no errors
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (12,35): error CS0535: 'Outer<T>.Inner<U>.Derived3' does not implement interface member 'Outer<T>.Inner<U>.Interface<long, string>.Method<Z>(T, U[], List<long>, Dictionary<string, Z>)'
+                //         internal class Derived3 : Interface<long, string>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived3", "Outer<T>.Inner<U>.Interface<long, string>.Method<Z>(T, U[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, Z>)").WithLocation(12, 35),
+                // (18,18): error CS0540: 'Outer<T>.Inner<U>.Derived3.Outer<T>.Inner<U>.Interface<long, string>.Method<K>(T, U[], List<long>, Dictionary<string, K>)': containing type does not implement interface 'Outer<T>.Inner<U>.Interface<long, string>'
+                //             void Inner<U>.Interface<long, string>.Method<K>(T a, U[] B, List<long> C, Dictionary<string, K> d)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "Inner<U>.Interface<long, string>").WithArguments("Outer<T>.Inner<U>.Derived3.Outer<T>.Inner<U>.Interface<long, string>.Method<K>(T, U[], System.Collections.Generic.List<long>, System.Collections.Generic.Dictionary<string, K>)", "Outer<T>.Inner<U>.Interface<long, string>").WithLocation(18, 18)
+                );
+        }
+
+        [Fact]
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation01()
+        {
+            var text =
+@"public static class Goo<T>
+{
+    static Goo()
+    {
+        Goo<T>.Y = 3;
+    }
+
+    public static int Y { get; }
+}";
+            CreateCompilation(text, options: WithNonNullTypesTrue(TestOptions.ReleaseDll)).VerifyDiagnostics();
+            CreateCompilation(text, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestOverrideGenericMethodWithTypeParamDiffNameWithCustomModifiers()
+        {
+            var text = @"
+namespace Metadata
+{
+    using System;
+    public class GD : Outer<string>.Inner<ulong>
+    {
+        public override void Method<X>(string[] x, ulong[] y, X[] z) { Console.Write(""Hello {0}"", z.Length); }
+
+        static void Main()
+        {
+            new GD().Method<byte>(null, null, new byte[] { 0, 127, 255 });
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                text,
+                new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
+                options: WithNonNullTypesTrue(TestOptions.ReleaseExe),
+                expectedOutput: @"Hello 3",
+                expectedSignatures: new[]
+                {
+                    // The ILDASM output is following,and Roslyn handles it correctly. 
+                    // Verifier tool gives different output due to the limitation of Reflection
+                    // @".method public hidebysig virtual instance System.Void Method<X>(" +
+                    // @"System.String modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x," +
+                    // @"UInt64 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) y," +
+                    // @"!!X modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) z) cil managed")
+                    Signature("Metadata.GD", "Method",
+                              @".method public hidebysig virtual instance System.Void Method<X>(" +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
+                });
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30747 Type load failed.")]
+        [WorkItem(30747, "https://github.com/dotnet/roslyn/issues/30747")]
+        public void MissingTypeKindBasisTypes()
+        {
+            var source1 = @"
+public struct A {}
+
+public enum B {}
+
+public class C {}
+public delegate void D();
+
+public interface I1 {}
+";
+            var compilation1 = CreateEmptyCompilation(source1, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { MinCorlibRef });
+            compilation1.VerifyEmitDiagnostics();
+
+            Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation1.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation1.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation1.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation1.GetTypeByMetadataName("I1").TypeKind);
+
+            var source2 = @"
+interface I2
+{
+    I1 M(A a, B b, C c, D d); 
+}
+";
+
+            var compilation2 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+
+            compilation2.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation2);
+
+            Assert.Equal(TypeKind.Struct, compilation2.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation2.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation2.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
+
+            var compilation3 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+
+            compilation3.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation3);
+
+            Assert.Equal(TypeKind.Struct, compilation3.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation3.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation3.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
+
+            var compilation4 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.EmitToImageReference() });
+
+            compilation4.VerifyDiagnostics(
+                // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.ValueType", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 10),
+                // (4,15): error CS0012: The type 'Enum' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("System.Enum", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 15),
+                // (4,25): error CS0012: The type 'MulticastDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("System.MulticastDelegate", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 25)
+                );
+
+            var a = compilation4.GetTypeByMetadataName("A");
+            var b = compilation4.GetTypeByMetadataName("B");
+            var c = compilation4.GetTypeByMetadataName("C");
+            var d = compilation4.GetTypeByMetadataName("D");
+            var i1 = compilation4.GetTypeByMetadataName("I1");
+            Assert.Equal(TypeKind.Class, a.TypeKind);
+            Assert.NotNull(a.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, b.TypeKind);
+            Assert.NotNull(b.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, c.TypeKind);
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, d.TypeKind);
+            Assert.NotNull(d.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Interface, i1.TypeKind);
+            Assert.Null(i1.GetUseSiteDiagnostic());
+
+            var compilation5 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.ToMetadataReference() });
+
+            compilation5.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+            CompileAndVerify(compilation5);
+
+            Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation5.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
+
+            var compilation6 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+
+            compilation6.VerifyDiagnostics(
+                // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.ValueType", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 10),
+                // (4,15): error CS0012: The type 'Enum' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("System.Enum", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 15),
+                // (4,25): error CS0012: The type 'MulticastDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("System.MulticastDelegate", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 25)
+                );
+
+            a = compilation6.GetTypeByMetadataName("A");
+            b = compilation6.GetTypeByMetadataName("B");
+            c = compilation6.GetTypeByMetadataName("C");
+            d = compilation6.GetTypeByMetadataName("D");
+            i1 = compilation6.GetTypeByMetadataName("I1");
+            Assert.Equal(TypeKind.Class, a.TypeKind);
+            Assert.NotNull(a.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, b.TypeKind);
+            Assert.NotNull(b.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, c.TypeKind);
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, d.TypeKind);
+            Assert.NotNull(d.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Interface, i1.TypeKind);
+            Assert.Null(i1.GetUseSiteDiagnostic());
+
+            var compilation7 = CreateEmptyCompilation(source2, options: WithNonNullTypesTrue(TestOptions.ReleaseDll), references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+
+            compilation7.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation7);
+
+            Assert.Equal(TypeKind.Struct, compilation7.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation7.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation7.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation7.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind);
         }
 
         [Fact]
