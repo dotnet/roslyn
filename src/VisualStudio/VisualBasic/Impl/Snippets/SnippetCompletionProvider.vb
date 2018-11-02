@@ -79,6 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                        s.Shortcut,
+                                       displayTextSuffix:="",
                                        description:=s.Description.ToSymbolDisplayParts(),
                                        glyph:=Glyph.Snippet,
                                        rules:=If(isTupleContext, s_tupleRules, s_rules)))

@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static CompletionItem Create(
             string displayText,
+            string displayTextSuffix,
             DeclarationModifiers modifiers,
             int line,
             ISymbol symbol,
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: descriptionPosition,
                 properties: props,

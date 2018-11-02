@@ -1281,6 +1281,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Kind.
+        /// </summary>
+        internal static string Kind {
+            get {
+                return ResourceManager.GetString("Kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Kind:.
         /// </summary>
         internal static string Kind_colon {
@@ -1795,6 +1804,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer compound assignments.
+        /// </summary>
+        internal static string Prefer_compound_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_compound_assignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with assignments.
         /// </summary>
         internal static string Prefer_conditional_expression_over_if_with_assignments {
@@ -1836,6 +1854,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_framework_type {
             get {
                 return ResourceManager.GetString("Prefer_framework_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer index operator.
+        /// </summary>
+        internal static string Prefer_index_operator {
+            get {
+                return ResourceManager.GetString("Prefer_index_operator", resourceCulture);
             }
         }
         
@@ -1899,6 +1926,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer range operator.
+        /// </summary>
+        internal static string Prefer_range_operator {
+            get {
+                return ResourceManager.GetString("Prefer_range_operator", resourceCulture);
             }
         }
         

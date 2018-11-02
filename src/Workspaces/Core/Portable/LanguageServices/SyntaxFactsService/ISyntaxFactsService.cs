@@ -60,9 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
-        bool IsFalseLiteralExpression(SyntaxNode expression);
-        bool IsTrueLiteralExpression(SyntaxNode expression);
-
+        bool IsFalseLiteralExpression(SyntaxNode node);
+        bool IsTrueLiteralExpression(SyntaxNode node);
+        bool IsThisExpression(SyntaxNode node);
+        bool IsBaseExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsSimpleAssignmentStatement(SyntaxNode statement);
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
@@ -164,14 +166,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsEndOfLineTrivia(SyntaxTrivia trivia);
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
-        SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
-
         void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
-        bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsConditionalAccessExpression(SyntaxNode node);
+        void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode whenNotNull);
 
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);

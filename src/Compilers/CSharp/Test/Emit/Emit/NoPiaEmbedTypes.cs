@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
+#if NET472
 
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -5183,7 +5183,8 @@ class UsePia5
             CompileAndVerify(compilation4, verify: Verification.Fails);
         }
 
-        [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"

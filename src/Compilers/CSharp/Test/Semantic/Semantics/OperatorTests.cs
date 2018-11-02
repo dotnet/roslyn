@@ -5814,6 +5814,84 @@ class B : A
             CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorIncrement()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static (T1 fst, T2 snd) operator ++((T1 one, T2 two) tuple)
+        {
+            return tuple;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvert()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
+                Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleOperatorConvertToBaseType()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static explicit operator ValueType(ValueTuple<T1, T2> s)
+        {
+            return s;
+        }
+    }
+}
+";
+            CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
+                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+        }
+
+        [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
+        public void TestTupleBinaryOperator()
+        {
+            var text = @"
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public static ValueTuple<T1, T2> operator +((T1 fst, T2 snd) s1, (T1 one, T2 two) s2)
+        {
+            return s1;
+        }
+    }
+}
+";
+            CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+        }
+
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
         [Fact]
         public void TestEqualityOperator_DelegateTypes_01()
@@ -6448,7 +6526,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
-                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0].Equals(m.ParameterTypes[1], TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0].Equals(m.ParameterTypes[1], TypeCompareKind.ConsiderEverything));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -7129,7 +7207,7 @@ class Module1
             }
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason="https://github.com/mono/mono/issues/10917")]
         public void BinaryIntrinsicSymbols1()
         {
             BinaryOperatorKind[] operators =

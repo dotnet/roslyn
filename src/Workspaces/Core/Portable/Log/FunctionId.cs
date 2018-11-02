@@ -429,6 +429,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeCleanup_SortImports,
         CodeCleanup_Format,
         CodeCleanupABTest_AssignedToOnByDefault,
-        CodeCleanupABTest_AssignedToOffByDefault
+        CodeCleanupABTest_AssignedToOffByDefault,
+        Workspace_Events,
+
+        Refactoring_ExtractMethod_UnknownMatrixItem,
     }
 }

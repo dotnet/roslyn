@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                         // and also will take it into consideration when measuring command handling duration.
                         waitContext.TakeOwnership();
                         if (!notificationService.ConfirmMessageBox(
-                                EditorFeaturesResources.Extract_method_failed_with_following_reasons_colon + Environment.NewLine + Environment.NewLine +
+                                EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
                                 string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
                                 EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
                                 title: EditorFeaturesResources.Extract_Method,
@@ -184,17 +184,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             // wait context. That means the command system won't attempt to show its own wait dialog 
             // and also will take it into consideration when measuring command handling duration.
             waitContext.TakeOwnership();
-            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            var project = document.Project;
+            var solution = project.Solution;
+            var notificationService = solution.Workspace.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
-            if (!document.Project.Solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, document.Project.Language) ||
-                !result.Status.HasBestEffort() || result.Document == null)
+            if (!solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, project.Language) ||
+                !result.Status.HasBestEffort() ||
+                result.Document == null)
             {
                 if (notificationService != null)
                 {
                     notificationService.SendNotification(
-                        EditorFeaturesResources.Extract_method_failed_with_following_reasons_colon + Environment.NewLine + Environment.NewLine +
-                        string.Join(Environment.NewLine, result.Reasons),
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)),
                         title: EditorFeaturesResources.Extract_Method,
                         severity: NotificationSeverity.Error);
                 }
@@ -206,11 +209,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             if (notificationService != null)
             {
                 if (!notificationService.ConfirmMessageBox(
-                        EditorFeaturesResources.Extract_method_failed_with_following_reasons_colon + Environment.NewLine + Environment.NewLine +
-                        string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
-                        EditorFeaturesResources.Do_you_still_want_to_proceed_it_will_generate_broken_code,
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                        string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)) + Environment.NewLine + Environment.NewLine +
+                        EditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
                         title: EditorFeaturesResources.Extract_Method,
-                        severity: NotificationSeverity.Error))
+                        severity: NotificationSeverity.Warning))
                 {
                     return true;
                 }
