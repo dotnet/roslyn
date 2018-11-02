@@ -263,7 +263,7 @@ function Build-Artifacts() {
 function Build-OptProfData() {
     $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
     $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
-    $configFile = Join-Path $repoDir "build\config\optprof.json"
+    $configFile = Join-Path $RepoRoot "build\config\optprof.json"
     $insertionFolder = Join-Path $vsSetupDir "Insertion"
     $outputFolder = Join-Path $configDir "DevDivInsertionFiles\OptProf"
     Write-Host "Generating optprof data using '$configFile' into '$outputFolder'"
