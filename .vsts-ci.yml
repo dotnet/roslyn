@@ -11,6 +11,8 @@ queue:
 
 variables:
   BuildPlatform: 'Any CPU'
+  InsertTargetBranchFullName: 'lab/d16.0stg472'
+  InsertTargetBranchShortName: 'd16.0stg472'
 steps:
 - task: NuGetCommand@2
   inputs:
@@ -21,6 +23,11 @@ steps:
   inputs:
     signType: real
   condition: and(succeeded(), in(variables['PB_SignType'], 'test', 'real'))
+
+- task: ms-vseng.MicroBuildTasks.965C8DC6-1483-45C9-B384-5AC75DA1F1A4.MicroBuildOptProfPlugin@1
+  inputs:
+    skipRunOptimize: true
+  displayName: 'Install OptProf Plugin'
 
 - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
   inputs:
@@ -63,6 +70,65 @@ steps:
     configuration: '$(BuildConfiguration)'
     maximumCpuCount: true
     logProjectEvents: false
+
+### BEGIN OPTPROF TASKS ###
+
+# Publish optprof configuration files
+- task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+  inputs:
+    dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+    buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildId)'
+    sourcePath: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivInsertionFiles\OptProf'
+    toLowerCase: false
+    usePat: false
+  displayName: 'OPTPROF - Publish to Artifact Services - ProfilingInputs'
+  condition: succeededOrFailed()
+
+# Created a exe that will install visual studio with this version 
+- task: PowerShell@2
+  inputs:
+    filePath: build\scripts\setmanifestpaths.ps1
+    failOnStderr: true
+  displayName: 'OPTPROF - Set VSTS variables for vsman files'
+  condition: succeededOrFailed()
+
+- task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@1
+  inputs:
+    vsMajorVersion: 16
+    channelName: int.$(InsertTargetBranchShortName)
+    manifests: $(SetupManifests)
+    outputFolder: '$(Build.SourcesDirectory)\Binaries\VSSetup\$(BuildConfiguration)\Insertion'
+  displayName: 'OPTPROF - Build VS bootstrapper'
+  condition: succeededOrFailed()
+
+# Publish run settings
+- task: PowerShell@2
+  inputs:
+    filePath: build\scripts\createrunsettings.ps1
+    arguments: -release
+    failOnStderr: true
+  displayName: 'OPTPROF - generate runsettings file'
+  condition: succeededOrFailed()
+
+# Publish bootstrapper info
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: $(Build.StagingDirectory)\MicroBuild\Output
+    ArtifactName: MicroBuildOutputs
+    ArtifactType: Container
+  displayName: 'OPTPROF - Publish Artifact: MicroBuildOutputs'
+  condition: succeededOrFailed()
+
+# Publish scripts to get the branch of VS that this inserts into
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivInsertionFiles\BranchInfo'
+    ArtifactName: BranchInfo
+    ArtifactType: Container
+  displayName: 'OPTPROF - Publish Artifact: BranchInfo'
+  condition: succeededOrFailed()
+
+### END OPTPROF TASKS ###
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Logs

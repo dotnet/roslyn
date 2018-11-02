@@ -101,9 +101,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
         }
 
+        internal static IEnumerable<string> GetReferencePaths()
+        {
+            // TODO:
+            // WORKAROUND: properly enumerate them
+            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5");
+            yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0");
+        }
+
         private static ImmutableArray<string> GetRuntimeDirectories()
         {
-            return ReferencePathUtilities.GetReferencePaths().Concat(
+            return GetReferencePaths().Concat(
                 new string[]
                 {
                     Environment.GetFolderPath(Environment.SpecialFolder.Windows),

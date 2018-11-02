@@ -411,7 +411,7 @@
       </trans-unit>
       <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
         <source>Must include private members unless emitting a ref assembly.</source>
-        <target state="translated">Doit inclure des membres privés sauf si émet un assembly de référence.</target>
+        <target state="translated">Doit inclure des membres privés sauf en cas d'émission d'un assembly de référence.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
