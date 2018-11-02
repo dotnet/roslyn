@@ -348,7 +348,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             textBuilder.AddSpace();
             AddConstantText(leftConstant.Value);
             textBuilder.AddSpace();
-            textBuilder.AddOperator(operatorToken.Text);
+            textBuilder.Add(
+                new TaggedText(
+                    syntaxFacts.IsKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
+                    operatorToken.Text));
             textBuilder.AddSpace();
             AddConstantText(rightConstant.Value);
             textBuilder.AddSpace();

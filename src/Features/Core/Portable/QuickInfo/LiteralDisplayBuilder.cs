@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 syntaxFacts.IsCharacterLiteral(token) || syntaxFacts.IsStringLiteral(token) ? TextTags.StringLiteral :
                 syntaxFacts.IsNumericLiteral(token) ? TextTags.NumericLiteral :
                 syntaxFacts.IsKeyword(token) ? TextTags.Keyword :
-                TextTags.Text;
+                syntaxFacts.IsOperator(token) ? TextTags.Operator :
+                syntaxFacts.IsIdentifier(token) ? TextTags.Field :
+                TextTags.Punctuation;
 
             return new TaggedText(tag, token.Text);
         }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A piece of text with a descriptive tag.
     /// </summary>
-    public struct TaggedText
+    public readonly struct TaggedText
     {
         /// <summary>
         /// A descriptive tag from <see cref="TextTags"/>.
@@ -179,13 +179,13 @@ namespace Microsoft.CodeAnalysis
 
         public static string ToVisibleDisplayString(this IEnumerable<TaggedText> parts, bool includeLeftToRightMarker)
         {
-            return string.Join(string.Empty, parts.Select(
+            return string.Concat(parts.Select(
                 p => p.ToVisibleDisplayString(includeLeftToRightMarker)));
         }
 
         public static string GetFullText(this IEnumerable<TaggedText> parts)
         {
-            return string.Join(string.Empty, parts.Select(p => p.ToString()));
+            return string.Concat(parts.Select(p => p.ToString()));
         }
 
         public static void AddAliasName(this IList<TaggedText> parts, string text)

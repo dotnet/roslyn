@@ -2077,7 +2077,7 @@ class C : I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task Operator()
+        public async Task TestOperator()
         {
             await TestInClassAsync(
 @"public static C operator +(C left, C right)

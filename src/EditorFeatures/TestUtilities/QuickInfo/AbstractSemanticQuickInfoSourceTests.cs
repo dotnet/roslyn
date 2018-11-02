@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
@@ -56,17 +57,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             FormattedClassification[] expectedClassifications = null)
         {
             var textBlock = sections.FirstOrDefault(tb => tb.Kind == textBlockKind);
-            var text = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
-            AssertTaggedText(expectedText, text, expectedClassifications);
+            var taggedText = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
+
+            Assert.Equal(expectedText, taggedText.GetFullText());
         }
 
-        protected void AssertTaggedText(
-            string expectedText,
-            ImmutableArray<TaggedText> taggedText,
-            FormattedClassification[] expectedClassifications = null)
+        internal void AssertSection(
+            ImmutableArray<(string text, string tag)> expectedTextWithTags,
+            ImmutableArray<QuickInfoSection> sections,
+            string textBlockKind)
         {
-            var actualText = string.Concat(taggedText.Select(tt => tt.Text));
-            Assert.Equal(expectedText, actualText);
+            var textBlock = sections.FirstOrDefault(tb => tb.Kind == textBlockKind);
+            var taggedText = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
+
+            var expectedTaggedText = expectedTextWithTags.Select(t => new TaggedText(t.tag, t.text));
+            Assert.Equal(expectedTaggedText.GetFullText(), taggedText.GetFullText());
+
+            // For better failure messages, use AssertEx and assert equality of tuples
+            // instead of TaggedText because TaggedText.ToString() just returns the Text.
+            AssertEx.Equal(expectedTextWithTags, taggedText.Select(t => (t.Text, t.Tag)));
         }
 
         protected Action<QuickInfoItem> MainDescription(
@@ -135,6 +144,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         protected Action<QuickInfoItem> ConstantValue(string expectedText)
         {
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ConstantValue);
+        }
+
+        protected Action<QuickInfoItem> ConstantValueContent(params (string text, string tag)[] expectedContentWithTags)
+        {
+            var expectedTextWithTags = expectedContentWithTags.ToImmutableArray().InsertRange(0, new[]
+            {
+                ("\r\n", TextTags.LineBreak),
+                (FeaturesResources.Constant_value_colon, TextTags.Text),
+                (" ", TextTags.Space),
+            });
+
+            return item => AssertSection(expectedTextWithTags, item.Sections, QuickInfoSectionKinds.ConstantValue);
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)

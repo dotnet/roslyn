@@ -3,29 +3,40 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.TextTags;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public partial class SemanticQuickInfoSourceTests
     {
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("int", "1 + 2 = 3")]
-        [InlineData("uint", "1U + 2 = 3U")]
-        [InlineData("byte", "1 + 2 = 3")]
-        [InlineData("sbyte", "1 + 2 = 3")]
-        [InlineData("short", "1 + 2 = 3")]
-        [InlineData("ushort", "1 + 2 = 3")]
-        [InlineData("long", "1L + 2 = 3L")]
-        [InlineData("ulong", "1UL + 2 = 3UL")]
-        [InlineData("float", "1F + 2 = 3F")]
-        [InlineData("double", "1D + 2 = 3D")]
-        [InlineData("decimal", "1M + 2 = 3M")]
-        public async Task TestAddExpression_NumericType(string type, string result)
+        [InlineData("int", "1", "3")]
+        [InlineData("uint", "1U", "3U")]
+        [InlineData("byte", "1", "3")]
+        [InlineData("sbyte", "1", "3")]
+        [InlineData("short", "1", "3")]
+        [InlineData("ushort", "1", "3")]
+        [InlineData("long", "1L", "3L")]
+        [InlineData("ulong", "1UL", "3UL")]
+        [InlineData("float", "1F", "3F")]
+        [InlineData("double", "1D", "3D")]
+        [InlineData("decimal", "1M", "3M")]
+        public async Task TestAddExpression_NumericType(string type, string left, string result)
         {
             await TestInMethodAsync($@"
 const {type} v = 1;
 var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} {result}"));
+                ConstantValueContent(
+                    (left, NumericLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    (result, NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -34,7 +45,17 @@ var f = v $$+ 2",
             await TestInMethodAsync(@"
 const char v = 'A';
 var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 'A' + 2 = 67"));
+                ConstantValueContent(
+                    ("'A'", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("67", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -43,7 +64,17 @@ var f = v $$+ 2",
             await TestInMethodAsync(@"
 const char v = 'A';
 var f = v $$+ 'B'",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 'A' + 'B' = 131"));
+                ConstantValueContent(
+                    ("'A'", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("'B'", StringLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("131", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -52,7 +83,17 @@ var f = v $$+ 'B'",
             await TestInMethodAsync(@"
 const string v = ""World"";
 var f = ""Hello "" $$+ v",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} \"Hello \" + \"World\" = \"Hello World\""));
+                ConstantValueContent(
+                    ("\"Hello \"", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("\"World\"", StringLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("\"Hello World\"", StringLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -60,7 +101,17 @@ var f = ""Hello "" $$+ v",
         {
             await TestInMethodAsync(@"
 var f = ""Hello "" $$+ default(string)",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} \"Hello \" + null = \"Hello \""));
+                ConstantValueContent(
+                    ("\"Hello \"", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("null", Keyword),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("\"Hello \"", StringLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -70,23 +121,44 @@ var f = ""Hello "" $$+ default(string)",
 const string v = @""Hello
 World"";
 var f = v $$+ ""!""",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} \"Hello\\r\\nWorld\" + \"!\" = \"Hello\\r\\nWorld!\""));
+                ConstantValueContent(
+                    ("\"Hello\\r\\nWorld\"", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("\"!\"", StringLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("\"Hello\\r\\nWorld!\"", StringLiteral)
+                ));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("int", "1 - 2 = -1")]
-        [InlineData("sbyte", "1 - 2 = -1")]
-        [InlineData("short", "1 - 2 = -1")]
-        [InlineData("long", "1L - 2 = -1L")]
-        [InlineData("float", "1F - 2 = -1F")]
-        [InlineData("double", "1D - 2 = -1D")]
-        [InlineData("decimal", "1M - 2 = -1M")]
-        public async Task TestSubtractExpression_NumericType(string type, string result)
+        [InlineData("int", "1", "1")]
+        [InlineData("sbyte", "1", "1")]
+        [InlineData("short", "1", "1")]
+        [InlineData("long", "1L", "1L")]
+        [InlineData("float", "1F", "1F")]
+        [InlineData("double", "1D", "1D")]
+        [InlineData("decimal", "1M", "1M")]
+        public async Task TestSubtractExpression_NumericType(string type, string left, string result)
         {
             await TestInMethodAsync($@"
 const {type} v = 1;
 var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} {result}"));
+                ConstantValueContent(
+                    (left, NumericLiteral),
+                    (" ", Space),
+                    ("-", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("-", Operator),
+                    (result, NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -95,7 +167,17 @@ var f = v $$- 2",
             await TestInMethodAsync(@"
 const char v = 'A';
 var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 'A' - 2 = 63"));
+                ConstantValueContent(
+                    ("'A'", StringLiteral),
+                    (" ", Space),
+                    ("-", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("63", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -104,7 +186,18 @@ var f = v $$- 2",
             await TestInMethodAsync(@"
 const char v = 'A';
 var f = v $$- 'B'",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 'A' - 'B' = -1"));
+                ConstantValueContent(
+                    ("'A'", StringLiteral),
+                    (" ", Space),
+                    ("-", Operator),
+                    (" ", Space),
+                    ("'B'", StringLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("-", Operator),
+                    ("1", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -112,7 +205,17 @@ var f = v $$- 'B'",
         {
             await TestInMethodAsync(@"
 var f = 1.2 $$* 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1.2D * 2 = 2.4D"));
+                ConstantValueContent(
+                    ("1.2D", NumericLiteral),
+                    (" ", Space),
+                    ("*", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("2.4D", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -120,7 +223,17 @@ var f = 1.2 $$* 2",
         {
             await TestInMethodAsync(@"
 var f = 1.2 $$/ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1.2D / 2 = 0.6D"));
+                ConstantValueContent(
+                    ("1.2D", NumericLiteral),
+                    (" ", Space),
+                    ("/", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("0.6D", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -128,7 +241,17 @@ var f = 1.2 $$/ 2",
         {
             await TestInMethodAsync(@"
 var f = 12 $$% 5",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 12 % 5 = 2"));
+                ConstantValueContent(
+                    ("12", NumericLiteral),
+                    (" ", Space),
+                    ("%", Operator),
+                    (" ", Space),
+                    ("5", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -136,7 +259,17 @@ var f = 12 $$% 5",
         {
             await TestInMethodAsync(@"
 var f = 8 $$<< 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 8 << 2 = 32"));
+                ConstantValueContent(
+                    ("8", NumericLiteral),
+                    (" ", Space),
+                    ("<<", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("32", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -144,7 +277,17 @@ var f = 8 $$<< 2",
         {
             await TestInMethodAsync(@"
 var f = 8 $$>> 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 8 >> 2 = 2"));
+                ConstantValueContent(
+                    ("8", NumericLiteral),
+                    (" ", Space),
+                    (">>", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -152,7 +295,17 @@ var f = 8 $$>> 2",
         {
             await TestInMethodAsync(@"
 var f = 2 $$& 3",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 2 & 3 = 2"));
+                ConstantValueContent(
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("&", Operator),
+                    (" ", Space),
+                    ("3", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -160,7 +313,17 @@ var f = 2 $$& 3",
         {
             await TestInMethodAsync(@"
 var f = 2 $$| 3",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 2 | 3 = 3"));
+                ConstantValueContent(
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("|", Operator),
+                    (" ", Space),
+                    ("3", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("3", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -168,7 +331,17 @@ var f = 2 $$| 3",
         {
             await TestInMethodAsync(@"
 var f = 2 $$^ 3",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 2 ^ 3 = 1"));
+                ConstantValueContent(
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("^", Operator),
+                    (" ", Space),
+                    ("3", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("1", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -176,7 +349,17 @@ var f = 2 $$^ 3",
         {
             await TestInMethodAsync(@"
 var f = 1 $$< 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 < 2 = true"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("<", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("true", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -184,7 +367,17 @@ var f = 1 $$< 2",
         {
             await TestInMethodAsync(@"
 var f = 1 $$<= 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 <= 2 = true"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("<=", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("true", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -192,7 +385,17 @@ var f = 1 $$<= 2",
         {
             await TestInMethodAsync(@"
 var f = 1 $$> 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 > 2 = false"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    (">", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("false", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -200,7 +403,17 @@ var f = 1 $$> 2",
         {
             await TestInMethodAsync(@"
 var f = 1 $$>= 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 >= 2 = false"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    (">=", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("false", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -208,7 +421,17 @@ var f = 1 $$>= 2",
         {
             await TestInMethodAsync(@"
 var f = 1 $$== 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 == 2 = false"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("==", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("false", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -216,7 +439,17 @@ var f = 1 $$== 2",
         {
             await TestInMethodAsync(@"
 var f = 1 $$!= 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 != 2 = true"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("!=", Operator),
+                    (" ", Space),
+                    ("2", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("true", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -224,7 +457,17 @@ var f = 1 $$!= 2",
         {
             await TestInMethodAsync(@"
 var f = true $$&& !true",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} true && false = false"));
+                ConstantValueContent(
+                    ("true", Keyword),
+                    (" ", Space),
+                    ("&&", Operator),
+                    (" ", Space),
+                    ("false", Keyword),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("false", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -232,7 +475,17 @@ var f = true $$&& !true",
         {
             await TestInMethodAsync(@"
 var f = true $$|| !true",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} true || false = true"));
+                ConstantValueContent(
+                    ("true", Keyword),
+                    (" ", Space),
+                    ("||", Operator),
+                    (" ", Space),
+                    ("false", Keyword),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("true", Keyword)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -242,7 +495,18 @@ var f = true $$|| !true",
 
             await TestInMethodAsync(@"
 var f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$+ ""o""",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} \"abcdefghijklmnopqrstuvwxyzabcdefghijklmn\" + \"o\" = \"abcdefghijklmnopqrstuvwxyzabcdefghijklmno{UnicodeEllipsis}"));
+                ConstantValueContent(
+                    ("\"abcdefghijklmnopqrstuvwxyzabcdefghijklmn\"", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("\"o\"", StringLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("\"abcdefghijklmnopqrstuvwxyzabcdefghijklmno", StringLiteral),
+                    (UnicodeEllipsis, TextTags.Text)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -253,7 +517,17 @@ enum Foo
 {
     Bar = 1 <<$$ 3,
 }",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 << 3 = 8"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("<<", Operator),
+                    (" ", Space),
+                    ("3", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("8", NumericLiteral)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -266,7 +540,17 @@ enum Foo
        /*c*/<<$$//d
    /*e*/4 // f
 }",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 << 4 = 16"));
+                ConstantValueContent(
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("<<", Operator),
+                    (" ", Space),
+                    ("4", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("16", NumericLiteral)
+                ));
         }
     }
 }
