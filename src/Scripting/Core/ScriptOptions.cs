@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 "System.Threading.Tasks",
                 "System.Threading.Tasks.Parallel",
                 "System.Threading.Thread",
+                "System.ValueTuple",
             };
 
             return ImmutableArray.CreateRange(files.Select(CreateUnresolvedReference));
