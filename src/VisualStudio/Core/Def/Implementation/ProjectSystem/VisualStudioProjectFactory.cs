@@ -51,7 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions);
+                        parseOptions: creationInfo.ParseOptions)
+                        .WithDefaultNamespace(creationInfo.DefaultNamespace);
 
                 // HACK: update this since we're still on the UI thread. Note we can only update this if we don't have projects -- the workspace
                 // only lets us really do this with OnSolutionAdded for now.
