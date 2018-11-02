@@ -1554,9 +1554,9 @@ public class Class1
 public ref struct Struct1 { }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (8,40): error CS7053: An expression tree may not contain 'ref struct'
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2(default(Struct1)));
-                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "default(Struct1)").WithArguments("ref struct").WithLocation(8, 40));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(Struct1)").WithArguments("Struct1").WithLocation(8, 40));
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
@@ -1580,9 +1580,9 @@ public class Class1
 public ref struct Struct1 { }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (8,40): error CS7053: An expression tree may not contain 'ref struct'
-                //         Method((Class1 c) => c.Method2(default(Struct1)));
-                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "default").WithArguments("ref struct").WithLocation(8, 40));
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
+                //         Method((Class1 c) => c.Method2(default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 40));
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
@@ -1606,9 +1606,9 @@ public class Class1
 public ref struct Struct1 { }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (8,50): error CS7053: An expression tree may not contain 'ref struct'
+                // (8,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2((Struct1) default));
-                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "default").WithArguments("ref struct").WithLocation(8, 50));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 50));
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
@@ -1632,9 +1632,9 @@ public class Class1
 public ref struct Struct1 { }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (8,40): error CS7053: An expression tree may not contain 'ref struct'
+                // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2(new Struct1()));
-                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "new Struct1()").WithArguments("ref struct").WithLocation(8, 40));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Struct1()").WithArguments("Struct1").WithLocation(8, 40));
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
@@ -1659,9 +1659,9 @@ public class Class1
 public ref struct Struct1 { }
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (9,25): error CS7053: An expression tree may not contain 'ref struct'
+                // (9,25): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Struct1 s) => Method2());
-                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "s").WithArguments("ref struct").WithLocation(9, 25));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "s").WithArguments("Struct1").WithLocation(9, 25));
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
