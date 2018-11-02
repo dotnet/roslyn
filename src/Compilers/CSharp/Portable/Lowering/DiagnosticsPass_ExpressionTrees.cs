@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr.Type is TypeSymbol type &&
                 type.IsByRefLikeType)
             {
-                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, "ref struct");
+                Error(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, node, type.Name);
             }
             return base.Visit(node);
         }
@@ -365,9 +365,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
                         }
-                        if (p.Type.TypeSymbol?.IsByRefLikeType == true)
+                        if (p.Type.IsRestrictedType())
                         {
-                            _diagnostics.Add(ErrorCode.ERR_FeatureNotValidInExpressionTree, p.Locations[0], "ref struct");
+                            _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
                         }
                     }
                 }
