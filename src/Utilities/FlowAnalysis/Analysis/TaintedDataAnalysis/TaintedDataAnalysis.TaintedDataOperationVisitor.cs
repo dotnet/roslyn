@@ -106,7 +106,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     // Only track tainted data, or sanitized data.
                     // If it's new, and it's untainted, we don't care.
-                    this.CurrentAnalysisData.SetAbstactValue(analysisEntity, value);
+                    this.CurrentAnalysisData.SetAbstractValue(analysisEntity, value);
                 }
             }
 
