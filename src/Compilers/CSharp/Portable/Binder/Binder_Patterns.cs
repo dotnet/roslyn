@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.DiscardPattern:
-                    return BindDiscardPattern((DiscardPatternSyntax)node, inputType, hasErrors, diagnostics);
+                    return BindDiscardPattern((DiscardPatternSyntax)node, inputType);
 
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern((DeclarationPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
         {
             return new BoundDiscardPattern(node, inputType);
         }

@@ -944,7 +944,7 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,22): warning CS8512: The name '_' refers to the constant '(0}', not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                // (11,22): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
                 //                 case _:
                 Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(11, 22)
                 );
@@ -973,7 +973,7 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,22): warning CS8512: The name '_' refers to the constant '(0}', not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                // (11,22): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
                 //                 case _ when true:
                 Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(11, 22)
                 );
