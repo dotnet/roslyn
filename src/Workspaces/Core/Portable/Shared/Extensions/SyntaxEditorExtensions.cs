@@ -18,6 +18,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// expression context, then the document/semantic-model will be forked after each edit 
         /// so that further edits can see if they're still safe to apply.
         /// </summary>
+        public static Task ApplyExpressionLevelSemanticEditsAsync<TType>(
+            this SyntaxEditor editor, Document document,
+            ImmutableArray<TType> originalNodes,
+            Func<SemanticModel, TType, SyntaxNode, bool> canReplace,
+            Func<SemanticModel, SyntaxNode, TType, SyntaxNode, SyntaxNode> updateRoot,
+            Func<TType, SyntaxNode> selector,
+            CancellationToken cancellationToken)
+        {
+            return ApplySemanticEditsAsync(
+                editor, document,
+                originalNodes,
+                (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
+                canReplace,
+                updateRoot,
+                selector,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Performs several edits to a document.  If multiple edits are made within the same
+        /// expression context, then the document/semantic-model will be forked after each edit 
+        /// so that further edits can see if they're still safe to apply.
+        /// </summary>
         public static Task ApplyExpressionLevelSemanticEditsAsync<TNode>(
             this SyntaxEditor editor, Document document,
             ImmutableArray<TNode> originalNodes,
@@ -29,8 +52,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 (syntaxFacts, node) => GetExpressionSemanticBoundary(syntaxFacts, node),
+                (semanticModel, _, node) => canReplace(semanticModel, (TNode)node),
+                (semanticModel, currentRoot, _, node) => updateRoot(semanticModel, currentRoot, (TNode)node),
+                (t) => t,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Performs several edits to a document.  If multiple edits are made within a method
+        /// body then the document/semantic-model will be forked after each edit so that further
+        /// edits can see if they're still safe to apply.
+        /// </summary>
+        public static Task ApplyMethodBodySemanticEditsAsync<TType>(
+            this SyntaxEditor editor, Document document,
+            ImmutableArray<TType> originalNodes,
+            Func<SemanticModel, TType, SyntaxNode, bool> canReplace,
+            Func<SemanticModel, SyntaxNode, TType, SyntaxNode, SyntaxNode> updateRoot,
+            Func<TType, SyntaxNode> selector,
+            CancellationToken cancellationToken)
+        {
+            return ApplySemanticEditsAsync(
+                editor, document,
+                originalNodes,
+                (syntaxFacts, node) => GetMethodBodySemanticBoundary(syntaxFacts, node),
                 canReplace,
                 updateRoot,
+                selector,
                 cancellationToken);
         }
 
@@ -50,8 +97,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 editor, document,
                 originalNodes,
                 (syntaxFacts, node) => GetMethodBodySemanticBoundary(syntaxFacts, node),
-                canReplace,
-                updateRoot,
+                (semanticModel, _, node) => canReplace(semanticModel, (TNode)node),
+                (semanticModel, currentRoot, _, node) => updateRoot(semanticModel, currentRoot, (TNode)node),
+                (t) => t,
                 cancellationToken);
         }
 
@@ -73,36 +121,40 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// it will call into <paramref name="canReplace"/> to validate if the subsequent fix
         /// can be made or not.
         /// </summary>
-        private static async Task ApplySemanticEditsAsync<TNode>(
+        private static async Task ApplySemanticEditsAsync<TType>(
             this SyntaxEditor editor, Document document,
-            ImmutableArray<TNode> originalNodes,
+            ImmutableArray<TType> originalNodes,
             Func<ISyntaxFactsService, SyntaxNode, SyntaxNode> getSemanticBoundary,
-            Func<SemanticModel, TNode, bool> canReplace,
-            Func<SemanticModel, SyntaxNode, TNode, SyntaxNode> updateRoot,
-            CancellationToken cancellationToken) where TNode : SyntaxNode
+            Func<SemanticModel, TType, SyntaxNode, bool> canReplace,
+            Func<SemanticModel, SyntaxNode, TType, SyntaxNode, SyntaxNode> updateRoot,
+            Func<TType, SyntaxNode> selector,
+            CancellationToken cancellationToken)
         {
+            var originalNodePairs = originalNodes.Select(n => (n, selector(n)));
+
             // This code fix will not make changes that affect the semantics of a statement
             // or declaration. Therefore, we can skip the expensive verification step in 
             // cases where only one expression appears within the group.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var nodesBySemanticBoundary = originalNodes.GroupBy(node => getSemanticBoundary(syntaxFacts, node));
+            var nodesBySemanticBoundary = originalNodePairs.GroupBy(pair => getSemanticBoundary(syntaxFacts, pair.Item2));
             var nodesToVerify = nodesBySemanticBoundary.Where(group => group.Skip(1).Any()).Flatten().ToSet();
 
             // We're going to be continually editing this tree.  Track all the nodes we
             // care about so we can find them across each edit.
             var originalRoot = editor.OriginalRoot;
-            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodes));
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodePairs.Select(pair => pair.Item2)));
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var originalNode in originalNodes)
+            foreach (var nodePair in originalNodePairs)
             {
-                var currentNode = currentRoot.GetCurrentNode(originalNode);
-                var skipVerification = !nodesToVerify.Contains(originalNode);
+                (var t, SyntaxNode node) = nodePair;
+                var currentNode = currentRoot.GetCurrentNode(node);
+                var skipVerification = !nodesToVerify.Contains(nodePair);
 
-                if (skipVerification || canReplace(semanticModel, currentNode))
+                if (skipVerification || canReplace(semanticModel, t, currentNode))
                 {
-                    var replacementRoot = updateRoot(semanticModel, currentRoot, currentNode);
+                    var replacementRoot = updateRoot(semanticModel, currentRoot, t, currentNode);
 
                     document = document.WithSyntaxRoot(replacementRoot);
 
