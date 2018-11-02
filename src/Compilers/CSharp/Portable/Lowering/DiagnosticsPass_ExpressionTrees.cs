@@ -356,21 +356,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
-                var lambda = node.ExpressionSymbol as MethodSymbol;
-                if ((object)lambda != null)
+                var lambda = node.Symbol;
+                foreach (var p in lambda.Parameters)
                 {
-                    foreach (var p in lambda.Parameters)
+                    if (p.RefKind != RefKind.None && p.Locations.Length != 0)
                     {
-                        if (p.RefKind != RefKind.None && p.Locations.Length != 0)
-                        {
-                            _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
-                        }
-                        if (p.Type.IsRestrictedType())
-                        {
-                            _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
-                        }
+                        _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
+                    }
+                    if (p.Type.IsRestrictedType())
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
                     }
                 }
+
                 switch (node.Syntax.Kind())
                 {
                     case SyntaxKind.ParenthesizedLambdaExpression:
