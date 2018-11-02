@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Create <see cref="IOperation"/> of <see cref="OperationKind.None"/> with explicit children
-        /// 
+        ///
         /// Use this to create IOperation when we don't have proper specific IOperation yet for given language construct
         /// </summary>
         public static IOperation CreateOperationNone(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            // race is okay. penalty is going through a loop one more time or 
+            // race is okay. penalty is going through a loop one more time or
             // .Parent going through slower path of SearchParentOperation()
             // explicit cast is not allowed, so using "as" instead
             // invalid expression can have null element in the array
@@ -184,6 +184,21 @@ namespace Microsoft.CodeAnalysis
             }
 
             return operations;
+        }
+
+        [Conditional("DEBUG")]
+        internal static void VerifyParentOperation(IOperation parent, IOperation child)
+        {
+            Debug.Assert((object)child.Parent == parent);
+        }
+
+        [Conditional("DEBUG")]
+        internal static void VerifyParentOperation<T>(IOperation parent, ImmutableArray<T> children) where T : IOperation
+        {
+            foreach (var child in children)
+            {
+                VerifyParentOperation(parent, child);
+            }
         }
 
         private abstract class BaseNoneOperation : Operation
