@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !(node is BoundConversion) &&
                 node is BoundExpression expr &&
                 expr.Type is TypeSymbol type &&
-                type.IsByRefLikeType)
+                type.IsRestrictedType())
             {
                 Error(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, node, type.Name);
             }
