@@ -516,9 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
             inputValEscape = GetValEscape(declType, inputValEscape);
 
-            if (ShouldUseITuple(node, declType, diagnostics, out NamedTypeSymbol iTupleType, out MethodSymbol iTupleGetLength, out MethodSymbol iTupleGetItem))
+            if (ShouldUseITupleForRecursivePattern(node, declType, diagnostics, out NamedTypeSymbol iTupleType, out MethodSymbol iTupleGetLength, out MethodSymbol iTupleGetItem))
             {
-                return BindITuplePattern(node, inputType, iTupleType, iTupleGetLength, iTupleGetItem, hasErrors, diagnostics);
+                return BindITuplePattern(node, declType, iTupleType, iTupleGetLength, iTupleGetItem, hasErrors, diagnostics);
             }
 
             MethodSymbol deconstructMethod = null;
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindITuplePattern(
             RecursivePatternSyntax node,
-            TypeSymbol inputType,
+            TypeSymbol strippedInputType,
             NamedTypeSymbol iTupleType,
             MethodSymbol iTupleGetLength,
             MethodSymbol iTupleGetItem,
@@ -570,7 +570,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 patterns.Add(boundSubpattern);
             }
 
-            return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), inputType, hasErrors);
+            return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), strippedInputType, hasErrors);
+        }
+
+        private BoundPattern BindITuplePattern(
+            VarPatternSyntax node,
+            TypeSymbol strippedInputType,
+            NamedTypeSymbol iTupleType,
+            MethodSymbol iTupleGetLength,
+            MethodSymbol iTupleGetItem,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            // Since the input has been cast to ITuple, it must be escapable.
+            const uint valEscape = Binder.ExternalScope;
+            var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
+            Debug.Assert(node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation);
+            var deconstruction = (ParenthesizedVariableDesignationSyntax)node.Designation;
+            var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(deconstruction.Variables.Count);
+            foreach (var variable in deconstruction.Variables)
+            {
+                var boundSubpattern = new BoundSubpattern(
+                    variable,
+                    null,
+                    BindVarDesignation(node, variable, objectType, valEscape, hasErrors, diagnostics));
+                patterns.Add(boundSubpattern);
+            }
+
+            return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), strippedInputType, hasErrors);
         }
 
         private ImmutableArray<BoundSubpattern> BindDeconstructionPatternClause(
@@ -664,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return patterns.ToImmutableAndFree();
         }
 
-        private bool ShouldUseITuple(
+        private bool ShouldUseITupleForRecursivePattern(
             RecursivePatternSyntax node,
             TypeSymbol declType,
             DiagnosticBag diagnostics,
@@ -674,10 +701,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             iTupleType = null;
             iTupleGetLength = iTupleGetItem = null;
-            if (declType.IsTupleType)
-            {
-                return false;
-            }
 
             if (node.Type != null)
             {
@@ -700,6 +723,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Designation != null)
             {
                 // ITuple matching only applies if there is no designation (what type would the designation be?)
+                return false;
+            }
+
+            return ShouldUseITuple(node, declType, diagnostics, out iTupleType, out iTupleGetLength, out iTupleGetItem);
+        }
+
+        private bool ShouldUseITuple(
+            CSharpSyntaxNode node,
+            TypeSymbol declType,
+            DiagnosticBag diagnostics,
+            out NamedTypeSymbol iTupleType,
+            out MethodSymbol iTupleGetLength,
+            out MethodSymbol iTupleGetItem)
+        {
+            iTupleType = null;
+            iTupleGetLength = iTupleGetItem = null;
+            if (declType.IsTupleType)
+            {
                 return false;
             }
 
@@ -831,15 +872,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var tupleDesignation = (ParenthesizedVariableDesignationSyntax)designation;
                         var subPatterns = ArrayBuilder<BoundSubpattern>.GetInstance(tupleDesignation.Variables.Count);
                         MethodSymbol deconstructMethod = null;
-                        if (inputType.IsTupleType)
+                        var strippedInputType = inputType.StrippedType();
+
+                        if (ShouldUseITuple(node, strippedInputType, diagnostics, out NamedTypeSymbol iTupleType, out MethodSymbol iTupleGetLength, out MethodSymbol iTupleGetItem))
+                        {
+                            return BindITuplePattern(node, strippedInputType, iTupleType, iTupleGetLength, iTupleGetItem, hasErrors, diagnostics);
+                        }
+                        else if (strippedInputType.IsTupleType)
                         {
                             // It is a tuple type. Work according to its elements
-                            ImmutableArray<TypeSymbolWithAnnotations> elementTypes = inputType.TupleElementTypes;
+                            ImmutableArray<TypeSymbolWithAnnotations> elementTypes = strippedInputType.TupleElementTypes;
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
                                 var location = new SourceLocation(node.SyntaxTree, 
                                     new Text.TextSpan(tupleDesignation.OpenParenToken.SpanStart, tupleDesignation.CloseParenToken.Span.End - tupleDesignation.OpenParenToken.SpanStart));
-                                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, inputType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
+                                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, strippedInputType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
                                 hasErrors = true;
                             }
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
@@ -854,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // It is not a tuple type. Seek an appropriate Deconstruct method.
-                            var inputPlaceholder = new BoundImplicitReceiver(node, inputType); // A fake receiver expression to permit us to reuse binding logic
+                            var inputPlaceholder = new BoundImplicitReceiver(node, strippedInputType); // A fake receiver expression to permit us to reuse binding logic
                             BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                                 tupleDesignation.Variables.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                             deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
