@@ -308,6 +308,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         /// Get the default namespace of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>
+        /// <remarks>
+        /// This only has meaning in C# and is explicitly set to null in VB.
+        /// </remarks>>
         private static string GetDefaultNamespace(IVsHierarchy hierarchy, string language)
         {
             // While both csproj and vbproj might define <rootnamespace> property in the project file, 
