@@ -2369,5 +2369,39 @@ Class C3
 End Class",
             MainDescription("Function C2.ViewData() As C1"))
         End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestGetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        G$$et
+            Return 0
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        Get
+            Return 0
+        End Get
+        S$$et(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
+        End Function
     End Class
 End Namespace

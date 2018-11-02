@@ -674,8 +674,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var thisOriginalDefinition = this.OriginalDefinition;
             var otherOriginalDefinition = other.OriginalDefinition;
 
-            if (((object)this == (object)thisOriginalDefinition || (object)other == (object)otherOriginalDefinition) &&
-                (comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
+            bool thisIsOriginalDefinition = ((object)this == (object)thisOriginalDefinition);
+            bool otherIsOriginalDefinition = ((object)other == (object)otherOriginalDefinition);
+
+            if (thisIsOriginalDefinition && otherIsOriginalDefinition)
+            {
+                // If we continue, we either return false, or get into a cycle.
+                return false;
+            }
+
+            if ((thisIsOriginalDefinition || otherIsOriginalDefinition) &&
+                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
             {
                 return false;
             }
@@ -718,9 +727,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (((thisIsNotConstructed || otherIsNotConstructed) &&
-                 (comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0) ||
-                this.IsUnboundGenericType != other.IsUnboundGenericType)
+            if (this.IsUnboundGenericType != other.IsUnboundGenericType)
+            {
+                return false;
+            }
+
+            if ((thisIsNotConstructed || otherIsNotConstructed) &&
+                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
             {
                 return false;
             }
@@ -836,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (!IsGenericType)
             {
@@ -879,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hadNullabilityMismatch)
         {
             Debug.Assert(typeA.IsGenericType);
-            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             hadNullabilityMismatch = false;
 
@@ -950,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
             // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesFalseContext.Instance);
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesNullContext.Instance);
         }
 
         /// <summary>
@@ -972,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments, INonNullTypesContext nonNullTypesContext = null)
         {
             // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext ?? NonNullTypesFalseContext.Instance);
+            return ConstructWithoutModifiers(typeArguments, false, nonNullTypesContext ?? NonNullTypesNullContext.Instance);
         }
 
         /// <summary>
@@ -982,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
             // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass an explicit context.
-            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesFalseContext.Instance);
+            return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false, NonNullTypesNullContext.Instance);
         }
 
         /// <summary>
@@ -1164,9 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParametersAsTypeArguments()
         {
-            // https://github.com/dotnet/roslyn/issues/30068: Set IsNullable=null always, even in C#8,
-            // and set TypeSymbolWithAnnotations.WithCustomModifiers.Is() => false.
-            return this.TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(nonNullTypesContext: module, typeParameter), ContainingModule);
+            return TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(this.TypeParameters);
         }
 
         /// <summary>

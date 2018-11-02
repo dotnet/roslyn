@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Both the buffer backing struct and its only field should be at the same location,
             // so we could in theory just use address of the struct, but in some contexts that causes 
             // PEVerify errors because the struct has unexpected type. (Ex: struct& when int& is expected)
-            if (field.IsFixed)
+            if (field.IsFixedSizeBuffer)
             {
                 var fixedImpl = field.FixedImplementationType(_module);
                 var fixedElementField = fixedImpl.FixedElementField;

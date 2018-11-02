@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-#if NET46
         public string Dump(string methodName = null)
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
@@ -151,7 +150,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
         }
-#endif
 
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {

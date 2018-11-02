@@ -32,7 +32,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
 
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
-    <BenchmarkDotNetVersion>0.11.0</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <EnvDTEVersion>8.0.2</EnvDTEVersion>
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
@@ -59,14 +59,14 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.3.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-63011-01</MicrosoftDiaSymReaderConverterVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-63011-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-63314-01</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-63314-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
+    <MicrosoftDotNetIBCMergeVersion>4.7.2-alpha-00001</MicrosoftDotNetIBCMergeVersion>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
     <MicrosoftDotNetBuildTasksFeedVersion>2.1.0-prerelease-02419-02</MicrosoftDotNetBuildTasksFeedVersion>
-    <MicrosoftDotNetSignToolVersion>1.0.0-beta.18455.10</MicrosoftDotNetSignToolVersion>
+    <MicrosoftDotNetSignToolVersion>1.0.0-beta.18519.9</MicrosoftDotNetSignToolVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>2.1.1</MicrosoftExtensionsDependencyInjectionVersion>
     <MicrosoftExtensionsLoggingVersion>2.1.1</MicrosoftExtensionsLoggingVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
@@ -74,6 +74,8 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
+    <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->
+    <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.9.0-beta7-63018-03</MicrosoftNetCompilersVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
@@ -162,95 +164,34 @@
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
-    <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta1-63312-06</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.11.0-beta3.20181025.2</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
     <RoslynToolsModifyVsixManifestVersion>1.0.0-beta2-63222-01</RoslynToolsModifyVsixManifestVersion>
     <RoslynToolsMSBuildVersion>0.5.0-alpha</RoslynToolsMSBuildVersion>
-    <RoslynToolsNuGetRepackVersion>1.0.0-beta2-63223-01</RoslynToolsNuGetRepackVersion>
+    <RoslynToolsNuGetRepackVersion>1.0.0-beta3.18526.1</RoslynToolsNuGetRepackVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
-    <RoslynToolsBuildTasksVersion>1.0.0-beta3.18513.2</RoslynToolsBuildTasksVersion>
+    <RoslynToolsBuildTasksVersion>1.0.0-beta3.18526.1</RoslynToolsBuildTasksVersion>
+    <RoslynToolsOptProfVersion>1.0.0-beta3.18524.2</RoslynToolsOptProfVersion>
+    <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.18524.2</RoslynOptProfRunSettingsGeneratorVersion>
     <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.3.23</StreamJsonRpcVersion>
-    <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
-    <SystemCollectionsVersion>4.3.0</SystemCollectionsVersion>
-    <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemCommandLineExperimentalVersion>0.1.0-alpha-63227-01</SystemCommandLineExperimentalVersion>
-    <SystemConsoleVersion>4.3.0</SystemConsoleVersion>
-    <SystemDataCommonVersion>4.3.0</SystemDataCommonVersion>
-    <SystemDiagnosticsContractsVersion>4.3.0</SystemDiagnosticsContractsVersion>
-    <SystemDiagnosticsDebugVersion>4.3.0</SystemDiagnosticsDebugVersion>
-    <SystemDiagnosticsFileVersionInfoVersion>4.3.0</SystemDiagnosticsFileVersionInfoVersion>
-    <SystemDiagnosticsProcessVersion>4.3.0</SystemDiagnosticsProcessVersion>
-    <SystemDiagnosticsStackTraceVersion>4.3.0</SystemDiagnosticsStackTraceVersion>
-    <SystemDiagnosticsToolsVersion>4.3.0</SystemDiagnosticsToolsVersion>
-    <SystemDiagnosticsTraceSourceVersion>4.3.0</SystemDiagnosticsTraceSourceVersion>
-    <SystemDynamicRuntimeVersion>4.3.0</SystemDynamicRuntimeVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
-    <SystemGlobalizationVersion>4.3.0</SystemGlobalizationVersion>
-    <SystemGlobalizationCalendarsVersion>4.3.0</SystemGlobalizationCalendarsVersion>
-    <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
-    <SystemIOVersion>4.3.0</SystemIOVersion>
-    <SystemIOCompressionVersion>4.3.0</SystemIOCompressionVersion>
-    <SystemIOCompressionZipFileVersion>4.3.0</SystemIOCompressionZipFileVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
-    <SystemIOFileSystemDriveInfoVersion>4.3.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
-    <SystemIOFileSystemWatcherVersion>4.3.0</SystemIOFileSystemWatcherVersion>
-    <SystemIOPipesVersion>4.3.0</SystemIOPipesVersion>
     <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
-    <SystemLinqVersion>4.3.0</SystemLinqVersion>
-    <SystemLinqExpressionsVersion>4.3.0</SystemLinqExpressionsVersion>
-    <SystemLinqParallelVersion>4.3.0</SystemLinqParallelVersion>
-    <SystemNetHttpVersion>4.3.3</SystemNetHttpVersion>
-    <SystemNetNameResolutionVersion>4.3.0</SystemNetNameResolutionVersion>
-    <SystemNetPrimitivesVersion>4.3.0</SystemNetPrimitivesVersion>
-    <SystemNetSecurityVersion>4.3.0</SystemNetSecurityVersion>
-    <SystemNetSocketsVersion>4.3.0</SystemNetSocketsVersion>
-    <SystemObjectModelVersion>4.3.0</SystemObjectModelVersion>
-    <SystemReflectionVersion>4.3.0</SystemReflectionVersion>
-    <SystemReflectionExtensionsVersion>4.3.0</SystemReflectionExtensionsVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
-    <SystemReflectionPrimitivesVersion>4.3.0</SystemReflectionPrimitivesVersion>
-    <SystemReflectionTypeExtensionsVersion>4.3.0</SystemReflectionTypeExtensionsVersion>
-    <SystemResourcesResourceManagerVersion>4.3.0</SystemResourcesResourceManagerVersion>
-    <SystemRuntimeVersion>4.3.0</SystemRuntimeVersion>
-    <SystemRuntimeExtensionsVersion>4.3.0</SystemRuntimeExtensionsVersion>
-    <SystemRuntimeHandlesVersion>4.3.0</SystemRuntimeHandlesVersion>
-    <SystemRuntimeInteropServicesVersion>4.3.0</SystemRuntimeInteropServicesVersion>
-    <SystemRuntimeInteropServicesRuntimeInformationVersion>4.3.0</SystemRuntimeInteropServicesRuntimeInformationVersion>
-    <SystemRuntimeNumericsVersion>4.3.0</SystemRuntimeNumericsVersion>
-    <SystemRuntimeSerializationJsonVersion>4.3.0</SystemRuntimeSerializationJsonVersion>
-    <SystemRuntimeSerializationPrimitivesVersion>4.3.0</SystemRuntimeSerializationPrimitivesVersion>
-    <SystemSecurityAccessControlVersion>4.3.0</SystemSecurityAccessControlVersion>
-    <SystemSecurityClaimsVersion>4.3.0</SystemSecurityClaimsVersion>
-    <SystemSecurityCryptographyAlgorithmsVersion>4.3.0</SystemSecurityCryptographyAlgorithmsVersion>
-    <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
-    <SystemSecurityCryptographyEncodingVersion>4.3.0</SystemSecurityCryptographyEncodingVersion>
-    <SystemSecurityCryptographyPrimitivesVersion>4.3.0</SystemSecurityCryptographyPrimitivesVersion>
-    <SystemSecurityCryptographyX509CertificatesVersion>4.3.0</SystemSecurityCryptographyX509CertificatesVersion>
-    <SystemSecurityPrincipalWindowsVersion>4.3.0</SystemSecurityPrincipalWindowsVersion>
-    <SystemTextEncodingVersion>4.3.0</SystemTextEncodingVersion>
-    <SystemTextEncodingCodePagesVersion>4.3.0</SystemTextEncodingCodePagesVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>4.5.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemTextEncodingCodePagesVersion>4.5.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
-    <SystemTextRegularExpressionsVersion>4.3.0</SystemTextRegularExpressionsVersion>
-    <SystemThreadingVersion>4.3.0</SystemThreadingVersion>
-    <SystemThreadingTasksVersion>4.3.0</SystemThreadingTasksVersion>
     <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
-    <SystemThreadingTasksExtensionsVersion>4.3.0</SystemThreadingTasksExtensionsVersion>
-    <SystemThreadingTasksParallelVersion>4.3.0</SystemThreadingTasksParallelVersion>
-    <SystemThreadingThreadVersion>4.3.0</SystemThreadingThreadVersion>
-    <SystemValueTupleVersion>4.3.0</SystemValueTupleVersion>
-    <SystemXmlReaderWriterVersion>4.3.0</SystemXmlReaderWriterVersion>
-    <SystemXmlXDocumentVersion>4.3.0</SystemXmlXDocumentVersion>
-    <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
-    <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
-    <SystemXmlXPathVersion>4.3.0</SystemXmlXPathVersion>
-    <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
+    <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
+    <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
+    <SystemThreadingTasksExtensionsVersion>4.5.0</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
@@ -314,6 +255,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Interfaces"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.RemoteControl"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.15.0"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Design"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Framework"/>
@@ -325,6 +267,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Telemetry"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Data"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Logic"/>
@@ -334,6 +277,8 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.0"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime"/>
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Utilities"/>
+    <PrivateVisualStudioPackage Include="Microsoft.VSSDK.BuildTools"/>
+    <PrivateVisualStudioPackage Include="Newtonsoft.Json"/>
     <PrivateVisualStudioPackage Include="NuGet.VisualStudio"/>
     <PrivateVisualStudioPackage Include="StreamJsonRpc"/>
     <PrivateVisualStudioPackage Include="VSLangProj"/>

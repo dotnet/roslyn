@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
                 // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-                if (!isCast && source.Type == destination)
+                if (!isCast && source.Type.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return source;
                 }

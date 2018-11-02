@@ -11,6 +11,9 @@
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" IsImplicitlyDefined="true" PrivateAssets="all"/>
+
+    <!-- xunit.runner.visualstudio has a reference to Microsoft.NET.Test.Sdk, override it here to work around https://github.com/Microsoft/vstest/issues/1764 -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
   </ItemGroup>
 
   <!-- 
@@ -44,7 +47,7 @@
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
 
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net46' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net472' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
