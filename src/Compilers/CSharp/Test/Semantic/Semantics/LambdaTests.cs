@@ -1686,6 +1686,55 @@ public ref struct Struct1 { }
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void TypedReferenceExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public class Class1
+{
+    public void Method1()
+    {
+        Method(() => Method2(default));
+    }
+
+    public void Method2(TypedReference tr) { }
+
+    public static void Method(Expression<Action> expression) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (8,30): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+                //         Method(() => Method2(default));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("TypedReference").WithLocation(8, 30));
+        }
+
+        [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
+        public void TypedReferenceParamExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+public delegate void Delegate1(TypedReference tr);
+public class Class1
+{
+    public void Method1()
+    {
+        Method((TypedReference tr) => Method2());
+    }
+
+    public void Method2() { }
+
+    public static void Method(Expression<Delegate1> expression) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (9,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+                //         Method((TypedReference tr) => Method2());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "tr").WithArguments("TypedReference").WithLocation(9, 32));
+        }
+
         [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
         public void ReturnInferenceCache_Dynamic_vs_Object_01()
         {
