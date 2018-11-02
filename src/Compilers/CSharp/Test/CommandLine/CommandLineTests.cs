@@ -5041,7 +5041,7 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(cs1698.Path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason="https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path;
