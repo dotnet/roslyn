@@ -40,6 +40,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameTupleElement
         }
 
         [Fact]
+        public async Task TestInCall_Deep2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M((int arg1, int arg2) x) => M((1, Method(1[||], 2)));
+    int Method((int arg3, int arg4) x) => throw null;
+}",
+@"class C
+{
+    void M((int arg1, int arg2) x) => M((1, arg2: Method(1, 2)));
+    int Method((int arg3, int arg4) x) => throw null;
+}");
+        }
+
+        [Fact]
+        public async Task TestInCall_Deep3()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M((int arg1, int arg2) x) => M((1, Method[||](1, 2)));
+    int Method((int arg3, int arg4) x) => throw null;
+}",
+@"class C
+{
+    void M((int arg1, int arg2) x) => M((1, arg2: Method(1, 2)));
+    int Method((int arg3, int arg4) x) => throw null;
+}");
+        }
+
+        [Fact]
         public async Task TestInCall_FirstElement_EscapedNamed()
         {
             await TestInRegularAndScript1Async(

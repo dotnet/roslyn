@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             }
 
             var element = elements[argumentIndex];
-            if ((object)element == element.CorrespondingTupleField)
+            if (element.Equals(element.CorrespondingTupleField))
             {
                 return default;
             }
