@@ -8444,7 +8444,6 @@ End Module
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithNoSpaceBeforeCommentV16()
-        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
         ParseAndVerify(
         <![CDATA[
     Module M
@@ -8453,14 +8452,13 @@ End Module
                     = 1
             End Sub
      End Module
-    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
         )
     End Sub
 
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithMultipleSpacesBeforeCommentV16()
-        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16 _
         ParseAndVerify(
         <![CDATA[
     Module M
@@ -8469,14 +8467,13 @@ End Module
                     = 1
             End Sub
      End Module
-    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
         )
     End Sub
 
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithCommentV16()
-        ' PROTOTYPE LanguageVersion.Latest should be LanguageVersion.VisualBasic16
         ParseAndVerify(
         <![CDATA[
     Module M
@@ -8485,11 +8482,26 @@ End Module
                     = 1
             End Sub
      End Module
-    ]]>, New VisualBasicParseOptions(LanguageVersion.Latest)
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic16)
         )
     End Sub
 
-    ' PROTOTYPE LanguageVersion.VisualBasic15_3 should be LanguageVersion.VisualBasic15_5
+    <Fact()>
+    <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
+    Public Sub ParseLineContWithCommentV15()
+        ParseAndVerify(
+        <![CDATA[
+    Module M
+           Sub Main()
+                Dim I As Integer _ ' Comment
+                    = 1
+            End Sub
+     End Module
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15),
+            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("16")
+        )
+    End Sub
+
     <Fact()>
     <WorkItem(65, "https://github.com/dotnet/vblang/issues/65")>
     Public Sub ParseLineContWithCommentV15_5()
@@ -8501,8 +8513,8 @@ End Module
                     = 1
             End Sub
      End Module
-    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_3),
-            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("15.5")  ' PROTOTYPE "15.5" should be "16"
+    ]]>, New VisualBasicParseOptions(LanguageVersion.VisualBasic15_5),
+            Diagnostic(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, "' Comment").WithLocation(4, 36).WithArguments("16")
         )
     End Sub
 

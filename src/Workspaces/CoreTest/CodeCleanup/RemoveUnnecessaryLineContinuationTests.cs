@@ -279,8 +279,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             var expected = @"
         Console.WriteLine() _ ' test
         Console.WriteLine()";
-            /* PROTOTYPE line below needs to be  LanguageVersion.VisualBasic15_5*/
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15_3);
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15);
         }
 
         [Fact]
@@ -294,8 +293,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             var expected = @"
         Console.WriteLine() _ ' test
         Console.WriteLine()";
-            /* PROTOTYPE line below needs to be  LanguageVersion.VisualBasic16*/
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15_5);
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic16);
         }
 
         [Fact]
