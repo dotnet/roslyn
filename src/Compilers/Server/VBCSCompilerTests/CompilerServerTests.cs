@@ -388,6 +388,18 @@ End Module")
             }
         }
 
+        [Fact]
+        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
+        public async Task HelloWorldCSDashShared()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"-shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
+                await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+            }
+        }
+
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreNotX86()
