@@ -11,20 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
     Friend Class VisualBasicNameTupleElementCodeRefactoringProvider
         Inherits AbstractNameTupleElementCodeRefactoringProvider(Of SimpleArgumentSyntax, TupleExpressionSyntax)
 
-        Protected Overrides Function GetArguments(tuple As TupleExpressionSyntax) As SeparatedSyntaxList(Of SimpleArgumentSyntax)
-            Return tuple.Arguments
-        End Function
-
         Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax
             Return argument.WithNameColonEquals(SyntaxFactory.NameColonEquals(name.ToIdentifierName()))
         End Function
 
         Protected Overrides Function IsCloseParenOrComma(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
-        End Function
-
-        Protected Overrides Function IsUnnamedElement(node As SimpleArgumentSyntax) As Boolean
-            Return node.NameColonEquals Is Nothing
         End Function
     End Class
 End Namespace

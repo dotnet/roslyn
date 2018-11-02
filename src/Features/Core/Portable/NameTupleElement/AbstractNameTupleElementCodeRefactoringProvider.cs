@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NameTupleElement
 {
@@ -17,25 +18,41 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
     {
         protected abstract bool IsCloseParenOrComma(SyntaxToken token);
         protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string argumentName);
-        protected abstract bool IsUnnamedElement(TArgumentSyntax node);
-        protected abstract SeparatedSyntaxList<TArgumentSyntax> GetArguments(TTupleExpressionSyntax tuple);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            var span = context.Span;
+            var cancellationToken = context.CancellationToken;
             var document = context.Document;
+
+            var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken);
+
+            if (elementName == null)
+            {
+                return;
+            }
+
+            context.RegisterRefactoring(
+                new MyCodeAction(
+                    string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
+                    c => AddNamedElementAsync(document, span, cancellationToken)));
+        }
+
+        private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfo(
+            Document document, TextSpan span, CancellationToken cancellationToken)
+        {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
-                return;
+                return default;
             }
 
-            if (context.Span.Length > 0)
+            if (span.Length > 0)
             {
-                return;
+                return default;
             }
 
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var position = context.Span.Start;
+            var position = span.Start;
             var token = root.FindToken(position);
             if (token.Span.Start == position &&
                 IsCloseParenOrComma(token))
@@ -43,7 +60,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 token = token.GetPreviousToken();
                 if (token.Span.End != position)
                 {
-                    return;
+                    return default;
                 }
             }
 
@@ -52,9 +69,9 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
                 .GetAncestorsOrThis<TArgumentSyntax>()
                 .FirstOrDefault(node => syntaxFacts.IsTupleExpression(node.Parent));
 
-            if (argument == null || !IsUnnamedElement(argument))
+            if (argument == null || !syntaxFacts.IsSimpleArgument(argument))
             {
-                return;
+                return default;
             }
 
             var tuple = (TTupleExpressionSyntax)argument.Parent;
@@ -63,40 +80,33 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (tupleType == null)
             {
-                return;
+                return default;
             }
 
-            var arguments = GetArguments(tuple);
+            syntaxFacts.GetPartsOfTupleExpression<TArgumentSyntax>(tuple, out _, out var arguments, out _);
             var argumentIndex = arguments.IndexOf(argument);
             var elements = tupleType.TupleElements;
             if (elements.IsDefaultOrEmpty || argumentIndex >= elements.Length)
             {
-                return;
+                return default;
             }
 
             var element = elements[argumentIndex];
             if ((object)element == element.CorrespondingTupleField)
             {
-                return;
+                return default;
             }
 
-            var elementName = element.Name;
-
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
-                    c => AddNamedElementAsync(root, document, argument, elementName)));
+            return (root, argument, element.Name);
         }
 
-        private Task<Document> AddNamedElementAsync(
-            SyntaxNode root,
-            Document document,
-            TArgumentSyntax argument,
-            string argumentName)
+        private async Task<Document> AddNamedElementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var newArgument = WithName(argument, argumentName).WithTriviaFrom(argument);
+            var (root, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken);
+
+            var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

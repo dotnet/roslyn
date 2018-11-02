@@ -13,20 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NameTupleElement
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpNameTupleElementCodeRefactoringProvider)), Shared]
     internal class CSharpNameTupleElementCodeRefactoringProvider : AbstractNameTupleElementCodeRefactoringProvider<ArgumentSyntax, TupleExpressionSyntax>
     {
-        public CSharpNameTupleElementCodeRefactoringProvider()
-        {
-        }
-
         protected override bool IsCloseParenOrComma(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
 
         protected override ArgumentSyntax WithName(ArgumentSyntax argument, string argumentName)
             => argument.WithNameColon(SyntaxFactory.NameColon(argumentName.ToIdentifierName()));
-
-        protected override bool IsUnnamedElement(ArgumentSyntax node)
-            => node.NameColon == null;
-
-        protected override SeparatedSyntaxList<ArgumentSyntax> GetArguments(TupleExpressionSyntax tuple)
-            => tuple.Arguments;
     }
 }
