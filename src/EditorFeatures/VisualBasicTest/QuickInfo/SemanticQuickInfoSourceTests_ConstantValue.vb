@@ -2,92 +2,23 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Partial Public Class SemanticQuickInfoSourceTests
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Integer() As Task
-            Await TestInMethodAsync("
-const v as integer = 1
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("integer", "1 + 2 = 3")>
+        <InlineData("uinteger", "1UI + 2 = 3L")>
+        <InlineData("byte", "CByte(1) + 2 = 3")>
+        <InlineData("sbyte", "CSByte(1) + 2 = 3")>
+        <InlineData("short", "1S + 2 = 3")>
+        <InlineData("ushort", "1US + 2 = 3")>
+        <InlineData("long", "1L + 2 = 3L")>
+        <InlineData("ulong", "1UL + 2 = 3D")>
+        <InlineData("single", "1F + 2 = 3F")>
+        <InlineData("double", "1R + 2 = 3R")>
+        <InlineData("decimal", "1D + 2 = 3D")>
+        Public Async Function TestAddExpression_NumericType(type As String, result As String) As Task
+            Await TestInMethodAsync($"
+const v as {type} = 1
 dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1 + 2 = 3"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_UInteger() As Task
-            Await TestInMethodAsync("
-const v as uinteger = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1UI + 2 = 3L"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Byte() As Task
-            Await TestInMethodAsync("
-const v as byte = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} CByte(1) + 2 = 3"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_SByte() As Task
-            Await TestInMethodAsync("
-const v as sbyte = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} CSByte(1) + 2 = 3"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Short() As Task
-            Await TestInMethodAsync("
-const v as short = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1S + 2 = 3"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_UShort() As Task
-            Await TestInMethodAsync("
-const v as ushort = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1US + 2 = 3"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Long() As Task
-            Await TestInMethodAsync("
-const v as long = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1L + 2 = 3L"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_ULong() As Task
-            Await TestInMethodAsync("
-const v as ulong = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1UL + 2 = 3D"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Single() As Task
-            Await TestInMethodAsync("
-const v as single = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1F + 2 = 3F"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Double() As Task
-            Await TestInMethodAsync("
-const v as double = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1R + 2 = 3R"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_Decimal() As Task
-            Await TestInMethodAsync("
-const v as decimal = 1
-dim f = v $$+ 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1D + 2 = 3D"))
+                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} {result}"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -170,60 +101,19 @@ dim f = v $$& ""!""",
                 ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} ""Hello""&vbCrLf&""World"" & ""!"" = ""Hello""&vbCrLf&""World!"""))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_Integer() As Task
-            Await TestInMethodAsync("
-const v as integer = 1
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("integer", "1 - 2 = -1")>
+        <InlineData("sbyte", "CSByte(1) - 2 = -1")>
+        <InlineData("short", "1S - 2 = -1")>
+        <InlineData("long", "1L - 2 = -1L")>
+        <InlineData("single", "1F - 2 = -1F")>
+        <InlineData("double", "1R - 2 = -1R")>
+        <InlineData("decimal", "1D - 2 = -1D")>
+        Public Async Function TestSubtractExpression_NumericType(type As String, result As String) As Task
+            Await TestInMethodAsync($"
+const v as {type} = 1
 dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1 - 2 = -1"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_SByte() As Task
-            Await TestInMethodAsync("
-const v as sbyte = 1
-dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} CSByte(1) - 2 = -1"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_Short() As Task
-            Await TestInMethodAsync("
-const v as short = 1
-dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1S - 2 = -1"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_Long() As Task
-            Await TestInMethodAsync("
-const v as long = 1
-dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1L - 2 = -1L"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_Single() As Task
-            Await TestInMethodAsync("
-const v as single = 1
-dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1F - 2 = -1F"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_Double() As Task
-            Await TestInMethodAsync("
-const v as double = 1
-dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1R - 2 = -1R"))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_Decimal() As Task
-            Await TestInMethodAsync("
-const v as decimal = 1
-dim f = v $$- 2",
-                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} 1D - 2 = -1D"))
+                ConstantValue($"{vbCrLf}{FeaturesResources.Constant_value_colon} {result}"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

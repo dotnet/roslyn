@@ -8,103 +8,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public partial class SemanticQuickInfoSourceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Int()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("int", "1 + 2 = 3")]
+        [InlineData("uint", "1U + 2 = 3U")]
+        [InlineData("byte", "1 + 2 = 3")]
+        [InlineData("sbyte", "1 + 2 = 3")]
+        [InlineData("short", "1 + 2 = 3")]
+        [InlineData("ushort", "1 + 2 = 3")]
+        [InlineData("long", "1L + 2 = 3L")]
+        [InlineData("ulong", "1UL + 2 = 3UL")]
+        [InlineData("float", "1F + 2 = 3F")]
+        [InlineData("double", "1D + 2 = 3D")]
+        [InlineData("decimal", "1M + 2 = 3M")]
+        public async Task TestAddExpression_NumericType(string type, string result)
         {
-            await TestInMethodAsync(@"
-const int v = 1;
+            await TestInMethodAsync($@"
+const {type} v = 1;
 var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 + 2 = 3"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_UInt()
-        {
-            await TestInMethodAsync(@"
-const uint v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1U + 2 = 3U"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Byte()
-        {
-            await TestInMethodAsync(@"
-const byte v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 + 2 = 3"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_SByte()
-        {
-            await TestInMethodAsync(@"
-const sbyte v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 + 2 = 3"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Short()
-        {
-            await TestInMethodAsync(@"
-const short v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 + 2 = 3"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_UShort()
-        {
-            await TestInMethodAsync(@"
-const ushort v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 + 2 = 3"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Long()
-        {
-            await TestInMethodAsync(@"
-const long v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1L + 2 = 3L"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_ULong()
-        {
-            await TestInMethodAsync(@"
-const ulong v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1UL + 2 = 3UL"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Float()
-        {
-            await TestInMethodAsync(@"
-const float v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1F + 2 = 3F"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Double()
-        {
-            await TestInMethodAsync(@"
-const double v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1D + 2 = 3D"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_Decimal()
-        {
-            await TestInMethodAsync(@"
-const decimal v = 1;
-var f = v $$+ 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1M + 2 = 3M"));
+                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} {result}"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -152,67 +73,20 @@ var f = v $$+ ""!""",
                 ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} \"Hello\\r\\nWorld\" + \"!\" = \"Hello\\r\\nWorld!\""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_Int()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("int", "1 - 2 = -1")]
+        [InlineData("sbyte", "1 - 2 = -1")]
+        [InlineData("short", "1 - 2 = -1")]
+        [InlineData("long", "1L - 2 = -1L")]
+        [InlineData("float", "1F - 2 = -1F")]
+        [InlineData("double", "1D - 2 = -1D")]
+        [InlineData("decimal", "1M - 2 = -1M")]
+        public async Task TestSubtractExpression_NumericType(string type, string result)
         {
-            await TestInMethodAsync(@"
-const int v = 1;
+            await TestInMethodAsync($@"
+const {type} v = 1;
 var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 - 2 = -1"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_SByte()
-        {
-            await TestInMethodAsync(@"
-const sbyte v = 1;
-var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 - 2 = -1"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_Short()
-        {
-            await TestInMethodAsync(@"
-const short v = 1;
-var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1 - 2 = -1"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_Long()
-        {
-            await TestInMethodAsync(@"
-const long v = 1;
-var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1L - 2 = -1L"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_Float()
-        {
-            await TestInMethodAsync(@"
-const float v = 1;
-var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1F - 2 = -1F"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_Double()
-        {
-            await TestInMethodAsync(@"
-const double v = 1;
-var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1D - 2 = -1D"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_Decimal()
-        {
-            await TestInMethodAsync(@"
-const decimal v = 1;
-var f = v $$- 2",
-                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} 1M - 2 = -1M"));
+                ConstantValue($"\r\n{FeaturesResources.Constant_value_colon} {result}"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
