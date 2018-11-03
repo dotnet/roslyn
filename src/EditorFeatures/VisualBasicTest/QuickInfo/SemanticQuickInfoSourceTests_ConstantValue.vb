@@ -315,309 +315,89 @@ dim f = v $$- 2",
             ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestMultiplyExpression_Double() As Task
-            Await TestInMethodAsync("
-dim f = 1.2 $$* 2",
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData([Operator], "*", "5R")>
+        <InlineData([Operator], "^", "6.25R")>
+        <InlineData([Operator], "/", "1.25R")>
+        <InlineData([Operator], "\", "1L")>
+        <InlineData(Keyword, "mod", "0.5R")>
+        Public Async Function TestMultiplicativeExpression_Double(operatorTag As String, [operator] As String, result As String) As Task
+            Await TestInMethodAsync($"
+dim f = 2.5 $${[operator]} 2",
                 ConstantValueContent(
-                    ("1.2R", NumericLiteral),
+                    ("2.5R", NumericLiteral),
                     (" ", Space),
-                    ("*", [Operator]),
+                    ([operator], operatorTag),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
-                    ("2.4R", NumericLiteral)
+                    (result, NumericLiteral)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestExponentiateExpression_Double() As Task
-            Await TestInMethodAsync("
-dim f = 1.2 $$^ 2",
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData([Operator], "<<", "6")>
+        <InlineData([Operator], ">>", "1")>
+        <InlineData(Keyword, "and", "1")>
+        <InlineData(Keyword, "or", "3")>
+        <InlineData(Keyword, "xor", "2")>
+        Public Async Function TestBitwiseExpression_Integer(operatorTag As String, [operator] As String, result As String) As Task
+            Await TestInMethodAsync($"
+dim f = 3 $${[operator]} 1",
                 ConstantValueContent(
-                    ("1.2R", NumericLiteral),
-                    (" ", Space),
-                    ("^", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("1.44R", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestDivideExpression_Double() As Task
-            Await TestInMethodAsync("
-dim f = 1.2 $$/ 2",
-                ConstantValueContent(
-                    ("1.2R", NumericLiteral),
-                    (" ", Space),
-                    ("/", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("0.6R", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestIntegerDivideExpression_Double() As Task
-            Await TestInMethodAsync("
-dim f = 1.2 $$\ 2",
-                ConstantValueContent(
-                    ("1.2R", NumericLiteral),
-                    (" ", Space),
-                    ("\", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("0L", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestModuloExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 12 $$mod 5",
-                ConstantValueContent(
-                    ("12", NumericLiteral),
-                    (" ", Space),
-                    ("mod", Keyword),
-                    (" ", Space),
-                    ("5", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestLeftShiftExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 8 $$<< 2",
-                ConstantValueContent(
-                    ("8", NumericLiteral),
-                    (" ", Space),
-                    ("<<", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("32", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestRightShiftExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 8 $$>> 2",
-                ConstantValueContent(
-                    ("8", NumericLiteral),
-                    (" ", Space),
-                    (">>", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAndExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 2 $$and 3",
-                ConstantValueContent(
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("and", Keyword),
-                    (" ", Space),
                     ("3", NumericLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ([operator], operatorTag),
                     (" ", Space),
-                    ("2", NumericLiteral)
+                    ("1", NumericLiteral),
+                    (" ", Space),
+                    ("=", TextTags.Operator),
+                    (" ", Space),
+                    (result, NumericLiteral)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestOrExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 2 $$or 3",
-                ConstantValueContent(
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("or", Keyword),
-                    (" ", Space),
-                    ("3", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("3", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestExclusiveOrExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 2 $$xor 3",
-                ConstantValueContent(
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("xor", Keyword),
-                    (" ", Space),
-                    ("3", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("1", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestLessThanExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 1 $$< 2",
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("<", "True")>
+        <InlineData("<=", "True")>
+        <InlineData(">", "False")>
+        <InlineData(">=", "False")>
+        <InlineData("=", "False")>
+        <InlineData("<>", "True")>
+        Public Async Function TestComparisonExpression_Integer([operator] As String, result As String) As Task
+            Await TestInMethodAsync($"
+dim f = 1 $${[operator]} 2",
                 ConstantValueContent(
                     ("1", NumericLiteral),
                     (" ", Space),
-                    ("<", [Operator]),
+                    ([operator], TextTags.Operator),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
-                    ("True", Keyword)
+                    (result, Keyword)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestLessThanOrEqualExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 1 $$<= 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("<=", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("True", Keyword)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestGreaterThanExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 1 $$> 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    (">", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("False", Keyword)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestGreaterThanOrEqualExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 1 $$>= 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    (">=", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("False", Keyword)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestEqualsExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 1 $$= 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("False", Keyword)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestNotEqualsExpression_Integer() As Task
-            Await TestInMethodAsync("
-dim f = 1 $$<> 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("<>", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("True", Keyword)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAndAlsoExpression_Boolean() As Task
-            Await TestInMethodAsync("
-dim f = true $$andalso not true",
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("andalso", "False")>
+        <InlineData("orelse", "True")>
+        Public Async Function TestLogicalExpression_Boolean([operator] As String, result As String) As Task
+            Await TestInMethodAsync($"
+dim f = true $${[operator]} not true",
                 ConstantValueContent(
                     ("True", Keyword),
                     (" ", Space),
-                    ("andalso", Keyword),
+                    ([operator], Keyword),
                     (" ", Space),
                     ("False", Keyword),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
-                    ("False", Keyword)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestOrElseExpression_Boolean() As Task
-            Await TestInMethodAsync("
-dim f = true $$orelse not true",
-                ConstantValueContent(
-                    ("True", Keyword),
-                    (" ", Space),
-                    ("orelse", Keyword),
-                    (" ", Space),
-                    ("False", Keyword),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("True", Keyword)
+                    (result, Keyword)
                 ))
         End Function
 
@@ -642,26 +422,7 @@ dim f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$& ""o""",
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestLeftShiftExpressionInEnum() As Task
-            Await TestInMethodAsync("
-enum Foo
-    Bar = 1 <<$$ 3
-end enum",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("<<", [Operator]),
-                    (" ", Space),
-                    ("3", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("8", NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestLeftShiftExpressionInEnum_IgnoreTrivia() As Task
+        Public Async Function TestIgnoreTrivia() As Task
             Await TestInMethodAsync("
 enum Foo
     Bar = 1 _

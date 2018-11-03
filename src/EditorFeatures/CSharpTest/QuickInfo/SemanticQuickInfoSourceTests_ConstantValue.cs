@@ -200,291 +200,91 @@ var f = v $$- 'B'",
                 ));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestMultiplyExpression_Double()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("*", "5D")]
+        [InlineData("/", "1.25D")]
+        [InlineData("%", "0.5D")]
+        public async Task TestMultiplicativeExpression_Double(string @operator, string result)
         {
-            await TestInMethodAsync(@"
-var f = 1.2 $$* 2",
+            await TestInMethodAsync($@"
+var f = 2.5 $${@operator} 2",
                 ConstantValueContent(
-                    ("1.2D", NumericLiteral),
+                    ("2.5D", NumericLiteral),
                     (" ", Space),
-                    ("*", Operator),
+                    (@operator, Operator),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("2.4D", NumericLiteral)
+                    (result, NumericLiteral)
                 ));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestDivideExpression_Double()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("<<", "6")]
+        [InlineData(">>", "1")]
+        [InlineData("&", "1")]
+        [InlineData("|", "3")]
+        [InlineData("^", "2")]
+        public async Task TestBitwiseExpression_Int(string @operator, string result)
         {
-            await TestInMethodAsync(@"
-var f = 1.2 $$/ 2",
+            await TestInMethodAsync($@"
+var f = 3 $${@operator} 1",
                 ConstantValueContent(
-                    ("1.2D", NumericLiteral),
-                    (" ", Space),
-                    ("/", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("0.6D", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestModuloExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 12 $$% 5",
-                ConstantValueContent(
-                    ("12", NumericLiteral),
-                    (" ", Space),
-                    ("%", Operator),
-                    (" ", Space),
-                    ("5", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLeftShiftExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 8 $$<< 2",
-                ConstantValueContent(
-                    ("8", NumericLiteral),
-                    (" ", Space),
-                    ("<<", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("32", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestRightShiftExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 8 $$>> 2",
-                ConstantValueContent(
-                    ("8", NumericLiteral),
-                    (" ", Space),
-                    (">>", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestBitwiseAndExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 2 $$& 3",
-                ConstantValueContent(
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("&", Operator),
-                    (" ", Space),
                     ("3", NumericLiteral),
                     (" ", Space),
-                    ("=", Operator),
+                    (@operator, Operator),
                     (" ", Space),
-                    ("2", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestBitwiseOrExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 2 $$| 3",
-                ConstantValueContent(
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("|", Operator),
-                    (" ", Space),
-                    ("3", NumericLiteral),
+                    ("1", NumericLiteral),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("3", NumericLiteral)
+                    (result, NumericLiteral)
                 ));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestExclusiveOrExpression_Int()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("<", "true")]
+        [InlineData("<=", "true")]
+        [InlineData(">", "false")]
+        [InlineData(">=", "false")]
+        [InlineData("==", "false")]
+        [InlineData("!=", "true")]
+        public async Task TestComparisonExpression_Int(string @operator, string result)
         {
-            await TestInMethodAsync(@"
-var f = 2 $$^ 3",
-                ConstantValueContent(
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("^", Operator),
-                    (" ", Space),
-                    ("3", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("1", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLessThanExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 1 $$< 2",
+            await TestInMethodAsync($@"
+var f = 1 $${@operator} 2",
                 ConstantValueContent(
                     ("1", NumericLiteral),
                     (" ", Space),
-                    ("<", Operator),
+                    (@operator, Operator),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("true", Keyword)
+                    (result, Keyword)
                 ));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLessThanOrEqualExpression_Int()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("&&", "false")]
+        [InlineData("||", "true")]
+        public async Task TestLogicalExpression_Bool(string @operator, string result)
         {
-            await TestInMethodAsync(@"
-var f = 1 $$<= 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("<=", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("true", Keyword)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestGreaterThanExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 1 $$> 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    (">", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("false", Keyword)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestGreaterThanOrEqualExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 1 $$>= 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    (">=", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("false", Keyword)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestEqualsExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 1 $$== 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("==", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("false", Keyword)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestNotEqualsExpression_Int()
-        {
-            await TestInMethodAsync(@"
-var f = 1 $$!= 2",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("!=", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("true", Keyword)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLogicalAndExpression_Bool()
-        {
-            await TestInMethodAsync(@"
-var f = true $$&& !true",
+            await TestInMethodAsync($@"
+var f = true $${@operator} !true",
                 ConstantValueContent(
                     ("true", Keyword),
                     (" ", Space),
-                    ("&&", Operator),
+                    (@operator, Operator),
                     (" ", Space),
                     ("false", Keyword),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("false", Keyword)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLogicalOrExpression_Bool()
-        {
-            await TestInMethodAsync(@"
-var f = true $$|| !true",
-                ConstantValueContent(
-                    ("true", Keyword),
-                    (" ", Space),
-                    ("||", Operator),
-                    (" ", Space),
-                    ("false", Keyword),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("true", Keyword)
+                    (result, Keyword)
                 ));
         }
 
@@ -510,28 +310,7 @@ var f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$+ ""o""",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLeftShiftExpressionInEnum()
-        {
-            await TestAsync(@"
-enum Foo
-{
-    Bar = 1 <<$$ 3,
-}",
-                ConstantValueContent(
-                    ("1", NumericLiteral),
-                    (" ", Space),
-                    ("<<", Operator),
-                    (" ", Space),
-                    ("3", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("8", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestLeftShiftExpressionInEnum_IgnoreTrivia()
+        public async Task TestIgnoreTrivia()
         {
             await TestAsync(@"
 enum Foo
