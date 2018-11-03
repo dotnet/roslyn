@@ -4805,16 +4805,16 @@ public class C
 class Generic$$Class<T>
 {
 }",
-    Documentation("This example shows how to specify the GenericClass<T> cref.",
-        ExpectedClassifications(
-            Text("This example shows how to specify the"),
-            WhiteSpace(" "),
-            Class("GenericClass"),
-            Punctuation.OpenAngle,
-            TypeParameter("T"),
-            Punctuation.CloseAngle,
-            WhiteSpace(" "),
-            Text("cref."))));
+            Documentation(
+                ("This example shows how to specify the", TextTags.Text),
+                (" ", TextTags.Space),
+                ("GenericClass", TextTags.Class),
+                ("<", TextTags.Punctuation),
+                ("T", TextTags.TypeParameter),
+                (">", TextTags.Punctuation),
+                (" ", TextTags.Space),
+                ("cref.", TextTags.Text)
+            ));
         }
 
         [WorkItem(812720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812720")]
@@ -4842,17 +4842,17 @@ public class C
     }
 }";
             await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#",
-                Documentation("See C.Goo() method",
-                    ExpectedClassifications(
-                        Text("See"),
-                        WhiteSpace(" "),
-                        Class("C"),
-                        Punctuation.Text("."),
-                        Identifier("Goo"),
-                        Punctuation.OpenParen,
-                        Punctuation.CloseParen,
-                        WhiteSpace(" "),
-                        Text("method"))));
+                Documentation(
+                    ("See", TextTags.Text),
+                    (" ", TextTags.Space),
+                    ("C", TextTags.Class),
+                    (".", TextTags.Punctuation),
+                    ("Goo", TextTags.Method),
+                    ("(", TextTags.Punctuation),
+                    (")", TextTags.Punctuation),
+                    (" ", TextTags.Space),
+                    ("method", TextTags.Text)
+                ));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

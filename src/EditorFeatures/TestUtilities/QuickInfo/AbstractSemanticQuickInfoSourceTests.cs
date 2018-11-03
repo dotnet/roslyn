@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,23 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
     [UseExportProvider]
     public abstract class AbstractSemanticQuickInfoSourceTests
     {
-        protected FormattedClassification Text(string text)
-            => FormattedClassifications.Text(text);
-
         protected string Lines(params string[] lines)
         {
             return string.Join("\r\n", lines);
-        }
-
-        protected FormattedClassification[] ExpectedClassifications(
-            params FormattedClassification[] expectedClassifications)
-        {
-            return expectedClassifications;
-        }
-
-        protected Tuple<string, string>[] NoClassifications()
-        {
-            return null;
         }
 
         internal Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
@@ -50,11 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return SymbolGlyph(expectedGlyph);
         }
 
-        internal void AssertSection(
+        private void AssertSection(
             string expectedText,
             ImmutableArray<QuickInfoSection> sections,
-            string textBlockKind,
-            FormattedClassification[] expectedClassifications = null)
+            string textBlockKind)
         {
             var textBlock = sections.FirstOrDefault(tb => tb.Kind == textBlockKind);
             var taggedText = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
@@ -62,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             Assert.Equal(expectedText, taggedText.GetFullText());
         }
 
-        internal void AssertSection(
+        private void AssertSection(
             ImmutableArray<(string text, string tag)> expectedTextWithTags,
             ImmutableArray<QuickInfoSection> sections,
             string textBlockKind)
@@ -78,32 +61,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             AssertEx.Equal(expectedTextWithTags, taggedText.Select(t => (t.Text, t.Tag)));
         }
 
-        protected Action<QuickInfoItem> MainDescription(
-            string expectedText,
-            FormattedClassification[] expectedClassifications = null)
+        protected Action<QuickInfoItem> MainDescription(string expectedText)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Description, expectedClassifications);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Description);
         }
 
-        protected Action<QuickInfoItem> Documentation(
-            string expectedText,
-            FormattedClassification[] expectedClassifications = null)
+        protected Action<QuickInfoItem> MainDescription(params (string text, string tag)[] expectedTextWithTags)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments, expectedClassifications);
+            return item => AssertSection(expectedTextWithTags.ToImmutableArray(), item.Sections, QuickInfoSectionKinds.Description);
         }
 
-        protected Action<QuickInfoItem> TypeParameterMap(
-            string expectedText,
-            FormattedClassification[] expectedClassifications = null)
+        protected Action<QuickInfoItem> Documentation(string expectedText)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.TypeParameters, expectedClassifications);
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments);
         }
 
-        protected Action<QuickInfoItem> AnonymousTypes(
-            string expectedText,
-            FormattedClassification[] expectedClassifications = null)
+        protected Action<QuickInfoItem> Documentation(params (string text, string tag)[] expectedTextWithTags)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes, expectedClassifications);
+            return item => AssertSection(expectedTextWithTags.ToImmutableArray(), item.Sections, QuickInfoSectionKinds.DocumentationComments);
+        }
+
+        protected Action<QuickInfoItem> TypeParameterMap(string expectedText)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.TypeParameters);
+        }
+
+        protected Action<QuickInfoItem> TypeParameterMap(params (string text, string tag)[] expectedTextWithTags)
+        {
+            return item => AssertSection(expectedTextWithTags.ToImmutableArray(), item.Sections, QuickInfoSectionKinds.TypeParameters);
+        }
+
+        protected Action<QuickInfoItem> AnonymousTypes(string expectedText)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes);
         }
 
         protected Action<QuickInfoItem> NoTypeParameterMap
@@ -141,9 +131,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
         }
 
-        protected Action<QuickInfoItem> ConstantValue(string expectedText)
+        protected Action<QuickInfoItem> ConstantValue(params (string text, string tag)[] expectedTextWithTags)
         {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ConstantValue);
+            return item => AssertSection(expectedTextWithTags.ToImmutableArray(), item.Sections, QuickInfoSectionKinds.ConstantValue);
         }
 
         protected Action<QuickInfoItem> ConstantValueContent(params (string text, string tag)[] expectedContentWithTags)

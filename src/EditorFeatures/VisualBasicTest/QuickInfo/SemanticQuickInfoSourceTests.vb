@@ -106,25 +106,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestInteger() As Task
             Await TestInClassAsync("Dim i As $$Integer",
-             MainDescription("Structure System.Int32",
-              ExpectedClassifications(
-               Keyword("Structure"),
-               WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
-               Struct("Int32"))))
+                MainDescription(
+                    ("Structure", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("System", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("Int32", TextTags.Struct)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestString() As Task
             Await TestInClassAsync("Dim i As $$String",
-             MainDescription("Class System.String",
-              ExpectedClassifications(
-               Keyword("Class"),
-               WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
-               [Class]("String"))))
+                MainDescription(
+                    ("Class", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("System", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("String", TextTags.Class)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -152,30 +152,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestListOfString() As Task
             Await TestInClassAsync("Dim l As $$List(Of String)",
-             MainDescription("Class System.Collections.Generic.List(Of T)",
-              ExpectedClassifications(
-               Keyword("Class"),
-               WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
-               Identifier("Collections"),
-               Operators.Dot,
-               Identifier("Generic"),
-               Operators.Dot,
-               [Class]("List"),
-               Punctuation.OpenParen,
-               Keyword("Of"),
-               WhiteSpace(" "),
-               TypeParameter("T"),
-               Punctuation.CloseParen)),
-             TypeParameterMap(vbCrLf & $"T {FeaturesResources.is_} String",
-              ExpectedClassifications(
-                  WhiteSpace(vbCrLf),
-               TypeParameter("T"),
-               WhiteSpace(" "),
-               Text(FeaturesResources.is_),
-               WhiteSpace(" "),
-               Keyword("String"))))
+                MainDescription(
+                    ("Class", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("System", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("Collections", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("Generic", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("List", TextTags.Class),
+                    ("(", TextTags.Punctuation),
+                    ("Of", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("T", TextTags.TypeParameter),
+                    (")", TextTags.Punctuation)
+                ),
+                TypeParameterMap(
+                    (vbCrLf, TextTags.LineBreak),
+                    ("T", TextTags.TypeParameter),
+                    (" ", TextTags.Space),
+                    (FeaturesResources.is_, TextTags.Text),
+                    (" ", TextTags.Space),
+                    ("String", TextTags.Keyword)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -185,22 +185,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                         Dim l As $$List(Of T)
                     End Class
                 </Text>.NormalizedValue,
-             MainDescription("Class System.Collections.Generic.List(Of T)",
-              ExpectedClassifications(
-               Keyword("Class"),
-               WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
-               Identifier("Collections"),
-               Operators.Dot,
-               Identifier("Generic"),
-               Operators.Dot,
-               [Class]("List"),
-               Punctuation.OpenParen,
-               Keyword("Of"),
-               WhiteSpace(" "),
-               TypeParameter("T"),
-               Punctuation.CloseParen)))
+                MainDescription(
+                    ("Class", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("System", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("Collections", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("Generic", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("List", TextTags.Class),
+                    ("(", TextTags.Punctuation),
+                    ("Of", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("T", TextTags.TypeParameter),
+                    (")", TextTags.Punctuation)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -270,47 +270,47 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEvent() As Task
             Await TestInMethodAsync("AddHandler System.Console.$$CancelKeyPress, AddressOf S",
-             MainDescription("Event Console.CancelKeyPress As ConsoleCancelEventHandler",
-              ExpectedClassifications(
-               Keyword("Event"),
-               WhiteSpace(" "),
-               [Class]("Console"),
-               Operators.Dot,
-               Identifier("CancelKeyPress"),
-               WhiteSpace(" "),
-               Keyword("As"),
-               WhiteSpace(" "),
-               [Delegate]("ConsoleCancelEventHandler"))))
+            MainDescription(
+                ("Event", TextTags.Keyword),
+                (" ", TextTags.Space),
+                ("Console", TextTags.Class),
+                (".", TextTags.Operator),
+                ("CancelKeyPress", TextTags.Event),
+                (" ", TextTags.Space),
+                ("As", TextTags.Keyword),
+                (" ", TextTags.Space),
+                ("ConsoleCancelEventHandler", TextTags.Delegate)
+            ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestEventHandler() As Task
             Await TestInClassAsync("Dim e As $$EventHandler",
-             MainDescription("Delegate Sub System.EventHandler(sender As Object, e As System.EventArgs)",
-              ExpectedClassifications(
-               Keyword("Delegate"),
-               WhiteSpace(" "),
-               Keyword("Sub"),
-               WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
-               [Delegate]("EventHandler"),
-               Punctuation.OpenParen,
-               Identifier("sender"),
-               WhiteSpace(" "),
-               Keyword("As"),
-               WhiteSpace(" "),
-               Keyword("Object"),
-               Punctuation.Comma,
-               WhiteSpace(" "),
-               Identifier("e"),
-               WhiteSpace(" "),
-               Keyword("As"),
-               WhiteSpace(" "),
-               Identifier("System"),
-               Operators.Dot,
-               [Class]("EventArgs"),
-               Punctuation.CloseParen)))
+                MainDescription(
+                    ("Delegate", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("Sub", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("System", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("EventHandler", TextTags.Delegate),
+                    ("(", TextTags.Punctuation),
+                    ("sender", TextTags.Parameter),
+                    (" ", TextTags.Space),
+                    ("As", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("Object", TextTags.Keyword),
+                    (",", TextTags.Punctuation),
+                    (" ", TextTags.Space),
+                    ("e", TextTags.Parameter),
+                    (" ", TextTags.Space),
+                    ("As", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("System", TextTags.Namespace),
+                    (".", TextTags.Operator),
+                    ("EventArgs", TextTags.Class),
+                    (")", TextTags.Punctuation)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -362,28 +362,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                         End Sub
                     End Class
                 </Text>.NormalizedValue,
-             MainDescription($"Sub Console.Write(value As Integer) (+ 17 {FeaturesResources.overloads_})",
-              ExpectedClassifications(
-               Keyword("Sub"),
-               WhiteSpace(" "),
-               [Class]("Console"),
-               Operators.Dot,
-               Identifier("Write"),
-               Punctuation.OpenParen,
-               Identifier("value"),
-               WhiteSpace(" "),
-               Keyword("As"),
-               WhiteSpace(" "),
-               Keyword("Integer"),
-               Punctuation.CloseParen,
-               WhiteSpace(" "),
-               Punctuation.OpenParen,
-               Punctuation.Text("+"),
-               WhiteSpace(" "),
-               Text("17"),
-               WhiteSpace(" "),
-               Text(FeaturesResources.overloads_),
-               Punctuation.CloseParen)))
+                MainDescription(
+                    ("Sub", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("Console", TextTags.Class),
+                    (".", TextTags.Operator),
+                    ("Write", TextTags.Method),
+                    ("(", TextTags.Punctuation),
+                    ("value", TextTags.Parameter),
+                    (" ", TextTags.Space),
+                    ("As", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("Integer", TextTags.Keyword),
+                    (")", TextTags.Punctuation),
+                    (" ", TextTags.Space),
+                    ("(", TextTags.Punctuation),
+                    ("+", TextTags.Punctuation),
+                    (" ", TextTags.Space),
+                    ("17", TextTags.Text),
+                    (" ", TextTags.Space),
+                    (FeaturesResources.overloads_, TextTags.Text),
+                    (")", TextTags.Punctuation)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -544,11 +544,11 @@ class C
     End Sub
 End class
 </Text>.NormalizedValue,
-            MainDescription("Class C",
-             ExpectedClassifications(
-              Keyword("Class"),
-              WhiteSpace(" "),
-              [Class]("C"))))
+                MainDescription(
+                    ("Class", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("C", TextTags.Class)
+                ))
         End Function
 
         <WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
@@ -1731,18 +1731,18 @@ End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to s
 ''' </summary>
 Public Class Generic$$Class(Of T)
 End Class]]></text>.NormalizedValue(),
-                 Documentation("This sample shows how to specify the GenericClass(Of T) cref.",
-                    ExpectedClassifications(
-                        Text("This sample shows how to specify the"),
-                        WhiteSpace(" "),
-                        [Class]("GenericClass"),
-                        Punctuation.OpenParen,
-                        Keyword("Of"),
-                        WhiteSpace(" "),
-                        TypeParameter("T"),
-                        Punctuation.CloseParen,
-                        WhiteSpace(" "),
-                        Text("cref."))))
+                Documentation(
+                    ("This sample shows how to specify the", TextTags.Text),
+                    (" ", TextTags.Space),
+                    ("GenericClass", TextTags.Class),
+                    ("(", TextTags.Punctuation),
+                    ("Of", TextTags.Keyword),
+                    (" ", TextTags.Space),
+                    ("T", TextTags.TypeParameter),
+                    (")", TextTags.Punctuation),
+                    (" ", TextTags.Space),
+                    ("cref.", TextTags.Text)
+                ))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
