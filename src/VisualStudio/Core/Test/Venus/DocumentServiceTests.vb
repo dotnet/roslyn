@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -19,9 +20,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
     Public Class DocumentServiceTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestSpanMappingService() As Task
-            Dim service = ContainedDocument.DocumentServiceProvider.Instace
-            Dim spanMapper = service.GetService(Of ISpanMappingService)
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -30,22 +28,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument As TestHostDocument = CreateAndAddProjectionBufferDocument(workspace, subjectDocument)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
 
-                Dim position = projectedDocument.CursorPosition.Value
-                Dim spans = Await spanMapper.MapSpansAsync(workspace.CurrentSolution.GetDocument(projectedDocument.Id), {New TextSpan(position, length:=0)}, CancellationToken.None)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim spanMapper = service.GetService(Of ISpanMappingService)
+
+                Dim position = subjectDocument.CursorPosition.Value
+                Dim spans = Await spanMapper.MapSpansAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), {New TextSpan(position, length:=0)}, CancellationToken.None)
 
                 Assert.Equal(1, spans.Count)
-                Assert.Equal(subjectDocument.CursorPosition.Value, spans(0).Span.Start)
-                Assert.Equal(projectedDocument.FilePath, spans(0).FilePath)
+                Assert.Equal(projectedDocument.CursorPosition.Value, spans(0).Span.Start)
+                Assert.Equal(subjectDocument.FilePath, spans(0).FilePath)
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestSpanMappingService_InvalidPosition() As Task
-            Dim service = ContainedDocument.DocumentServiceProvider.Instace
-            Dim spanMapper = service.GetService(Of ISpanMappingService)
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -54,42 +52,53 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument As TestHostDocument = CreateAndAddProjectionBufferDocument(workspace, subjectDocument)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
 
-                Dim position = projectedDocument.CursorPosition.Value
-                Dim spans = Await spanMapper.MapSpansAsync(workspace.CurrentSolution.GetDocument(projectedDocument.Id), {New TextSpan(position, length:=0), New TextSpan(start:=1, length:=0), New TextSpan(position + 1, length:=0)}, CancellationToken.None)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim spanMapper = service.GetService(Of ISpanMappingService)
+
+                Dim position = subjectDocument.CursorPosition.Value
+                Dim spans = Await spanMapper.MapSpansAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), {New TextSpan(position, length:=0), New TextSpan(start:=1, length:=0), New TextSpan(position + 1, length:=0)}, CancellationToken.None)
 
                 ' order of input is maintained
                 Assert.Equal(3, spans.Count)
 
-                Assert.Equal(subjectDocument.CursorPosition.Value, spans(0).Span.Start)
-                Assert.Equal(projectedDocument.FilePath, spans(0).FilePath)
+                Assert.Equal(projectedDocument.CursorPosition.Value, spans(0).Span.Start)
+                Assert.Equal(subjectDocument.FilePath, spans(0).FilePath)
 
                 ' but return default for invalid span
                 Assert.True(spans(1).IsDefault)
 
-                Assert.Equal(subjectDocument.CursorPosition.Value + 1, spans(2).Span.Start)
-                Assert.Equal(projectedDocument.FilePath, spans(2).FilePath)
+                Assert.Equal(projectedDocument.CursorPosition.Value + 1, spans(2).Span.Start)
+                Assert.Equal(subjectDocument.FilePath, spans(2).FilePath)
             End Using
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestDocumentOperation()
-            Dim service = ContainedDocument.DocumentServiceProvider.Instace
-            Dim documentOperations = service.GetService(Of IDocumentOperationService)
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>class outter { {|Document:class C$$ { }|} }</Document>
+                    </Project>
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
-            ' contained document supports both document modification and diagnostics
-            ' soon, contained document will be only used to support old venus and razor but not new razor
-            ' which will use thier own implementation of these services
-            Assert.True(documentOperations.CanApplyChange)
-            Assert.True(documentOperations.SupportDiagnostics)
+                Dim subjectDocument = workspace.Documents.Single()
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim documentOperations = service.GetService(Of IDocumentOperationService)
+
+                ' contained document supports both document modification and diagnostics
+                ' soon, contained document will be only used to support old venus and razor but not new razor
+                ' which will use thier own implementation of these services
+                Assert.True(documentOperations.CanApplyChange)
+                Assert.True(documentOperations.SupportDiagnostics)
+            End Using
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_SingleLine() As Task
-            Dim service = ContainedDocument.DocumentServiceProvider.Instace
-            Dim excerptService = service.GetService(Of IDocumentExcerptService)
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -98,15 +107,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument As TestHostDocument = CreateAndAddProjectionBufferDocument(workspace, subjectDocument)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(projectedDocument.Id), GetNamedSpan(projectedDocument), ExcerptMode.SingleLine, CancellationToken.None)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim excerptService = service.GetService(Of IDocumentExcerptService)
+
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
-                Assert.Equal(subjectDocument.TextBuffer.CurrentSnapshot.GetText(), content)
+                Assert.Equal(projectedDocument.TextBuffer.CurrentSnapshot.GetText(), content)
 
-                Dim expcetedFormatted = {FormattedClassifications.Text("class outter { "),
+                Dim expcetedFormatted = {FormattedClassifications.Text("class projected { "),
                                          Keyword("class"),
                                          FormattedClassifications.Text(" "),
                                          [Class]("C"),
@@ -119,15 +131,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim actualFormatted = result.Value.ClassifiedSpans.Select(Function(a) New FormattedClassification(content.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType))
                 Assert.Equal(expcetedFormatted, actualFormatted)
 
-                Assert.Equal(GetNamedSpan(subjectDocument), result.Value.MappedSpan)
+                Assert.Equal(GetNamedSpan(projectedDocument), result.Value.MappedSpan)
             End Using
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_Tooltip_Singleline() As Task
-            Dim service = ContainedDocument.DocumentServiceProvider.Instace
-            Dim excerptService = service.GetService(Of IDocumentExcerptService)
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -136,16 +145,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument As TestHostDocument = CreateAndAddProjectionBufferDocument(workspace, subjectDocument)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 ' make sure single line buffer doesn't throw on ExcerptMode.Tooltip
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(projectedDocument.Id), GetNamedSpan(projectedDocument), ExcerptMode.Tooltip, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
-                Assert.Equal(subjectDocument.TextBuffer.CurrentSnapshot.GetText(), content)
+                Assert.Equal(projectedDocument.TextBuffer.CurrentSnapshot.GetText(), content)
 
-                Dim expcetedFormatted = {FormattedClassifications.Text("class outter { "),
+                Dim expcetedFormatted = {FormattedClassifications.Text("class projected { "),
                                          Keyword("class"),
                                          FormattedClassifications.Text(" "),
                                          [Class]("C"),
@@ -158,45 +170,48 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim actualFormatted = result.Value.ClassifiedSpans.Select(Function(a) New FormattedClassification(content.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType))
                 Assert.Equal(expcetedFormatted, actualFormatted)
 
-                Assert.Equal(GetNamedSpan(subjectDocument), result.Value.MappedSpan)
+                Assert.Equal(GetNamedSpan(projectedDocument), result.Value.MappedSpan)
             End Using
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_Tooltip_MultiLines() As Task
-            Dim service = ContainedDocument.DocumentServiceProvider.Instace
-            Dim excerptService = service.GetService(Of IDocumentExcerptService)
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
-                        <Document>class outter 
-{|Content:                        {|FirstText:{ 
-                            private void SurfaceMethod() { }
-
-                            |}{|Document:class C { }|}{|LastText:
-
-                            private void SurfaceMethod2() { }
-                        }|}|}</Document>
+                        <Document>class outter { {|Document:class C { }|} }</Document>
                     </Project>
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
+                Dim projectedContent = <Code>class projected 
+{|Content:                        {|FirstText:{ 
+                            private void SurfaceMethod() { }
+
+                            |}{|Document:|}{|LastText:
+
+                            private void SurfaceMethod2() { }
+                        }|}|}</Code>
+
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument As TestHostDocument = CreateAndAddProjectionBufferDocument(workspace, subjectDocument)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument}, LanguageNames.CSharp)
+
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 ' make sure single line buffer doesn't throw on ExcerptMode.Tooltip
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(projectedDocument.Id), GetNamedSpan(projectedDocument), ExcerptMode.Tooltip, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
 
                 ' calculate expected span
-                Dim contentSpan = GetNamedSpan(subjectDocument, "Content")
-                Dim expectedContent = subjectDocument.TextBuffer.CurrentSnapshot.GetText(contentSpan.ToSpan())
+                Dim contentSpan = GetNamedSpan(projectedDocument, "Content")
+                Dim expectedContent = projectedDocument.TextBuffer.CurrentSnapshot.GetText(contentSpan.ToSpan())
                 Assert.Equal(expectedContent, content)
 
-                Dim firstText = subjectDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(subjectDocument, "FirstText").ToSpan())
-                Dim lastText = subjectDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(subjectDocument, "LastText").ToSpan())
+                Dim firstText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "FirstText").ToSpan())
+                Dim lastText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "LastText").ToSpan())
+
                 Dim expcetedFormatted = {FormattedClassifications.Text(firstText),
                                          Keyword("class"),
                                          FormattedClassifications.Text(" "),
@@ -212,7 +227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
                 ' ExcerptResult.MappedSpan is relative to ExcerptResult.Content.
                 ' recalculate expected span relative to the content span
-                Dim documentSpan = GetNamedSpan(subjectDocument, "Document")
+                Dim documentSpan = GetNamedSpan(projectedDocument, "Document")
 
                 Assert.Equal(New TextSpan(documentSpan.Start - contentSpan.Start, documentSpan.Length), result.Value.MappedSpan)
             End Using
@@ -220,26 +235,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         Private Shared Function GetNamedSpan(document As TestHostDocument, Optional spanName As String = "Document") As TextSpan
             Return document.AnnotatedSpans(spanName).First()
-        End Function
-
-        Private Shared Function CreateAndAddProjectionBufferDocument(workspace As TestWorkspace, subjectDocument As TestHostDocument, Optional projectedMarkup As String = Nothing) As TestHostDocument
-
-            projectedMarkup = If(projectedMarkup Is Nothing, "class projected { {|Document:|} }", projectedMarkup)
-            Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedMarkup, {subjectDocument}, LanguageNames.CSharp)
-
-            ' add projected document to workspace and open the document to simulate how venus work
-
-            ' first, we need to connect the orphan projected document to the project
-            projectedDocument.SetProject(subjectDocument.Project)
-
-            ' and add the project document to the TestWorkapce and roslyn solution through workspace
-            workspace.Documents.Add(projectedDocument)
-            workspace.OnDocumentAdded(projectedDocument.ToDocumentInfo())
-
-            ' and open it so that it is connected to text buffer tracker
-            workspace.OpenDocument(projectedDocument.Id)
-
-            Return projectedDocument
         End Function
     End Class
 End Namespace

@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
-                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":|}", StringComparison.Ordinal));
+                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":", StringComparison.Ordinal));
 
             var currentPositionInInertText = 0;
             var currentPositionInProjectionBuffer = 0;
@@ -549,13 +549,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                         if (projectionSpan is string text)
                         {
-                            if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
+                            // for {|Markup1:|}{|projection:|}{|Markup2:|}, span of {|Markup2:|} should not include {|projection:|}
+                            // when end of markup1 and start of markup2 are neightbor by projection marker (empty), we will prefer start of markup2
+                            // as start location for markup2 span
+                            if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart < positionInMarkup + text.Length)
                             {
                                 var offsetInText = markupSpanStart - positionInMarkup;
                                 spanStartLocation = projectionBufferSpanStartingPositions[spanIndex] + offsetInText;
                             }
 
-                            if (spanEndLocationExclusive == null && positionInMarkup <= markupSpanEndExclusive && markupSpanEndExclusive <= positionInMarkup + text.Length)
+                            // for {|Markup1:|}{|projection:|}{|Markup2:|}, span of {|Markup1:|} should not include {|projection:|}
+                            // when end of markup1 and start of markup2 are neightbor by projection marker (empty), we will prefer end of markup1
+                            // as end location for markup1 span
+                            if (spanEndLocationExclusive == null && positionInMarkup < markupSpanEndExclusive && markupSpanEndExclusive <= positionInMarkup + text.Length)
                             {
                                 var offsetInText = markupSpanEndExclusive - positionInMarkup;
                                 spanEndLocationExclusive = projectionBufferSpanStartingPositions[spanIndex] + offsetInText;
