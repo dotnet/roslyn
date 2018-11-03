@@ -3096,6 +3096,21 @@ $$    using ([|var vv = goo()|])
         }
 
         [Fact]
+        public void OnIf3()
+        {
+            TestSpan(
+@"class C
+{
+  void Goo()
+  {
+    [|if !(go$$o().bar())|]
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
         public void OnIfBlock()
         {
             TestSpan(
