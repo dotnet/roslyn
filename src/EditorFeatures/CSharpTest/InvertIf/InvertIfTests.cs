@@ -937,5 +937,13 @@ class C
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
 @"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIfGuard1()
+        {
+            await TestFixOneAsync(
+@"[||]if !(a) { a(); } else { b(); }",
+@"if (!a) { b(); } else { a(); }");
+        }
     }
 }

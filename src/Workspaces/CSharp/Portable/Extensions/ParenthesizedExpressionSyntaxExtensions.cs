@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //      if !(a)
             //
             if (parentExpression.IsKind(SyntaxKind.LogicalNotExpression) &&
-                parentExpression.IsParentKind(SyntaxKind.IfStatement))
+                parentExpression.Parent is IfStatementSyntax ifStatement &&
+                ifStatement.IsIfGuard())
             {
                 return false;
             }

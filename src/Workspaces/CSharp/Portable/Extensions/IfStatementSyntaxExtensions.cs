@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// cref="SyntaxNode.SpanStart"/> if the if-statement up to the end of its <see
         /// cref="IfStatementSyntax.CloseParenToken"/> if it has one, or the end of its <see
         /// cref="IfStatementSyntax.Condition"/> otherwise.
+        /// </summary>
         public static TextSpan GetHeaderSpan(this IfStatementSyntax ifStatement)
         {
             var end = ifStatement.CloseParenToken == default
