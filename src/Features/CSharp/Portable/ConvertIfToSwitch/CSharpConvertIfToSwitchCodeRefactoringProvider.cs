@@ -258,7 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 IfStatementSyntax ifStatement, ExpressionSyntax expression, List<SyntaxNode> sectionList)
             {
                 // We should never get an if-statement that is a guard statement.  Our initial
-                // analysis validated that it was of the form `if (a == x || ...)`
+                // analysis validated that it was of the form `if (a == x || ...)`.  As such,
+                // it's safe to directly pass the open/close paren tokens to the switch statement
+                // we're making as we must have them.
                 Debug.Assert(!ifStatement.IsIfGuard());
                 var blockOpt = ifStatement.Statement as BlockSyntax;
 
