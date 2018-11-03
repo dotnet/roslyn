@@ -6,6 +6,7 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using System.Diagnostics;
+    using Microsoft.CodeAnalysis.Shared.Extensions;
     using static Helpers;
 
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer
@@ -31,12 +32,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // Always allow using System.Range indexers with System.String.Substring.  The
                 // compiler has hard-coded knowledge on how to use this type, even if there is no
                 // this[Range] indexer declared on it directly.
+                //
+                // Ensure that we can actually get the 'string' type. We may fail if there is no
+                // proper mscorlib reference (for example, while a project is loading).
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var substringMethod = stringType.GetMembers(nameof(string.Substring))
-                                                .OfType<IMethodSymbol>()
-                                                .FirstOrDefault(m => IsSliceLikeMethod(m));
+                if (!stringType.IsErrorType())
+                {
+                    var substringMethod = stringType.GetMembers(nameof(string.Substring))
+                                                    .OfType<IMethodSymbol>()
+                                                    .FirstOrDefault(m => IsSliceLikeMethod(m));
 
-                _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
+                    _methodToMemberInfo[substringMethod] = ComputeMemberInfo(substringMethod, requireRangeMember: false);
+                }
             }
 
             private IMethodSymbol GetSliceLikeMethod(INamedTypeSymbol namedType)
