@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IEnumerable<MetadataReference> CreateMetadataReferences()
         {
             var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
-            var searchPaths = ReferencePathUtilities.GetReferencePaths();
+            var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
 
             return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                    let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)

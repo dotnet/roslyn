@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             NameValueCollection appSettings;
             try
             {
-#if NET46
+#if NET472
                 appSettings = System.Configuration.ConfigurationManager.AppSettings;
 #else
                 // Do not use AppSettings on non-desktop platforms
