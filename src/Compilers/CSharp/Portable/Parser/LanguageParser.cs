@@ -7942,11 +7942,32 @@ tryAgain:
 
             var openParen = isGuardIf ? default : this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
+            if (isGuardIf)
+            {
+                condition = CheckGuardCondition(condition);
+            }
+
             var closeParen = isGuardIf ? default : this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
             var elseClause = ParseElseClauseOpt();
 
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
+        }
+
+        private ExpressionSyntax CheckGuardCondition(ExpressionSyntax condition)
+        {
+            if (condition.Kind != SyntaxKind.LogicalNotExpression)
+            {
+                // add error
+            }
+
+            var logicalNotExpression = (PrefixUnaryExpressionSyntax)condition;
+            if (logicalNotExpression.operand.Kind != SyntaxKind.ParenthesizedExpression)
+            {
+                // add error
+            }
+
+            return condition;
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
