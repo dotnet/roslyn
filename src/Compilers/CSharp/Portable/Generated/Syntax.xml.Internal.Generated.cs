@@ -16710,12 +16710,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 6;
         this.AdjustFlagsAndWidth(ifKeyword);
         this.ifKeyword = ifKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(condition);
         this.condition = condition;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(statement);
         this.statement = statement;
         if (@else != null)
@@ -16733,12 +16739,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 6;
         this.AdjustFlagsAndWidth(ifKeyword);
         this.ifKeyword = ifKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(condition);
         this.condition = condition;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(statement);
         this.statement = statement;
         if (@else != null)
@@ -16755,12 +16767,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 6;
         this.AdjustFlagsAndWidth(ifKeyword);
         this.ifKeyword = ifKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(condition);
         this.condition = condition;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(statement);
         this.statement = statement;
         if (@else != null)
@@ -41889,25 +41907,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("ifKeyword");
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
+      if (openParenToken != null)
+      {
       switch (openParenToken.Kind)
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("openParenToken");
       }
+      }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
+      if (closeParenToken != null)
+      {
       switch (closeParenToken.Kind)
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("closeParenToken");
+      }
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
@@ -48975,25 +48997,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("ifKeyword");
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
+      if (openParenToken != null)
+      {
       switch (openParenToken.Kind)
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("openParenToken");
       }
+      }
       if (condition == null)
         throw new ArgumentNullException(nameof(condition));
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
+      if (closeParenToken != null)
+      {
       switch (closeParenToken.Kind)
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("closeParenToken");
+      }
       }
       if (statement == null)
         throw new ArgumentNullException(nameof(statement));
