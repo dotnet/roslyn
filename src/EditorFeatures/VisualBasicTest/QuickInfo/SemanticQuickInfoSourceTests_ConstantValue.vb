@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         <InlineData("single", "1F", "3F")>
         <InlineData("double", "1R", "3R")>
         <InlineData("decimal", "1D", "3D")>
-        Public Async Function TestAddExpression_NumericType1(type As String, left As String, result As String) As Task
+        Public Async Function TestAddExpression_NumericType1(type As String, value As String, result As String) As Task
             Await TestInMethodAsync($"
 const v as {type} = 1
 dim f = v $$+ 2",
                 ConstantValueContent(
-                    (left, NumericLiteral),
+                    (value, NumericLiteral),
                     (" ", Space),
                     ("+", [Operator]),
                     (" ", Space),
@@ -34,14 +34,14 @@ dim f = v $$+ 2",
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("byte", "CByte", "1", "3")>
         <InlineData("sbyte", "CSByte", "1", "3")>
-        Public Async Function TestAddExpression_NumericType2(type As String, left1 As String, left2 As String, result As String) As Task
+        Public Async Function TestAddExpression_NumericType2(type As String, castKeyword As String, value As String, result As String) As Task
             Await TestInMethodAsync($"
 const v as {type} = 1
 dim f = v $$+ 2",
                 ConstantValueContent(
-                    (left1, Keyword),
+                    (castKeyword, Keyword),
                     ("(", Punctuation),
-                    (left2, NumericLiteral),
+                    (value, NumericLiteral),
                     (")", Punctuation),
                     (" ", Space),
                     ("+", [Operator]),
@@ -59,17 +59,17 @@ dim f = v $$+ 2",
         <InlineData("&", StringLiteral, """B""c", """AB""")>
         <InlineData("+", StringLiteral, """B""", """AB""")>
         <InlineData("&", StringLiteral, """B""", """AB""")>
-        Public Async Function TestConcatenateExpression_Char([operator] As String, operandTag As String, operand As String, result As String) As Task
+        Public Async Function TestConcatenateExpression_Char(op As String, operandTag As String, operand As String, result As String) As Task
             Await TestInMethodAsync($"
-dim f = ""A""c $${[operator]} {operand}",
+dim f = ""A""c $${op} {operand}",
                 ConstantValueContent(
                     ("""A""c", StringLiteral),
                     (" ", Space),
-                    ([operator], TextTags.Operator),
+                    (op, [Operator]),
                     (" ", Space),
                     (operand, operandTag),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     (result, StringLiteral)
                 ))
@@ -80,17 +80,17 @@ dim f = ""A""c $${[operator]} {operand}",
         <InlineData("&", StringLiteral, """World""", """Hello World""")>
         <InlineData("+", Keyword, "Nothing", """Hello """)>
         <InlineData("&", Keyword, "Nothing", """Hello """)>
-        Public Async Function TestConcatenateExpression_String([operator] As String, operandTag As String, operand As String, result As String) As Task
+        Public Async Function TestConcatenateExpression_String(op As String, operandTag As String, operand As String, result As String) As Task
             Await TestInMethodAsync($"
-dim f = ""Hello "" $${[operator]} {operand}",
+dim f = ""Hello "" $${op} {operand}",
                 ConstantValueContent(
                     ("""Hello """, StringLiteral),
                     (" ", Space),
-                    ([operator], TextTags.Operator),
+                    (op, [Operator]),
                     (" ", Space),
                     (operand, operandTag),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     (result, StringLiteral)
                 ))
@@ -99,28 +99,28 @@ dim f = ""Hello "" $${[operator]} {operand}",
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("+")>
         <InlineData("&")>
-        Public Async Function TestConcatenateExpression_MultiLineString([operator] As String) As Task
+        Public Async Function TestConcatenateExpression_MultiLineString(op As String) As Task
             Await TestInMethodAsync($"
 const v as string = ""Hello
 World""
-dim f = v $${[operator]} ""!""",
+dim f = v $${op} ""!""",
                 ConstantValueContent(
                     ("""Hello""", StringLiteral),
-                    ("&", TextTags.Operator),
+                    ("&", [Operator]),
                     ("vbCrLf", Field),
-                    ("&", TextTags.Operator),
+                    ("&", [Operator]),
                     ("""World""", StringLiteral),
                     (" ", Space),
-                    ([operator], TextTags.Operator),
+                    (op, [Operator]),
                     (" ", Space),
                     ("""!""", StringLiteral),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     ("""Hello""", StringLiteral),
-                    ("&", TextTags.Operator),
+                    ("&", [Operator]),
                     ("vbCrLf", Field),
-                    ("&", TextTags.Operator),
+                    ("&", [Operator]),
                     ("""World!""", StringLiteral)
                 ))
         End Function
@@ -131,12 +131,12 @@ dim f = v $${[operator]} ""!""",
         <InlineData("long", "1L", "1L")>
         <InlineData("single", "1F", "1F")>
         <InlineData("double", "1R", "1R")>
-        Public Async Function TestSubtractExpression_NumericType1(type As String, left As String, result As String) As Task
+        Public Async Function TestSubtractExpression_NumericType1(type As String, value As String, result As String) As Task
             Await TestInMethodAsync($"
 const v as {type} = 1
 dim f = v $$- 2",
                 ConstantValueContent(
-                    (left, NumericLiteral),
+                    (value, NumericLiteral),
                     (" ", Space),
                     ("-", [Operator]),
                     (" ", Space),
@@ -151,14 +151,14 @@ dim f = v $$- 2",
 
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("sbyte", "CSByte", "1", "1")>
-        Public Async Function TestSubtractExpression_NumericType2(type As String, left1 As String, left2 As String, result As String) As Task
+        Public Async Function TestSubtractExpression_NumericType2(type As String, castKeyword As String, value As String, result As String) As Task
             Await TestInMethodAsync($"
 const v as {type} = 1
 dim f = v $$- 2",
                 ConstantValueContent(
-                    (left1, Keyword),
+                    (castKeyword, Keyword),
                     ("(", Punctuation),
-                    (left2, NumericLiteral),
+                    (value, NumericLiteral),
                     (")", Punctuation),
                     (" ", Space),
                     ("-", [Operator]),
@@ -196,17 +196,17 @@ dim f = v $$- 2",
         <InlineData([Operator], "/", "1.25R")>
         <InlineData([Operator], "\", "1L")>
         <InlineData(Keyword, "mod", "0.5R")>
-        Public Async Function TestMultiplicativeExpression_Double(operatorTag As String, [operator] As String, result As String) As Task
+        Public Async Function TestMultiplicativeExpression_Double(opTag As String, op As String, result As String) As Task
             Await TestInMethodAsync($"
-dim f = 2.5 $${[operator]} 2",
+dim f = 2.5 $${op} 2",
                 ConstantValueContent(
                     ("2.5R", NumericLiteral),
                     (" ", Space),
-                    ([operator], operatorTag),
+                    (op, opTag),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     (result, NumericLiteral)
                 ))
@@ -218,17 +218,17 @@ dim f = 2.5 $${[operator]} 2",
         <InlineData(Keyword, "and", "1")>
         <InlineData(Keyword, "or", "3")>
         <InlineData(Keyword, "xor", "2")>
-        Public Async Function TestBitwiseExpression_Integer(operatorTag As String, [operator] As String, result As String) As Task
+        Public Async Function TestBitwiseExpression_Integer(opTag As String, op As String, result As String) As Task
             Await TestInMethodAsync($"
-dim f = 3 $${[operator]} 1",
+dim f = 3 $${op} 1",
                 ConstantValueContent(
                     ("3", NumericLiteral),
                     (" ", Space),
-                    ([operator], operatorTag),
+                    (op, opTag),
                     (" ", Space),
                     ("1", NumericLiteral),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     (result, NumericLiteral)
                 ))
@@ -241,17 +241,17 @@ dim f = 3 $${[operator]} 1",
         <InlineData(">=", "False")>
         <InlineData("=", "False")>
         <InlineData("<>", "True")>
-        Public Async Function TestComparisonExpression_Integer([operator] As String, result As String) As Task
+        Public Async Function TestComparisonExpression_Integer(op As String, result As String) As Task
             Await TestInMethodAsync($"
-dim f = 1 $${[operator]} 2",
+dim f = 1 $${op} 2",
                 ConstantValueContent(
                     ("1", NumericLiteral),
                     (" ", Space),
-                    ([operator], TextTags.Operator),
+                    (op, [Operator]),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     (result, Keyword)
                 ))
@@ -260,17 +260,17 @@ dim f = 1 $${[operator]} 2",
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("andalso", "False")>
         <InlineData("orelse", "True")>
-        Public Async Function TestLogicalExpression_Boolean([operator] As String, result As String) As Task
+        Public Async Function TestLogicalExpression_Boolean(op As String, result As String) As Task
             Await TestInMethodAsync($"
-dim f = true $${[operator]} not true",
+dim f = true $${op} not true",
                 ConstantValueContent(
                     ("True", Keyword),
                     (" ", Space),
-                    ([operator], Keyword),
+                    (op, Keyword),
                     (" ", Space),
                     ("False", Keyword),
                     (" ", Space),
-                    ("=", TextTags.Operator),
+                    ("=", [Operator]),
                     (" ", Space),
                     (result, Keyword)
                 ))

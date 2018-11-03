@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [InlineData("float", "1F", "3F")]
         [InlineData("double", "1D", "3D")]
         [InlineData("decimal", "1M", "3M")]
-        public async Task TestAddExpression_NumericType(string type, string left, string result)
+        public async Task TestAddExpression_NumericType(string type, string value, string result)
         {
             await TestInMethodAsync($@"
 const {type} v = 1;
 var f = v $$+ 2",
                 ConstantValueContent(
-                    (left, NumericLiteral),
+                    (value, NumericLiteral),
                     (" ", Space),
                     ("+", Operator),
                     (" ", Space),
@@ -107,13 +107,13 @@ var f = v $$+ ""!""",
         [InlineData("float", "1F", "1F")]
         [InlineData("double", "1D", "1D")]
         [InlineData("decimal", "1M", "1M")]
-        public async Task TestSubtractExpression_NumericType(string type, string left, string result)
+        public async Task TestSubtractExpression_NumericType(string type, string value, string result)
         {
             await TestInMethodAsync($@"
 const {type} v = 1;
 var f = v $$- 2",
                 ConstantValueContent(
-                    (left, NumericLiteral),
+                    (value, NumericLiteral),
                     (" ", Space),
                     ("-", Operator),
                     (" ", Space),
@@ -130,14 +130,14 @@ var f = v $$- 2",
         [InlineData("*", "5D")]
         [InlineData("/", "1.25D")]
         [InlineData("%", "0.5D")]
-        public async Task TestMultiplicativeExpression_Double(string @operator, string result)
+        public async Task TestMultiplicativeExpression_Double(string op, string result)
         {
             await TestInMethodAsync($@"
-var f = 2.5 $${@operator} 2",
+var f = 2.5 $${op} 2",
                 ConstantValueContent(
                     ("2.5D", NumericLiteral),
                     (" ", Space),
-                    (@operator, Operator),
+                    (op, Operator),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
@@ -153,14 +153,14 @@ var f = 2.5 $${@operator} 2",
         [InlineData("&", "1")]
         [InlineData("|", "3")]
         [InlineData("^", "2")]
-        public async Task TestBitwiseExpression_Int(string @operator, string result)
+        public async Task TestBitwiseExpression_Int(string op, string result)
         {
             await TestInMethodAsync($@"
-var f = 3 $${@operator} 1",
+var f = 3 $${op} 1",
                 ConstantValueContent(
                     ("3", NumericLiteral),
                     (" ", Space),
-                    (@operator, Operator),
+                    (op, Operator),
                     (" ", Space),
                     ("1", NumericLiteral),
                     (" ", Space),
@@ -177,14 +177,14 @@ var f = 3 $${@operator} 1",
         [InlineData(">=", "false")]
         [InlineData("==", "false")]
         [InlineData("!=", "true")]
-        public async Task TestComparisonExpression_Int(string @operator, string result)
+        public async Task TestComparisonExpression_Int(string op, string result)
         {
             await TestInMethodAsync($@"
-var f = 1 $${@operator} 2",
+var f = 1 $${op} 2",
                 ConstantValueContent(
                     ("1", NumericLiteral),
                     (" ", Space),
-                    (@operator, Operator),
+                    (op, Operator),
                     (" ", Space),
                     ("2", NumericLiteral),
                     (" ", Space),
@@ -197,14 +197,14 @@ var f = 1 $${@operator} 2",
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("&&", "false")]
         [InlineData("||", "true")]
-        public async Task TestLogicalExpression_Bool(string @operator, string result)
+        public async Task TestLogicalExpression_Bool(string op, string result)
         {
             await TestInMethodAsync($@"
-var f = true $${@operator} !true",
+var f = true $${op} !true",
                 ConstantValueContent(
                     ("true", Keyword),
                     (" ", Space),
-                    (@operator, Operator),
+                    (op, Operator),
                     (" ", Space),
                     ("false", Keyword),
                     (" ", Space),
