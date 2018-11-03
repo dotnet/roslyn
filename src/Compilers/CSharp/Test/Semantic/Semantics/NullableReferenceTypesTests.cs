@@ -31925,7 +31925,6 @@ class C<T>
                 );
         }
 
-        // https://github.com/dotnet/roslyn/issues/29902: Binder should report an error for `!!`.
         [Fact]
         [WorkItem(29902, "https://github.com/dotnet/roslyn/issues/29902")]
         public void SuppressNullableWarning_Multiple()
@@ -31946,7 +31945,7 @@ class C<T>
             var comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(/* ... */);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
