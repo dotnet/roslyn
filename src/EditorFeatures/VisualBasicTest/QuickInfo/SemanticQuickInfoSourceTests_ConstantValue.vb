@@ -54,198 +54,110 @@ dim f = v $$+ 2",
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_CharChar() As Task
-            Await TestInMethodAsync("
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("+")>
+        <InlineData("&")>
+        Public Async Function TestConcatenateExpression_CharChar([operator] As String) As Task
+            Await TestInMethodAsync($"
 const v as char = ""A""c
-dim f = v $$+ ""B""c",
+dim f = v $${[operator]} ""B""c",
                 ConstantValueContent(
                     ("""A""c", StringLiteral),
                     (" ", Space),
-                    ("+", [Operator]),
+                    ([operator], TextTags.Operator),
                     (" ", Space),
                     ("""B""c", StringLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
                     ("""AB""", StringLiteral)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestConcatenateExpression_CharChar() As Task
-            Await TestInMethodAsync("
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("+")>
+        <InlineData("&")>
+        Public Async Function TestConcatenateExpression_CharString([operator] As String) As Task
+            Await TestInMethodAsync($"
 const v as char = ""A""c
-dim f = v $$& ""B""c",
+dim f = v $${[operator]} ""B""",
                 ConstantValueContent(
                     ("""A""c", StringLiteral),
                     (" ", Space),
-                    ("&", [Operator]),
-                    (" ", Space),
-                    ("""B""c", StringLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("""AB""", StringLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_CharString() As Task
-            Await TestInMethodAsync("
-const v as char = ""A""c
-dim f = v $$+ ""B""",
-                ConstantValueContent(
-                    ("""A""c", StringLiteral),
-                    (" ", Space),
-                    ("+", [Operator]),
+                    ([operator], TextTags.Operator),
                     (" ", Space),
                     ("""B""", StringLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
                     ("""AB""", StringLiteral)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestConcatenateExpression_CharString() As Task
-            Await TestInMethodAsync("
-const v as char = ""A""c
-dim f = v $$& ""B""",
-                ConstantValueContent(
-                    ("""A""c", StringLiteral),
-                    (" ", Space),
-                    ("&", [Operator]),
-                    (" ", Space),
-                    ("""B""", StringLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("""AB""", StringLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_StringString() As Task
-            Await TestInMethodAsync("
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("+")>
+        <InlineData("&")>
+        Public Async Function TestConcatenateExpression_StringString([operator] As String) As Task
+            Await TestInMethodAsync($"
 const v as string = ""World""
-dim f = ""Hello "" $$+ v",
+dim f = ""Hello "" $${[operator]} v",
                 ConstantValueContent(
                     ("""Hello """, StringLiteral),
                     (" ", Space),
-                    ("+", [Operator]),
+                    ([operator], TextTags.Operator),
                     (" ", Space),
                     ("""World""", StringLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
                     ("""Hello World""", StringLiteral)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestConcatenateExpression_StringString() As Task
-            Await TestInMethodAsync("
-const v as string = ""World""
-dim f = ""Hello "" $$& v",
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("+")>
+        <InlineData("&")>
+        Public Async Function TestConcatenateExpression_StringNothing([operator] As String) As Task
+            Await TestInMethodAsync($"
+dim f = ""Hello "" $${[operator]} nothing",
                 ConstantValueContent(
                     ("""Hello """, StringLiteral),
                     (" ", Space),
-                    ("&", [Operator]),
-                    (" ", Space),
-                    ("""World""", StringLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("""Hello World""", StringLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_StringNothing() As Task
-            Await TestInMethodAsync("
-dim f = ""Hello "" $$+ nothing",
-                ConstantValueContent(
-                    ("""Hello """, StringLiteral),
-                    (" ", Space),
-                    ("+", [Operator]),
+                    ([operator], TextTags.Operator),
                     (" ", Space),
                     ("Nothing", Keyword),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
                     ("""Hello """, StringLiteral)
                 ))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestConcatenateExpression_StringNothing() As Task
-            Await TestInMethodAsync("
-dim f = ""Hello "" $$& nothing",
-                ConstantValueContent(
-                    ("""Hello """, StringLiteral),
-                    (" ", Space),
-                    ("&", [Operator]),
-                    (" ", Space),
-                    ("Nothing", Keyword),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("""Hello """, StringLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestAddExpression_MultiLineString() As Task
-            Await TestInMethodAsync("
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("+")>
+        <InlineData("&")>
+        Public Async Function TestConcatenateExpression_MultiLineString([operator] As String) As Task
+            Await TestInMethodAsync($"
 const v as string = ""Hello
 World""
-dim f = v $$+ ""!""",
+dim f = v $${[operator]} ""!""",
                 ConstantValueContent(
                     ("""Hello""", StringLiteral),
-                    ("&", [Operator]),
+                    ("&", TextTags.Operator),
                     ("vbCrLf", Field),
-                    ("&", [Operator]),
+                    ("&", TextTags.Operator),
                     ("""World""", StringLiteral),
                     (" ", Space),
-                    ("+", [Operator]),
+                    ([operator], TextTags.Operator),
                     (" ", Space),
                     ("""!""", StringLiteral),
                     (" ", Space),
-                    ("=", [Operator]),
+                    ("=", TextTags.Operator),
                     (" ", Space),
                     ("""Hello""", StringLiteral),
-                    ("&", [Operator]),
+                    ("&", TextTags.Operator),
                     ("vbCrLf", Field),
-                    ("&", [Operator]),
-                    ("""World!""", StringLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestConcatenateExpression_MultiLineString() As Task
-            Await TestInMethodAsync("
-const v as string = ""Hello
-World""
-dim f = v $$& ""!""",
-                ConstantValueContent(
-                    ("""Hello""", StringLiteral),
-                    ("&", [Operator]),
-                    ("vbCrLf", Field),
-                    ("&", [Operator]),
-                    ("""World""", StringLiteral),
-                    (" ", Space),
-                    ("&", [Operator]),
-                    (" ", Space),
-                    ("""!""", StringLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("""Hello""", StringLiteral),
-                    ("&", [Operator]),
-                    ("vbCrLf", Field),
-                    ("&", [Operator]),
+                    ("&", TextTags.Operator),
                     ("""World!""", StringLiteral)
                 ))
         End Function
