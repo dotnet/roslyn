@@ -39,78 +39,43 @@ var f = v $$+ 2",
                 ));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_CharInt()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData(NumericLiteral, "2", "67")]
+        [InlineData(StringLiteral, "'B'", "131")]
+        public async Task TestAddExpression_Char(string operandTag, string operand, string result)
         {
-            await TestInMethodAsync(@"
-const char v = 'A';
-var f = v $$+ 2",
+            await TestInMethodAsync($@"
+var f = 'A' $$+ {operand}",
                 ConstantValueContent(
                     ("'A'", StringLiteral),
                     (" ", Space),
                     ("+", Operator),
                     (" ", Space),
-                    ("2", NumericLiteral),
+                    (operand, operandTag),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("67", NumericLiteral)
+                    (result, NumericLiteral)
                 ));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_CharChar()
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData(StringLiteral, "\"World\"", "\"Hello World\"")]
+        [InlineData(Keyword, "null", "\"Hello \"")]
+        public async Task TestAddExpression_String(string operandTag, string operand, string result)
         {
-            await TestInMethodAsync(@"
-const char v = 'A';
-var f = v $$+ 'B'",
-                ConstantValueContent(
-                    ("'A'", StringLiteral),
-                    (" ", Space),
-                    ("+", Operator),
-                    (" ", Space),
-                    ("'B'", StringLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("131", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_StringString()
-        {
-            await TestInMethodAsync(@"
-const string v = ""World"";
-var f = ""Hello "" $$+ v",
+            await TestInMethodAsync($@"
+var f = ""Hello "" $$+ {operand}",
                 ConstantValueContent(
                     ("\"Hello \"", StringLiteral),
                     (" ", Space),
                     ("+", Operator),
                     (" ", Space),
-                    ("\"World\"", StringLiteral),
+                    (operand, operandTag),
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("\"Hello World\"", StringLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestAddExpression_StringNull()
-        {
-            await TestInMethodAsync(@"
-var f = ""Hello "" $$+ default(string)",
-                ConstantValueContent(
-                    ("\"Hello \"", StringLiteral),
-                    (" ", Space),
-                    ("+", Operator),
-                    (" ", Space),
-                    ("null", Keyword),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("\"Hello \"", StringLiteral)
+                    (result, StringLiteral)
                 ));
         }
 
@@ -158,45 +123,6 @@ var f = v $$- 2",
                     (" ", Space),
                     ("-", Operator),
                     (result, NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_CharInt()
-        {
-            await TestInMethodAsync(@"
-const char v = 'A';
-var f = v $$- 2",
-                ConstantValueContent(
-                    ("'A'", StringLiteral),
-                    (" ", Space),
-                    ("-", Operator),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("63", NumericLiteral)
-                ));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestSubtractExpression_CharChar()
-        {
-            await TestInMethodAsync(@"
-const char v = 'A';
-var f = v $$- 'B'",
-                ConstantValueContent(
-                    ("'A'", StringLiteral),
-                    (" ", Space),
-                    ("-", Operator),
-                    (" ", Space),
-                    ("'B'", StringLiteral),
-                    (" ", Space),
-                    ("=", Operator),
-                    (" ", Space),
-                    ("-", Operator),
-                    ("1", NumericLiteral)
                 ));
         }
 

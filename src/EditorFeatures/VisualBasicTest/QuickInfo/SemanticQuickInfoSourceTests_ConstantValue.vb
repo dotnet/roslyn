@@ -55,81 +55,44 @@ dim f = v $$+ 2",
         End Function
 
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("+")>
-        <InlineData("&")>
-        Public Async Function TestConcatenateExpression_CharChar([operator] As String) As Task
+        <InlineData("+", StringLiteral, """B""c", """AB""")>
+        <InlineData("&", StringLiteral, """B""c", """AB""")>
+        <InlineData("+", StringLiteral, """B""", """AB""")>
+        <InlineData("&", StringLiteral, """B""", """AB""")>
+        Public Async Function TestConcatenateExpression_Char([operator] As String, operandTag As String, operand As String, result As String) As Task
             Await TestInMethodAsync($"
-const v as char = ""A""c
-dim f = v $${[operator]} ""B""c",
+dim f = ""A""c $${[operator]} {operand}",
                 ConstantValueContent(
                     ("""A""c", StringLiteral),
                     (" ", Space),
                     ([operator], TextTags.Operator),
                     (" ", Space),
-                    ("""B""c", StringLiteral),
+                    (operand, operandTag),
                     (" ", Space),
                     ("=", TextTags.Operator),
                     (" ", Space),
-                    ("""AB""", StringLiteral)
+                    (result, StringLiteral)
                 ))
         End Function
 
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("+")>
-        <InlineData("&")>
-        Public Async Function TestConcatenateExpression_CharString([operator] As String) As Task
+        <InlineData("+", StringLiteral, """World""", """Hello World""")>
+        <InlineData("&", StringLiteral, """World""", """Hello World""")>
+        <InlineData("+", Keyword, "Nothing", """Hello """)>
+        <InlineData("&", Keyword, "Nothing", """Hello """)>
+        Public Async Function TestConcatenateExpression_String([operator] As String, operandTag As String, operand As String, result As String) As Task
             Await TestInMethodAsync($"
-const v as char = ""A""c
-dim f = v $${[operator]} ""B""",
-                ConstantValueContent(
-                    ("""A""c", StringLiteral),
-                    (" ", Space),
-                    ([operator], TextTags.Operator),
-                    (" ", Space),
-                    ("""B""", StringLiteral),
-                    (" ", Space),
-                    ("=", TextTags.Operator),
-                    (" ", Space),
-                    ("""AB""", StringLiteral)
-                ))
-        End Function
-
-        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("+")>
-        <InlineData("&")>
-        Public Async Function TestConcatenateExpression_StringString([operator] As String) As Task
-            Await TestInMethodAsync($"
-const v as string = ""World""
-dim f = ""Hello "" $${[operator]} v",
+dim f = ""Hello "" $${[operator]} {operand}",
                 ConstantValueContent(
                     ("""Hello """, StringLiteral),
                     (" ", Space),
                     ([operator], TextTags.Operator),
                     (" ", Space),
-                    ("""World""", StringLiteral),
+                    (operand, operandTag),
                     (" ", Space),
                     ("=", TextTags.Operator),
                     (" ", Space),
-                    ("""Hello World""", StringLiteral)
-                ))
-        End Function
-
-        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("+")>
-        <InlineData("&")>
-        Public Async Function TestConcatenateExpression_StringNothing([operator] As String) As Task
-            Await TestInMethodAsync($"
-dim f = ""Hello "" $${[operator]} nothing",
-                ConstantValueContent(
-                    ("""Hello """, StringLiteral),
-                    (" ", Space),
-                    ([operator], TextTags.Operator),
-                    (" ", Space),
-                    ("Nothing", Keyword),
-                    (" ", Space),
-                    ("=", TextTags.Operator),
-                    (" ", Space),
-                    ("""Hello """, StringLiteral)
+                    (result, StringLiteral)
                 ))
         End Function
 
