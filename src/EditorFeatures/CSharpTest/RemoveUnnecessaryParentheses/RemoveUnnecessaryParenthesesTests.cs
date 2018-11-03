@@ -2229,5 +2229,18 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestIfGuardWithoutParens()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = if !$$(true) { }
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }

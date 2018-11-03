@@ -31,6 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 ? node.Parent.Parent as ExpressionSyntax
                 : node.Parent as ExpressionSyntax;
 
+            // cannot remove parens around the condition of an if-statement when you have
+            //      if !(a)
+            //
+            if (parentExpression.IsKind(SyntaxKind.LogicalNotExpression) &&
+                parentExpression.IsParentKind(SyntaxKind.IfStatement))
+            {
+                return false;
+            }
+
             // Have to be careful if we would remove parens and cause a + and a + to become a ++.
             // (same with - as well).
             var tokenBeforeParen = node.GetFirstToken().GetPreviousToken();
