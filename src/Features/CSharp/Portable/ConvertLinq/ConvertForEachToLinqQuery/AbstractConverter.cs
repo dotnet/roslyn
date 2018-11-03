@@ -258,8 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     var lambda = SyntaxFactory.SimpleLambdaExpression(
                         SyntaxFactory.Parameter(
                             SyntaxFactory.Identifier(parentForEachStatement.Identifier.ValueText)),
-                        ifStatement.Condition.WithCommentsFrom(ifStatement.OpenParenToken, ifStatement.CloseParenToken))
-                        .WithCommentsFrom(ifStatement.IfKeyword.GetAllTrivia().Concat(node.ExtraLeadingComments), node.ExtraTrailingComments);
+                        ifStatement.Condition.WithCommentsFrom(ifStatement.OpenParenToken, ifStatement.CloseParenToken));
+                    lambda = lambda.WithCommentsFrom(
+                        ifStatement.IfKeyword.GetAllTrivia().Concat(node.ExtraLeadingComments),
+                        node.ExtraTrailingComments);
 
                     receiver = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(

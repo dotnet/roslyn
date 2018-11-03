@@ -256,16 +256,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             protected override SyntaxNode CreateSwitchStatement(
                 IfStatementSyntax ifStatement, ExpressionSyntax expression, List<SyntaxNode> sectionList)
             {
-                var block = ifStatement.Statement as BlockSyntax;
+                var blockOpt = ifStatement.Statement as BlockSyntax;
+                var openParen = ifStatement.OpenParenToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.OpenParenToken)
+                    : ifStatement.OpenParenToken;
+
+                var closeParen = ifStatement.CloseParenToken == default
+                    ? SyntaxFactory.Token(SyntaxKind.CloseParenToken)
+                    : ifStatement.CloseParenToken;
 
                 return SyntaxFactory.SwitchStatement(
                     SyntaxFactory.Token(SyntaxKind.SwitchKeyword).WithTriviaFrom(ifStatement.IfKeyword),
-                    ifStatement.OpenParenToken,
+                    openParen,
                     expression,
-                    ifStatement.CloseParenToken.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker),
-                    block?.OpenBraceToken ?? SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                    closeParen.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker),
+                    blockOpt?.OpenBraceToken ?? SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
                     new SyntaxList<SwitchSectionSyntax>(sectionList.OfType<SwitchSectionSyntax>()),
-                    block?.CloseBraceToken ?? SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+                    blockOpt?.CloseBraceToken ?? SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
             }
         }
     }
