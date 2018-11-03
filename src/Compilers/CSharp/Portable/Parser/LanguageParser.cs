@@ -7935,9 +7935,14 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
             var @if = this.EatToken(SyntaxKind.IfKeyword);
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+
+            var isGuardIf =
+                this.CurrentToken.Kind == SyntaxKind.ExclamationToken &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
+
+            var openParen = isGuardIf ? default : this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            var closeParen = isGuardIf ? default : this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
             var elseClause = ParseElseClauseOpt();
 
