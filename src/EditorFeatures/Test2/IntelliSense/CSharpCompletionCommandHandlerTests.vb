@@ -31,7 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If completionImplementation = CompletionImplementation.Legacy Then
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
             Else
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.NonBlockingCompletion, LanguageNames.CSharp, True)
+                Dim key = New EditorOptionKey(Of Boolean)("NonBlockingCompletion")
+                state.TextView.Options.GlobalOptions.SetOptionValue(key, True)
             End If
         End Sub
 
@@ -2011,7 +2012,7 @@ class C : B
         End Function
 
         <WorkItem(545967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545967")>
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestVirtualSpaces(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3394,8 +3395,7 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems1(completionImplementation As CompletionImplementation) As Task
             Dim tcs = New TaskCompletionSource(Of Boolean)
@@ -3415,8 +3415,7 @@ class C
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)>
-        <InlineData(CompletionImplementation.Modern, Skip:="https://github.com/dotnet/roslyn/issues/29112")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBlockOnCompletionItems2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -3428,7 +3427,7 @@ class C
 
                 state.SendTypeChars("Sys")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="System")
                 state.SendTypeChars(".")
                 Assert.Contains("System.", state.GetLineTextFromCaretPosition())
             End Using

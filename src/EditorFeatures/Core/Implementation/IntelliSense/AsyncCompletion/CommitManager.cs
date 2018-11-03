@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return CommitResultUnhandled;
             }
 
-            var filterText = session.ApplicableToSpan.GetText(subjectBuffer.CurrentSnapshot) + typeChar;
+            var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
             if (Controller.IsFilterCharacter(roslynItem, typeChar, filterText))
             { 
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);

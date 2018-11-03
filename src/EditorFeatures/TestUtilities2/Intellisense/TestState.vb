@@ -153,21 +153,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendSelectAll(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Private Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
-            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-            Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+        Private Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
             Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-
-            If formatHandler Is Nothing Then
-                sigHelpHandler.ExecuteCommand(
-                    args, Sub() compHandler.ExecuteCommand(
-                                    args, finalHandler, context), context)
-            Else
-                formatHandler.ExecuteCommand(
-                    args, Sub() sigHelpHandler.ExecuteCommand(
-                                    args, Sub() compHandler.ExecuteCommand(
-                                                    args, finalHandler, context), context), context)
-            End If
+            ExecuteTypeCharCommand(args, finalHandler, context, compHandler)
         End Sub
 
         Public Overrides Sub SendTypeChars(typeChars As String)
@@ -321,32 +309,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             Return Task.FromResult(0)
-        End Function
-
-#End Region
-
-#Region "Signature Help Operations"
-
-        Public Overrides Sub SendInvokeSignatureHelp()
-            Dim handler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
-            MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-        Public Overrides Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
-            If block Then
-                Await WaitForAsynchronousOperationsAsync()
-            End If
-
-            Assert.Null(Me.CurrentSignatureHelpPresenterSession)
-        End Function
-
-        Public Overrides Async Function AssertSignatureHelpSession() As Task
-            Await WaitForAsynchronousOperationsAsync()
-            Assert.NotNull(Me.CurrentSignatureHelpPresenterSession)
-        End Function
-
-        Public Overrides Function GetSignatureHelpItems() As IList(Of SignatureHelpItem)
-            Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
 #End Region

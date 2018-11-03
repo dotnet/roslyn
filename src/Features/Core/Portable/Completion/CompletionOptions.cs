@@ -33,15 +33,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
 
-        // Option in the legacy completion
         public static readonly PerLanguageOption<bool> BlockForCompletionItems = new PerLanguageOption<bool>(
             nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{BlockForCompletionItems}"));
-
-        // Option in the new Editor completion
-        public static readonly PerLanguageOption<bool> NonBlockingCompletion = new PerLanguageOption<bool>(
-            nameof(CompletionOptions), nameof(NonBlockingCompletion), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{NonBlockingCompletion}"));
 
         public static readonly PerLanguageOption<bool> ShowNameSuggestions =
             new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,

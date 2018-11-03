@@ -7,11 +7,11 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-    <Export>
-    <Export(GetType(ICompletionPresenterProvider))>
-    <Name(NameOf(MockCompletionPresenterProvider))>
-    <ContentType(ContentTypeNames.RoslynContentType)>
-    <Order(Before:=NameOf(PredefinedCompletionNames.DefaultCompletionPresenter))>
+    '<Export>
+    '<Export(GetType(ICompletionPresenterProvider))>
+    '<Name(NameOf(MockCompletionPresenterProvider))>
+    '<ContentType(ContentTypeNames.RoslynContentType)>
+    '<Order(Before:=NameOf(PredefinedCompletionNames.DefaultCompletionPresenter))>
     Public Class MockCompletionPresenterProvider
         Implements ICompletionPresenterProvider
 

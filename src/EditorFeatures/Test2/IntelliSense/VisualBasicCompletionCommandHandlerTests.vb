@@ -302,7 +302,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDown1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -396,7 +396,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigateSoftToHard(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -520,7 +520,8 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestUndo1(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
                               <document>
@@ -541,7 +542,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitAfterNavigation(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -572,7 +573,7 @@ End Class
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)> 'Presented session is part of the legacy API. Not available in the modern one.
+        <InlineData(CompletionImplementation.Legacy)> 'Presenter session is a part of the legacy API. Not available in the modern one.
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSelectCompletionItemThroughPresenter(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -1176,7 +1177,7 @@ End Class
         End Function
 
         <WorkItem(551117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551117")>
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNamedParameterSortOrder(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
@@ -1299,12 +1300,18 @@ End Module|}          </Document>)
                 ' unmap our source spans without changing the top buffer
                 projection.ReplaceSpans(0, sourceSpans.Count, {subjectBuffer.CurrentSnapshot.CreateTrackingSpan(0, subjectBuffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeInclusive)}, EditOptions.DefaultMinimalChange, editTag:=Nothing)
 
-                ' Make sure completionImplementation updates even though the subject buffer is not connected.
-                Dim editorOperations = state.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                editorOperations.Backspace()
-                editorOperations.InsertText("b")
+                If completionImplementation = CompletionImplementation.Legacy Then
+                    ' Make sure completionImplementation updates even though the subject buffer is not connected.
+                    Dim editorOperations = state.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
+                    editorOperations.Backspace()
+                    editorOperations.InsertText("b")
+                Else
+                    state.SendBackspace()
+                    state.SendTypeChars("b")
+                End If
+
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="bbb", projectionsView:=view)
+                Await state.AssertSelectedCompletionItem(displayText:="bbb")
 
                 ' prepare to remap our subject buffer
                 Dim subjectBufferText = subjectDocument.TextBuffer.CurrentSnapshot.GetText()
@@ -2000,7 +2007,7 @@ End Class</Document>)
             End Using
         End Function
 
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InsertOfOnSpace(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,

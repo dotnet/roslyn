@@ -238,7 +238,8 @@ class Program
         End Function
 
         <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
-        <MemberData(NameOf(AllCompletionImplementations))> <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestForgetSelectedItemWhenNoneAreViable(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document><![CDATA[
@@ -276,7 +277,7 @@ class Program
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestKeepUserSelectedItem(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -314,7 +315,7 @@ class C
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestKeepUserSelectedItem2(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -350,7 +351,7 @@ class C
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
-        <InlineData(CompletionImplementation.Legacy)> ' Up and Down keys are supported in VSSDK tests
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestKeepUserSelectedItem3(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,

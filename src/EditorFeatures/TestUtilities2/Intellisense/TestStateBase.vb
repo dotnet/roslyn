@@ -7,19 +7,21 @@ Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend MustInherit Class TestStateBase
         Inherits AbstractCommandHandlerTestState
 
-        Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
-        Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
-        Friend ReadOnly FormatCommandHandler As FormatCommandHandler
-        Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
+        Protected ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
+        Private ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
+        Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
@@ -47,8 +49,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.SessionTestState = GetExportedValue(Of IIntelliSenseTestState)()
 
-            Me.AsyncCompletionService = GetExportedValue(Of IAsyncCompletionService)()
-
             Me.SignatureHelpCommandHandler = GetExportedValue(Of SignatureHelpCommandHandler)()
 
             Me.IntelliSenseCommandHandler = GetExportedValue(Of IntelliSenseCommandHandler)()
@@ -64,6 +64,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public MustOverride Overloads Sub SendUpKey()
 
         Public MustOverride Overloads Sub SendTypeChars(typeChars As String)
+
+        Protected Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext, completionCommandHandler As VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+
+            If formatHandler Is Nothing Then
+                sigHelpHandler.ExecuteCommand(
+                    args, Sub() completionCommandHandler.ExecuteCommand(
+                                    args, finalHandler, context), context)
+            Else
+                formatHandler.ExecuteCommand(
+                    args, Sub() sigHelpHandler.ExecuteCommand(
+                                    args, Sub() completionCommandHandler.ExecuteCommand(
+                                                    args, finalHandler, context), context), context)
+            End If
+        End Sub
 
         Public MustOverride Overloads Sub SendTab()
 
@@ -146,13 +162,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Signature Help Operations"
 
-        Public MustOverride Overloads Sub SendInvokeSignatureHelp()
+        Public Overloads Sub SendInvokeSignatureHelp()
+            Dim handler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
+            MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+        End Sub
 
-        Public MustOverride Overloads Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
+        Public Overloads Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
+            If block Then
+                Await WaitForAsynchronousOperationsAsync()
+            End If
 
-        Public MustOverride Overloads Function AssertSignatureHelpSession() As Task
+            Assert.Null(Me.CurrentSignatureHelpPresenterSession)
+        End Function
 
-        Public MustOverride Function GetSignatureHelpItems() As IList(Of SignatureHelpItem)
+        Public Overloads Async Function AssertSignatureHelpSession() As Task
+            Await WaitForAsynchronousOperationsAsync()
+            Assert.NotNull(Me.CurrentSignatureHelpPresenterSession)
+        End Function
+
+        Public Overloads Function GetSignatureHelpItems() As IList(Of SignatureHelpItem)
+            Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
+        End Function
 
         Public Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
@@ -204,7 +234,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim result = New List(Of Type) From {
                 GetType(TestCompletionPresenter),
                 GetType(TestSignatureHelpPresenter),
-                GetType(IntelliSenseTestState)
+                GetType(IntelliSenseTestState),
+                GetType(MockCompletionPresenterProvider)
             }
 
             If extraExportedTypes IsNot Nothing Then
