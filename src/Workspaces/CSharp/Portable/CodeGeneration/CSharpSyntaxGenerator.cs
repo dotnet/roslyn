@@ -3590,20 +3590,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (falseStatements == null)
             {
-                return SyntaxFactory.IfStatement(
+                var ifStatement = SyntaxFactory.IfStatement(
                     (ExpressionSyntax)condition,
                     CreateBlock(trueStatements));
+
+                return ifStatement.WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                                  .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken));
             }
             else
             {
                 var falseArray = AsReadOnlyList(falseStatements);
 
                 // make else-if chain if false-statements contain only an if-statement
-                return SyntaxFactory.IfStatement(
+                var ifStatement = SyntaxFactory.IfStatement(
                     (ExpressionSyntax)condition,
                     CreateBlock(trueStatements),
                     SyntaxFactory.ElseClause(
                         falseArray.Count == 1 && falseArray[0] is IfStatementSyntax ? (StatementSyntax)falseArray[0] : CreateBlock(falseArray)));
+
+                return ifStatement.WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                                  .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken));
             }
         }
 

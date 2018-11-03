@@ -113,7 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 switch (node.Kind())
                 {
                     case SyntaxKind.WhereClause:
-                        return SyntaxFactory.Block(SyntaxFactory.IfStatement(((WhereClauseSyntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), statement));
+                        return SyntaxFactory.Block(SyntaxFactory.IfStatement(
+                            ((WhereClauseSyntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), 
+                            statement).WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
+                                      .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+
                     case SyntaxKind.FromClause:
                         var fromClause = (FromClauseSyntax)node;
 
