@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.ConvertIfToSwitch;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 {
@@ -256,20 +257,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             protected override SyntaxNode CreateSwitchStatement(
                 IfStatementSyntax ifStatement, ExpressionSyntax expression, List<SyntaxNode> sectionList)
             {
+                // We should never get an if-statement that is a guard statement.  Our initial
+                // analysis validated that it was of the form `if (a == x || ...)`
+                Debug.Assert(!ifStatement.IsIfGuard());
                 var blockOpt = ifStatement.Statement as BlockSyntax;
-                var openParen = ifStatement.OpenParenToken == default
-                    ? SyntaxFactory.Token(SyntaxKind.OpenParenToken)
-                    : ifStatement.OpenParenToken;
-
-                var closeParen = ifStatement.CloseParenToken == default
-                    ? SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-                    : ifStatement.CloseParenToken;
 
                 return SyntaxFactory.SwitchStatement(
                     SyntaxFactory.Token(SyntaxKind.SwitchKeyword).WithTriviaFrom(ifStatement.IfKeyword),
-                    openParen,
+                    ifStatement.OpenParenToken,
                     expression,
-                    closeParen.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker),
+                    ifStatement.CloseParenToken.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker),
                     blockOpt?.OpenBraceToken ?? SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
                     new SyntaxList<SwitchSectionSyntax>(sectionList.OfType<SwitchSectionSyntax>()),
                     blockOpt?.CloseBraceToken ?? SyntaxFactory.Token(SyntaxKind.CloseBraceToken));

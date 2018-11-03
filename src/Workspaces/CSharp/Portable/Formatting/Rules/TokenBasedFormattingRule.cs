@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
+                            !currentToken.IsCloseParenOfIfGuardCondition() &&
                             !currentToken.IsEqualsTokenInAutoPropertyInitializers())
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);

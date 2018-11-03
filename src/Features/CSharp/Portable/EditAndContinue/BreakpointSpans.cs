@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private static TextSpan CreateSpan(SyntaxNode node)
             => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
-        private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
+        private static TextSpan CreateSpan(SyntaxNode node, SyntaxNodeOrToken endNodeOrToken)
         {
-            return TextSpan.FromBounds(node.SpanStart, token.Span.End);
+            return TextSpan.FromBounds(node.SpanStart, endNodeOrToken.Span.End);
         }
 
         private static TextSpan CreateSpan(SyntaxToken token)
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // part. Rather than putting a bp on the entire statement, just put it on the top
                     // portion.
                     var ifStatement = (IfStatementSyntax)statement;
-                    return CreateSpan(ifStatement, ifStatement.CloseParenToken);
+                    return ifStatement.GetHeaderSpan();
 
                 case SyntaxKind.SwitchStatement:
                     // Note: Any nested statements in the switch will already have been hit on the

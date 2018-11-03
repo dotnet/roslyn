@@ -293,12 +293,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
         {
             var syntax = (IfStatementSyntax)original.Syntax;
+            var end = syntax.CloseParenToken != default
+                ? syntax.CloseParenToken.Span.End
+                : syntax.Condition.Span.End;
+
             return new BoundSequencePointWithSpan(
                 syntax,
                 base.InstrumentIfStatement(original, rewritten),
-                TextSpan.FromBounds(
-                    syntax.IfKeyword.SpanStart,
-                    syntax.CloseParenToken.Span.End),
+                TextSpan.FromBounds(syntax.IfKeyword.SpanStart, end),
                 original.HasErrors);
         }
 

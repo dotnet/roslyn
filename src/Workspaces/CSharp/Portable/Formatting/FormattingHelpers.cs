@@ -265,8 +265,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration);
         }
 
+        public static bool IsCloseParenOfIfGuardCondition(this SyntaxToken token)
+        {
+            if (token.Kind() != SyntaxKind.CloseParenToken)
+            {
+                return false;
+            }
+
+            if (!(token.Parent is IfStatementSyntax ifStatement))
+            {
+                return false;
+            }
+
+            return ifStatement.IsIfGuard() && ifStatement.Condition.GetLastToken().Equals(token);
+        }
+
         public static bool IsCloseParenInStatement(this SyntaxToken token)
         {
+            if (token.Kind() != SyntaxKind.CloseParenToken)
+            {
+                return false;
+            }
+
             var statement = token.Parent as StatementSyntax;
             if (statement == null)
             {
@@ -276,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (statement)
             {
                 case IfStatementSyntax ifStatement:
-                    return ifStatement.CloseParenToken.Equals(token);
+                    return ifStatement.CloseParenToken == token;
                 case SwitchStatementSyntax switchStatement:
                     return switchStatement.CloseParenToken.Equals(token);
                 case WhileStatementSyntax whileStatement:

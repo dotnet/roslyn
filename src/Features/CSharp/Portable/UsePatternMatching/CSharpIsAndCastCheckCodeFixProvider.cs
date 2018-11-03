@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             IfStatementSyntax originalIf,
             IfStatementSyntax currentIf)
         {
+            // Original if statement could not have been a guard statement.  That would have the
+            // form `if !(...)`, but our original analyzer validated that we had the form `if (x is Y)`.
+            // As such, it's same to directly access the Open/Close paren tokens below.
+            Debug.Assert(!originalIf.IsIfGuard());
+
             var newIf = currentIf.ReplaceNode(currentIf.Condition, updatedCondition);
             newIf = originalIf.IsParentKind(SyntaxKind.ElseClause)
                 ? newIf.ReplaceToken(newIf.CloseParenToken, newIf.CloseParenToken.WithTrailingTrivia(trivia))

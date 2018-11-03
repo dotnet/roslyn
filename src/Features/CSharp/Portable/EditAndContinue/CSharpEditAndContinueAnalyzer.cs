@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.IfStatement:
                     var ifStatement = (IfStatementSyntax)node;
-                    return TextSpan.FromBounds(ifStatement.IfKeyword.SpanStart, ifStatement.CloseParenToken.Span.End);
+                    return ifStatement.GetHeaderSpan();
 
                 case SyntaxKind.ElseClause:
                     return ((ElseClauseSyntax)node).ElseKeyword.Span;
