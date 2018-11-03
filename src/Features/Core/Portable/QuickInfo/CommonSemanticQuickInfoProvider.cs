@@ -170,9 +170,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SupportedPlatformData supportedPlatforms,
             CancellationToken cancellationToken)
         {
-            var descriptionService = workspace.Services.GetLanguageServices(token.Language).GetService<ISymbolDisplayService>();
-            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
-            var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
+            var languageServices = workspace.Services.GetLanguageServices(semanticModel.Language);
+            var descriptionService = languageServices.GetService<ISymbolDisplayService>();
+            var formatter = languageServices.GetService<IDocumentationCommentFormattingService>();
+            var syntaxFactsService = languageServices.GetService<ISyntaxFactsService>();
             var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
             var showSymbolGlyph = true;
 
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
-            var constantValueContent = GetConstantValueContent(workspace, token, syntaxFactsService, semanticModel, cancellationToken);
+            var constantValueContent = GetConstantValueContent(languageServices, token, semanticModel, cancellationToken);
             if (!constantValueContent.IsDefaultOrEmpty)
             {
                 AddSection(QuickInfoSectionKinds.ConstantValue, constantValueContent);
@@ -304,12 +305,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private static ImmutableArray<TaggedText> GetConstantValueContent(
-            Workspace workspace,
+            Host.HostLanguageServices languageServices,
             SyntaxToken token,
-            ISyntaxFactsService syntaxFacts,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
+
             if (!syntaxFacts.IsBinaryExpression(token.Parent))
             {
                 return default;
@@ -340,7 +342,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return default;
             }
 
-            var generator = SyntaxGenerator.GetGenerator(workspace, semanticModel.Language);
+            var generator = languageServices.GetRequiredService<SyntaxGenerator>();
 
             var textBuilder = ImmutableArray.CreateBuilder<TaggedText>();
             textBuilder.AddLineBreak();
@@ -362,7 +364,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             void AddConstantText(object value)
             {
-                textBuilder.AddRange(TrimTaggedTextRun(LiteralDisplayBuilder.Build(syntaxFacts, generator, value), 42));
+                textBuilder.AddRange(TrimTaggedTextRun(LiteralDisplayBuilder.Build(languageServices, value), 42));
             }
         }
 

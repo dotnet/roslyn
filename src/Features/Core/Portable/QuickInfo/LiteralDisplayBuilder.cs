@@ -1,24 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal static class LiteralDisplayBuilder
     {
-        public static ImmutableArray<TaggedText> Build(ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, object value)
+        public static ImmutableArray<TaggedText> Build(HostLanguageServices languageServices, object value)
         {
+            var generator = languageServices.GetRequiredService<SyntaxGenerator>();
+            var classificationHelpers = languageServices.GetRequiredService<IClassificationHelpersService>();
+
             var textBuilder = ImmutableArray.CreateBuilder<TaggedText>();
-            AddConcatenations(textBuilder, syntaxFacts, generator.LiteralExpression(value));
+            AddConcatenations(textBuilder, generator.SyntaxFacts, classificationHelpers, generator.LiteralExpression(value));
             return textBuilder.ToImmutable();
         }
 
         private static void AddConcatenations(
             ImmutableArray<TaggedText>.Builder textBuilder,
             ISyntaxFactsService syntaxFacts,
+            IClassificationHelpersService classificationHelpers,
             SyntaxNode node)
         {
             if (syntaxFacts.IsBinaryExpression(node))
@@ -29,7 +34,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     out var concatenateToken,
                     out node);
 
-                AddConcatenations(textBuilder, syntaxFacts, leftNode);
+                AddConcatenations(textBuilder, syntaxFacts, classificationHelpers, leftNode);
                 textBuilder.AddOperator(concatenateToken.Text);
             }
 
@@ -37,7 +42,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             foreach (var token in node.DescendantTokens())
             {
-                textBuilder.Add(TagToken(syntaxFacts, token));
+                var tag = GetTag(classificationHelpers.GetClassification(token));
+                textBuilder.Add(new TaggedText(tag, token.Text));
             }
         }
 
@@ -51,17 +57,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return node;
         }
 
-        private static TaggedText TagToken(ISyntaxFactsService syntaxFacts, SyntaxToken token)
+        private static string GetTag(string classificationType)
         {
-            var tag =
-                syntaxFacts.IsCharacterLiteral(token) || syntaxFacts.IsStringLiteral(token) ? TextTags.StringLiteral :
-                syntaxFacts.IsNumericLiteral(token) ? TextTags.NumericLiteral :
-                syntaxFacts.IsKeyword(token) ? TextTags.Keyword :
-                syntaxFacts.IsOperator(token) ? TextTags.Operator :
-                syntaxFacts.IsIdentifier(token) ? TextTags.Field :
-                TextTags.Punctuation;
-
-            return new TaggedText(tag, token.Text);
+            switch (classificationType)
+            {
+                case ClassificationTypeNames.NumericLiteral: return TextTags.NumericLiteral;
+                case ClassificationTypeNames.StringLiteral: return TextTags.StringLiteral;
+                case ClassificationTypeNames.Keyword: return TextTags.Keyword;
+                case ClassificationTypeNames.Operator: return TextTags.Operator;
+                case ClassificationTypeNames.Punctuation: return TextTags.Punctuation;
+                case ClassificationTypeNames.Identifier: return TextTags.Field;
+                default: return TextTags.Text;
+            }
         }
     }
 }

@@ -1,16 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    internal static class ClassificationHelpers
+    [ExportLanguageService(typeof(IClassificationHelpersService), LanguageNames.CSharp), Shared]
+    internal sealed class ClassificationHelpers : IClassificationHelpersService
     {
+        public static readonly ClassificationHelpers Instance = new ClassificationHelpers();
+
         private const string FromKeyword = "from";
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
@@ -23,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// </summary>
         /// <param name="token">The token.</param>
         /// <returns>The correct syntactic classification for the token.</returns>
-        public static string GetClassification(SyntaxToken token)
+        public string GetClassification(SyntaxToken token)
         {
             if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
             {
@@ -192,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string GetClassificationForPunctuation(SyntaxToken token)
         {
-            if (token.Kind().IsOperator())
+            if (IsOperator(token.Kind()))
             {
                 // special cases...
                 switch (token.Kind())
@@ -233,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private static bool IsOperator(this SyntaxKind kind)
+        private static bool IsOperator(SyntaxKind kind)
         {
             switch (kind)
             {
