@@ -559,5 +559,41 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task NotOnGuardPattern1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if !(x is string)
+        {
+            [|var|] v = (string)x;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task NotOnGuardPattern2()
+        {
+            // Would be nice to support this in the future.  If we end up doing so, this will
+            // be a good test that the if-guard style if is not a problem for us.
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if !(x is string)
+        {
+            return;
+        }
+
+        [|var|] v = (string)x;
+    }
+}");
+        }
     }
 }
