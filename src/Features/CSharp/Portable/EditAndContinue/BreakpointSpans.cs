@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private static TextSpan CreateSpan(SyntaxNode node)
             => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
-        private static TextSpan CreateSpan(SyntaxNode node, SyntaxNodeOrToken endNodeOrToken)
+        private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
         {
-            return TextSpan.FromBounds(node.SpanStart, endNodeOrToken.Span.End);
+            return TextSpan.FromBounds(node.SpanStart, token.Span.End);
         }
 
         private static TextSpan CreateSpan(SyntaxToken token)
