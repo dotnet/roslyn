@@ -4778,7 +4778,7 @@ case 1: break; case 2: break; default: break;}
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task SpacingFixInTokenBasedForIfGuard()
+        public async Task SpacingFixInTokenBasedForIfGuard1()
         {
             var code = @"class Class5{
 void bar()
@@ -4794,6 +4794,26 @@ if!(x == 1) {
         if !(x == 1)
         {
         }
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingFixInTokenBasedForIfGuard2()
+        {
+            var code = @"class Class5{
+void bar()
+{
+if!(x == 1){}
+}
+}";
+            var expectedCode = @"class Class5
+{
+    void bar()
+    {
+        if !(x == 1) { }
     }
 }";
             await AssertFormatAsync(expectedCode, code);
