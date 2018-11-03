@@ -1356,5 +1356,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnIfGuard1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if !(i == 1 || i == 2 || i == 3)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnIfGuard2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if !(i != 1 && i != 2 && i != 3)
+            return;
+    }
+}");
+        }
     }
 }
