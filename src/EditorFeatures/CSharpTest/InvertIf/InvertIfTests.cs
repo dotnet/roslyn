@@ -943,6 +943,14 @@ class C
         {
             await TestFixOneAsync(
 @"[||]if !(a) { a(); } else { b(); }",
+@"if (a) { b(); } else { a(); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIfGuard2()
+        {
+            await TestFixOneAsync(
+@"[||]if (a) { a(); } else { b(); }",
 @"if (!a) { b(); } else { a(); }");
         }
     }

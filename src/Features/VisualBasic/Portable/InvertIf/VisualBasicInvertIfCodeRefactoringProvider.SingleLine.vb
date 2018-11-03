@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 Not If(ifNode.ElseClause?.Statements.Any(Function(n) n.IsKind(SyntaxKind.LocalDeclarationStatement)), False)
         End Function
 
-        Protected Overrides Function GetCondition(ifNode As SingleLineIfStatementSyntax) As SyntaxNode
+        Protected Overrides Function GetCondition(ifNode As SingleLineIfStatementSyntax) As ExpressionSyntax
             Return ifNode.Condition
         End Function
 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         Protected Overrides Function UpdateIf(
                 sourceText As SourceText,
                 ifNode As SingleLineIfStatementSyntax,
-                condition As SyntaxNode,
+                condition As ExpressionSyntax,
                 trueStatements As SyntaxList(Of StatementSyntax),
                 Optional falseStatements As SyntaxList(Of StatementSyntax) = Nothing) As SingleLineIfStatementSyntax
 
@@ -62,9 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
             End If
 
-            Dim updatedIf = ifNode _
-                .WithCondition(DirectCast(condition, ExpressionSyntax)) _
-                .WithStatements(trueStatements)
+            Dim updatedIf = ifNode.
+                WithCondition(condition).
+                WithStatements(trueStatements)
 
             If falseStatements.Count <> 0 Then
                 Dim elseClause =

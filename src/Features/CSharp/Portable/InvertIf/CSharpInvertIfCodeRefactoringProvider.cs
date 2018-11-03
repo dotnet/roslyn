@@ -14,8 +14,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 {
+    using static SyntaxFactory;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
-    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<
+        IfStatementSyntax, StatementSyntax, StatementSyntax, ExpressionSyntax>
     {
         protected override string GetTitle()
             => CSharpFeaturesResources.Invert_if;
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         protected override bool CanInvert(IfStatementSyntax ifNode)
             => ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
 
-        protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
+        protected override ExpressionSyntax GetCondition(IfStatementSyntax ifNode)
             => ifNode.Condition;
 
         protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => ifNode.Statement;
 
         protected override StatementSyntax GetEmptyEmbeddedStatement()
-            => SyntaxFactory.Block();
+            => Block();
 
         protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
             => ifNode.Else.Statement;
@@ -136,11 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             switch ((SyntaxKind)rawKind)
             {
                 case SyntaxKind.ContinueStatement:
-                    return SyntaxFactory.ContinueStatement();
+                    return ContinueStatement();
                 case SyntaxKind.BreakStatement:
-                    return SyntaxFactory.BreakStatement();
+                    return BreakStatement();
                 case SyntaxKind.ReturnStatement:
-                    return SyntaxFactory.ReturnStatement();
+                    return ReturnStatement();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(rawKind);
             }
@@ -155,16 +158,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             }
 
             return original is BlockSyntax block
-                ? block.WithStatements(SyntaxFactory.List(statementArray))
+                ? block.WithStatements(List(statementArray))
                 : statementArray.Length == 1
                     ? statementArray[0]
-                    : SyntaxFactory.Block(statementArray);
+                    : Block(statementArray);
         }
 
         protected override IfStatementSyntax UpdateIf(
             SourceText sourceText,
             IfStatementSyntax ifNode,
-            SyntaxNode condition,
+            ExpressionSyntax condition,
             StatementSyntax trueStatement,
             StatementSyntax falseStatementOpt = null)
         {
@@ -182,16 +185,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             }
 
             var updatedIf = ifNode
-                .WithCondition((ExpressionSyntax)condition)
+                .WithCondition(condition)
                 .WithStatement(trueStatement is IfStatementSyntax
-                    ? SyntaxFactory.Block(trueStatement)
+                    ? Block(trueStatement)
                     : trueStatement);
+
+            if (ifNode.IsIfGuard() && !condition.IsValidIfGuardCondition())
+            {
+                // we changed the condition of an if-guard. but the new condition isn't valid as as
+                // a if-guard condition.  Wrap with parens to make legal.
+                updatedIf = updatedIf.WithCondition(updatedIf.Condition.WithoutTrivia())
+                                     .WithOpenParenToken(Token(SyntaxKind.OpenParenToken).WithLeadingTrivia(condition.GetLeadingTrivia()))
+                                     .WithCloseParenToken(Token(SyntaxKind.CloseParenToken).WithLeadingTrivia(condition.GetTrailingTrivia()));
+            }
 
             if (falseStatementOpt != null)
             {
                 var elseClause = updatedIf.Else != null
                     ? updatedIf.Else.WithStatement(falseStatementOpt)
-                    : SyntaxFactory.ElseClause(falseStatementOpt);
+                    : ElseClause(falseStatementOpt);
 
                 updatedIf = updatedIf.WithElse(elseClause);
             }
@@ -210,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             switch (node)
             {
                 case BlockSyntax n:
-                    return n.WithStatements(SyntaxFactory.List(statements));
+                    return n.WithStatements(List(statements));
                 case SwitchSectionSyntax n:
-                    return n.WithStatements(SyntaxFactory.List(statements));
+                    return n.WithStatements(List(statements));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node);
             }
@@ -222,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         {
             return ifBody is BlockSyntax block
                 ? block.Statements
-                : SyntaxFactory.SingletonList(ifBody);
+                : SingletonList(ifBody);
         }
 
         protected override bool IsSingleStatementStatementRange(StatementRange statementRange)

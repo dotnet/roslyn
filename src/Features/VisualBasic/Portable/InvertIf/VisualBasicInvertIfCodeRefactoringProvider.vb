@@ -5,7 +5,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
-        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, StatementSyntax, SyntaxList(Of StatementSyntax))
+        Inherits AbstractInvertIfCodeRefactoringProvider(Of
+            TIfStatementSyntax,
+            StatementSyntax,
+            SyntaxList(Of StatementSyntax),
+            ExpressionSyntax)
 
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If

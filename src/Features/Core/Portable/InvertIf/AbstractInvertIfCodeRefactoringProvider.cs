@@ -19,9 +19,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.InvertIf
 {
     internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
-        TIfStatementSyntax, TStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
-        where TIfStatementSyntax : class, TStatementSyntax
+        TIfStatementSyntax,
+        TStatementSyntax,
+        TEmbeddedStatement,
+        TExpressionSyntax> : CodeRefactoringProvider
+        where TIfStatementSyntax : TStatementSyntax
         where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
         private enum InvertIfStyle
         {
@@ -276,7 +280,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     ifNode,
                     invertIfStyle,
                     subsequentSingleExitPointOpt,
-                    negatedExpression: generator.Negate(
+                    negatedExpression: (TExpressionSyntax)generator.Negate(
                         GetCondition(ifNode),
                         semanticModel,
                         cancellationToken)));
@@ -416,7 +420,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         protected abstract bool IsElseless(TIfStatementSyntax ifNode);
 
         protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
-        protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
+        protected abstract TExpressionSyntax GetCondition(TIfStatementSyntax ifNode);
         protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
 
         protected abstract IEnumerable<TStatementSyntax> UnwrapBlock(TEmbeddedStatement ifBody);
@@ -431,7 +435,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         protected abstract TIfStatementSyntax UpdateIf(
             SourceText sourceText,
             TIfStatementSyntax ifNode,
-            SyntaxNode condition,
+            TExpressionSyntax condition,
             TEmbeddedStatement trueStatement,
             TEmbeddedStatement falseStatementOpt = default);
 
@@ -445,7 +449,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
             SyntaxNode subsequentSingleExitPointOpt,
-            SyntaxNode negatedExpression)
+            TExpressionSyntax negatedExpression)
         {
             switch (invertIfStyle)
             {

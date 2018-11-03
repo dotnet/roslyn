@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return ifNode.ElseIfBlocks.IsEmpty
         End Function
 
-        Protected Overrides Function GetCondition(ifNode As MultiLineIfBlockSyntax) As SyntaxNode
+        Protected Overrides Function GetCondition(ifNode As MultiLineIfBlockSyntax) As ExpressionSyntax
             Return ifNode.IfStatement.Condition
         End Function
 
@@ -39,13 +39,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         Protected Overrides Function UpdateIf(
                 sourceText As SourceText,
                 ifNode As MultiLineIfBlockSyntax,
-                condition As SyntaxNode,
+                condition As ExpressionSyntax,
                 trueStatement As SyntaxList(Of StatementSyntax),
                 Optional falseStatementOpt As SyntaxList(Of StatementSyntax) = Nothing) As MultiLineIfBlockSyntax
 
-            Dim updatedIf = ifNode _
-                .WithIfStatement(ifNode.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax))) _
-                .WithStatements(trueStatement)
+            Dim updatedIf = ifNode.
+                WithIfStatement(ifNode.IfStatement.WithCondition(condition)).
+                WithStatements(trueStatement)
 
             If falseStatementOpt.Count > 0 Then
                 updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatementOpt))

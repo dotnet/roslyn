@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 : result;
         }
 
-        private static ExpressionSyntax ParenthesizeWorker(
+        private static ParenthesizedExpressionSyntax ParenthesizeWorker(
             this ExpressionSyntax expression, bool includeElasticTrivia)
         {
             var withoutTrivia = expression.WithoutTrivia();
@@ -2831,6 +2831,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.ExpressionStatement(expression)
                                     .WithSemicolonToken(semicolonToken);
             }
+        }
+
+        public static bool IsValidIfGuardCondition(this ExpressionSyntax expression)
+        {
+            if (expression.Kind() != SyntaxKind.LogicalNotExpression)
+            {
+                return false;
+            }
+
+            var logicalNot = (PrefixUnaryExpressionSyntax)expression;
+            return logicalNot.Operand.Kind() == SyntaxKind.ParenthesizedExpression;
         }
     }
 }
