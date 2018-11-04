@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.ParenthesizedExpression;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses.ParenthesizedExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :

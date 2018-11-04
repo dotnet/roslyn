@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.ParenthesizedExpression;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses.ParenthesizedExpression
 {
     using PrecedenceKind = Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.PrecedenceKind;
 
