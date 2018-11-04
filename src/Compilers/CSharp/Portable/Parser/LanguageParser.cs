@@ -7935,21 +7935,24 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
             var @if = this.EatToken(SyntaxKind.IfKeyword);
+            var exclamationToken = this.CurrentToken.Kind == SyntaxKind.ExclamationToken
+                ? this.EatToken()
+                : default;
 
-            var isGuardIf =
-                this.CurrentToken.Kind == SyntaxKind.ExclamationToken &&
-                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken;
-
-            var openParen = isGuardIf ? default : this.EatToken(SyntaxKind.OpenParenToken);
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
-            if (isGuardIf)
-            {
-                condition = CheckGuardCondition(condition);
-            }
-
-            var closeParen = isGuardIf ? default : this.EatToken(SyntaxKind.CloseParenToken);
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
             var elseClause = ParseElseClauseOpt();
+
+            if (exclamationToken != default)
+            {
+                // TODO(cyrusn): add language version check.
+                condition = _syntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.LogicalNotExpression,
+                    exclamationToken,
+                    _syntaxFactory.ParenthesizedExpression(openParen, condition, closeParen));
+            }
 
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
