@@ -7957,6 +7957,8 @@ tryAgain:
                     SyntaxKind.LogicalNotExpression,
                     exclamationToken,
                     _syntaxFactory.ParenthesizedExpression(openParen, condition, closeParen));
+                openParen = default;
+                closeParen = default;
             }
 
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
