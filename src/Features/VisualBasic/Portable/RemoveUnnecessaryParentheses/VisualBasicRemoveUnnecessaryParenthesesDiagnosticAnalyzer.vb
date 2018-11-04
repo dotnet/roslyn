@@ -2,8 +2,9 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
+Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.ParenthesizedExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports PrecedenceKind = Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.PrecedenceKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

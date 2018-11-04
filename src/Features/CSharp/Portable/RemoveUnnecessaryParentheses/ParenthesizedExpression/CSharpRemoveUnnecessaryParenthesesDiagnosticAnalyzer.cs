@@ -4,11 +4,13 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.ParenthesizedExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
+    using PrecedenceKind = Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.PrecedenceKind;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer
         : AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<SyntaxKind, ParenthesizedExpressionSyntax>

@@ -10,20 +10,33 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
-    internal abstract class AbstractRemoveUnnecessaryParenthesesCodeFixProvider<TParenthesizedExpressionSyntax>
+    internal abstract class AbstractRemoveUnnecessaryParenthesesCodeFixProvider<TConstruct>
         : SyntaxEditorBasedCodeFixProvider
-        where TParenthesizedExpressionSyntax : SyntaxNode
+        where TConstruct : SyntaxNode
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
+        private readonly string _kind;
+
+        protected AbstractRemoveUnnecessaryParenthesesCodeFixProvider(string kind)
+        {
+            _kind = kind;
+        }
+
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+
+        protected abstract SyntaxNode Unparenthesize(TConstruct current);
+
+        protected abstract bool CanRemoveParentheses(TConstruct current, SemanticModel semanticModel);
+
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId);
 
-        protected abstract bool CanRemoveParentheses(TParenthesizedExpressionSyntax current, SemanticModel semanticModel);
+        protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => diagnostic.Properties["Kind"] == _kind;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 new MyCodeAction(
@@ -32,19 +45,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected sealed override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var originalNodes = diagnostics.SelectAsArray(
-                d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
+                d => (TConstruct)d.AdditionalLocations[0].FindNode(
                     findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));
 
             return editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, originalNodes,
                 (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel),
-                (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
+                (_, currentRoot, current) => currentRoot.ReplaceNode(current, Unparenthesize(current)),
                 cancellationToken);
         }
 

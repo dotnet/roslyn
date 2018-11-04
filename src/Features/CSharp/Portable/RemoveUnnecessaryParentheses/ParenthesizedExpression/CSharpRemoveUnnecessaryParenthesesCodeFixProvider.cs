@@ -3,7 +3,8 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses.ParenthesizedExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
@@ -11,6 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
         AbstractRemoveUnnecessaryParenthesesCodeFixProvider<ParenthesizedExpressionSyntax>
     {
+        protected override ISyntaxFactsService GetSyntaxFactsService()
+            => CSharpSyntaxFactsService.Instance;
+
         protected override bool CanRemoveParentheses(ParenthesizedExpressionSyntax current, SemanticModel semanticModel)
         {
             return CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(

@@ -10,20 +10,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
     internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
         TLanguageKindEnum,
-        TParenthesizedExpressionSyntax>
+        TConstructSyntax>
         : AbstractParenthesesDiagnosticAnalyzer
         where TLanguageKindEnum : struct
-        where TParenthesizedExpressionSyntax : SyntaxNode
+        where TConstructSyntax : SyntaxNode
     {
-        protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
+        private readonly string _kind;
+
+        protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer(string kind)
             : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _kind = kind;
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-
+  
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -35,8 +38,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         protected abstract TLanguageKindEnum GetSyntaxNodeKind();
         protected abstract bool CanRemoveParentheses(
-            TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
+            TConstructSyntax construct, SemanticModel semanticModel,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);
+        protected abstract bool ShouldNotRemoveParentheses(TConstructSyntax construct, PrecedenceKind precedence);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -48,43 +52,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 return;
             }
 
-            var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
+            var construct = (TConstructSyntax)context.Node;
 
-            if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
+            if (!CanRemoveParentheses(construct, context.SemanticModel,
                     out var precedence, out var clarifiesPrecedence))
             {
                 return;
             }
 
-            // Do not remove parentheses from these expressions when there are different kinds
-            // between the parent and child of the parenthesized expr..  This is because removing
-            // these parens can significantly decrease readability and can confuse many people
-            // (including several people quizzed on Roslyn).  For example, most people see
-            // "1 + 2 << 3" as "1 + (2 << 3)", when it's actually "(1 + 2) << 3".  To avoid 
-            // making code bases more confusing, we just do not touch parens for these constructs 
-            // unless both the child and parent have the same kinds.
-            switch (precedence)
+            if (ShouldNotRemoveParentheses(construct, precedence))
             {
-                case PrecedenceKind.Shift:
-                case PrecedenceKind.Bitwise:
-                case PrecedenceKind.Coalesce:
-                    var syntaxFacts = this.GetSyntaxFactsService();
-                    var child = syntaxFacts.GetExpressionOfParenthesizedExpression(parenthesizedExpression);
-
-                    var parentKind = parenthesizedExpression.Parent.RawKind;
-                    var childKind = child.RawKind;
-                    if (parentKind != childKind)
-                    {
-                        return;
-                    }
-
-                    // Ok to remove if it was the exact same kind.  i.e. ```(a | b) | c```
-                    // not ok to remove if kinds changed.  i.e. ```(a + b) << c```
-                    break;
+                return;
             }
 
             var option = GetLanguageOption(precedence);
-            var preference = optionSet.GetOption(option, parenthesizedExpression.Language);
+            var preference = optionSet.GetOption(option, construct.Language);
 
             if (preference.Notification.Severity == ReportDiagnostic.Suppress)
             {
@@ -107,18 +89,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var severity = preference.Notification.Severity;
 
-            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
+            var additionalLocations = ImmutableArray.Create(construct.GetLocation());
+            var properties = ImmutableDictionary<string, string>.Empty.Add("Kind", _kind);
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 UnnecessaryWithSuggestionDescriptor,
-                parenthesizedExpression.GetFirstToken().GetLocation(),
+                construct.GetFirstToken().GetLocation(),
                 severity,
                 additionalLocations,
-                properties: null));
+                properties));
 
             context.ReportDiagnostic(Diagnostic.Create(
                 UnnecessaryWithoutSuggestionDescriptor,
-                parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
+                construct.GetLastToken().GetLocation(), additionalLocations));
         }
     }
 }
