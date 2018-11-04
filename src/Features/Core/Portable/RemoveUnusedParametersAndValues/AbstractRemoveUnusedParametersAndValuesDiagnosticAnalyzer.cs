@@ -362,8 +362,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 private readonly SymbolStartAnalyzer _symbolStartAnalyzer;
                 private readonly Options _options;
-                private bool _hasDelegateCreation;
-                private bool _hasConversionFromDelegateTypeToNonDelegteType;
+                private bool _hasDelegateCreationOrAnonymousFunction;
+                private bool _escapedDelegate;
+                private bool _hasConversionFromDelegateTypeToNonDelegateType;
 
                 private BlockAnalyzer(SymbolStartAnalyzer symbolStartAnalyzer, Options options)
                 {
@@ -393,8 +394,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     var blockAnalyzer = new BlockAnalyzer(symbolStartAnalyzer, options);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeExpressionStatement, OperationKind.ExpressionStatement);
-                    context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreation, OperationKind.DelegateCreation);
+                    context.RegisterOperationAction(blockAnalyzer.AnalyzeDelegateCreationOrAnonymousFunction, OperationKind.DelegateCreation, OperationKind.AnonymousFunction);
                     context.RegisterOperationAction(blockAnalyzer.AnalyzeConversion, OperationKind.Conversion);
+                    context.RegisterOperationAction(blockAnalyzer.AnalyzeFieldOrPropertyReference, OperationKind.FieldReference, OperationKind.PropertyReference);
                     context.RegisterOperationBlockEndAction(blockAnalyzer.AnalyzeOperationBlockEnd);
 
                     return;
@@ -459,12 +461,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     context.ReportDiagnostic(diagnostic);
                 }
 
-                private void AnalyzeDelegateCreation(OperationAnalysisContext operationAnalysisContext)
-                    => _hasDelegateCreation = true;
+                private void AnalyzeDelegateCreationOrAnonymousFunction(OperationAnalysisContext operationAnalysisContext)
+                    => _hasDelegateCreationOrAnonymousFunction = true;
 
                 private void AnalyzeConversion(OperationAnalysisContext operationAnalysisContext)
                 {
-                    if (_hasConversionFromDelegateTypeToNonDelegteType)
+                    if (_hasConversionFromDelegateTypeToNonDelegateType)
                     {
                         return;
                     }
@@ -473,10 +475,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     if (conversion.Operand.Type.IsDelegateType() &&
                         !conversion.Type.IsDelegateType())
                     {
-                        _hasConversionFromDelegateTypeToNonDelegteType = true;
+                        _hasConversionFromDelegateTypeToNonDelegateType = true;
                     }
                 }
 
+                private void AnalyzeFieldOrPropertyReference(OperationAnalysisContext operationAnalysisContextContext)
+                {
+                    var fieldOrPropertyReference = operationAnalysisContextContext.Operation;
+                    if (fieldOrPropertyReference.Type.IsDelegateType() &&
+                        fieldOrPropertyReference.Parent is ISimpleAssignmentOperation simpleAssignment &&
+                        simpleAssignment.Target == fieldOrPropertyReference)
+                    {
+                        _escapedDelegate = true;
+                    }
+                }
                 private void AnalyzeOperationBlockEnd(OperationBlockAnalysisContext context)
                 {
                     var isComputingUnusedParams = _options.IsComputingUnusedParams(context.OwningSymbol);
@@ -501,9 +513,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // First perform the fast, aggressive, imprecise operation-tree based reaching definitions analysis.
                             // This analysis might flag some "used" definitions as "unused", but will not miss reporting any truly unused definitions.
                             // This initial pass helps us reduce the number of methods for which we perform the slower second pass.
-                            // We perform the first fast pass only if there are no delegate creations,
+                            // We perform the first fast pass only if there are no delegate creations/lambda methods,
                             // as that requires us to track delegate creation targets, which needs flow analysis.
-                            if (!_hasDelegateCreation)
+                            if (!_hasDelegateCreationOrAnonymousFunction)
                             {
                                 var resultFromOperationBlockAnalysis = ReachingDefinitionsAnalysis.Run(operationBlock, context.OwningSymbol, context.CancellationToken);
                                 if (!resultFromOperationBlockAnalysis.HasUnusedDefinitions())
@@ -616,21 +628,27 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // track delegate invocations for all cases.
                         // We attempt to do our best effort delegate invocation analysis as follows:
 
-                        //  1. If we have no delegate creation operation, our current analysis works fine,
+                        //  1. If we have no delegate creations or lambdas, our current analysis works fine,
                         //     return true.
-                        if (!_hasDelegateCreation)
+                        if (!_hasDelegateCreationOrAnonymousFunction)
                         {
                             return true;
                         }
 
-                        //  2. Bail out if we have a conversion from a delegate type to a non-delegate type.
-                        //     We can analyze this correctly when we do points-to-analysis.
-                        if (_hasConversionFromDelegateTypeToNonDelegteType)
+                        //  2. Bail out if we have a delegate escape via an assigment to a field/property reference.
+                        if (_escapedDelegate)
                         {
                             return false;
                         }
 
-                        //  3. Bail out for method returning delegates or ref/out parameters of delegate type.
+                        //  3. Bail out if we have a conversion from a delegate type to a non-delegate type.
+                        //     We can analyze this correctly when we do points-to-analysis.
+                        if (_hasConversionFromDelegateTypeToNonDelegateType)
+                        {
+                            return false;
+                        }
+
+                        //  4. Bail out for method returning delegates or ref/out parameters of delegate type.
                         //     We can analyze this correctly when we do points-to-analysis.
                         if (context.OwningSymbol is IMethodSymbol method &&
                             (method.ReturnType.IsDelegateType() ||
@@ -639,7 +657,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             return false;
                         }
 
-                        //  4. Otherwise, we execute analysis by walking the reaching definitions chain to attempt to
+                        //  5. Otherwise, we execute analysis by walking the reaching definitions chain to attempt to
                         //     find the target method being invoked.
                         //     This works for most common and simple cases where a local is assigned a lambda and invoked later.
                         //     If we are unable to find a target, we will conservatively mark all current definitions as read.

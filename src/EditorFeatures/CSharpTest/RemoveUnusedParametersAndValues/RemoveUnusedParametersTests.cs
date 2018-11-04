@@ -330,7 +330,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UsedInLambda_ReturnsDelegate()
         {
             // Currently we bail out from analysis for method returning delegate types.
@@ -346,7 +346,25 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UsedInLambda_AssignedToField()
+        {
+            // Currently we bail out from analysis if we have a delegate creation that is not assigned
+            // too a local/parameter.
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    private Action _field;
+    private static void M(object [|p|])
+    {
+        _field = () => { Console.WriteLine(p); };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task MethodWithLockAndControlFlow()
         {
             await TestDiagnosticMissingAsync(
@@ -788,7 +806,7 @@ $@"class C
 }}");
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_DiagnosticMessages()
         {
             var source =

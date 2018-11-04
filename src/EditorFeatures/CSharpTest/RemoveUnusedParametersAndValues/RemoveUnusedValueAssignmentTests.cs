@@ -3202,6 +3202,38 @@ class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UseInLocalFunction_NestedInvocation(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        LocalFunction();
+
+        bool LocalFunction2()
+        {
+            return true;
+        }
+
+        void LocalFunction()
+        {
+            object [|p|] = null;
+            if (LocalFunction2())
+            {
+            }
+
+            if (p != null)
+            {
+            }
+        }
+    }
+}", optionName);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard), "_")]
         [InlineData(nameof(PreferUnusedLocal), "unused")]
         public async Task DeclarationPatternInSwitchCase_WithReadAndWriteReferences(string optionName, string fix)

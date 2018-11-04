@@ -52,24 +52,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             protected override void Dispose(bool disposing)
                 => _analysisData.Dispose();
 
-            private BasicBlockAnalysisData AnalyzeLocalFunctionOrLambdaInvocation(IMethodSymbol localFunctionOrLambda, ControlFlowGraph cfg, CancellationToken cancellationToken)
+            private static BasicBlockAnalysisData AnalyzeLocalFunctionOrLambdaInvocation(
+                IMethodSymbol localFunctionOrLambda,
+                ControlFlowGraph cfg,
+                AnalysisData parentAnalysisData,
+                CancellationToken cancellationToken)
             {
                 Debug.Assert(localFunctionOrLambda.IsLocalFunction() || localFunctionOrLambda.IsAnonymousFunction());
 
                 cancellationToken.ThrowIfCancellationRequested();
-                using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, _analysisData, cancellationToken))
+                using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, (FlowGraphAnalysisData)parentAnalysisData, cancellationToken))
                 {
                     var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
                     if (resultBlockAnalysisData == null)
                     {
                         // Unreachable exit block from lambda/local.
                         // So use our current analysis data.
-                        return _analysisData.CurrentBlockAnalysisData;
+                        return parentAnalysisData.CurrentBlockAnalysisData;
                     }
 
                     // We need to return a cloned basic block analysis data as disposing the DataFlowAnalyzer
                     // created above will dispose all basic block analysis data instances allocated by it.
-                    var clonedBasicBlockData = _analysisData.CreateBlockAnalysisData();
+                    var clonedBasicBlockData = parentAnalysisData.CreateBlockAnalysisData();
                     clonedBasicBlockData.SetAnalysisDataFrom(resultBlockAnalysisData);
                     return clonedBasicBlockData;
                 }

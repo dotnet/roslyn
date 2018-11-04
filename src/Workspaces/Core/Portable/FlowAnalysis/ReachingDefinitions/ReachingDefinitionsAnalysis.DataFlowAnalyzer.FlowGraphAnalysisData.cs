@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 /// <summary>
                 /// Callback to analyze lambda/local function invocations and return new block analysis data.
                 /// </summary>
-                private readonly Func<IMethodSymbol, ControlFlowGraph, CancellationToken, BasicBlockAnalysisData> _analyzeLocalFunctionOrLambdaInvocation;
+                private readonly Func<IMethodSymbol, ControlFlowGraph, AnalysisData, CancellationToken, BasicBlockAnalysisData> _analyzeLocalFunctionOrLambdaInvocation;
 
                 /// <summary>
                 /// Map from flow capture ID to set of captured definition addresses along all possible control flow paths.
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     PooledDictionary<(ISymbol symbol, IOperation operation), bool> definitionUsageMap,
                     PooledHashSet<ISymbol> symbolsRead,
                     PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
-                    Func<IMethodSymbol, ControlFlowGraph, CancellationToken, BasicBlockAnalysisData> analyzeLocalFunctionOrLambdaInvocation,
+                    Func<IMethodSymbol, ControlFlowGraph, AnalysisData, CancellationToken, BasicBlockAnalysisData> analyzeLocalFunctionOrLambdaInvocation,
                     PooledDictionary<IOperation, PooledHashSet<IOperation>> reachingDelegateCreationTargets,
                     PooledDictionary<IMethodSymbol, ControlFlowGraph> localFunctionTargetsToAccessingCfgMap,
                     PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> lambdaTargetsToAccessingCfgMap)
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 public static FlowGraphAnalysisData Create(
                     ControlFlowGraph cfg,
                     ISymbol owningSymbol,
-                    Func<IMethodSymbol, ControlFlowGraph, CancellationToken, BasicBlockAnalysisData> analyzeLocalFunctionOrLambdaInvocation)
+                    Func<IMethodSymbol, ControlFlowGraph, AnalysisData, CancellationToken, BasicBlockAnalysisData> analyzeLocalFunctionOrLambdaInvocation)
                 {
                     Debug.Assert(cfg.Parent == null);
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     }
 
                     var localFunctionCfg = accessingCfg.GetLocalFunctionControlFlowGraphInScope(localFunction, cancellationToken);
-                    return _analyzeLocalFunctionOrLambdaInvocation(localFunction, localFunctionCfg, cancellationToken);
+                    return _analyzeLocalFunctionOrLambdaInvocation(localFunction, localFunctionCfg, this, cancellationToken);
                 }
 
                 protected override BasicBlockAnalysisData AnalyzeLambdaInvocationCore(IFlowAnonymousFunctionOperation lambda, CancellationToken cancellationToken)
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     }
 
                     var lambdaCfg = accessingCfg.GetAnonymousFunctionControlFlowGraphInScope(lambda, cancellationToken);
-                    return _analyzeLocalFunctionOrLambdaInvocation(lambda.Symbol, lambdaCfg, cancellationToken);
+                    return _analyzeLocalFunctionOrLambdaInvocation(lambda.Symbol, lambdaCfg, this, cancellationToken);
                 }
 
                 public override bool IsTrackingDelegateCreationTargets => true;
