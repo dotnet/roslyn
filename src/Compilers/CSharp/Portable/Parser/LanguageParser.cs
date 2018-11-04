@@ -7964,22 +7964,6 @@ tryAgain:
             return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
-        private ExpressionSyntax CheckGuardCondition(ExpressionSyntax condition)
-        {
-            if (condition.Kind != SyntaxKind.LogicalNotExpression)
-            {
-                // add error
-            }
-
-            var logicalNotExpression = (PrefixUnaryExpressionSyntax)condition;
-            if (logicalNotExpression.operand.Kind != SyntaxKind.ParenthesizedExpression)
-            {
-                // add error
-            }
-
-            return condition;
-        }
-
         private ElseClauseSyntax ParseElseClauseOpt()
         {
            if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
