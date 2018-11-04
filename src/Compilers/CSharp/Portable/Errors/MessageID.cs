@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExceptionFilter = MessageBase + 12648,
         IDS_FeatureAutoPropertyInitializer = MessageBase + 12649,
 
+        IDS_FeatureGuardStatements = MessageBase + 12650,
+
         IDS_SK_TYPE_OR_NAMESPACE = MessageBase + 12652,
         IDS_Contravariant = MessageBase + 12659,
         IDS_Contravariantly = MessageBase + 12660,
@@ -243,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
                 case MessageID.IDS_FeatureAsyncStreams:
+                case MessageID.IDS_FeatureGuardStatements:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

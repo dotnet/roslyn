@@ -7951,7 +7951,8 @@ tryAgain:
             // appropriately.
             if (exclamationToken != default)
             {
-                // TODO(cyrusn): add language version check.
+                exclamationToken = CheckFeatureAvailability(exclamationToken, MessageID.IDS_FeatureIterators);
+
                 condition = _syntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,
                     exclamationToken,

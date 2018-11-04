@@ -232,6 +232,11 @@
         <target state="new">extensible fixed statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGuardStatements">
+        <source>guard statements</source>
+        <target state="new">guard statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="new">index operator</target>

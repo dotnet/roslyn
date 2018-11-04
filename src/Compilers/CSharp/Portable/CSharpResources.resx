@@ -342,6 +342,9 @@
   <data name="IDS_FeatureExceptionFilter" xml:space="preserve">
     <value>exception filter</value>
   </data>
+  <data name="IDS_FeatureGuardStatements" xml:space="preserve">
+    <value>guard statements</value>
+  </data>
   <data name="IDS_FeatureTypeVariance" xml:space="preserve">
     <value>type variance</value>
   </data>
