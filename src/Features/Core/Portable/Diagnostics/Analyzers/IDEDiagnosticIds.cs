@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseIndexOperatorDiagnosticId = "IDE0056";
         public const string UseRangeOperatorDiagnosticId = "IDE0057";
 
+        public const string MakeStructFieldsWritable = "IDE0058";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
