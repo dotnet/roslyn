@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses.ParenthesizedExpression
 {
     public partial class RemoveUnnecessaryParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
