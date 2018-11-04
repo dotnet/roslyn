@@ -184,11 +184,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
             var updatedIf = ifNode
                 .WithCondition(condition)
+                .WithParenthesesIfNecessary()
                 .WithStatement(trueStatement is IfStatementSyntax
                     ? SyntaxFactory.Block(trueStatement)
                     : trueStatement);
-
-            updatedIf = updatedIf.WithParenthesesIfNecessary();
 
             if (falseStatementOpt != null)
             {
