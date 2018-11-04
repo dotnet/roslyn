@@ -7951,7 +7951,7 @@ tryAgain:
             // appropriately.
             if (exclamationToken != default)
             {
-                exclamationToken = CheckFeatureAvailability(exclamationToken, MessageID.IDS_FeatureIterators);
+                exclamationToken = CheckFeatureAvailability(exclamationToken, MessageID.IDS_FeatureGuardStatements);
 
                 condition = _syntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,
