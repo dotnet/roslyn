@@ -3594,8 +3594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     (ExpressionSyntax)condition,
                     CreateBlock(trueStatements));
 
-                return ifStatement.WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                                  .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+                return ifStatement.WithParenthesesIfNecessary();
             }
             else
             {
@@ -3608,8 +3607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxFactory.ElseClause(
                         falseArray.Count == 1 && falseArray[0] is IfStatementSyntax ? (StatementSyntax)falseArray[0] : CreateBlock(falseArray)));
 
-                return ifStatement.WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                                  .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+                return ifStatement.WithParenthesesIfNecessary();
             }
         }
 

@@ -14,8 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 {
-    using static SyntaxFactory;
-
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<
         IfStatementSyntax, StatementSyntax, StatementSyntax, ExpressionSyntax>
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => ifNode.Statement;
 
         protected override StatementSyntax GetEmptyEmbeddedStatement()
-            => Block();
+            => SyntaxFactory.Block();
 
         protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
             => ifNode.Else.Statement;
@@ -139,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             switch ((SyntaxKind)rawKind)
             {
                 case SyntaxKind.ContinueStatement:
-                    return ContinueStatement();
+                    return SyntaxFactory.ContinueStatement();
                 case SyntaxKind.BreakStatement:
-                    return BreakStatement();
+                    return SyntaxFactory.BreakStatement();
                 case SyntaxKind.ReturnStatement:
-                    return ReturnStatement();
+                    return SyntaxFactory.ReturnStatement();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(rawKind);
             }
@@ -158,10 +156,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             }
 
             return original is BlockSyntax block
-                ? block.WithStatements(List(statementArray))
+                ? block.WithStatements(SyntaxFactory.List(statementArray))
                 : statementArray.Length == 1
                     ? statementArray[0]
-                    : Block(statementArray);
+                    : SyntaxFactory.Block(statementArray);
         }
 
         protected override IfStatementSyntax UpdateIf(
@@ -186,24 +184,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
             var updatedIf = ifNode
                 .WithCondition(condition)
+                .WithParenthesesIfNecessary()
                 .WithStatement(trueStatement is IfStatementSyntax
-                    ? Block(trueStatement)
+                    ? SyntaxFactory.Block(trueStatement)
                     : trueStatement);
-
-            if (ifNode.IsIfGuard() && !condition.IsValidIfGuardCondition())
-            {
-                // we changed the condition of an if-guard. but the new condition isn't valid as as
-                // a if-guard condition.  Wrap with parens to make legal.
-                updatedIf = updatedIf.WithCondition(updatedIf.Condition.WithoutTrivia())
-                                     .WithOpenParenToken(Token(SyntaxKind.OpenParenToken).WithLeadingTrivia(condition.GetLeadingTrivia()))
-                                     .WithCloseParenToken(Token(SyntaxKind.CloseParenToken).WithLeadingTrivia(condition.GetTrailingTrivia()));
-            }
 
             if (falseStatementOpt != null)
             {
                 var elseClause = updatedIf.Else != null
                     ? updatedIf.Else.WithStatement(falseStatementOpt)
-                    : ElseClause(falseStatementOpt);
+                    : SyntaxFactory.ElseClause(falseStatementOpt);
 
                 updatedIf = updatedIf.WithElse(elseClause);
             }
@@ -222,9 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             switch (node)
             {
                 case BlockSyntax n:
-                    return n.WithStatements(List(statements));
+                    return n.WithStatements(SyntaxFactory.List(statements));
                 case SwitchSectionSyntax n:
-                    return n.WithStatements(List(statements));
+                    return n.WithStatements(SyntaxFactory.List(statements));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node);
             }
@@ -234,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
         {
             return ifBody is BlockSyntax block
                 ? block.Statements
-                : SingletonList(ifBody);
+                : SyntaxFactory.SingletonList(ifBody);
         }
 
         protected override bool IsSingleStatementStatementRange(StatementRange statementRange)
