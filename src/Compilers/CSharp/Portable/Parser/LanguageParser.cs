@@ -7945,6 +7945,10 @@ tryAgain:
             var statement = this.ParseEmbeddedStatement();
             var elseClause = ParseElseClauseOpt();
 
+            // If we have a guard-if-statement, then re-interpret the `!()` tokens and the condition
+            // into a `!(cond)` expression.  This way all downstream semantic consumers of the
+            // if-statement will just see this as normal logical-not expression and can handle it
+            // appropriately.
             if (exclamationToken != default)
             {
                 // TODO(cyrusn): add language version check.
