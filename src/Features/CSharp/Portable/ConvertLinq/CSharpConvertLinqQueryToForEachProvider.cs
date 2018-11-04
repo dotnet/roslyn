@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     case SyntaxKind.WhereClause:
                         return SyntaxFactory.Block(SyntaxFactory.IfStatement(
                             ((WhereClauseSyntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), 
-                            statement).WithOpenParenToken(SyntaxFactory.Token(SyntaxKind.OpenParenToken))
-                                      .WithCloseParenToken(SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
+                            statement).WithParenthesesIfNecessary());
 
                     case SyntaxKind.FromClause:
                         var fromClause = (FromClauseSyntax)node;
@@ -190,23 +189,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             //  if (object.Equals(x, y))
                             //  {
                             //      ...
+                            var ifStatement =
+                                SyntaxFactory.IfStatement(
+                                    SyntaxFactory.InvocationExpression(
+                                        SyntaxFactory.MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+                                            SyntaxFactory.IdentifierName(nameof(object.Equals))),
+                                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                                            new[] {
+                                                SyntaxFactory.Argument(joinClause.LeftExpression),
+                                                SyntaxFactory.Argument(joinClause.RightExpression.WithoutTrailingTrivia())}))),
+                                    statement).WithParenthesesIfNecessary();
                             return SyntaxFactory.Block(
                                 SyntaxFactory.ForEachStatement(
                                     joinClause.Type ?? VarNameIdentifier,
                                     joinClause.Identifier,
                                     expression2,
-                                    SyntaxFactory.Block(
-                                        SyntaxFactory.IfStatement(
-                                            SyntaxFactory.InvocationExpression(
-                                                SyntaxFactory.MemberAccessExpression(
-                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                                                    SyntaxFactory.IdentifierName(nameof(object.Equals))),
-                                                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                                                    new[] {
-                                                        SyntaxFactory.Argument(joinClause.LeftExpression),
-                                                        SyntaxFactory.Argument(joinClause.RightExpression.WithoutTrailingTrivia())}))),
-                                            statement)))).WithAdditionalAnnotations(Simplifier.Annotation);
+                                    SyntaxFactory.Block(ifStatement))).WithAdditionalAnnotations(Simplifier.Annotation);
                         }
                     case SyntaxKind.SelectClause:
                         // This is not the latest Select in the Query Expression
