@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -52,42 +53,52 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             var originalRoot = editor.OriginalRoot;
 
-            var originalNodes = new (ILocalSymbol, IdentifierNameSyntax, DeclarationExpressionSyntax, SyntaxNode)[diagnostics.Length];
-
-            for (var i = 0; i < originalNodes.Length; i++)
-            {
-                originalNodes[i] = await GetDeclarationAsync(document, editor, diagnostics[i], options, cancellationToken).ConfigureAwait(false);
-            }
+            var originalNodes = diagnostics.SelectAsArray(diagnostic => FindDiagnosticNodes(document, diagnostic, options, cancellationToken));
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document,
-                originalNodes.AsImmutable(),
+                originalNodes,
                 (_1, _2, _3) => true,
-                (semanticModel, currentRoot, t, currentNode) => ReplaceNode(semanticModel, currentRoot, t, currentNode),
-                (t) => t.Item3, // Use the InvocationOrCreation node to track
+                (semanticModel, currentRoot, t, currentNode) => ReplaceNode(options, semanticModel, currentRoot, t.declarator, t.identifier, t.invocationOrCreation, currentNode),
+                t => {
+                    var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
+                    additionalNodesToTrack.Add(t.identifier);
+                    additionalNodesToTrack.Add(t.declarator);
+
+                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
+                },
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<(ILocalSymbol, IdentifierNameSyntax, DeclarationExpressionSyntax, SyntaxNode)> GetDeclarationAsync(
-            Document document, SyntaxEditor editor, Diagnostic diagnostic,
+        private (VariableDeclaratorSyntax declarator, IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation) FindDiagnosticNodes(
+            Document document, Diagnostic diagnostic, 
             OptionSet options, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             // Recover the nodes we care about.
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
             var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
             var outArgumentContainingStatementLocation = diagnostic.AdditionalLocations[3];
 
-            var root = declaratorLocation.SourceTree.GetRoot(cancellationToken);
-
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
             var identifier = (IdentifierNameSyntax)identifierLocation.FindNode(cancellationToken);
             var invocationOrCreation = (ExpressionSyntax)invocationOrCreationLocation.FindNode(
                 getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-            var outArgumentContainingStatement = (StatementSyntax)outArgumentContainingStatementLocation.FindNode(cancellationToken);
+
+            return (declarator, identifier, invocationOrCreation);
+        }
+
+        private SyntaxNode ReplaceNode(
+            OptionSet options, SemanticModel semanticModel, 
+            SyntaxNode currentRoot, VariableDeclaratorSyntax declarator, 
+            IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation, 
+            SyntaxNode currentNode)
+        {
+            declarator = currentRoot.GetCurrentNode(declarator);
+            identifier = currentRoot.GetCurrentNode(identifier);
+
+            var editor = new SyntaxEditor(currentRoot, CSharpSyntaxGenerator.Instance);
+            var sourceText = currentRoot.GetText();
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
             var singleDeclarator = declaration.Variables.Count == 1;
@@ -170,17 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
 
-            return (local, identifier, declarationExpression, invocationOrCreation);
-        }
-
-        private SyntaxNode ReplaceNode(SemanticModel semanticModel, SyntaxNode currentRoot, (ILocalSymbol, IdentifierNameSyntax, DeclarationExpressionSyntax, SyntaxNode) t, SyntaxNode currentNode)
-        {
-            var (local, identifier, declaration, _) = t;
-
-            var editor = new SyntaxEditor(currentRoot, CSharpSyntaxGenerator.Instance);
-
             // Check if using out-var changed problem semantics.
-            var semanticsChanged = SemanticsChanged(semanticModel, currentRoot, currentNode, identifier, declaration);
+            var semanticsChanged = SemanticsChanged(semanticModel, currentRoot, currentNode, identifier, declarationExpression);
             if (semanticsChanged)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
@@ -188,10 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.
                 var explicitType = declaration.Type.IsVar ? local.Type?.GenerateTypeSyntax() : declaration.Type;
-                declaration = SyntaxFactory.DeclarationExpression(explicitType, declaration.Designation);
+                declarationExpression = SyntaxFactory.DeclarationExpression(explicitType, declarationExpression.Designation);
             }
 
-            editor.ReplaceNode(identifier, declaration);
+            editor.ReplaceNode(identifier, declarationExpression);
 
             return editor.GetChangedRoot();
         }
@@ -275,8 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             SyntaxNode root,
             SyntaxNode nodeToReplace,
             IdentifierNameSyntax identifier,
-            DeclarationExpressionSyntax declarationExpression
-            )
+            DeclarationExpressionSyntax declarationExpression)
         {
             if (declarationExpression.Type.IsVar)
             {

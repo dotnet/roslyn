@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task FixAllInDocument3()
         {
-
-
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -94,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // Now get final exe and args. CTtrl-F5 wraps exe in cmd prompt
         GetExeAndArguments(useCmdShell, executable, arguments, out string finalExecutable, out string finalArguments);
     }
 }");
