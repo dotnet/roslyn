@@ -318,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 // Don't delay command processing to update resharper status
                 ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, CancellationToken.None);
+                    await Task.Yield();
 
                     await UpdateStateMachineAsync(CancellationToken.None);
                 });
