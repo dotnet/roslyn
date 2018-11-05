@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.PasteTrackingPaste)]
-    [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
-    [Order(Before = PredefinedCommandHandlerNames.Completion)]
+    [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
     internal class PasteTrackingPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
         public string DisplayName => EditorFeaturesResources.Paste_Tracking;
