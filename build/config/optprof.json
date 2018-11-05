@@ -209,6 +209,23 @@
           ]
         }
       ]
+    },
+    {
+      "assembly": "Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "Common7/IDE/CommonExtensions/Microsoft/ManagedLanguages/VBCSharp/SourceBasedTestDiscovery",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.TestDiscovery",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.TestDiscovery_DDRIT.TestDiscovery"
+          ]
+        }
+      ]
     }
   ]
 }
