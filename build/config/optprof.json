@@ -10,6 +10,12 @@
           ]
         },
         {
+          "container": "DDRIT.RPS.ManagedLangs",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+          ]
+        },
+        {
           "container": "VSPE",
           "testCases": [
             "VSPE.OptProfTests.vs_asl_cs_scenario",
@@ -30,6 +36,12 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "DDRIT.RPS.ManagedLangs",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+          ]
         }
       ]
     },
@@ -41,6 +53,12 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "DDRIT.RPS.ManagedLangs",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+          ]
         }
       ]
     },
@@ -51,6 +69,12 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
+          ]
+        },
+        {
+          "container": "DDRIT.RPS.ManagedLangs",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
           ]
         }
       ]
@@ -71,6 +95,12 @@
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
           ]
+        },
+        {
+          "container": "DDRIT.RPS.ManagedLangs",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
+          ]
         }
       ]
     },
@@ -87,6 +117,12 @@
           "container": "DDRIT.RPS.CSharp",
           "testCases": [
             "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        },
+        {
+          "container": "DDRIT.RPS.ManagedLangs",
+          "testCases": [
+            "Microsoft.Test.Performance.DDPerf.ManagedLangsTest.ManagedLangs"
           ]
         }
       ]
