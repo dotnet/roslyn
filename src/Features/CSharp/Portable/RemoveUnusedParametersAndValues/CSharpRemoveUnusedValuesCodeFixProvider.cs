@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             Document document,
             CancellationToken cancellationToken)
         {
-            var editor = new SyntaxEditor(memberDeclaration, SyntaxGenerator.GetGenerator(document));
+            var editor = new SyntaxEditor(memberDeclaration, CSharpSyntaxGenerator.Instance);
             foreach (var child in memberDeclaration.DescendantNodes())
             {
                 if (child is LocalDeclarationStatementSyntax localDeclarationStatement &&
@@ -94,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         }
 
         private static bool IsDiscardDeclaration(VariableDeclaratorSyntax variable)
-            => variable.Identifier.Text == DiscardVariableName;
+            => variable.Identifier.Text == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName;
         private static bool IsDiscardDeclaration(CatchDeclarationSyntax catchDeclaration)
-            => catchDeclaration.Identifier.Text == DiscardVariableName;
+            => catchDeclaration.Identifier.Text == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName;
 
         private sealed class RemoveDiscardHelper : IDisposable
         {

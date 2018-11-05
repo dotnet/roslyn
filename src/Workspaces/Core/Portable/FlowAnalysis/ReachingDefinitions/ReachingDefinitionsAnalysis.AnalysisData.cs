@@ -61,10 +61,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             public BasicBlockAnalysisData CurrentBlockAnalysisData { get; }
 
             /// <summary>
-            /// Creates an immutable <see cref="DefinitionUsageResult"/> for the current analysis data.
+            /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
             /// </summary>
-            public DefinitionUsageResult ToResult()
-                => new DefinitionUsageResult(DefinitionUsageMapBuilder.ToImmutableDictionary(),
+            public SymbolUsageResult ToResult()
+                => new SymbolUsageResult(DefinitionUsageMapBuilder.ToImmutableDictionary(),
                                              SymbolsReadBuilder.ToImmutableHashSet());
 
             public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)

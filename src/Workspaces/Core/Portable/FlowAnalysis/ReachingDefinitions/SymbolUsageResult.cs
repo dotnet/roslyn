@@ -7,9 +7,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 {
-    internal sealed class DefinitionUsageResult
+    internal sealed class SymbolUsageResult
     {
-        public DefinitionUsageResult(
+        public SymbolUsageResult(
             ImmutableDictionary<(ISymbol Symbol, IOperation Definition), bool> definitionUsageMap,
             ImmutableHashSet<ISymbol> symbolsRead)
         {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         /// </summary>
         public ImmutableHashSet<ISymbol> SymbolsRead { get; }
 
-        public bool HasUnusedDefinitions()
+        public bool HasUnusedSymbolWrites()
         {
             if (DefinitionUsageMap.IsEmpty)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         /// Gets symbol definitions (writes) that have are never read.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<(ISymbol Symbol, IOperation Definition)> GetUnusedDefinitions()
+        public IEnumerable<(ISymbol Symbol, IOperation Definition)> GetUnusedSymbolWrites()
         {
             foreach (var kvp in DefinitionUsageMap)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         /// <summary>
         /// Gets the definition (write) count for a given local/parameter symbol.
         /// </summary>
-        public int GetDefinitionCount(ISymbol symbol)
+        public int GetSymbolWriteCount(ISymbol symbol)
         {
             int count = 0;
             foreach (var kvp in DefinitionUsageMap)

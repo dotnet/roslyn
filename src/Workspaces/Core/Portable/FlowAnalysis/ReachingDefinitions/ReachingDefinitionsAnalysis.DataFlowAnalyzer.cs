@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 _analysisData.SetBlockAnalysisData(cfg.EntryBlock(), entryBlockAnalysisData);
             }
 
-            public static DefinitionUsageResult RunAnalysis(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
+            public static SymbolUsageResult RunAnalysis(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 using (var analyzer = new DataFlowAnalyzer(cfg, owningSymbol, cancellationToken))

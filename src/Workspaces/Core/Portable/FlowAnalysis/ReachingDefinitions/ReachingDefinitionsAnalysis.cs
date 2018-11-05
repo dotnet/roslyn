@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         /// Runs dataflow analysis on the given control flow graph to compute reaching symbol
         /// definitions and information about the definition usages.
         /// </summary>
-        public static DefinitionUsageResult Run(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
+        public static SymbolUsageResult Run(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
             => DataFlowAnalyzer.RunAnalysis(cfg, owningSymbol, cancellationToken);
 
         /// <summary>
         /// Runs a fast, non-precise operation tree based analysis to compute reaching symbol
         /// definitions and information about the definition usages.
         /// </summary>
-        public static DefinitionUsageResult Run(IOperation rootOperation, ISymbol owningSymbol, CancellationToken cancellationToken)
+        public static SymbolUsageResult Run(IOperation rootOperation, ISymbol owningSymbol, CancellationToken cancellationToken)
         {
             AnalysisData analysisData = null;
             using (analysisData = OperationTreeAnalysisData.Create(owningSymbol, AnalyzeLocalFunction))

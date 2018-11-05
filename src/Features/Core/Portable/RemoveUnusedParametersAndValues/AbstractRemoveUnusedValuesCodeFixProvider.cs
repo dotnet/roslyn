@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TSwitchCaseBlockSyntax : SyntaxNode
         where TSwitchCaseLabelOrClauseSyntax: SyntaxNode
     {
-        protected const string DiscardVariableName = "_";
-
         private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new SyntaxAnnotation();
@@ -213,6 +211,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            // We compute the code fix in two passes:
+            //   1. The first pass groups the diagnostics to fix by containing member declaration and
+            //      computes and applies the core code fixes. Grouping is done to ensure we choose
+            //      the most appropriate name for new unused local declarations, which can clash
+            //      with existing local declarations in the method body.
+            //   2. Second pass (PostProcessDocumentAsync) performs additional syntax manipulations
+            //      for the fixes produced from from first pass:
+            //      a. Replace discard declarations, such as "var _ = M();" that conflict with newly added
+            //         discard assignments, with discard assignments of the form "_ = M();"
+            //      b. Move newly introduced local declaration statements closer to the local variable's
+            //         first reference.
+
+            // Get diagnostics grouped by member.
             var diagnosticsGroupedByMember = GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root,
                 out var diagnosticId, out var preference, out var removeAssignments);
             if (preference == UnusedValuePreference.None)
@@ -220,68 +232,30 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return;
             }
 
+            // First pass to compute and apply the core code fixes.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var usedNames = PooledHashSet<string>.GetInstance();
-            try
+            foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
             {
-                foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
+                var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
+                using (var nameGenerator = new UniqueVariableNameGenerator(semanticModel, syntaxFacts))
                 {
-                    var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
                     FixAll(diagnosticId, orderedDiagnostics, semanticModel, root, preference,
-                        removeAssignments, GenerateUniqueNameAtSpanStart, editor, syntaxFacts, cancellationToken);
-                    usedNames.Clear();
-                }
-
-                var currentRoot = editor.GetChangedRoot();
-                var newRoot = await PostProcessDocumentAsync(document, currentRoot,
-                    diagnosticId, preference, cancellationToken).ConfigureAwait(false);
-                if (currentRoot != newRoot)
-                {
-                    editor.ReplaceNode(root, newRoot);
+                        removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
                 }
             }
-            finally
+
+            // Second pass to post process the document.
+            var currentRoot = editor.GetChangedRoot();
+            var newRoot = await PostProcessDocumentAsync(document, currentRoot,
+                diagnosticId, preference, cancellationToken).ConfigureAwait(false);
+            if (currentRoot != newRoot)
             {
-                usedNames.Free();
+                editor.ReplaceNode(root, newRoot);
             }
 
             return;
 
-            // Local functions
-            string GenerateUniqueNameAtSpanStart(SyntaxNode node)
-            {
-                var localsInNestedScope = PooledHashSet<string>.GetInstance();
-                try
-                {
-                    // Add local names for all variable declarations in nested scopes for this node.
-                    // This helps prevent name clashes with locals declared in nested block scopes.
-                    AddLocalsInNestedScope(node, localsInNestedScope);
-
-                    var name = NameGenerator.GenerateUniqueName("unused",
-                        n => !usedNames.Contains(n) &&
-                             !localsInNestedScope.Contains(n) &&
-                             semanticModel.LookupSymbols(node.SpanStart, name: n).IsEmpty);
-                    usedNames.Add(name);
-                    return name;
-                }
-                finally
-                {
-                    localsInNestedScope.Free();
-                }
-            }
-
-            void AddLocalsInNestedScope(SyntaxNode node, PooledHashSet<string> localsInNestedScope)
-            {
-                var blockAncestor = node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFacts.IsExecutableBlock(n));
-                if (blockAncestor != null)
-                {
-                    foreach (var variableDeclarator in blockAncestor.DescendantNodes().OfType<TVariableDeclaratorSyntax>())
-                    {
-                        var name = syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).ValueText;
-                        localsInNestedScope.Add(name);
-                    }
-                }
-            }
+            
         }
 
         private void FixAll(
@@ -291,7 +265,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode root,
             UnusedValuePreference preference,
             bool removeAssignments,
-            Func<SyntaxNode, string> generateUniqueNameAtSpanStart,
+            UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
@@ -300,12 +274,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             {
                 case IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId:
                     FixAllExpressionValueIsUnusedDiagnostics(diagnostics, semanticModel, root,
-                        preference, generateUniqueNameAtSpanStart, editor, syntaxFacts, cancellationToken);
+                        preference, nameGenerator, editor, syntaxFacts, cancellationToken);
                     break;
 
                 case IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId:
                     FixAllValueAssignedIsUnusedDiagnostics(diagnostics, semanticModel, root,
-                        preference, removeAssignments, generateUniqueNameAtSpanStart, editor, syntaxFacts, cancellationToken);
+                        preference, removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
                     break;
 
                 default:
@@ -318,11 +292,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SemanticModel semanticModel,
             SyntaxNode root,
             UnusedValuePreference preference,
-            Func<SyntaxNode, string> generateUniqueNameAtSpanStart,
+            UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
+            // This method applies the code fix for diagnostics reported for expression statement dropping values.
+            // We replace each flagged expression statement with an assignment to a discard variable or a new unused local,
+            // based on the user's preference.
+
             foreach (var diagnostic in diagnostics)
             {
                 var expressionStatement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<TExpressionStatementSyntax>();
@@ -337,18 +315,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     case UnusedValuePreference.DiscardVariable:
                         Debug.Assert(semanticModel.Language != LanguageNames.VisualBasic);
                         var discardAssignmentExpression = (TExpressionSyntax)editor.Generator.AssignmentStatement(
-                                left: editor.Generator.IdentifierName(DiscardVariableName), right: expression.WithoutTrivia())
-                            .WithTriviaFrom(expression)
-                            .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                                                                left: editor.Generator.IdentifierName(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName),
+                                                                right: expression.WithoutTrivia())
+                                                            .WithTriviaFrom(expression)
+                                                            .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
                         editor.ReplaceNode(expression, discardAssignmentExpression);
                         break;
 
                     case UnusedValuePreference.UnusedLocalVariable:
                         // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
                         var localDecl = editor.Generator.LocalDeclarationStatement(
-                                name: generateUniqueNameAtSpanStart(expressionStatement), initializer: expression.WithoutLeadingTrivia())
-                            .WithTriviaFrom(expressionStatement)
-                            .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                                            name: nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement),
+                                            initializer: expression.WithoutLeadingTrivia())
+                                        .WithTriviaFrom(expressionStatement)
+                                        .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
                         editor.ReplaceNode(expressionStatement, localDecl);
                         break;
                 }
@@ -361,129 +341,150 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode root,
             UnusedValuePreference preference,
             bool removeAssignments,
-            Func<SyntaxNode, string> generateUniqueNameAtSpanStart,
+            UniqueVariableNameGenerator nameGenerator,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
+            // This method applies the code fix for diagnostics reported for unused value assignments to local/parameter.
+            // The actual code fix depends on whether or not the right hand side of the assignment has side effects.
+            // For example, if the right hand side is a constant or a reference to a local/parameter, then it has no side effects.
+            // The lack of side effects is indicated by the "removeAssignments" parameter for this function.
+
+            // If the right hand side has no side effects, then we can replace the assignments with variable declarations that have no initializer
+            // or completely remove the statement.
+            // If the right hand side does have side effects, we replace the identifier token for unused value assignment with
+            // a new identifier token (either discard '_' or new unused local variable name).
+
+            // For both the above cases, if the original diagnostic was reported on a local declaration, i.e. redundant initialization
+            // at declaration, then we also add a new variable declaration statement without initializer for this local.
+
             var nodeReplacementMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
             var nodesToRemove = PooledHashSet<SyntaxNode>.GetInstance();
-            var candidateNodesForRemoval = PooledHashSet<TLocalDeclarationStatementSyntax>.GetInstance();
+            var candidateDeclarationStatementsForRemoval = PooledHashSet<TLocalDeclarationStatementSyntax>.GetInstance();
 
             try
             {
-                var nodesToFix = GetNodesToFix();
-
-                // Note this fixer only operates on code blocks which have no syntax errors (see "HasSyntaxErrors" usage in AbstractRemoveUnusedExpressionsDiagnosticAnalyzer).
-                // Hence, we can assume that each node to fix is parented by a StatementSyntax node.
-                foreach (var nodesByStatement in nodesToFix.GroupBy(n => n.node.FirstAncestorOrSelf<TStatementSyntax>()))
+                foreach (var (node, isUnusedLocalAssignment) in GetNodesToFix())
                 {
-                    var statement = nodesByStatement.Key;
-                    foreach (var (node, isUnusedLocalAssignment) in nodesByStatement)
+                    var declaredLocal = semanticModel.GetDeclaredSymbol(node, cancellationToken) as ILocalSymbol;
+                    if (declaredLocal == null && node.Parent is TCatchStatementSyntax)
                     {
-                        var declaredLocal = semanticModel.GetDeclaredSymbol(node, cancellationToken) as ILocalSymbol;
-                        if (declaredLocal == null && node.Parent is TCatchStatementSyntax)
+                        declaredLocal = semanticModel.GetDeclaredSymbol(node.Parent, cancellationToken) as ILocalSymbol;
+                    }
+
+                    string newLocalNameOpt = null;
+                    if (removeAssignments)
+                    {
+                        // Removable assignment or initialization, such that right hand side has no side effects.
+                        if (declaredLocal != null)
                         {
-                            declaredLocal = semanticModel.GetDeclaredSymbol(node.Parent, cancellationToken) as ILocalSymbol;
+                            // Redundant initialization.
+                            // For example, "int a = 0;"
+                            var variableDeclarator = node.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
+                            Debug.Assert(variableDeclarator != null);
+                            nodesToRemove.Add(variableDeclarator);
+
+                            // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
+                            candidateDeclarationStatementsForRemoval.Add(variableDeclarator.GetAncestor<TLocalDeclarationStatementSyntax>());
                         }
-
-                        string newLocalNameOpt = null;
-                        if (removeAssignments)
+                        else
                         {
-                            // Removable constant assignment or initialization.
-                            if (declaredLocal != null)
+                            // Redundant assignment or increment/decrement.
+                            if (syntaxFacts.IsOperandOfIncrementOrDecrementExpression(node))
                             {
-                                // Constant value initialization.
-                                // For example, "int a = 0;"
-                                var variableDeclarator = node.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
-                                Debug.Assert(variableDeclarator != null);
-                                nodesToRemove.Add(variableDeclarator);
-
-                                // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
-                                candidateNodesForRemoval.Add(variableDeclarator.GetAncestor<TLocalDeclarationStatementSyntax>());
+                                // For example, C# increment operation "a++;"
+                                Debug.Assert(node.Parent.Parent is TExpressionStatementSyntax);
+                                nodesToRemove.Add(node.Parent.Parent);
                             }
                             else
                             {
-                                // Constant value assignment or increment/decrement.
-                                if (syntaxFacts.IsOperandOfIncrementOrDecrementExpression(node))
+                                Debug.Assert(syntaxFacts.IsLeftSideOfAnyAssignment(node));
+
+                                if (node.Parent is TStatementSyntax)
                                 {
-                                    // For example, C# increment operation "a++;"
-                                    Debug.Assert(node.Parent.Parent is TExpressionStatementSyntax);
+                                    // For example, VB simple assignment statement "a = 0"
+                                    nodesToRemove.Add(node.Parent);
+                                }
+                                else if (node.Parent is TExpressionSyntax && node.Parent.Parent is TExpressionStatementSyntax)
+                                {
+                                    // For example, C# simple assignment statement "a = 0;"
                                     nodesToRemove.Add(node.Parent.Parent);
                                 }
                                 else
                                 {
-                                    Debug.Assert(syntaxFacts.IsLeftSideOfAnyAssignment(node));
-
-                                    if (node.Parent is TStatementSyntax)
-                                    {
-                                        // For example, VB simple assignment statement "a = 0"
-                                        nodesToRemove.Add(node.Parent);
-                                    }
-                                    else if (node.Parent is TExpressionSyntax && node.Parent.Parent is TExpressionStatementSyntax)
-                                    {
-                                        // For example, C# simple assignment statement "a = 0;"
-                                        nodesToRemove.Add(node.Parent.Parent);
-                                    }
-                                    else
-                                    {
-                                        nodeReplacementMap.Add(node.Parent, syntaxFacts.GetRightHandSideOfAssignment(node.Parent));
-                                    }
+                                    // For example, C# nested assignment statement "a = b = 0;", where assignment to 'b' is redundant.
+                                    // We replace the node with "a = 0;"
+                                    nodeReplacementMap.Add(node.Parent, syntaxFacts.GetRightHandSideOfAssignment(node.Parent));
                                 }
                             }
                         }
-                        else
-                        {
-                            // Non-constant value initialization/assignment.
-                            newLocalNameOpt = preference == UnusedValuePreference.DiscardVariable ? DiscardVariableName : generateUniqueNameAtSpanStart(node);
-                            var newNameToken = editor.Generator.Identifier(newLocalNameOpt);
-                            var newNameNode = TryUpdateNameForFlaggedNode(node, newNameToken);
-                            if (newNameNode == null)
-                            {
-                                continue;
-                            }
+                    }
+                    else
+                    {
+                        // Value initialization/assignment where the right hand side may have side effects,
+                        // and hence needs to be preserved in fixed code.
+                        // For example, "x = MethodCall();" is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
 
-                            if (syntaxFacts.IsLeftSideOfAnyAssignment(node) && !syntaxFacts.IsLeftSideOfAssignment(node))
-                            {
-                                // Compound assignment is changed to simple assignment.
-                                nodeReplacementMap.Add(node.Parent, editor.Generator.AssignmentStatement(newNameNode, syntaxFacts.GetRightHandSideOfAssignment(node.Parent)));
-                            }
-                            else
-                            {
-                                nodeReplacementMap.Add(node, newNameNode);
-                            }
+                        // Replace the flagged variable's indentifier token with new named, based on user's preference.
+                        newLocalNameOpt = preference == UnusedValuePreference.DiscardVariable
+                            ? AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
+                            : nameGenerator.GenerateUniqueNameAtSpanStart(node);
+                        var newNameToken = editor.Generator.Identifier(newLocalNameOpt);
+                        var newNameNode = TryUpdateNameForFlaggedNode(node, newNameToken);
+                        if (newNameNode == null)
+                        {
+                            continue;
                         }
 
-                        if (declaredLocal != null)
+                        // Is this is compound assignment?
+                        if (syntaxFacts.IsLeftSideOfAnyAssignment(node) && !syntaxFacts.IsLeftSideOfAssignment(node))
                         {
-                            // We have a dead initialization for a local declaration.
-                            var declarationStatement = CreateLocalDeclarationStatement(declaredLocal.Type, declaredLocal.Name);
-                            if (isUnusedLocalAssignment)
-                            {
-                                declarationStatement = declarationStatement.WithAdditionalAnnotations(s_unusedLocalDeclarationAnnotation);
-                            }
+                            // Compound assignment is changed to simple assignment.
+                            // For example, "x += MethodCall();", where assignment to 'x' is redundant
+                            // is replaced with "_ = MethodCall();" or "var unused = MethodCall();"
+                            nodeReplacementMap.Add(node.Parent, editor.Generator.AssignmentStatement(newNameNode, syntaxFacts.GetRightHandSideOfAssignment(node.Parent)));
+                        }
+                        else
+                        {
+                            nodeReplacementMap.Add(node, newNameNode);
+                        }
+                    }
 
+                    if (declaredLocal != null)
+                    {
+                        // We have a dead initialization for a local declaration.
+                        // Introduce a new local declaration statement without an initializer for this local.
+                        var declarationStatement = CreateLocalDeclarationStatement(declaredLocal.Type, declaredLocal.Name);
+                        if (isUnusedLocalAssignment)
+                        {
+                            declarationStatement = declarationStatement.WithAdditionalAnnotations(s_unusedLocalDeclarationAnnotation);
+                        }
+
+                        InsertLocalDeclarationStatement(declarationStatement, node);
+                    }
+                    else
+                    {
+                        // We have a dead assignment to a local/parameter, which is not at the declaration site.
+                        // Create a new local declaration for the unused local if both following conditions are met:
+                        //  1. User prefers unused local variables for unused value assignment AND
+                        //  2. Assignment value has side effects and hence cannot be removed.
+                        if (preference == UnusedValuePreference.UnusedLocalVariable && !removeAssignments)
+                        {
+                            var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
+                            Debug.Assert(type != null);
+                            Debug.Assert(newLocalNameOpt != null);
+                            var declarationStatement = CreateLocalDeclarationStatement(type, newLocalNameOpt);
                             InsertLocalDeclarationStatement(declarationStatement, node);
-                        }
-                        else
-                        {
-                            // We have a dead assignment to a local/parameter.
-                            // If the assignment value is a non-constant expression, and user prefers unused local variables for unused value assignment,
-                            // create a new local declaration for the unused local.
-                            if (preference == UnusedValuePreference.UnusedLocalVariable && !removeAssignments)
-                            {
-                                var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
-                                Debug.Assert(type != null);
-                                Debug.Assert(newLocalNameOpt != null);
-                                var declarationStatement = CreateLocalDeclarationStatement(type, newLocalNameOpt);
-                                InsertLocalDeclarationStatement(declarationStatement, node);
-                            }
                         }
                     }
                 }
 
-                foreach (var localDeclarationStatement in candidateNodesForRemoval)
+                // Process candidate declaration statements for removal.
+                foreach (var localDeclarationStatement in candidateDeclarationStatementsForRemoval)
                 {
+                    // If all the variable declarators for the local declaration statement are being removed,
+                    // we can remove the entire local declaration statement.
                     if (ShouldRemoveStatement(localDeclarationStatement, out var variables))
                     {
                         nodesToRemove.Add(localDeclarationStatement);
@@ -530,6 +531,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
+                // Find the correct place to insert the given declaration statement based on the node's ancestors.
                 var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(n => n.Parent is TSwitchCaseBlockSyntax ||
                                                                               syntaxFacts.IsExecutableBlock(n.Parent) &&
                                                                               !(n is TCatchStatementSyntax) &&
@@ -597,6 +599,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Document document,
             CancellationToken cancellationToken)
         {
+            // Process each member declaration which had atleast one diagnostic reported in the original tree
+            // and hence was annotated with "s_memberAnnotation" for post processing.
+
             var newDocument = document.WithSyntaxRoot(currentRoot);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var memberDeclReplacementsMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
@@ -702,12 +707,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             async Task<bool> TryRemoveUnusedLocalAsync(TLocalDeclarationStatementSyntax newDecl)
             {
+                // If we introduced this new local declaration statement while computing the code fix,
+                // but all it's existing references were removed as part of FixAll, then we
+                // can remove the unncessary local declaration statement.
+
+                // Check if we introduced this local declaration statement.
                 if (newDecl.HasAnnotation(s_unusedLocalDeclarationAnnotation))
                 {
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var localDeclarationOperation = semanticModel.GetOperation(newDecl, cancellationToken) as IVariableDeclarationGroupOperation;
                     var local = localDeclarationOperation?.GetDeclaredVariables().Single();
 
+                    // Check if the declared variable has no references in fixed code.
                     var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     if (referencedSymbols.Count() == 1 &&
                         referencedSymbols.Single().Locations.IsEmpty())
@@ -728,6 +739,57 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 base(title, createChangedDocument, equivalenceKey)
             {
             }
+        }
+
+        protected sealed class UniqueVariableNameGenerator: IDisposable
+        {
+            private readonly SemanticModel _semanticModel;
+            private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly PooledHashSet<string> _usedNames;
+
+            public UniqueVariableNameGenerator(SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+            {
+                _semanticModel = semanticModel;
+                _syntaxFacts = syntaxFacts;
+                _usedNames = PooledHashSet<string>.GetInstance();
+            }
+
+            public string GenerateUniqueNameAtSpanStart(SyntaxNode node)
+            {
+                var localsInNestedScope = PooledHashSet<string>.GetInstance();
+                try
+                {
+                    // Add local names for all variable declarations in nested scopes for this node.
+                    // This helps prevent name clashes with locals declared in nested block scopes.
+                    AddLocalsInNestedScope(node, localsInNestedScope);
+
+                    var name = NameGenerator.GenerateUniqueName("unused",
+                        n => !_usedNames.Contains(n) &&
+                             !localsInNestedScope.Contains(n) &&
+                             _semanticModel.LookupSymbols(node.SpanStart, name: n).IsEmpty);
+                    _usedNames.Add(name);
+                    return name;
+                }
+                finally
+                {
+                    localsInNestedScope.Free();
+                }
+            }
+
+            private void AddLocalsInNestedScope(SyntaxNode node, PooledHashSet<string> localsInNestedScope)
+            {
+                var blockAncestor = node.FirstAncestorOrSelf<SyntaxNode>(n => _syntaxFacts.IsExecutableBlock(n));
+                if (blockAncestor != null)
+                {
+                    foreach (var variableDeclarator in blockAncestor.DescendantNodes().OfType<TVariableDeclaratorSyntax>())
+                    {
+                        var name = _syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).ValueText;
+                        localsInNestedScope.Add(name);
+                    }
+                }
+            }
+
+            public void Dispose() => _usedNames.Free();
         }
     }
 }
