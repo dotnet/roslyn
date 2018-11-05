@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/29873 We should only report such
             // diagnostics for locals that are set or checked explicitly within this method.
-            if (!expressionResultType.IsNull && expressionResultType.IsNullable == false && isNull == true)
+            if (!expressionResultType.IsPointerType() && !expressionResultType.IsNull && expressionResultType.IsNullable == false && isNull == true)
             {
                 ReportDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
