@@ -8,13 +8,11 @@ Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedParametersAndValues), [Shared]>
-    Friend Class VisualBasicRemoveUnusedParametersAndValuesCodeFixProvider
-        Inherits AbstractRemoveUnusedParametersAndValuesCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
-                                                                           ExpressionStatementSyntax, LocalDeclarationStatementSyntax,
-                                                                           VariableDeclaratorSyntax, ForEachBlockSyntax,
-                                                                           CaseBlockSyntax, CaseClauseSyntax,
-                                                                           CatchStatementSyntax, CatchBlockSyntax)
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedValues), [Shared]>
+    Friend Class VisualBasicRemoveUnusedValuesCodeFixProvider
+        Inherits AbstractRemoveUnusedValuesCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
+            ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ForEachBlockSyntax,
+            CaseBlockSyntax, CaseClauseSyntax, CatchStatementSyntax, CatchBlockSyntax)
 
         Protected Overrides Function GenerateBlock(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
             Throw ExceptionUtilities.Unreachable
@@ -24,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Protected Overrides Function UpdateNameForFlaggedNode(node As SyntaxNode, newName As SyntaxToken) As SyntaxNode
+        Protected Overrides Function TryUpdateNameForFlaggedNode(node As SyntaxNode, newName As SyntaxToken) As SyntaxNode
             Dim modifiedIdentifier = TryCast(node, ModifiedIdentifierSyntax)
             If modifiedIdentifier IsNot Nothing Then
                 Return modifiedIdentifier.WithIdentifier(newName).WithTriviaFrom(node)
@@ -35,13 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
                 Return identifier.WithIdentifier(newName).WithTriviaFrom(node)
             End If
 
-            Return node
-        End Function
-
-        Protected Overrides Function GetSingleDeclaredLocal(localDeclaration As LocalDeclarationStatementSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ILocalSymbol
-            Contract.ThrowIfFalse(localDeclaration.Declarators.Count = 1)
-            Contract.ThrowIfFalse(localDeclaration.Declarators(0).Names.Count = 1)
-            Return DirectCast(semanticModel.GetDeclaredSymbol(localDeclaration.Declarators(0).Names(0), cancellationToken), ILocalSymbol)
+            Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'")
+            Return Nothing
         End Function
 
         Protected Overrides Function RemoveDiscardDeclarationsAsync(memberDeclaration As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)

@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
     public abstract class RemoveUnusedValuesTestsBase : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedParametersAndValuesCodeFixProvider());
+            => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
         protected abstract IDictionary<OptionKey, object> PreferNone { get; }
         protected abstract IDictionary<OptionKey, object> PreferDiscard { get; }
         protected abstract IDictionary<OptionKey, object> PreferUnusedLocal { get; }
+
         protected IDictionary<OptionKey, object> GetOptions(string optionName)
         {
             switch (optionName)

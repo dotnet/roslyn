@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     return declarationPattern.Designation.GetLocation();
 
                 default:
-                    if (unusedDefinition.Syntax?.Parent is ForEachStatementSyntax forEachStatement &&
+                    if (unusedDefinition.Syntax.Parent is ForEachStatementSyntax forEachStatement &&
                         forEachStatement.Type == unusedDefinition.Syntax)
                     {
                         return forEachStatement.Identifier.GetLocation();

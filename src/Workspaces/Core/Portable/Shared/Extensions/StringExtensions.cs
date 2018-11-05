@@ -234,5 +234,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             builder.Add(alias.GetWithSingleAttributeSuffix(caseSensitive));
         }
+
+        public static bool IsDiscard(this string identifierText)
+            => identifierText == "_";
     }
 }

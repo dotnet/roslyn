@@ -4871,5 +4871,85 @@ $@"class C
     int M2() => 0;
 }", optionName);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task ExistingDiscardDeclarationInLambda_UseOutsideLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int [|x|] = M2();
+        Action a = () =>
+        {
+            var _ = M2();
+        };
+
+        a();
+    }
+
+    int M2() => 0;
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        _ = M2();
+        Action a = () =>
+        {
+            _ = M2();
+        };
+
+        a();
+    }
+
+    int M2() => 0;
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task ExistingDiscardDeclarationInLambda_UseInsideLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            int [|x|] = M2();
+            var _ = M2();
+        };
+
+        a();
+    }
+
+    int M2() => 0;
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            _ = M2();
+            _ = M2();
+        };
+
+        a();
+    }
+
+    int M2() => 0;
+}", options: PreferDiscard);
+        }
     }
 }

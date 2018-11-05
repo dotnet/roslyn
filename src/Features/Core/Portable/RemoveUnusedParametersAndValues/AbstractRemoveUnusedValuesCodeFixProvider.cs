@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -37,28 +38,55 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        language version supports discard variable, we recommend assigning the value to discard.
     ///     3. Otherwise, we recommend assigning the value to a new unused local variable which has no reads.
     /// </summary>
-    internal abstract class AbstractRemoveUnusedParametersAndValuesCodeFixProvider<TExpressionSyntax, TStatementSyntax, TBlockSyntax,
-                                                                                   TExpressionStatementSyntax, TLocalDeclarationStatementSyntax,
-                                                                                   TVariableDeclaratorSyntax, TForEachStatementSyntax,
-                                                                                   TSwitchCaseBlockSyntax, TSwitchCaseLabelOrClauseSyntax,
-                                                                                   TCatchStatementSyntax, TCatchBlockSyntax>
+    internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyntax, TStatementSyntax, TBlockSyntax,
+        TExpressionStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax, TForEachStatementSyntax,
+        TSwitchCaseBlockSyntax, TSwitchCaseLabelOrClauseSyntax, TCatchStatementSyntax, TCatchBlockSyntax>
         : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TBlockSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatementSyntax : TStatementSyntax
-        where TVariableDeclaratorSyntax : SyntaxNode
         where TForEachStatementSyntax: TStatementSyntax
-        where TSwitchCaseBlockSyntax: SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
+        where TSwitchCaseBlockSyntax : SyntaxNode
         where TSwitchCaseLabelOrClauseSyntax: SyntaxNode
     {
+        protected const string DiscardVariableName = "_";
+
         private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new SyntaxAnnotation();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                                                                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
+
+        /// <summary>
+        /// Method to update the identifier token for the local/parameter declaration or reference
+        /// that was flagged as an unused value write by the analyzer.
+        /// Returns null if the provided node is not one of the handled node kinds.
+        /// Otherwise, returns the new node with updated identifier.
+        /// </summary>
+        /// <param name="node">Flaggged node containing the identifier token to be replaced.</param>
+        /// <param name="newName">New identifier token</param>
+        protected abstract SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
+
+        /// <summary>
+        /// Get the identifier token for the iteration variable of the given foreach statement node.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        protected abstract SyntaxToken GetForEachStatementIdentifier(TForEachStatementSyntax node);
+
+        /// <summary>
+        /// Wrap the given statements within a block statement.
+        /// </summary>
+        protected abstract TBlockSyntax GenerateBlock(IEnumerable<TStatementSyntax> statements);
+
+        /// <summary>
+        /// Insert the given declaration statement at the start of the given switch case block.
+        /// </summary>
+        protected abstract void InsertAtStartOfSwitchCaseBlock(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -100,7 +128,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             context.RegisterCodeFix(
                 new MyCodeAction(
                     title,
-                    c => FixAsync(context.Document, diagnostic, context.CancellationToken),
+                    c => FixAsync(context.Document, diagnostic, c),
                     equivalenceKey: GetEquivalenceKey(preference, isRemovableAssignment)),
                 diagnostic);
 
@@ -112,12 +140,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // Do not offer a fix to replace unused foreach iteration variable with discard.
             // User should probably replace it with a for loop based on the collection length.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = diagnostic.Location.SourceTree.GetRoot();
-            return syntaxFacts.IsForEachStatement(root.FindNode(diagnostic.Location.SourceSpan));
+            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(CancellationToken.None));
         }
 
         private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
-            => preference.ToString() + isRemovableAssignment.ToString();
+            => preference.ToString() + isRemovableAssignment;
 
         private static string GetEquivalenceKey(Diagnostic diagnostic)
         {
@@ -126,14 +153,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return GetEquivalenceKey(preference, isRemovableAssignment);
         }
 
-        protected abstract SyntaxNode UpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
-        protected abstract SyntaxToken GetForEachStatementIdentifier(TForEachStatementSyntax node);
-        protected abstract TBlockSyntax GenerateBlock(IEnumerable<TStatementSyntax> statements);
-        protected abstract ILocalSymbol GetSingleDeclaredLocal(TLocalDeclarationStatementSyntax localDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract void InsertAtStartOfSwitchCaseBlock(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
-
-        private bool NeedsToMoveNewLocalDeclarationsNearReference(string diagnosticId) => diagnosticId == IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
-        
+        /// <summary>
+        /// Flag to indicate if the code fix can introduce local declaration statements
+        /// that need to be moved closer to the first reference of the declared variable.
+        /// This is currently only possible for the unused value assignment fix.
+        /// </summary>
+        private static bool NeedsToMoveNewLocalDeclarationsNearReference(string diagnosticId)
+            => diagnosticId == IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 
         protected override bool IncludeDiagnosticDuringFixAll(FixAllState fixAllState, Diagnostic diagnostic)
         {
@@ -311,7 +337,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     case UnusedValuePreference.DiscardVariable:
                         Debug.Assert(semanticModel.Language != LanguageNames.VisualBasic);
                         var discardAssignmentExpression = (TExpressionSyntax)editor.Generator.AssignmentStatement(
-                                left: editor.Generator.IdentifierName("_"), right: expression.WithoutTrivia())
+                                left: editor.Generator.IdentifierName(DiscardVariableName), right: expression.WithoutTrivia())
                             .WithTriviaFrom(expression)
                             .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
                         editor.ReplaceNode(expression, discardAssignmentExpression);
@@ -409,9 +435,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         else
                         {
                             // Non-constant value initialization/assignment.
-                            newLocalNameOpt = preference == UnusedValuePreference.DiscardVariable ? "_" : generateUniqueNameAtSpanStart(node);
+                            newLocalNameOpt = preference == UnusedValuePreference.DiscardVariable ? DiscardVariableName : generateUniqueNameAtSpanStart(node);
                             var newNameToken = editor.Generator.Identifier(newLocalNameOpt);
-                            var newNameNode = UpdateNameForFlaggedNode(node, newNameToken);
+                            var newNameNode = TryUpdateNameForFlaggedNode(node, newNameToken);
+                            if (newNameNode == null)
+                            {
+                                continue;
+                            }
+
                             if (syntaxFacts.IsLeftSideOfAnyAssignment(node) && !syntaxFacts.IsLeftSideOfAssignment(node))
                             {
                                 // Compound assignment is changed to simple assignment.
@@ -674,8 +705,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 if (newDecl.HasAnnotation(s_unusedLocalDeclarationAnnotation))
                 {
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var local = GetSingleDeclaredLocal(newDecl, semanticModel, cancellationToken);
-                    Debug.Assert(local != null);
+                    var localDeclarationOperation = semanticModel.GetOperation(newDecl, cancellationToken) as IVariableDeclarationGroupOperation;
+                    var local = localDeclarationOperation?.GetDeclaredVariables().Single();
 
                     var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                     if (referencedSymbols.Count() == 1 &&
