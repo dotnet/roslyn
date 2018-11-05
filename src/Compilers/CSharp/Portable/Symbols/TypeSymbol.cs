@@ -108,20 +108,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNames = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames);
 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNamesAndNullability = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+
         /// <summary>
         /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicTupleNamesAndNullabilityComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
-        /// <summary>
-        /// A comparator that pays attention to nullable modifiers in addition to default behavior.
-        /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringNullableComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions |
-                                                                                         TypeCompareKind.CompareNullableModifiersForReferenceTypes |
-                                                                                         TypeCompareKind.UnknownNullableModifierMatchesAny);
+                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -360,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringTupleNames);
+            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringTupleNamesAndNullability);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
@@ -1161,9 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
 
                 if (!implementingMemberType.Equals(implementedMemberType, 
-                                                   TypeCompareKind.AllIgnoreOptions | 
-                                                       TypeCompareKind.CompareNullableModifiersForReferenceTypes |
-                                                       TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                                                   TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
                     implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
@@ -1184,9 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var implementedParameterType = implementedParameters[i].Type;
 
                     if (!implementingParameters[i].Type.Equals(implementedParameterType,
-                                                               TypeCompareKind.AllIgnoreOptions |
-                                                                   TypeCompareKind.CompareNullableModifiersForReferenceTypes |
-                                                                   TypeCompareKind.UnknownNullableModifierMatchesAny) &&
+                                                               TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
                         implementingParameters[i].Type.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
                         diagnostics.Add(isExplicit ?

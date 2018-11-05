@@ -732,7 +732,7 @@
         <target state="translated">이름 제안 표시(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate Event Subscription">
+      <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">이벤트 구독 생성</target>
         <note />

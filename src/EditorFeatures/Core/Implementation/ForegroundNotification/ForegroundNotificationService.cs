@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                     await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
 
                     // run them in UI thread
-                    await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
+                    await InvokeBelowInputPriorityAsync(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
                 }
                 catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
                 {

@@ -19,16 +19,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="csi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <None Include="csi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
       <Link>csi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="csi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.0'">
+    <None Include="csi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.1'">
       <Link>csi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

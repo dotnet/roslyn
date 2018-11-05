@@ -1313,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
 
             if (valueConversion.Exists && !valueConversion.IsIdentity &&
-                boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+                boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 valueConversion = Conversion.Identity;
             }

@@ -576,6 +576,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias.Alias.CheckConstraints(semanticDiagnostics);
             }
 
+            var corLibrary = _compilation.SourceAssembly.CorLibrary;
+            var conversions = new TypeConversions(corLibrary);
+            foreach (var @using in Usings)
+            {
+                // Check if `using static` directives meet constraints.
+                if (@using.NamespaceOrType.IsType)
+                {
+                    var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
+                    var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
+                    typeSymbol.CheckAllConstraints(conversions, location, semanticDiagnostics);
+                }
+            }
+
             // Force resolution of extern aliases.
             foreach (var alias in ExternAliases)
             {

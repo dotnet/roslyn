@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Assert.True(cs != null || csSimple != null || vb != null || vbSimple != null,
                 $"At least one of {nameof(cs)}, {nameof(csSimple)}, {nameof(vb)}, {nameof(vbSimple)} must be provided");
 
-            var hostServices = MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider());
+            var hostServices = VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
             var workspace = new AdhocWorkspace(hostServices);
 
             if (cs != null || csSimple != null)

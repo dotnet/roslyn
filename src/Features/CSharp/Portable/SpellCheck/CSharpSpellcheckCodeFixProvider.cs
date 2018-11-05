@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
             => nameNode is GenericNameSyntax;
 
         protected override bool IsGeneric(CompletionItem completionItem)
-            => completionItem.DisplayText.Contains("<>");
+            => completionItem.DisplayTextSuffix == "<>";
 
         protected override SyntaxToken CreateIdentifier(SyntaxToken nameToken, string newName)
             => SyntaxFactory.Identifier(newName).WithTriviaFrom(nameToken);

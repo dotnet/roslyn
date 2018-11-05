@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // https://github.com/dotnet/roslyn/issues/30069 Is this weaker assert sufficient?
                 //Debug.Assert((object)oldTypeArg == newTypeArg);
-                Debug.Assert(oldTypeArg.Equals(newTypeArg, TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny));
+                Debug.Assert(oldTypeArg.Equals(newTypeArg, TypeCompareKind.UnknownNullableModifierMatchesAny));
 
                 builder.Add(newTypeArg);
             }

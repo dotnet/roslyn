@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             _nugetCacheDir = SolutionDirectory.CreateDirectory(".packages");
         }
 
-        private void DotNetRestore(string solutionOrProjectFileName)
+        private void RunDotNet(string arguments)
         {
             Assert.NotNull(DotNetCoreSdk.ExePath);
 
@@ -32,12 +33,29 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             };
 
             var restoreResult = ProcessUtilities.Run(
-                fileName: DotNetCoreSdk.ExePath,
-                arguments: $@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}",
+                DotNetCoreSdk.ExePath, arguments,
                 workingDirectory: SolutionDirectory.Path,
                 additionalEnvironmentVars: environmentVariables);
 
-            Assert.True(restoreResult.ExitCode == 0, $"Restore failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
+            Assert.True(restoreResult.ExitCode == 0, $"{DotNetCoreSdk.ExePath} failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
+        }
+
+        private void DotNetRestore(string solutionOrProjectFileName)
+        {
+            var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /t:restore /bl:{Path.Combine(SolutionDirectory.Path, "restore.binlog")}";
+            RunDotNet(arguments);
+        }
+
+        private void DotNetBuild(string solutionOrProjectFileName, string configuration = null)
+        {
+            var arguments = $@"msbuild ""{solutionOrProjectFileName}"" /bl:{Path.Combine(SolutionDirectory.Path, "build.binlog")}";
+
+            if (configuration != null)
+            {
+                arguments += $" /p:Configuration={configuration}";
+            }
+
+            RunDotNet(arguments);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
@@ -345,6 +363,38 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     Assert.Empty(project.ProjectReferences);
                     Assert.Single(project.AllProjectReferences);
                 }
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_ReferenceConfigurationSpecificMetadata()
+        {
+            var files = GetBaseFiles()
+                .WithFile(@"Solution.sln", Resources.SolutionFiles.Issue30174_Solution)
+                .WithFile(@"InspectedLibrary\InspectedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_InspectedLibrary)
+                .WithFile(@"InspectedLibrary\InspectedClass.cs", Resources.SourceFiles.CSharp.Issue30174_InspectedClass)
+                .WithFile(@"ReferencedLibrary\ReferencedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_ReferencedLibrary)
+                .WithFile(@"ReferencedLibrary\SomeMetadataAttribute.cs", Resources.SourceFiles.CSharp.Issue30174_SomeMetadataAttribute);
+
+            CreateFiles(files);
+
+            DotNetRestore("Solution.sln");
+            DotNetBuild("Solution.sln", configuration: "Release");
+
+            var projectFilePath = GetSolutionFileName(@"InspectedLibrary\InspectedLibrary.csproj");
+
+            using (var workspace = CreateMSBuildWorkspace(("Configuration", "Release")))
+            {
+                workspace.LoadMetadataForReferencedProjects = true;
+
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+
+                Assert.Empty(project.ProjectReferences);
+                Assert.Empty(workspace.Diagnostics);
+
+                var compilation = await project.GetCompilationAsync();
             }
         }
     }
