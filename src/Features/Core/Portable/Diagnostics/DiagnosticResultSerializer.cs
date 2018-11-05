@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var diagnostics = serializer.ReadFrom(reader, document, cancellationToken);
 
-                if (document?.SupportDiagnostics() == false)
+                if (document?.SupportsDiagnostics() == false)
                 {
                     // drop diagnostics for document that doesn't support
                     // diagnostics

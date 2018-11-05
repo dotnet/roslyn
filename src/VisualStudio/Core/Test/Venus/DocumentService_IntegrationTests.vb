@@ -208,7 +208,7 @@ class { }
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
 
                 ' confirm diagnostic support is off for the document
-                Assert.False(document.SupportDiagnostics())
+                Assert.False(document.SupportsDiagnostics())
 
                 ' register the workspace to the service
                 diagnosticService.CreateIncrementalAnalyzer(workspace)
@@ -306,7 +306,7 @@ class { }
                     End Get
                 End Property
 
-                Public ReadOnly Property SupportDiagnostics As Boolean Implements IDocumentOperationService.SupportDiagnostics
+                Public ReadOnly Property SupportsDiagnostics As Boolean Implements IDocumentOperationService.SupportsDiagnostics
                     Get
                         Return False
                     End Get

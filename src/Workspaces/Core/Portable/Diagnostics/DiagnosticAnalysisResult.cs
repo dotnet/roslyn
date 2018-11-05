@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             var version = VersionStamp.Default;
 
             // filter out any document that doesn't support diagnostics
-            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => project.GetDocument(g.Key).SupportDiagnostics()).ToList();
+            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => project.GetDocument(g.Key).SupportsDiagnostics()).ToList();
 
             var result = new DiagnosticAnalysisResult(
                 project.Id,
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetDocument(documentId)?.SupportDiagnostics() == true);
+                Debug.Assert(project.GetDocument(documentId)?.SupportsDiagnostics() == true);
             }
         }
     }

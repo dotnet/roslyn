@@ -546,7 +546,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-
                         if (projectionSpan is string text)
                         {
                             // for {|Markup1:|}{|projection:|}{|Markup2:|}, span of {|Markup2:|} should not include {|projection:|}

@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis
                 public static readonly DocumentOperationService Instance = new DocumentOperationService();
 
                 public bool CanApplyChange => true;
-                public bool SupportDiagnostics => true;
+                public bool SupportsDiagnostics => true;
             }
         }
     }

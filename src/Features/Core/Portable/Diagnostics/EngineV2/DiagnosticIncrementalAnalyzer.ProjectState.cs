@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
-                    if (_project.GetDocument(documentId)?.SupportDiagnostics() == false)
+                    if (_project.GetDocument(documentId)?.SupportsDiagnostics() == false)
                     {
                         return;
                     }
