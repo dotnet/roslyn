@@ -351,12 +351,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/nullable- /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
         
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
-        public void SdkPath()
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void DisableSdkPath()
         {
             var csc = new Csc();
-            csc.SdkPath = @"path\to\sdk";
-            Assert.Equal(@"/sdkpath:path\to\sdk", csc.GenerateResponseFileContents());
+            csc.DisableSdkPath = true;
+            Assert.Equal(@"/sdkpath-", csc.GenerateResponseFileContents());
         }
 
         [Fact]

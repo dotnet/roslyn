@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
+        }
+
         public bool ErrorEndLocation
         {
             set { _store[nameof(ErrorEndLocation)] = value; }
@@ -111,12 +117,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(PreferredUILang)] = value; }
             get { return (string)_store[nameof(PreferredUILang)]; }
-        }
-
-        public string SdkPath
-        {
-            set { _store[nameof(SdkPath)] = value; }
-            get { return (string)_store[nameof(SdkPath)]; }
         }
 
         public string VsSessionGuid
@@ -211,7 +211,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendPlusOrMinusSwitch("/nullable", _store, nameof(NullableReferenceTypes));
-            commandLine.AppendSwitchIfNotNull("/sdkpath:", SdkPath);
+
+            if (_store.GetOrDefault(nameof(DisableSdkPath), @default: false))
+            {
+                commandLine.AppendSwitch("/sdkpath-");
+            }
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
