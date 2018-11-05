@@ -11,8 +11,8 @@ queue:
 
 variables:
   BuildPlatform: 'Any CPU'
-  InsertTargetBranchFullName: 'lab/d16.0stg472'
-  InsertTargetBranchShortName: 'd16.0stg472'
+  InsertTargetBranchFullName: 'rel/d16.0'
+  InsertTargetBranchShortName: 'd16.0'
 steps:
 - task: NuGetCommand@2
   inputs:
