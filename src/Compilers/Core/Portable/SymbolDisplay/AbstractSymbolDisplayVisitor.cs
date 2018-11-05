@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -71,27 +72,33 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
+        protected const ObjectDisplayOptions LiteralDisplayOptions =
+            ObjectDisplayOptions.UseQuotes |
+            ObjectDisplayOptions.EscapeNonPrintableCharacters |
+            ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
+
         protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
 
-        protected abstract void AddLiteralValue(SpecialType type, object value);
-        protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);
+        protected abstract void AddNonEnumConstantValue(ITypeSymbol type, object value);
+        protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, object value);
         protected abstract void AddSpace();
         protected abstract void AddBitwiseOr();
 
         /// <summary>
         /// Append a default argument (i.e. the default argument of an optional parameter).
-        /// Assumed to be non-null.
         /// </summary>
-        protected void AddNonNullConstantValue(ITypeSymbol type, object constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
+        protected void AddConstantValue(ITypeSymbol type, object value, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
-            Debug.Assert(constantValue != null);
+            Debug.Assert(value is null || value.GetType().IsPrimitive || value is string || value is decimal || value is DateTime);
+
             if (type.TypeKind == TypeKind.Enum)
             {
-                AddEnumConstantValue((INamedTypeSymbol)type, constantValue, preferNumericValueOrExpandedFlagsForEnum);
+                AddEnumConstantValue((INamedTypeSymbol)type, value, preferNumericValueOrExpandedFlagsForEnum);
             }
             else
             {
-                AddLiteralValue(type.SpecialType, constantValue);
+                Debug.Assert(value is null || type.SpecialType != SpecialType.None);
+                AddNonEnumConstantValue(type, value);
             }
         }
 
@@ -106,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             else if (preferNumericValueOrExpandedFlags)
             {
                 // This isn't a flags enum, so just add the numeric value.
-                AddLiteralValue(enumType.EnumUnderlyingType.SpecialType, constantValue);
+                AddNonEnumConstantValue(enumType.EnumUnderlyingType, constantValue);
             }
             else
             {
@@ -177,8 +184,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             ArrayBuilder<EnumField> usedFieldsAndValues,
             bool preferNumericValueOrExpandedFlags)
         {
-            var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+            var underlyingType = enumType.EnumUnderlyingType;
+            var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingType.SpecialType);
 
             var result = constantValueULong;
 
@@ -230,7 +237,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
                 if (preferNumericValueOrExpandedFlags)
                 {
-                    AddLiteralValue(underlyingSpecialType, constantValue);
+                    AddNonEnumConstantValue(underlyingType, constantValue);
                     return;
                 }
 
@@ -245,7 +252,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 else
                 {
                     // Add anything else in as a literal value.
-                    AddExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
+                    AddExplicitlyCastedLiteralValue(enumType, constantValue);
                 }
             }
         }
@@ -288,7 +295,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             else
             {
                 // Otherwise, just add the enum as a literal.
-                AddExplicitlyCastedLiteralValue(enumType, underlyingSpecialType, constantValue);
+                AddExplicitlyCastedLiteralValue(enumType, constantValue);
             }
             enumFields.Free();
         }

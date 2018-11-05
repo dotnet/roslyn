@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (UsesHexadecimalNumbers(inspectionContext))
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+                options |= ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
             }
 
             var lmrType = value.Type.GetLmrType();
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(value.Type.GetLmrType().IsCharacter());
             if (UsesHexadecimalNumbers(inspectionContext))
             {
-                options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+                options |= ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
             }
             var charTemp = FormatLiteral((char)value.HostObjectValue, options);
             Debug.Assert(charTemp != null);

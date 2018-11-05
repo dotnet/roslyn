@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
             {
-                builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
+                builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbersForCharacters) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
                 builder.Append(" ");
             }
 

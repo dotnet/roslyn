@@ -146,6 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
+            var options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers);
+            return ObjectDisplay.FormatPrimitive(obj, options);
+        }
+
+        private static ObjectDisplayOptions GetObjectDisplayOptions(bool quoteStrings, bool useHexadecimalNumbers)
+        {
             var options = ObjectDisplayOptions.EscapeNonPrintableCharacters;
             if (quoteStrings)
             {
@@ -154,8 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (useHexadecimalNumbers)
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+                options |= ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
             }
-            return ObjectDisplay.FormatPrimitive(obj, options);
+            return options;
         }
 
         /// <summary>
@@ -188,6 +195,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             var options = ObjectDisplayOptions.EscapeNonPrintableCharacters |
                 (quote ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None);
             return ObjectDisplay.FormatLiteral(c, options);
+        }
+
+        public static ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object obj, bool quoteStrings, bool useHexadecimalNumbers)
+        {
+            var options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers);
+
+            var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
+            AddConstantValue(builder, obj, options);
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static void AddConstantValue(ArrayBuilder<SymbolDisplayPart> builder, object value, ObjectDisplayOptions options)
+        {
+            if (!(value is null))
+            {
+                AddLiteralValue(builder, value, options);
+            }
+            else
+            {
+                builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(SyntaxKind.NullKeyword)));
+            }
+        }
+
+        private static void AddLiteralValue(ArrayBuilder<SymbolDisplayPart> builder, object value, ObjectDisplayOptions options)
+        {
+            Debug.Assert(value.GetType().IsPrimitive || value is string || value is decimal);
+            var valueString = ObjectDisplay.FormatPrimitive(value, options);
+            Debug.Assert(valueString != null);
+
+            var kind = SymbolDisplayPartKind.NumericLiteral;
+
+            switch (value)
+            {
+                case bool _:
+                    kind = SymbolDisplayPartKind.Keyword;
+                    break;
+                case string _:
+                case char _:
+                    kind = SymbolDisplayPartKind.StringLiteral;
+                    break;
+            }
+
+            builder.Add(new SymbolDisplayPart(kind, null, valueString));
         }
     }
 }

@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             End If
 
             Dim codepoint = AscW(c)
-            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
+            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbersForCharacters), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         ' TODO: consider making "token" returned by this function a structure to abstract bit masking operations
         Friend Iterator Function TokenizeString(str As String, options As ObjectDisplayOptions) As IEnumerable(Of Integer)
             Dim useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes)
-            Dim useHexadecimalNumbers = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)
+            Dim useHexadecimalNumbers = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbersForCharacters)
             Dim escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters)
 
             If str.Length = 0 Then

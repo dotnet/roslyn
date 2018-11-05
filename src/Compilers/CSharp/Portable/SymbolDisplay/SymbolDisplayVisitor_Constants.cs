@@ -1,59 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void AddConstantValue(ITypeSymbol type, object constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
+        protected override void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, object value)
         {
-            if (constantValue != null)
-            {
-                AddNonNullConstantValue(type, constantValue, preferNumericValueOrExpandedFlagsForEnum);
-            }
-            else if (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || ITypeSymbolHelpers.IsNullableType(type))
-            {
-                AddKeyword(SyntaxKind.NullKeyword);
-            }
-            else
-            {
-                AddKeyword(SyntaxKind.DefaultKeyword);
-                AddPunctuation(SyntaxKind.OpenParenToken);
-                type.Accept(this.NotFirstVisitor);
-                AddPunctuation(SyntaxKind.CloseParenToken);
-            }
-        }
+            Debug.Assert(namedType.TypeKind == TypeKind.Enum);
 
-        protected override void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value)
-        {
             AddPunctuation(SyntaxKind.OpenParenToken);
             namedType.Accept(this.NotFirstVisitor);
             AddPunctuation(SyntaxKind.CloseParenToken);
-            AddLiteralValue(type, value);
+            AddNonEnumConstantValue(namedType.EnumUnderlyingType, value);
         }
 
-        protected override void AddLiteralValue(SpecialType type, object value)
+        private static bool CanDefinitelyBeNull(ITypeSymbol type)
+            => type.IsReferenceType || type.TypeKind == TypeKind.Pointer || ITypeSymbolHelpers.IsNullableType(type);
+
+        /// <summary>
+        /// Append a default argument (i.e. the default argument of an optional parameter) of a non-enum type.
+        /// </summary>
+        protected override void AddNonEnumConstantValue(ITypeSymbol type, object value)
         {
-            Debug.Assert(value.GetType().GetTypeInfo().IsPrimitive || value is string || value is decimal);
-            var valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings: true, useHexadecimalNumbers: false);
-            Debug.Assert(valueString != null);
+            Debug.Assert(type.TypeKind != TypeKind.Enum);
 
-            var kind = SymbolDisplayPartKind.NumericLiteral;
-            switch (type)
+            if (value is null && !CanDefinitelyBeNull(type))
             {
-                case SpecialType.System_Boolean:
-                    kind = SymbolDisplayPartKind.Keyword;
-                    break;
-
-                case SpecialType.System_String:
-                case SpecialType.System_Char:
-                    kind = SymbolDisplayPartKind.StringLiteral;
-                    break;
+                // For default arguments of value types and type parameters, we have to use a default expression.
+                AddKeyword(SyntaxKind.DefaultKeyword);
             }
-
-            this.builder.Add(CreatePart(kind, null, valueString));
+            else
+            {
+                SymbolDisplay.AddConstantValue(builder, value, LiteralDisplayOptions);
+            }
         }
 
         protected override void AddBitwiseOr()

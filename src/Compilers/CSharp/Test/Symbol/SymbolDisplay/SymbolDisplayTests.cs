@@ -3206,7 +3206,7 @@ struct S
 
             TestSymbolDescription(text, findSymbol,
                 format,
-                @"void S.M(int i = 1, string str = ""hello"", object o = null, S s = default(S))",
+                @"void S.M(int i = 1, string str = ""hello"", object o = null, S s = default)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -3247,9 +3247,6 @@ struct S
                 SymbolDisplayPartKind.Punctuation, //=
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Punctuation, //(
-                SymbolDisplayPartKind.StructName,
-                SymbolDisplayPartKind.Punctuation, //)
                 SymbolDisplayPartKind.Punctuation); //)
         }
 
@@ -3287,7 +3284,7 @@ struct S
 
             TestSymbolDescription(text, findSymbol,
                 format,
-                @"void S.M<T>(T t = default(T))",
+                @"void S.M<T>(T t = default)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -3304,9 +3301,6 @@ struct S
                 SymbolDisplayPartKind.Punctuation, //=
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Punctuation, //(
-                SymbolDisplayPartKind.TypeParameterName,
-                SymbolDisplayPartKind.Punctuation, //)
                 SymbolDisplayPartKind.Punctuation); //)
         }
 

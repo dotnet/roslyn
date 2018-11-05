@@ -386,6 +386,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     break;
                 case NumberRadixHexadecimal:
                     options |= ObjectDisplayOptions.UseHexadecimalNumbers;
+                    options |= ObjectDisplayOptions.UseHexadecimalNumbersForCharacters;
                     break;
                 default:
                     // If we ever support a radix other than decimal or hex, we'll

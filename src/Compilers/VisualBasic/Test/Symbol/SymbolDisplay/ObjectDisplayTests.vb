@@ -11,30 +11,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub IntegralPrimitives()
-            Assert.Equal("1", FormatPrimitive(CByte(1)))
-            Assert.Equal("123", FormatPrimitive(CByte(123)))
-            Assert.Equal("255", FormatPrimitive(Byte.MaxValue))
-            Assert.Equal("1", FormatPrimitive(CSByte(1)))
-            Assert.Equal("123", FormatPrimitive(CSByte(123)))
-            Assert.Equal("-1", FormatPrimitive(CSByte(-1)))
-            Assert.Equal("1", FormatPrimitive(CUShort(1)))
-            Assert.Equal("123", FormatPrimitive(CUShort(123)))
-            Assert.Equal("65535", FormatPrimitive(UShort.MaxValue))
-            Assert.Equal("1", FormatPrimitive(CShort(1)))
-            Assert.Equal("123", FormatPrimitive(CShort(123)))
-            Assert.Equal("-1", FormatPrimitive(CShort(-1)))
-            Assert.Equal("1", FormatPrimitive(CUInt(1)))
-            Assert.Equal("123", FormatPrimitive(CUInt(123)))
-            Assert.Equal("4294967295", FormatPrimitive(UInteger.MaxValue))
-            Assert.Equal("1", FormatPrimitive(CInt(1)))
-            Assert.Equal("123", FormatPrimitive(CInt(123)))
-            Assert.Equal("-1", FormatPrimitive(CInt(-1)))
-            Assert.Equal("1", FormatPrimitive(CULng(1)))
-            Assert.Equal("123", FormatPrimitive(CULng(123)))
-            Assert.Equal("18446744073709551615", FormatPrimitive(ULong.MaxValue))
-            Assert.Equal("1", FormatPrimitive(CLng(1)))
-            Assert.Equal("123", FormatPrimitive(CLng(123)))
-            Assert.Equal("-1", FormatPrimitive(CLng(-1)))
+            AssertEqualUsingDecimalNumbers("1", CByte(1))
+            AssertEqualUsingDecimalNumbers("123", CByte(123))
+            AssertEqualUsingDecimalNumbers("255", Byte.MaxValue)
+            AssertEqualUsingDecimalNumbers("1", CSByte(1))
+            AssertEqualUsingDecimalNumbers("123", CSByte(123))
+            AssertEqualUsingDecimalNumbers("-1", CSByte(-1))
+            AssertEqualUsingDecimalNumbers("1", CUShort(1))
+            AssertEqualUsingDecimalNumbers("123", CUShort(123))
+            AssertEqualUsingDecimalNumbers("65535", UShort.MaxValue)
+            AssertEqualUsingDecimalNumbers("1", CShort(1))
+            AssertEqualUsingDecimalNumbers("123", CShort(123))
+            AssertEqualUsingDecimalNumbers("-1", CShort(-1))
+            AssertEqualUsingDecimalNumbers("1", CUInt(1))
+            AssertEqualUsingDecimalNumbers("123", CUInt(123))
+            AssertEqualUsingDecimalNumbers("4294967295", UInteger.MaxValue)
+            AssertEqualUsingDecimalNumbers("1", CInt(1))
+            AssertEqualUsingDecimalNumbers("123", CInt(123))
+            AssertEqualUsingDecimalNumbers("-1", CInt(-1))
+            AssertEqualUsingDecimalNumbers("1", CULng(1))
+            AssertEqualUsingDecimalNumbers("123", CULng(123))
+            AssertEqualUsingDecimalNumbers("18446744073709551615", ULong.MaxValue)
+            AssertEqualUsingDecimalNumbers("1", CLng(1))
+            AssertEqualUsingDecimalNumbers("123", CLng(123))
+            AssertEqualUsingDecimalNumbers("-1", CLng(-1))
 
             ' Dev10 EE does not "pad" positive values with '0', but this is desired for Roslyn
             Assert.Equal("&H00", FormatPrimitiveUsingHexadecimalNumbers(CByte(0)))
@@ -75,6 +75,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("&HFFFFFFFFFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CLng((-2))))
         End Sub
 
+        Private Sub AssertEqualUsingDecimalNumbers(expected As String, value As Object)
+            Assert.Equal(expected, FormatPrimitive(value))
+            Assert.Equal(expected, FormatPrimitiveUsingHexadecimalNumbersForCharacters(value))
+        End Sub
+
         <Fact>
         Public Sub Booleans()
             Assert.Equal("True", FormatPrimitive(True))
@@ -108,18 +113,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("x", FormatPrimitive("x"c, quoteStrings:=False))
             Assert.Equal("""x""c", FormatPrimitiveUsingHexadecimalNumbers("x"c, quoteStrings:=True))
             Assert.Equal("x", FormatPrimitiveUsingHexadecimalNumbers("x"c, quoteStrings:=False))
+            Assert.Equal("""x""c", FormatPrimitiveUsingHexadecimalNumbersForCharacters("x"c, quoteStrings:=True))
+            Assert.Equal("x", FormatPrimitiveUsingHexadecimalNumbersForCharacters("x"c, quoteStrings:=False))
 
-            Assert.Equal("vbNullChar", FormatPrimitiveUsingHexadecimalNumbers(ChrW(0), quoteStrings:=True))
-            Assert.Equal("ChrW(&H1E)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H1E), quoteStrings:=True))
-            Assert.Equal(New String({ChrW(&H1E)}), FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H1E), quoteStrings:=False))
+            Assert.Equal("vbNullChar", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(0), quoteStrings:=True))
+            Assert.Equal("ChrW(&H1E)", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&H1E), quoteStrings:=True))
+            Assert.Equal(New String({ChrW(&H1E)}), FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&H1E), quoteStrings:=False))
+            Assert.Equal(New String({ChrW(20)}), FormatPrimitiveUsingHexadecimalNumbers(ChrW(20)))
             Assert.Equal(New String({ChrW(20)}), FormatPrimitive(ChrW(20)))
-            Assert.Equal("vbBack", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H8), quoteStrings:=True))
+            Assert.Equal("vbBack", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&H8), quoteStrings:=True))
+            Assert.Equal(vbBack, FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H8)))
             Assert.Equal(vbBack, FormatPrimitive(ChrW(&H8)))
-            Assert.Equal("vbLf", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HA), quoteStrings:=True))
-            Assert.Equal("vbVerticalTab", FormatPrimitiveUsingHexadecimalNumbers(vbVerticalTab(0), quoteStrings:=True))
-            Assert.Equal("vbTab", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H9), quoteStrings:=True))
-            Assert.Equal("vbFormFeed", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HC), quoteStrings:=True))
-            Assert.Equal("vbCr", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HD), quoteStrings:=True))
+            Assert.Equal("vbLf", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HA), quoteStrings:=True))
+            Assert.Equal("vbVerticalTab", FormatPrimitiveUsingHexadecimalNumbersForCharacters(vbVerticalTab(0), quoteStrings:=True))
+            Assert.Equal("vbTab", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&H9), quoteStrings:=True))
+            Assert.Equal("vbFormFeed", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HC), quoteStrings:=True))
+            Assert.Equal("vbCr", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HD), quoteStrings:=True))
         End Sub
 
         <Fact>
@@ -148,34 +157,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("""""", FormatPrimitive("", quoteStrings:=True))
             Assert.Equal("""""""""", FormatPrimitive("""", quoteStrings:=True))
 
-            Assert.Equal("ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=True))
+            Assert.Equal("ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HFFFE), quoteStrings:=True))
+            Assert.Equal("ChrW(65534)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=True))
             Assert.Equal("ChrW(65534)", FormatPrimitive(ChrW(&HFFFE), quoteStrings:=True))
-            Assert.Equal(New String({ChrW(&HFFFE)}), FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=False))
+            Assert.Equal(New String({ChrW(&HFFFE)}), FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HFFFE), quoteStrings:=False))
+            Assert.Equal(New String({ChrW(65534)}), FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=False))
             Assert.Equal(New String({ChrW(65534)}), FormatPrimitive(ChrW(&HFFFE), quoteStrings:=False))
 
             Dim s = "a" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & "b"
 
-            Assert.Equal("""a"" & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers("a" & ChrW(&HFFFE), quoteStrings:=True))
-            Assert.Equal("ChrW(&HFFFE) & ""a""", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE) & "a", quoteStrings:=True))
-            Assert.Equal("""a"" & ChrW(&HFFFE) & ""a""", FormatPrimitiveUsingHexadecimalNumbers("a" & ChrW(&HFFFE) & "a", quoteStrings:=True))
-            Assert.Equal("ChrW(&HFFFF) & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFF) & ChrW(&HFFFE), quoteStrings:=True))
-            Assert.Equal("ChrW(&HFFFF) & ""a"" & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFF) & "a" & ChrW(&HFFFE), quoteStrings:=True))
-            Assert.Equal("""a"" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & ""b""", FormatPrimitiveUsingHexadecimalNumbers(s, quoteStrings:=True))
+            Assert.Equal("""a"" & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & ChrW(&HFFFE), quoteStrings:=True))
+            Assert.Equal("ChrW(&HFFFE) & ""a""", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HFFFE) & "a", quoteStrings:=True))
+            Assert.Equal("""a"" & ChrW(&HFFFE) & ""a""", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & ChrW(&HFFFE) & "a", quoteStrings:=True))
+            Assert.Equal("ChrW(&HFFFF) & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HFFFF) & ChrW(&HFFFE), quoteStrings:=True))
+            Assert.Equal("ChrW(&HFFFF) & ""a"" & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbersForCharacters(ChrW(&HFFFF) & "a" & ChrW(&HFFFE), quoteStrings:=True))
+            Assert.Equal("""a"" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & ""b""", FormatPrimitiveUsingHexadecimalNumbersForCharacters(s, quoteStrings:=True))
 
             ' non-printable characters are unchanged if quoting is disabled
-            Assert.Equal(s, FormatPrimitiveUsingHexadecimalNumbers(s, quoteStrings:=False))
+            Assert.Equal(s, FormatPrimitiveUsingHexadecimalNumbersForCharacters(s, quoteStrings:=False))
             Assert.Equal(s, ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None))
-            Assert.Equal("""a"" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & ""b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
+            Assert.Equal("""a"" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & ""b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbersForCharacters))
 
             ' "well-known" characters:
-            Assert.Equal("""a"" & vbBack", FormatPrimitiveUsingHexadecimalNumbers("a" & vbBack, quoteStrings:=True))
-            Assert.Equal("""a"" & vbCr", FormatPrimitiveUsingHexadecimalNumbers("a" & vbCr, quoteStrings:=True))
-            Assert.Equal("""a"" & vbCrLf", FormatPrimitiveUsingHexadecimalNumbers("a" & vbCrLf, quoteStrings:=True))
-            Assert.Equal("""a"" & vbFormFeed", FormatPrimitiveUsingHexadecimalNumbers("a" & vbFormFeed, quoteStrings:=True))
-            Assert.Equal("""a"" & vbLf", FormatPrimitiveUsingHexadecimalNumbers("a" & vbLf, quoteStrings:=True))
-            Assert.Equal("""a"" & vbNullChar", FormatPrimitiveUsingHexadecimalNumbers("a" & vbNullChar, quoteStrings:=True))
-            Assert.Equal("""a"" & vbTab", FormatPrimitiveUsingHexadecimalNumbers("a" & vbTab, quoteStrings:=True))
-            Assert.Equal("""a"" & vbVerticalTab", FormatPrimitiveUsingHexadecimalNumbers("a" & vbVerticalTab, quoteStrings:=True))
+            Assert.Equal("""a"" & vbBack", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbBack, quoteStrings:=True))
+            Assert.Equal("""a"" & vbCr", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbCr, quoteStrings:=True))
+            Assert.Equal("""a"" & vbCrLf", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbCrLf, quoteStrings:=True))
+            Assert.Equal("""a"" & vbFormFeed", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbFormFeed, quoteStrings:=True))
+            Assert.Equal("""a"" & vbLf", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbLf, quoteStrings:=True))
+            Assert.Equal("""a"" & vbNullChar", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbNullChar, quoteStrings:=True))
+            Assert.Equal("""a"" & vbTab", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbTab, quoteStrings:=True))
+            Assert.Equal("""a"" & vbVerticalTab", FormatPrimitiveUsingHexadecimalNumbersForCharacters("a" & vbVerticalTab, quoteStrings:=True))
         End Sub
 
         <Fact>
@@ -191,13 +202,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' Well-ordered surrogate characters
             Dim footBall = "🏈"
             Assert.Equal(footBall, ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.None))
+            Assert.Equal("""" & footBall & """", ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbersForCharacters))
             Assert.Equal("""" & footBall & """", ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
             Assert.Equal("""" & footBall & """", ObjectDisplay.FormatPrimitive(footBall, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters))
 
             ' Misordered surrogate characters
             Dim trash = ChrW(&HDFC8) & ChrW(&HD83C)
             Assert.Equal(trash, ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.None))
-            Assert.Equal("ChrW(&HDFC8) & ChrW(&HD83C)", ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
+            Assert.Equal("ChrW(&HDFC8) & ChrW(&HD83C)", ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbersForCharacters))
+            Assert.Equal("ChrW(57288) & ChrW(55356)", ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
             Assert.Equal("ChrW(57288) & ChrW(55356)", ObjectDisplay.FormatPrimitive(trash, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters))
 
         End Sub
@@ -309,6 +322,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Function FormatPrimitiveUsingHexadecimalNumbers(obj As Object, Optional quoteStrings As Boolean = False) As String
             Dim options = If(quoteStrings, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters, ObjectDisplayOptions.None)
             Return ObjectDisplay.FormatPrimitive(obj, options Or ObjectDisplayOptions.UseHexadecimalNumbers)
+        End Function
+
+        Private Function FormatPrimitiveUsingHexadecimalNumbersForCharacters(obj As Object, Optional quoteStrings As Boolean = False) As String
+            Dim options = If(quoteStrings, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters, ObjectDisplayOptions.None)
+            Return ObjectDisplay.FormatPrimitive(obj, options Or ObjectDisplayOptions.UseHexadecimalNumbersForCharacters)
         End Function
 
         Private Function FormatPrimitiveIncludingTypeSuffix(obj As Object, Optional useHexadecimalNumbers As Boolean = False) As String
