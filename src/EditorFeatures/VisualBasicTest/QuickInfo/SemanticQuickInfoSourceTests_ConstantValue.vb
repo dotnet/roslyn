@@ -5,21 +5,23 @@ Imports Microsoft.CodeAnalysis.TextTags
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Partial Public Class SemanticQuickInfoSourceTests
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("integer", "1", "3")>
-        <InlineData("uinteger", "1UI", "3L")>
-        <InlineData("short", "1S", "3")>
-        <InlineData("ushort", "1US", "3")>
-        <InlineData("long", "1L", "3L")>
-        <InlineData("ulong", "1UL", "3D")>
-        <InlineData("single", "1F", "3F")>
-        <InlineData("double", "1R", "3R")>
-        <InlineData("decimal", "1D", "3D")>
-        Public Async Function TestAddExpression_NumericType1(type As String, value As String, result As String) As Task
+        <InlineData("integer")>
+        <InlineData("uinteger")>
+        <InlineData("byte")>
+        <InlineData("sbyte")>
+        <InlineData("short")>
+        <InlineData("ushort")>
+        <InlineData("long")>
+        <InlineData("ulong")>
+        <InlineData("single")>
+        <InlineData("double")>
+        <InlineData("decimal")>
+        Public Async Function TestAddExpression_NumericType(type As String) As Task
             Await TestInMethodAsync($"
 const v as {type} = 1
 dim f = v $$+ 2",
                 ConstantValueContent(
-                    (value, NumericLiteral),
+                    ("1", NumericLiteral),
                     (" ", Space),
                     ("+", [Operator]),
                     (" ", Space),
@@ -27,30 +29,7 @@ dim f = v $$+ 2",
                     (" ", Space),
                     ("=", [Operator]),
                     (" ", Space),
-                    (result, NumericLiteral)
-                ))
-        End Function
-
-        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("byte", "CByte", "1", "3")>
-        <InlineData("sbyte", "CSByte", "1", "3")>
-        Public Async Function TestAddExpression_NumericType2(type As String, castKeyword As String, value As String, result As String) As Task
-            Await TestInMethodAsync($"
-const v as {type} = 1
-dim f = v $$+ 2",
-                ConstantValueContent(
-                    (castKeyword, Keyword),
-                    ("(", Punctuation),
-                    (value, NumericLiteral),
-                    (")", Punctuation),
-                    (" ", Space),
-                    ("+", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    (result, NumericLiteral)
+                    ("3", NumericLiteral)
                 ))
         End Function
 
@@ -106,9 +85,13 @@ World""
 dim f = v $${op} ""!""",
                 ConstantValueContent(
                     ("""Hello""", StringLiteral),
+                    (" ", Space),
                     ("&", [Operator]),
+                    (" ", Space),
                     ("vbCrLf", Field),
+                    (" ", Space),
                     ("&", [Operator]),
+                    (" ", Space),
                     ("""World""", StringLiteral),
                     (" ", Space),
                     (op, [Operator]),
@@ -118,25 +101,31 @@ dim f = v $${op} ""!""",
                     ("=", [Operator]),
                     (" ", Space),
                     ("""Hello""", StringLiteral),
+                    (" ", Space),
                     ("&", [Operator]),
+                    (" ", Space),
                     ("vbCrLf", Field),
+                    (" ", Space),
                     ("&", [Operator]),
+                    (" ", Space),
                     ("""World!""", StringLiteral)
                 ))
         End Function
 
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("integer", "1", "1")>
-        <InlineData("short", "1S", "1")>
-        <InlineData("long", "1L", "1L")>
-        <InlineData("single", "1F", "1F")>
-        <InlineData("double", "1R", "1R")>
-        Public Async Function TestSubtractExpression_NumericType1(type As String, value As String, result As String) As Task
+        <InlineData("integer")>
+        <InlineData("sbyte")>
+        <InlineData("short")>
+        <InlineData("long")>
+        <InlineData("single")>
+        <InlineData("double")>
+        <InlineData("decimal")>
+        Public Async Function TestSubtractExpression_NumericType(type As String) As Task
             Await TestInMethodAsync($"
 const v as {type} = 1
 dim f = v $$- 2",
                 ConstantValueContent(
-                    (value, NumericLiteral),
+                    ("1", NumericLiteral),
                     (" ", Space),
                     ("-", [Operator]),
                     (" ", Space),
@@ -144,63 +133,21 @@ dim f = v $$- 2",
                     (" ", Space),
                     ("=", [Operator]),
                     (" ", Space),
-                    ("-", [Operator]),
-                    (result, NumericLiteral)
+                    ("-1", NumericLiteral)
                 ))
         End Function
 
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData("sbyte", "CSByte", "1", "1")>
-        Public Async Function TestSubtractExpression_NumericType2(type As String, castKeyword As String, value As String, result As String) As Task
-            Await TestInMethodAsync($"
-const v as {type} = 1
-dim f = v $$- 2",
-                ConstantValueContent(
-                    (castKeyword, Keyword),
-                    ("(", Punctuation),
-                    (value, NumericLiteral),
-                    (")", Punctuation),
-                    (" ", Space),
-                    ("-", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("-", [Operator]),
-                    (result, NumericLiteral)
-                ))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestSubtractExpression_NumericType3() As Task
-            Await TestInMethodAsync("
-const v as decimal = 1
-dim f = v $$- 2",
-                ConstantValueContent(
-                    ("1D", NumericLiteral),
-                    (" ", Space),
-                    ("-", [Operator]),
-                    (" ", Space),
-                    ("2", NumericLiteral),
-                    (" ", Space),
-                    ("=", [Operator]),
-                    (" ", Space),
-                    ("-1D", NumericLiteral)
-            ))
-        End Function
-
-        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        <InlineData([Operator], "*", "5R")>
-        <InlineData([Operator], "^", "6.25R")>
-        <InlineData([Operator], "/", "1.25R")>
-        <InlineData([Operator], "\", "1L")>
-        <InlineData(Keyword, "mod", "0.5R")>
+        <InlineData([Operator], "*", "5")>
+        <InlineData([Operator], "^", "6.25")>
+        <InlineData([Operator], "/", "1.25")>
+        <InlineData([Operator], "\", "1")>
+        <InlineData(Keyword, "mod", "0.5")>
         Public Async Function TestMultiplicativeExpression_Double(opTag As String, op As String, result As String) As Task
             Await TestInMethodAsync($"
 dim f = 2.5 $${op} 2",
                 ConstantValueContent(
-                    ("2.5R", NumericLiteral),
+                    ("2.5", NumericLiteral),
                     (" ", Space),
                     (op, opTag),
                     (" ", Space),

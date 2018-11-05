@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
-            var constantValueContent = GetConstantValueContent(languageServices, token, semanticModel, cancellationToken);
+            var constantValueContent = GetConstantValueContent(token, semanticModel, syntaxFactsService, descriptionService, cancellationToken);
             if (!constantValueContent.IsDefaultOrEmpty)
             {
                 AddSection(QuickInfoSectionKinds.ConstantValue, constantValueContent);
@@ -305,13 +305,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private static ImmutableArray<TaggedText> GetConstantValueContent(
-            Host.HostLanguageServices languageServices,
             SyntaxToken token,
             SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            ISymbolDisplayService displayService,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
-
             if (!syntaxFacts.IsBinaryExpression(token.Parent))
             {
                 return default;
@@ -342,29 +341,27 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 return default;
             }
 
-            var generator = languageServices.GetRequiredService<SyntaxGenerator>();
-
             var textBuilder = ImmutableArray.CreateBuilder<TaggedText>();
             textBuilder.AddLineBreak();
             textBuilder.AddText(FeaturesResources.Constant_value_colon);
             textBuilder.AddSpace();
-            AddConstantText(leftConstant.Value);
+            textBuilder.AddRange(FormatValue(leftConstant.Value));
             textBuilder.AddSpace();
             textBuilder.Add(
                 new TaggedText(
                     syntaxFacts.IsKeyword(operatorToken) ? TextTags.Keyword : TextTags.Operator,
                     operatorToken.Text));
             textBuilder.AddSpace();
-            AddConstantText(rightConstant.Value);
+            textBuilder.AddRange(FormatValue(rightConstant.Value));
             textBuilder.AddSpace();
             textBuilder.AddOperator("=");
             textBuilder.AddSpace();
-            AddConstantText(constant.Value);
+            textBuilder.AddRange(FormatValue(constant.Value));
             return textBuilder.ToImmutable();
 
-            void AddConstantText(object value)
+            ImmutableArray<TaggedText> FormatValue(object value)
             {
-                textBuilder.AddRange(TrimTaggedTextRun(LiteralDisplayBuilder.Build(languageServices, value), 42));
+                return TrimTaggedTextRun(displayService.FormatPrimitiveToDisplayParts(value).ToTaggedText(), 42);
             }
         }
 

@@ -10,24 +10,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     public partial class SemanticQuickInfoSourceTests
     {
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("int", "1", "3")]
-        [InlineData("uint", "1U", "3U")]
-        [InlineData("byte", "1", "3")]
-        [InlineData("sbyte", "1", "3")]
-        [InlineData("short", "1", "3")]
-        [InlineData("ushort", "1", "3")]
-        [InlineData("long", "1L", "3L")]
-        [InlineData("ulong", "1UL", "3UL")]
-        [InlineData("float", "1F", "3F")]
-        [InlineData("double", "1D", "3D")]
-        [InlineData("decimal", "1M", "3M")]
-        public async Task TestAddExpression_NumericType(string type, string value, string result)
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("byte")]
+        [InlineData("sbyte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        public async Task TestAddExpression_NumericType(string type)
         {
             await TestInMethodAsync($@"
 const {type} v = 1;
 var f = v $$+ 2",
                 ConstantValueContent(
-                    (value, NumericLiteral),
+                    ("1", NumericLiteral),
                     (" ", Space),
                     ("+", Operator),
                     (" ", Space),
@@ -35,7 +35,7 @@ var f = v $$+ 2",
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    (result, NumericLiteral)
+                    ("3", NumericLiteral)
                 ));
         }
 
@@ -100,20 +100,20 @@ var f = v $$+ ""!""",
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("int", "1", "1")]
-        [InlineData("sbyte", "1", "1")]
-        [InlineData("short", "1", "1")]
-        [InlineData("long", "1L", "1L")]
-        [InlineData("float", "1F", "1F")]
-        [InlineData("double", "1D", "1D")]
-        [InlineData("decimal", "1M", "1M")]
-        public async Task TestSubtractExpression_NumericType(string type, string value, string result)
+        [InlineData("int")]
+        [InlineData("sbyte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        public async Task TestSubtractExpression_NumericType(string type)
         {
             await TestInMethodAsync($@"
 const {type} v = 1;
 var f = v $$- 2",
                 ConstantValueContent(
-                    (value, NumericLiteral),
+                    ("1", NumericLiteral),
                     (" ", Space),
                     ("-", Operator),
                     (" ", Space),
@@ -121,21 +121,20 @@ var f = v $$- 2",
                     (" ", Space),
                     ("=", Operator),
                     (" ", Space),
-                    ("-", Operator),
-                    (result, NumericLiteral)
+                    ("-1", NumericLiteral)
                 ));
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("*", "5D")]
-        [InlineData("/", "1.25D")]
-        [InlineData("%", "0.5D")]
+        [InlineData("*", "5")]
+        [InlineData("/", "1.25")]
+        [InlineData("%", "0.5")]
         public async Task TestMultiplicativeExpression_Double(string op, string result)
         {
             await TestInMethodAsync($@"
 var f = 2.5 $${op} 2",
                 ConstantValueContent(
-                    ("2.5D", NumericLiteral),
+                    ("2.5", NumericLiteral),
                     (" ", Space),
                     (op, Operator),
                     (" ", Space),
