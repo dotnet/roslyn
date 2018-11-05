@@ -138,6 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function FormatPrimitiveToDisplayParts(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As ImmutableArray(Of SymbolDisplayPart)
+            If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
+                Return Nothing
+            End If
+
             Dim options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers)
             Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             AddConstantValue(builder, obj, options)
@@ -153,9 +157,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddLiteralValue(builder As ArrayBuilder(Of SymbolDisplayPart), value As Object, options As ObjectDisplayOptions)
-            Debug.Assert(value.GetType().IsPrimitive OrElse TypeOf value Is String OrElse TypeOf value Is Decimal OrElse TypeOf value Is Date)
+            Debug.Assert(value.GetType().IsPrimitive OrElse value.GetType().IsEnum OrElse TypeOf value Is String OrElse TypeOf value Is Decimal OrElse TypeOf value Is Date)
 
-            Select Case value.GetType()
+            Dim type = value.GetType()
+
+            Select Case type
                 Case GetType(String)
                     AddSymbolDisplayParts(builder, DirectCast(value, String), options)
 
@@ -165,7 +171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Dim valueString = ObjectDisplay.FormatPrimitive(value, options)
                     Debug.Assert(valueString IsNot Nothing)
-                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.NumericLiteral, Nothing, valueString))
+                    Dim kind = If(type = GetType(Boolean), SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.NumericLiteral)
+                    builder.Add(New SymbolDisplayPart(kind, Nothing, valueString))
             End Select
         End Sub
 
@@ -195,14 +202,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddSymbolDisplayParts(parts As ArrayBuilder(Of SymbolDisplayPart), c As Char, options As ObjectDisplayOptions)
-            Dim wellKnown = ObjectDisplay.GetWellKnownCharacterName(c)
-            If wellKnown IsNot Nothing Then
-                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.FieldName, Nothing, wellKnown))
+            If ObjectDisplay.IsPrintable(c) OrElse Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Then
+                Dim literal = If(options.IncludesOption(ObjectDisplayOptions.UseQuotes), """" & c & """c", c)
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.StringLiteral, Nothing, literal))
                 Return
             End If
 
-            If ObjectDisplay.IsPrintable(c) Then
-                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.StringLiteral, Nothing, """" & c & """c"))
+            Dim wellKnown = ObjectDisplay.GetWellKnownCharacterName(c)
+            If wellKnown IsNot Nothing Then
+                parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.FieldName, Nothing, wellKnown))
                 Return
             End If
 

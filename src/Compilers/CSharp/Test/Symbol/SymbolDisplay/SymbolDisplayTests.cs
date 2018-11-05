@@ -4279,6 +4279,7 @@ End Class
         public void FormatPrimitive()
         {
             // basic tests, more cases are covered by ObjectFormatterTests
+            Assert.Equal("3", SymbolDisplay.FormatPrimitive(OutputKind.NetModule, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("1", SymbolDisplay.FormatPrimitive(1, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("1", SymbolDisplay.FormatPrimitive((uint)1, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("1", SymbolDisplay.FormatPrimitive((byte)1, quoteStrings: false, useHexadecimalNumbers: false));
@@ -4292,9 +4293,34 @@ End Class
             Assert.Equal("1.5", SymbolDisplay.FormatPrimitive(1.5, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("1.5", SymbolDisplay.FormatPrimitive((float)1.5, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("1.5", SymbolDisplay.FormatPrimitive((decimal)1.5, quoteStrings: false, useHexadecimalNumbers: false));
+            Assert.Equal("Infinity", SymbolDisplay.FormatPrimitive(double.PositiveInfinity, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("null", SymbolDisplay.FormatPrimitive(null, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("abc", SymbolDisplay.FormatPrimitive("abc", quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal(null, SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
+        }
+
+        [Fact]
+        public void FormatPrimitiveToDisplayParts()
+        {
+            // basic tests, more cases are covered by ObjectFormatterTests
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(OutputKind.NetModule, quoteStrings: false, useHexadecimalNumbers: false), "3", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((uint)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((byte)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((sbyte)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((short)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ushort)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((long)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((ulong)1, quoteStrings: false, useHexadecimalNumbers: false), "1", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts('x', quoteStrings: false, useHexadecimalNumbers: false), "x", SymbolDisplayPartKind.StringLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(true, quoteStrings: false, useHexadecimalNumbers: false), "true", SymbolDisplayPartKind.Keyword);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(1.5, quoteStrings: false, useHexadecimalNumbers: false), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((float)1.5, quoteStrings: false, useHexadecimalNumbers: false), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts((decimal)1.5, quoteStrings: false, useHexadecimalNumbers: false), "1.5", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(double.PositiveInfinity, quoteStrings: false, useHexadecimalNumbers: false), "Infinity", SymbolDisplayPartKind.NumericLiteral);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts(null, quoteStrings: false, useHexadecimalNumbers: false), "null", SymbolDisplayPartKind.Keyword);
+            Verify(SymbolDisplay.FormatPrimitiveToDisplayParts("abc", quoteStrings: false, useHexadecimalNumbers: false), "abc", SymbolDisplayPartKind.StringLiteral);
+            Assert.True(SymbolDisplay.FormatPrimitiveToDisplayParts(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false).IsDefault);
         }
 
         [WorkItem(879984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879984")]

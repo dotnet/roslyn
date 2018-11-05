@@ -333,7 +333,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return (SymbolDisplayPartKind.StringLiteral << 16) Or AscW(c)
         End Function
 
-        Private Function Identifier(c As Char) As Integer
+        Private Function FieldName(c As Char) As Integer
+            Return (SymbolDisplayPartKind.FieldName << 16) Or AscW(c)
+        End Function
+
+        Private Function MethodName(c As Char) As Integer
             Return (SymbolDisplayPartKind.MethodName << 16) Or AscW(c)
         End Function
 
@@ -420,13 +424,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
                         If wellKnown IsNot Nothing Then
                             For Each e In wellKnown
-                                Yield Identifier(e)
+                                Yield FieldName(e)
                             Next
                         Else
-                            Yield Identifier("C"c)
-                            Yield Identifier("h"c)
-                            Yield Identifier("r"c)
-                            Yield Identifier("W"c)
+                            Yield MethodName("C"c)
+                            Yield MethodName("h"c)
+                            Yield MethodName("r"c)
+                            Yield MethodName("W"c)
                             Yield Punctuation("("c)
 
                             If useHexadecimalNumbers Then

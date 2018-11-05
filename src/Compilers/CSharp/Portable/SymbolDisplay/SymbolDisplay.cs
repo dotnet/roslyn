@@ -199,6 +199,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
+            if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))
+            {
+                return default;
+            }
+
             var options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers);
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
@@ -220,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddLiteralValue(ArrayBuilder<SymbolDisplayPart> builder, object value, ObjectDisplayOptions options)
         {
-            Debug.Assert(value.GetType().IsPrimitive || value is string || value is decimal);
+            Debug.Assert(value.GetType().IsPrimitive || value.GetType().IsEnum || value is string || value is decimal);
             var valueString = ObjectDisplay.FormatPrimitive(value, options);
             Debug.Assert(valueString != null);
 
