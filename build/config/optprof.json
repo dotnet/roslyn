@@ -12,12 +12,12 @@
         {
           "container": "VSPE",
           "testCases": [
-            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
-            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
             "VSPE.OptProfTests.vs_asl_cs_scenario",
-            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
             "VSPE.OptProfTests.vs_asl_vb_scenario",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
             "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp"
+            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
           ]
         }
       ]
@@ -56,13 +56,13 @@
       ]
     }
   ],
-  "assemblies" : [
+  "assemblies": [
     {
       "assembly": "System.Collections.Immutable.dll",
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "Common7/IDE/PrivateAssemblies",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -79,7 +79,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "Common7/IDE/PrivateAssemblies",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -96,7 +96,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -113,7 +113,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -130,7 +130,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -147,7 +147,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -164,7 +164,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -181,7 +181,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -198,7 +198,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "MSBuild/15.0/Bin",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
@@ -215,7 +215,7 @@
       "instrumentationArguments": [
         {
           "relativeInstallationFolder": "Common7/IDE/CommonExtensions/Microsoft/ManagedLanguages/VBCSharp/SourceBasedTestDiscovery",
-          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+          "instrumentationExecutable": "Common7/IDE/vsn.exe"
         }
       ],
       "tests": [
