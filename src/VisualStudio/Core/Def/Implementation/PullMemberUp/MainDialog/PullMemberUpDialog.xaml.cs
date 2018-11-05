@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -36,8 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public string Members => ServicesVSResources.Members;
 
         public string MakeAbstract => ServicesVSResources.Make_Abs;
-            
+
         private PullMemberUpViewModel ViewModel { get; }
+
+        private bool ProceedToSelectAll { get; set; } = true;
 
         internal PullMemberUpDialog(PullMemberUpViewModel pullMemberUpViewModel)
         {
@@ -152,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             }
         }
 
-        private void SelectAllButton_Click(object sender, RoutedEventArgs e)
+        private void SelectAllButton_Click()
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
@@ -174,12 +177,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             }
         }
 
-        private void DeselectedAll_Click(object sender, RoutedEventArgs e)
+        private void DeselectedAll_Click()
         {
             foreach (var member in ViewModel.SelectedMembersContainer)
             {
                 member.IsChecked = false;
             }
+        }
+
+
+        private void SelectAllAndDeselectedAllCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (ProceedToSelectAll)
+            {
+                SelectAllButton_Click();
+            }
+            ProceedToSelectAll = true;
+        }
+
+        private void SelectAllAndDeselectCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            DeselectedAll_Click();
+            ProceedToSelectAll = true;
+        }
+
+        private void MemberSelectionCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            ProceedToSelectAll = false;
+            ViewModel.SelectAllAndDeselectAllChecked = true;
         }
     }
 }

@@ -1088,7 +1088,7 @@ I agree to all of the foregoing:</value>
     <value>Review problems below. Click Finish to proceed pull up.</value>
   </data>
   <data name="Select_Dependents" xml:space="preserve">
-    <value>Select dependents</value>
+    <value>Select Dependents</value>
   </data>
   <data name="Select_Destination" xml:space="preserve">
     <value>Select destination type:</value>
@@ -1097,7 +1097,7 @@ I agree to all of the foregoing:</value>
     <value>Select members:</value>
   </data>
   <data name="Select_Public" xml:space="preserve">
-    <value>Select public</value>
+    <value>Select Public</value>
   </data>
   <data name="Make_Abs" xml:space="preserve">
     <value>Make Abstract</value>

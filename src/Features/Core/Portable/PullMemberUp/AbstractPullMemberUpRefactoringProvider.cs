@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         protected readonly IPullMemberUpOptionsService _pullMemberUpOptionsService;
 
-        internal AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService pullMemberUpService)
+        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService pullMemberUpService)
         {
             _pullMemberUpOptionsService = pullMemberUpService;
         }

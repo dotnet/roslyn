@@ -2368,7 +2368,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select dependents.
+        ///   Looks up a localized string similar to Select Dependents.
         /// </summary>
         internal static string Select_Dependents {
             get {
@@ -2395,7 +2395,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select public.
+        ///   Looks up a localized string similar to Select Public.
         /// </summary>
         internal static string Select_Public {
             get {

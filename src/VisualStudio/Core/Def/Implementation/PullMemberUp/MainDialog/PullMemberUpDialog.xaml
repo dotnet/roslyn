@@ -13,9 +13,9 @@
              mc:Ignorable="d" 
              SizeToContent="Width"
              WindowStartupLocation="CenterOwner"
-             Height="480"
+             Height="533"
              Width="520"
-             MinHeight="480"
+             MinHeight="533"
              MinWidth="520"
              HasDialogFrame="True"
              ShowInTaskbar="False"
@@ -24,8 +24,8 @@
     <Window.Resources>
         <Thickness x:Key="okAndCancelButtonPadding">5, 3, 8, 4</Thickness>
         <Thickness x:Key="selectDependantsButtonPadding">2, 4, 4, 2</Thickness>
-        <sys:Double x:Key="okAndCancelButtonWidth">73</sys:Double>
-        <sys:Double x:Key="okAndCancelButtonHeight">21</sys:Double>
+        <sys:Double x:Key="ButtonWidth">75</sys:Double>
+        <sys:Double x:Key="ButtonHeight">23</sys:Double>
         <Style x:Key="LibraryTreeViewItemStyle"
                TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsSelected"
@@ -41,29 +41,36 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
+        <Style x:Key="GridViewLeftAlignContainerStyle"
+               TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="GridViewLeftAlignGridStyle"
+               TargetType="{x:Type DataGridCell}">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
     </Window.Resources>
-    <Grid Margin="10,8,10,8">
+    <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="40*"/>
             <RowDefinition Height="60*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
         <Label
-        Grid.Row="0"
+            Grid.Row="0"
             x:Uid="Description"
             x:Name="Description"
+            Margin="0,0,0,18"
             Content="{Binding ElementName=dialog, Path=PullUpDescription}"/>
-
         <GroupBox
             Grid.Row="1"
-                x:Name="TargetSelectionGroupBox"
-                Header="{Binding ElementName=dialog, Path=SelectDestination}">
+            BorderThickness="0"
+            x:Name="TargetSelectionGroupBox"
+            Header="{Binding ElementName=dialog, Path=SelectDestination}">
                 <TreeView x:Uid="PullTargetTreeView"
                           x:Name="TargetMembersContainer"
-                          MinHeight="130"
+                          MinHeight="115"
                           MinWidth="360"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                           ItemsSource="{Binding TargetMembersContainer}"
@@ -83,13 +90,13 @@
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
-            </GroupBox>
-
+        </GroupBox>
         <GroupBox
             Header="{Binding ElementName=dialog, Path=SelectMembers}"
             Grid.Row="2"
             MinHeight="200"
             MinWidth="240"
+            BorderThickness="0"
             x:Uid="MemberSelectionLabel">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -106,20 +113,33 @@
                     ItemsSource="{Binding SelectedMembersContainer}">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="{Binding ElementName=dialog, Path=Members}" Width="217" x:Name="membersColumn">
+                            <GridViewColumn Width="217" x:Name="membersColumn" HeaderContainerStyle="{StaticResource GridViewLeftAlignContainerStyle}">
+                                <GridViewColumn.Header>
+                                    <CheckBox
+                                        x:Name="SelectAllAndDeselectCheckBox"
+                                        Margin="4, 0, 0, 0"
+                                        Checked="SelectAllAndDeselectedAllCheckBox_Checked"
+                                        Unchecked="SelectAllAndDeselectCheckBox_Unchecked"
+                                        IsChecked="{Binding SelectAllAndDeselectAllChecked, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock Text="{Binding ElementName=dialog, Path=Members}"/>
+                                    </CheckBox>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
-                                            <CheckBox x:Name="MemberSelectionCheckBox"
-                                                      AutomationProperties.Name="{Binding MemberName}"
-                                                      AutomationProperties.AutomationId="{Binding MemberAutomationText}"
-                                                      IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
-                                                      Width="Auto"
-                                                      IsEnabled="{Binding IsSelectable, UpdateSourceTrigger=PropertyChanged}"
-                                                      Focusable="False"/>
-                                            <Image x:Name="GlyphOfMember"
-                                                   Margin="8,0,0,0"
-                                                   Source="{Binding Glyph}"/>
+                                            <CheckBox
+                                                x:Name="MemberSelectionCheckBox"
+                                                AutomationProperties.Name="{Binding MemberName}"
+                                                AutomationProperties.AutomationId="{Binding MemberAutomationText}"
+                                                IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                                                Checked="MemberSelectionCheckBox_Checked"
+                                                Width="Auto"
+                                                IsEnabled="{Binding IsSelectable, UpdateSourceTrigger=PropertyChanged}"
+                                                Focusable="False"/>
+                                            <Image 
+                                               x:Name="GlyphOfMember"
+                                               Margin="8,0,0,0"
+                                               Source="{Binding Glyph}"/>
                                             <TextBlock x:Uid="MemberName"
                                                        Text="{Binding MemberName}"/>
                                         </StackPanel>
@@ -129,7 +149,9 @@
                             <GridViewColumn Header="{Binding ElementName=dialog, Path=MakeAbstract}" Width="Auto" x:Name="makeAbstractColumn">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <CheckBox x:Name="MakeAbstract" 
+                                        <CheckBox x:Name="MakeAbstract"
+                                                  HorizontalContentAlignment="Stretch"
+                                                  HorizontalAlignment="Center"
                                                   IsEnabled="{Binding IsAbstractSelectable, UpdateSourceTrigger=PropertyChanged}"
                                                   IsChecked="{Binding IsAbstract, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
@@ -138,64 +160,55 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-                    <StackPanel Grid.Column="1"
-                            Orientation="Vertical"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Width="Auto"
-                            MaxWidth="130">
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Vertical"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"
+                        Width="Auto"
+                        MaxWidth="130">
                         <vs:DialogButton
                             x:Name="SelecDependentsButton"
-                            Margin="{StaticResource ResourceKey=selectDependantsButtonPadding}"
+                            Padding="{StaticResource ResourceKey=selectDependantsButtonPadding}"
                             Content="{Binding ElementName=dialog, Path=SelectDependents}"
                             Click="SelecDependentsButton_Click"
-                            MinHeight="20"
-                            MaxWidth="120"/>
-                        <vs:DialogButton
-                            x:Name="SelectAllButton"
-                            Content="{Binding ElementName=dialog, Path=SelectAll}"
-                            Margin="{StaticResource ResourceKey=selectDependantsButtonPadding}"
-                            Click="SelectAllButton_Click"
-                            MinHeight="20"
-                            MaxWidth="120"/>
-                        <vs:DialogButton
+                            Margin="0, 0, 0, 3"
+                            Width= "Auto"
+                            Height="Auto"/>
+                    <vs:DialogButton
                             x:Name="SelectPublicButton"
                             Content="{Binding ElementName=dialog, Path=SelectPublic}"
+                            Margin="0, 3, 0, 0"
                             Click="SelectPublic_Click"
-                            MinHeight="20"
-                            MaxWidth="120"
-                            Margin="{StaticResource ResourceKey=selectDependantsButtonPadding}"/>
-                        <vs:DialogButton
-                            x:Name="DeselectedAll"
-                            Content="{Binding ElementName=dialog, Path=DeselectAll}"
-                            Click="DeselectedAll_Click"
-                            MinHeight="20"
-                            MaxWidth="120"
-                            Margin="{StaticResource ResourceKey=selectDependantsButtonPadding}"/>
+                            Padding="{StaticResource ResourceKey=selectDependantsButtonPadding}"
+                            Width= "Auto"
+                            Height="Auto"/>
                     </StackPanel>
                 </Grid>
             </GroupBox>
             <StackPanel
                 Grid.Row="3"
+                Margin="0, 18, 0, 0"
                 HorizontalAlignment="Right"
-                Orientation="Horizontal"
-                Margin="0,11,0,0">
+                Orientation="Horizontal">
                     <vs:DialogButton
                         x:Uid="CancelButton"
                         Click="Cancel_Button_Click"
                         IsCancel="True"
-                        Margin= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Padding="{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Margin="0, 0, 3, 0"
                         Content="{Binding Cancel, ElementName=dialog}"
-                        MinWidth= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
-                        MinHeight="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                        Width= "{StaticResource ResourceKey=ButtonWidth}"
+                        Height="{StaticResource ResourceKey=ButtonHeight}"/>
                     <vs:DialogButton 
                         x:Uid="OKButton"
                         Click="OK_Button_Click"
                         IsDefault="True"
-                        Margin = "{StaticResource ResourceKey=okAndCancelButtonPadding}"
+                        Margin="3, 0, 0, 0"
+                        Padding ="{StaticResource ResourceKey=okAndCancelButtonPadding}"
                         Content="{Binding OK, ElementName=dialog}"
-                        MinWidth= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
-                        MinHeight="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                        Width="{StaticResource ResourceKey=ButtonWidth}"
+                        Height="{StaticResource ResourceKey=ButtonHeight}"/>
             </StackPanel>
     </Grid>
 </vs:DialogWindow>

@@ -22,7 +22,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         public Dictionary<ISymbol, PullUpMemberSymbolView> SymbolToMemberView { get; }
 
         public MemberSymbolViewModelGraphNode SelectedTarget { get; set; }
-        
+
+        private bool _selectAllAndDeselectAllChecked;
+
+        public bool SelectAllAndDeselectAllChecked
+        {
+            get => _selectAllAndDeselectAllChecked;
+            set
+            {
+                _selectAllAndDeselectAllChecked = value;
+                NotifyPropertyChanged($"{nameof(SelectAllAndDeselectAllChecked)}");
+            }
+        }
+
         internal PullMemberUpViewModel(
             List<ISymbol> allMembers,
             ObservableCollection<MemberSymbolViewModelGraphNode> targetMembersContainer,
@@ -44,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
             TargetMembersContainer = targetMembersContainer;
             LazyDependentsMap = lazyDependentsMap;
+            SelectAllAndDeselectAllChecked = true;
         }
     }
 
