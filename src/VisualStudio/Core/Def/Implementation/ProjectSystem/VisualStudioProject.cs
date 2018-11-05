@@ -83,6 +83,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <summary>
         /// map original dynamic file path to <see cref="DynamicFileInfo.FilePath"/>
+        /// 
+        /// original dyanmic file path points to something like xxx.cshtml that are given to project system
+        /// and <see cref="DynamicFileInfo.FilePath"/> points to a mapped file path provided by <see cref="IDynamicFileInfoProvider"/>
+        /// and how and what it got mapped to is up to the provider. 
+        /// 
+        /// Workspace will only knows about <see cref="DynamicFileInfo.FilePath"/> but not the original dynamic file path
         /// </summary>
         private readonly Dictionary<string, string> _dynamicFilePathMaps = new Dictionary<string, string>();
 
