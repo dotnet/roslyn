@@ -5,7 +5,6 @@ using System.Composition;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     {
         private readonly IAsyncServiceProvider _asyncServiceProvider;
 
-        private Optional<Func<string, bool>> _isCachedFlightEnabled;
+        private Func<string, bool> _isCachedFlightEnabled;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,30 +30,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
         public async ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            if (!_isCachedFlightEnabled.HasValue)
+            if (_isCachedFlightEnabled is null)
             {
-                MethodInfo isCachedFlightEnabledInfo;
+                Func<string, bool> isCachedFlightEnabled;
 
                 try
                 {
                     var experimentationService = await _asyncServiceProvider.GetServiceAsync(typeof(SVsExperimentationService));
-                    isCachedFlightEnabledInfo = experimentationService?.GetType().GetMethod(
+                    var isCachedFlightEnabledInfo = experimentationService?.GetType().GetMethod(
                         "IsCachedFlightEnabled", BindingFlags.Public | BindingFlags.Instance);
 
-                    _isCachedFlightEnabled = (Func<string, bool>)Delegate.CreateDelegate(typeof(Func<string, bool>), experimentationService, isCachedFlightEnabledInfo);
+                    isCachedFlightEnabled = (Func<string, bool>)Delegate.CreateDelegate(typeof(Func<string, bool>), experimentationService, isCachedFlightEnabledInfo);
                 }
                 catch
                 {
-                    _isCachedFlightEnabled = null;
+                    isCachedFlightEnabled = _ => false;
                 }
+
+                Interlocked.CompareExchange(ref _isCachedFlightEnabled, isCachedFlightEnabled, null);
             }
 
-            if (_isCachedFlightEnabled.Value != null)
-            {
-                return _isCachedFlightEnabled.Value(experimentName);
-            }
-
-            return false;
+            return _isCachedFlightEnabled(experimentName);
         }
     }
 }
