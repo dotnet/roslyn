@@ -107,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
                 }
 
+                // if span mapping service filtered out the span, make sure
+                // to return null so that we remove the span from the result
                 return results.FirstOrNullable(r => !r.IsDefault);
             }
 

@@ -87,6 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
+                    // this will be removed from the result
                     return null;
                 }
 
