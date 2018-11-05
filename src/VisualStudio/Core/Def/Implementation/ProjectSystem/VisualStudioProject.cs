@@ -510,6 +510,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #endregion
 
         #region Non Source File Addition/Removal
+
         public void AddDynamicSourceFile(string dynamicFilePath, ImmutableArray<string> folders)
         {
             var extension = FileNameUtilities.GetExtension(dynamicFilePath)?.TrimStart('.');
