@@ -3175,6 +3175,7 @@ class C1 {
 struct S
 {
     void M(
+        bool b = true,
         int i = 1,
         string str = ""hello"",
         object o = null
@@ -3206,13 +3207,22 @@ struct S
 
             TestSymbolDescription(text, findSymbol,
                 format,
-                @"void S.M(int i = 1, string str = ""hello"", object o = null, S s = default)",
+                @"void S.M(bool b = true, int i = 1, string str = ""hello"", object o = null, S s = default)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation, //.
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation, //(
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation, //=
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation, //,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
@@ -3676,6 +3686,50 @@ struct S
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.NumericLiteral);
+        }
+
+        [Theory]
+        [InlineData("true")]
+        [InlineData("false")]
+        public void TestConstantFieldValue_Bool(string value)
+        {
+            var text =
+$@"class C {{
+    const bool f = {value};
+}}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeContainingType |
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeConstantValue);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                $"private const Boolean C.f = {value}",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
         }
 
         [Fact]

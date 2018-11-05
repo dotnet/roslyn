@@ -2150,6 +2150,55 @@ End Class
                 SymbolDisplayPartKind.NumericLiteral)
         End Sub
 
+        <Theory>
+        <InlineData("True")>
+        <InlineData("False")>
+        Public Sub TestConstantFieldValue_Boolean(value As String)
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Class C
+    Const f As Boolean = <%= value %>
+End Class
+    </file>
+</compilation>
+
+            Dim findSymbol = Function(globalns As NamespaceSymbol) _
+                                 globalns.GetTypeMembers("C", 0).Single().
+                                 GetMembers("f").Single()
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=
+                    SymbolDisplayMemberOptions.IncludeAccessibility Or
+                    SymbolDisplayMemberOptions.IncludeContainingType Or
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface Or
+                    SymbolDisplayMemberOptions.IncludeModifiers Or
+                    SymbolDisplayMemberOptions.IncludeParameters Or
+                    SymbolDisplayMemberOptions.IncludeType Or
+                    SymbolDisplayMemberOptions.IncludeConstantValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                $"Private Const C.f As Boolean = {value}",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+        End Sub
+
         <Fact>
         Public Sub TestConstantFieldValue_EnumMember()
             Dim text =
@@ -2903,6 +2952,56 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Punctuation
+                })
+        End Sub
+
+        <Theory()>
+        <InlineData("True")>
+        <InlineData("False")>
+        Public Sub TestOptionalParameterValue_Boolean(value As String)
+            Dim text =
+<compilation>
+    <file name="a.vb">
+Imports Microsoft.VisualBasic
+
+Class C 
+    Sub M(Optional a As Boolean = <%= value %>)
+    End Sub
+End Class
+            </file>
+</compilation>
+
+            Dim findSymbol =
+                Function(globalns As NamespaceSymbol) globalns _
+                    .GetMember(Of NamedTypeSymbol)("C") _
+                    .GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:=
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut Or
+                    SymbolDisplayParameterOptions.IncludeType Or
+                    SymbolDisplayParameterOptions.IncludeName Or
+                    SymbolDisplayParameterOptions.IncludeDefaultValue)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                $"M(a As Boolean = {value})",
+                {
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation
                 })
         End Sub
