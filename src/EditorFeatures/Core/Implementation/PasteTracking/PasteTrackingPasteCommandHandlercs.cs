@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.PasteTrackingPaste)]
+    // By registering to run prior to FormatDocument and deferring until it has completed we
+    // will be able to register the pasted text span after any formatting changes have been
+    // applied. This is important because the PasteTrackingService will dismiss the registered
+    // textspan when the textbuffer is changed.
     [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
     internal class PasteTrackingPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             // Capture the pre-paste caret position
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
-            // Allow the pasted text to be inserted.
+            // Allow the pasted text to be inserted and formatted.
             nextCommandHandler();
 
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
