@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions;
+using Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -229,10 +229,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    //  5. Otherwise, we execute analysis by walking the reaching definitions chain to attempt to
+                    //  5. Otherwise, we execute analysis by walking the reaching symbol write chain to attempt to
                     //     find the target method being invoked.
                     //     This works for most common and simple cases where a local is assigned a lambda and invoked later.
-                    //     If we are unable to find a target, we will conservatively mark all current definitions as read.
+                    //     If we are unable to find a target, we will conservatively mark all current symbol writes as read.
                     return true;
                 }
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     // Bail out if we are neither computing unused parameters nor unused value assignments.
                     var isComputingUnusedParams = _options.IsComputingUnusedParams(context.OwningSymbol);
-                    if (_options.UnusedValueExpressionStatementPreference == UnusedValuePreference.None &&
+                    if (_options.UnusedValueAssignmentPreference == UnusedValuePreference.None &&
                         !isComputingUnusedParams)
                     {
                         return;
@@ -285,33 +285,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             continue;
                         }
 
-                        // First perform the fast, aggressive, imprecise operation-tree based reaching definitions analysis.
+                        // First perform the fast, aggressive, imprecise operation-tree based analysis.
                         // This analysis might flag some "used" symbol writes as "unused", but will not miss reporting any truly unused symbol writes.
                         // This initial pass helps us reduce the number of methods for which we perform the slower second pass.
-                        // We perform the first fast pass only if there are no delegate creations/lambda methods,
-                        // as that requires us to track delegate creation targets, which needs flow analysis.
+                        // We perform the first fast pass only if there are no delegate creations/lambda methods.
+                        // This is due to the fact that tracking which local/parameter points to which delegate creation target
+                        // at any given program point needs needs flow analysis (second pass).
                         if (!_hasDelegateCreationOrAnonymousFunction)
                         {
-                            var resultFromOperationBlockAnalysis = ReachingDefinitionsAnalysis.Run(operationBlock, context.OwningSymbol, context.CancellationToken);
-                            if (!resultFromOperationBlockAnalysis.HasUnusedSymbolWrites())
+                            var resultFromOperationBlockAnalysis = SymbolUsageAnalysis.Run(operationBlock, context.OwningSymbol, context.CancellationToken);
+                            if (!resultFromOperationBlockAnalysis.HasUnreadSymbolWrites())
                             {
                                 // Assert that even slow pass (dataflow analysis) would have yielded no unused symbol writes.
-                                Debug.Assert(!ReachingDefinitionsAnalysis.Run(context.GetControlFlowGraph(operationBlock), context.OwningSymbol, context.CancellationToken)
-                                             .HasUnusedSymbolWrites());
+                                Debug.Assert(!SymbolUsageAnalysis.Run(context.GetControlFlowGraph(operationBlock), context.OwningSymbol, context.CancellationToken)
+                                             .HasUnreadSymbolWrites());
 
                                 hasBlockWithAllUsedSymbolWrites = true;
                                 continue;
                             }
                         }
 
-                        // Now perform the slower, precise, CFG based reaching definitions dataflow analysis to identify the actual unused symbol writes.
+                        // Now perform the slower, precise, CFG based dataflow analysis to identify the actual unused symbol writes.
                         var cfg = context.GetControlFlowGraph(operationBlock);
-                        var symbolUsageResult = ReachingDefinitionsAnalysis.Run(cfg, context.OwningSymbol, context.CancellationToken);
+                        var symbolUsageResult = SymbolUsageAnalysis.Run(cfg, context.OwningSymbol, context.CancellationToken);
                         symbolUsageResultsBuilder.Add(symbolUsageResult);
 
-                        foreach (var (unusedSymbol, unusedWriteOperation) in symbolUsageResult.GetUnusedSymbolWrites())
+                        foreach (var (symbol, unreadWriteOperation) in symbolUsageResult.GetUnreadSymbolWrites())
                         {
-                            if (unusedWriteOperation == null)
+                            if (unreadWriteOperation == null)
                             {
                                 // Null operation is used for initial write for the parameter from method declaration.
                                 // So, the initial value of the parameter is never read in this operation block.
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                 // However, we do report unused parameters for local function here.
                                 // Local function parameters are completely scoped to this operation block, and should be reported per-operation block.
-                                var unusedParameter = (IParameterSymbol)unusedSymbol;
+                                var unusedParameter = (IParameterSymbol)symbol;
                                 if (isComputingUnusedParams &&
                                     unusedParameter.ContainingSymbol.IsLocalFunction())
                                 {
@@ -333,14 +334,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                 continue;
                             }
 
-                            if (ShouldReportUnusedValueDiagnostic(unusedSymbol, unusedWriteOperation, symbolUsageResult, out var properties))
+                            if (ShouldReportUnusedValueDiagnostic(symbol, unreadWriteOperation, symbolUsageResult, out var properties))
                             {
                                 var diagnostic = DiagnosticHelper.Create(s_valueAssignedIsUnusedRule,
-                                                                         _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unusedWriteOperation),
+                                                                         _symbolStartAnalyzer._compilationAnalyzer.GetDefinitionLocationToFade(unreadWriteOperation),
                                                                          _options.UnusedValueAssignmentSeverity,
                                                                          additionalLocations: null,
                                                                          properties,
-                                                                         unusedSymbol.Name);
+                                                                         symbol.Name);
                                 context.ReportDiagnostic(diagnostic);
                             }
                         }
@@ -350,8 +351,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     // Local functions.
                     bool ShouldReportUnusedValueDiagnostic(
-                        ISymbol unusedSymbol,
-                        IOperation unusedDefinition,
+                        ISymbol symbol,
+                        IOperation unreadWriteOperation,
                         SymbolUsageResult resultFromFlowAnalysis,
                         out ImmutableDictionary<string, string> properties)
                     {
@@ -364,10 +365,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         Debug.Assert(_options.UnusedValueAssignmentSeverity != ReportDiagnostic.Suppress);
 
                         // Flag to indicate if the symbol has no reads.
-                        var isUnusedLocalAssignment = unusedSymbol is ILocalSymbol localSymbol &&
+                        var isUnusedLocalAssignment = symbol is ILocalSymbol localSymbol &&
                                                       !resultFromFlowAnalysis.SymbolsRead.Contains(localSymbol);
 
-                        var isRemovableAssignment = IsRemovableAssignmentWithoutSideEffects(unusedDefinition);
+                        var isRemovableAssignment = IsRemovableAssignmentWithoutSideEffects(unreadWriteOperation);
 
                         if (isUnusedLocalAssignment &&
                             !isRemovableAssignment &&

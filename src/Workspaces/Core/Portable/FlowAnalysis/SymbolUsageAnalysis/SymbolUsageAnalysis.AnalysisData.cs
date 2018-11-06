@@ -9,13 +9,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         /// <summary>
-        /// Core analysis data to drive the reaching definitions operation <see cref="Walker"/>
-        /// for operation tree OR control flow graph based reaching definition analysis.
+        /// Core analysis data to drive the operation <see cref="Walker"/>
+        /// for operation tree based analysis OR control flow graph based analysis.
         /// </summary>
         private abstract class AnalysisData : IDisposable
         {
@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             private readonly ArrayBuilder<BasicBlockAnalysisData> _allocatedBasicBlockAnalysisDatas;
             
             protected AnalysisData(
-                PooledDictionary<(ISymbol symbol, IOperation operation), bool> definitionUsageMap,
+                PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolWriteBuilder,
                 PooledHashSet<ISymbol> symbolsRead,
                 PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed)
             {
-                DefinitionUsageMapBuilder = definitionUsageMap;
+                SymbolsWriteBuilder = symbolWriteBuilder;
                 SymbolsReadBuilder = symbolsRead;
                 LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
 
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             }
 
             /// <summary>
-            /// Map from each symbol definition to a boolean indicating if the value assinged
-            /// at definition is used/read on some control flow path.
+            /// Map from each (symbol, write) to a boolean indicating if the value assinged
+            /// at the write is read on some control flow path.
             /// </summary>
-            protected PooledDictionary<(ISymbol symbol, IOperation operation), bool> DefinitionUsageMapBuilder { get; }
+            protected PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
             /// <summary>
-            /// Set of locals/parameters that have at least one use/read for one of its definitions.
+            /// Set of locals/parameters that have at least one use/read for one of its writes.
             /// </summary>
             protected PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             /// Creates an immutable <see cref="SymbolUsageResult"/> for the current analysis data.
             /// </summary>
             public SymbolUsageResult ToResult()
-                => new SymbolUsageResult(DefinitionUsageMapBuilder.ToImmutableDictionary(),
-                                             SymbolsReadBuilder.ToImmutableHashSet());
+                => new SymbolUsageResult(SymbolsWriteBuilder.ToImmutableDictionary(),
+                                         SymbolsReadBuilder.ToImmutableHashSet());
 
             public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
             {
@@ -107,33 +107,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
             // Methods specific to delegate analysis to track potential delegate invocation targets for CFG based dataflow analysis.
             public abstract bool IsTrackingDelegateCreationTargets { get; }
-            public abstract void SetTargetsFromSymbolForDelegate(IOperation definition, ISymbol symbol);
-            public abstract void SetLambdaTargetForDelegate(IOperation definition, IFlowAnonymousFunctionOperation lambdaTarget);
-            public abstract void SetLocalFunctionTargetForDelegate(IOperation definition, IMethodReferenceOperation localFunctionTarget);
-            public abstract void SetEmptyInvocationTargetsForDelegate(IOperation definition);
-            public abstract bool TryGetDelegateInvocationTargets(IOperation definition, out ImmutableHashSet<IOperation> targets);
+            public abstract void SetTargetsFromSymbolForDelegate(IOperation write, ISymbol symbol);
+            public abstract void SetLambdaTargetForDelegate(IOperation write, IFlowAnonymousFunctionOperation lambdaTarget);
+            public abstract void SetLocalFunctionTargetForDelegate(IOperation write, IMethodReferenceOperation localFunctionTarget);
+            public abstract void SetEmptyInvocationTargetsForDelegate(IOperation write);
+            public abstract bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets);
 
-            protected static PooledDictionary<(ISymbol Symbol, IOperation Definition), bool> CreateDefinitionsUsageMap(
+            protected static PooledDictionary<(ISymbol Symbol, IOperation Write), bool> CreateSymbolsWriteMap(
                 ImmutableArray<IParameterSymbol> parameters)
             {
-                var definitionUsageMap = PooledDictionary<(ISymbol Symbol, IOperation Definition), bool>.GetInstance();
-                return UpdateDefinitionsUsageMap(definitionUsageMap, parameters);
+                var symbolsWriteMap = PooledDictionary<(ISymbol Symbol, IOperation Write), bool>.GetInstance();
+                return UpdateSymbolsWriteMap(symbolsWriteMap, parameters);
             }
 
-            protected static PooledDictionary<(ISymbol Symbol, IOperation Definition), bool> UpdateDefinitionsUsageMap(
-                PooledDictionary<(ISymbol Symbol, IOperation Definition), bool> definitionUsageMap,
+            protected static PooledDictionary<(ISymbol Symbol, IOperation Write), bool> UpdateSymbolsWriteMap(
+                PooledDictionary<(ISymbol Symbol, IOperation Write), bool> symbolsWriteMap,
                 ImmutableArray<IParameterSymbol> parameters)
             {
+                // Mark parameters as being written from the value provided at the call site.
+                // Note that the write operation is "null" as there is no corresponding IOperation for parameter definition.
                 foreach (var parameter in parameters)
                 {
                     (ISymbol, IOperation) key = (parameter, null);
-                    if (!definitionUsageMap.ContainsKey(key))
+                    if (!symbolsWriteMap.ContainsKey(key))
                     {
-                        definitionUsageMap.Add(key, false);
+                        symbolsWriteMap.Add(key, false);
                     }
                 }
 
-                return definitionUsageMap;
+                return symbolsWriteMap;
             }
 
             public BasicBlockAnalysisData CreateBlockAnalysisData()
@@ -150,46 +152,46 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     return;
                 }
 
-                // Mark all the current reaching definitions of symbol as used/read.
-                if (DefinitionUsageMapBuilder.Count != 0)
+                // Mark all the current reaching writes of symbol as read.
+                if (SymbolsWriteBuilder.Count != 0)
                 {
-                    var currentDefinitions = CurrentBlockAnalysisData.GetCurrentDefinitions(symbol);
-                    foreach (var definition in currentDefinitions)
+                    var currentWrites = CurrentBlockAnalysisData.GetCurrentWrites(symbol);
+                    foreach (var write in currentWrites)
                     {
-                        DefinitionUsageMapBuilder[(symbol, definition)] = true;
+                        SymbolsWriteBuilder[(symbol, write)] = true;
                     }
                 }
 
-                // Mark the current symbol as used/read.
+                // Mark the current symbol as read.
                 SymbolsReadBuilder.Add(symbol);
             }
 
             public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten)
             {
-                var definition = (symbol, operation);
+                var symbolAndWrite = (symbol, operation);
                 if (symbol.Kind == SymbolKind.Discard)
                 {
                     // Skip discard symbols and also for already processed writes (back edge from loops).
                     return;
                 }
 
-                // Add a new definition (write) for the given symbol at the given operation.
+                // Add a new write for the given symbol at the given operation.
                 CurrentBlockAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
 
-                // Only mark as unused definition if we are processing it for the first time (not from back edge for loops)
-                if (!DefinitionUsageMapBuilder.ContainsKey(definition) &&
+                // Only mark as unused write if we are processing it for the first time (not from back edge for loops)
+                if (!SymbolsWriteBuilder.ContainsKey(symbolAndWrite) &&
                     !maybeWritten)
                 {
-                    DefinitionUsageMapBuilder.Add((symbol, operation), false);
+                    SymbolsWriteBuilder.Add((symbol, operation), false);
                 }
             }
 
             /// <summary>
-            /// Resets all the currently tracked symbol definitions to be conservatively marked as used.
+            /// Resets all the currently tracked symbol writes to be conservatively marked as read.
             /// </summary>
             public void ResetState()
             {
-                foreach (var symbol in DefinitionUsageMapBuilder.Keys.Select(d => d.symbol).ToArray())
+                foreach (var symbol in SymbolsWriteBuilder.Keys.Select(d => d.symbol).ToArray())
                 {
                     OnReadReferenceFound(symbol);
                 }
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
             protected virtual void DisposeCoreData()
             {
-                DefinitionUsageMapBuilder.Free();
+                SymbolsWriteBuilder.Free();
                 SymbolsReadBuilder.Free();
                 LambdaOrLocalFunctionsBeingAnalyzed.Free();
             }

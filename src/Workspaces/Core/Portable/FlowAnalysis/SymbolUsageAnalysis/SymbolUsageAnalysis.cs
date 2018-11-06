@@ -4,25 +4,25 @@ using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
     /// <summary>
-    /// Analysis to compute all the symbol definitions (i.e. writes) for local and parameter
+    /// Analysis to compute all the symbol writes for local and parameter
     /// symbols in an executable code block, along with the information of whether or not the definition
     /// may be read on some control flow path.
     /// </summary>
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         /// <summary>
-        /// Runs dataflow analysis on the given control flow graph to compute reaching symbol
-        /// definitions and information about the definition usages.
+        /// Runs dataflow analysis on the given control flow graph to compute symbol usage results
+        /// for symbol read/writes.
         /// </summary>
         public static SymbolUsageResult Run(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
             => DataFlowAnalyzer.RunAnalysis(cfg, owningSymbol, cancellationToken);
 
         /// <summary>
-        /// Runs a fast, non-precise operation tree based analysis to compute reaching symbol
-        /// definitions and information about the definition usages.
+        /// Runs a fast, non-precise operation tree based analysis to compute symbol usage results
+        /// for symbol read/writes.
         /// </summary>
         public static SymbolUsageResult Run(IOperation rootOperation, ISymbol owningSymbol, CancellationToken cancellationToken)
         {

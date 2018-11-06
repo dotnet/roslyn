@@ -8,20 +8,20 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         private sealed class OperationTreeAnalysisData : AnalysisData
         {
             private readonly Func<IMethodSymbol, BasicBlockAnalysisData> _analyzeLocalFunction;
 
             private OperationTreeAnalysisData(
-                PooledDictionary<(ISymbol symbol, IOperation operation), bool> definitionUsageMap,
+                PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
                 PooledHashSet<ISymbol> symbolsRead,
                 PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
                 Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
-                : base(definitionUsageMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)     
+                : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)     
             {
                 _analyzeLocalFunction = analyzeLocalFunction;
             }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
             {
                 return new OperationTreeAnalysisData(
-                    definitionUsageMap: CreateDefinitionsUsageMap(owningSymbol.GetParameters()),
+                    symbolsWriteMap: CreateSymbolsWriteMap(owningSymbol.GetParameters()),
                     symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
                     lambdaOrLocalFunctionsBeingAnalyzed: PooledHashSet<IMethodSymbol>.GetInstance(),
                     analyzeLocalFunction);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
             protected override BasicBlockAnalysisData AnalyzeLocalFunctionInvocationCore(IMethodSymbol localFunction, CancellationToken cancellationToken)
             {
-                _ = UpdateDefinitionsUsageMap(DefinitionUsageMapBuilder, localFunction.Parameters);
+                _ = UpdateSymbolsWriteMap(SymbolsWriteBuilder, localFunction.Parameters);
                 return _analyzeLocalFunction(localFunction);
             }
 
@@ -55,15 +55,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 => throw ExceptionUtilities.Unreachable;
 
             public override bool IsTrackingDelegateCreationTargets => false;
-            public override void SetLambdaTargetForDelegate(IOperation definition, IFlowAnonymousFunctionOperation lambdaTarget)
+            public override void SetLambdaTargetForDelegate(IOperation write, IFlowAnonymousFunctionOperation lambdaTarget)
                 => throw ExceptionUtilities.Unreachable;
-            public override void SetLocalFunctionTargetForDelegate(IOperation definition, IMethodReferenceOperation localFunctionTarget)
+            public override void SetLocalFunctionTargetForDelegate(IOperation write, IMethodReferenceOperation localFunctionTarget)
                 => throw ExceptionUtilities.Unreachable;
-            public override void SetEmptyInvocationTargetsForDelegate(IOperation definition)
+            public override void SetEmptyInvocationTargetsForDelegate(IOperation write)
                 => throw ExceptionUtilities.Unreachable;
-            public override void SetTargetsFromSymbolForDelegate(IOperation definition, ISymbol symbol)
+            public override void SetTargetsFromSymbolForDelegate(IOperation write, ISymbol symbol)
                 => throw ExceptionUtilities.Unreachable;
-            public override bool TryGetDelegateInvocationTargets(IOperation definition, out ImmutableHashSet<IOperation> targets)
+            public override bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets)
                 => throw ExceptionUtilities.Unreachable;
         }
     }

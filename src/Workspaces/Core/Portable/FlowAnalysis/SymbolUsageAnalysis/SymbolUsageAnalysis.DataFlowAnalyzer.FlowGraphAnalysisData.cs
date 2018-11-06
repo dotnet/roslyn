@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         private sealed partial class DataFlowAnalyzer : DataFlowAnalyzer<BasicBlockAnalysisData>
         {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 /// <summary>
                 /// Map from basic block to current <see cref="BasicBlockAnalysisData"/> for dataflow analysis.
                 /// </summary>
-                private readonly PooledDictionary<BasicBlock, BasicBlockAnalysisData> _reachingDefinitionsMap;
+                private readonly PooledDictionary<BasicBlock, BasicBlockAnalysisData> _analysisDataByBasicBlockMap;
 
                 /// <summary>
                 /// Callback to analyze lambda/local function invocations and return new block analysis data.
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 private readonly Func<IMethodSymbol, ControlFlowGraph, AnalysisData, CancellationToken, BasicBlockAnalysisData> _analyzeLocalFunctionOrLambdaInvocation;
 
                 /// <summary>
-                /// Map from flow capture ID to set of captured definition addresses along all possible control flow paths.
+                /// Map from flow capture ID to set of captured symbol addresses along all possible control flow paths.
                 /// </summary>
                 private readonly PooledDictionary<CaptureId, PooledHashSet<(ISymbol, IOperation)>> _lValueFlowCapturesMap;
 
@@ -56,28 +56,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 private readonly PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> _lambdaTargetsToAccessingCfgMap;
 
                 /// <summary>
-                /// Map from basic block range to set of definitions within this block range.
+                /// Map from basic block range to set of writes within this block range.
                 /// Used for try-catch-finally analysis, where start of catch/finally blocks should
-                /// consider all definitions in the corresponding try block as reachable.
+                /// consider all writes in the corresponding try block as reachable.
                 /// </summary>
-                private readonly PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>> _definitionsInsideBlockRangeMap;
+                private readonly PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>> _symbolWritesInsideBlockRangeMap;
 
                 private FlowGraphAnalysisData(
                     ControlFlowGraph controlFlowGraph,
                     ImmutableArray<IParameterSymbol> parameters,
-                    PooledDictionary<BasicBlock, BasicBlockAnalysisData> reachingDefinitionsMap,
-                    PooledDictionary<(ISymbol symbol, IOperation operation), bool> definitionUsageMap,
+                    PooledDictionary<BasicBlock, BasicBlockAnalysisData> analysisDataByBasicBlockMap,
+                    PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
                     PooledHashSet<ISymbol> symbolsRead,
                     PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
                     Func<IMethodSymbol, ControlFlowGraph, AnalysisData, CancellationToken, BasicBlockAnalysisData> analyzeLocalFunctionOrLambdaInvocation,
                     PooledDictionary<IOperation, PooledHashSet<IOperation>> reachingDelegateCreationTargets,
                     PooledDictionary<IMethodSymbol, ControlFlowGraph> localFunctionTargetsToAccessingCfgMap,
                     PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> lambdaTargetsToAccessingCfgMap)
-                    : base(definitionUsageMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)
+                    : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)
                 {
                     ControlFlowGraph = controlFlowGraph;
                     _parameters = parameters;
-                    _reachingDefinitionsMap = reachingDefinitionsMap;
+                    _analysisDataByBasicBlockMap = analysisDataByBasicBlockMap;
                     _analyzeLocalFunctionOrLambdaInvocation = analyzeLocalFunctionOrLambdaInvocation;
                     _reachingDelegateCreationTargets = reachingDelegateCreationTargets;
                     _localFunctionTargetsToAccessingCfgMap = localFunctionTargetsToAccessingCfgMap;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
                     _lValueFlowCapturesMap = PooledDictionary<CaptureId, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                     LValueFlowCapturesInGraph = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(controlFlowGraph);
-                    _definitionsInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
+                    _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
 
                 public static FlowGraphAnalysisData Create(
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     return new FlowGraphAnalysisData(
                         cfg,
                         parameters,
-                        reachingDefinitionsMap: CreateReachingDefinitionsMap(cfg),
-                        definitionUsageMap: CreateDefinitionsUsageMap(parameters),
+                        analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
+                        symbolsWriteMap: CreateSymbolsWriteMap(parameters),
                         symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
                         lambdaOrLocalFunctionsBeingAnalyzed: PooledHashSet<IMethodSymbol>.GetInstance(),
                         analyzeLocalFunctionOrLambdaInvocation,
@@ -122,8 +122,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     return new FlowGraphAnalysisData(
                         cfg,
                         parameters,
-                        reachingDefinitionsMap: CreateReachingDefinitionsMap(cfg),
-                        definitionUsageMap: UpdateDefinitionsUsageMap(parentAnalysisData.DefinitionUsageMapBuilder, parameters),
+                        analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
+                        symbolsWriteMap: UpdateSymbolsWriteMap(parentAnalysisData.SymbolsWriteBuilder, parameters),
                         symbolsRead: parentAnalysisData.SymbolsReadBuilder,
                         lambdaOrLocalFunctionsBeingAnalyzed: parentAnalysisData.LambdaOrLocalFunctionsBeingAnalyzed,
                         analyzeLocalFunctionOrLambdaInvocation: parentAnalysisData._analyzeLocalFunctionOrLambdaInvocation,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                         lambdaTargetsToAccessingCfgMap: parentAnalysisData._lambdaTargetsToAccessingCfgMap);
                 }
 
-                private static PooledDictionary<BasicBlock, BasicBlockAnalysisData> CreateReachingDefinitionsMap(
+                private static PooledDictionary<BasicBlock, BasicBlockAnalysisData> CreateAnalysisDataByBasicBlockMap(
                     ControlFlowGraph cfg)
                 {
                     var builder = PooledDictionary<BasicBlock, BasicBlockAnalysisData>.GetInstance();
@@ -152,22 +152,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 public ImmutableHashSet<CaptureId> LValueFlowCapturesInGraph { get; }
 
                 public BasicBlockAnalysisData GetCurrentBlockAnalysisData(BasicBlock basicBlock)
-                    => _reachingDefinitionsMap[basicBlock];
+                    => _analysisDataByBasicBlockMap[basicBlock];
 
                 public BasicBlockAnalysisData GetOrCreateBlockAnalysisData(BasicBlock basicBlock)
                 {
-                    if (_reachingDefinitionsMap[basicBlock] == null)
+                    if (_analysisDataByBasicBlockMap[basicBlock] == null)
                     {
-                        _reachingDefinitionsMap[basicBlock] = CreateBlockAnalysisData();
+                        _analysisDataByBasicBlockMap[basicBlock] = CreateBlockAnalysisData();
                     }
 
                     HandleCatchOrFilterOrFinallyInitialization(basicBlock);
-                    return _reachingDefinitionsMap[basicBlock];
+                    return _analysisDataByBasicBlockMap[basicBlock];
                 }
 
-                private PooledHashSet<(ISymbol, IOperation)> GetOrCreateDefinitionsInBlockRange(int firstBlockOrdinal, int lastBlockOrdinal)
+                private PooledHashSet<(ISymbol, IOperation)> GetOrCreateSymbolWritesInBlockRange(int firstBlockOrdinal, int lastBlockOrdinal)
                 {
-                    if (!_definitionsInsideBlockRangeMap.TryGetValue((firstBlockOrdinal, lastBlockOrdinal), out var definitionsInBlockRange))
+                    if (!_symbolWritesInsideBlockRangeMap.TryGetValue((firstBlockOrdinal, lastBlockOrdinal), out var writesInBlockRange))
                     {
                         // Compute all descendant operations in basic block range.
                         var operations = PooledHashSet<IOperation>.GetInstance();
@@ -179,29 +179,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                             }
                         }
 
-                        // Filter down the operations to definitions (writes) within this block range.
-                        definitionsInBlockRange = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                        foreach (var (symbol, definition) in DefinitionUsageMapBuilder.Where(kvp => !kvp.Value).Select(kvp => kvp.Key).ToArray())
+                        // Filter down the operations to writes within this block range.
+                        writesInBlockRange = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                        foreach (var (symbol, write) in SymbolsWriteBuilder.Where(kvp => !kvp.Value).Select(kvp => kvp.Key).ToArray())
                         {
-                            if (definition != null && operations.Contains(definition))
+                            if (write != null && operations.Contains(write))
                             {
-                                definitionsInBlockRange.Add((symbol, definition));
+                                writesInBlockRange.Add((symbol, write));
                             }
                         }
                     }
 
-                    return definitionsInBlockRange;
+                    return writesInBlockRange;
                 }
 
                 /// <summary>
                 /// Special handling to ensure that at start of catch/filter/finally region analysis,
-                /// we mark all definitions from the corresponding try region as reachable in the
+                /// we mark all symbol writes from the corresponding try region as reachable in the
                 /// catch/filter/finally region.
                 /// </summary>
                 /// <param name="basicBlock"></param>
                 private void HandleCatchOrFilterOrFinallyInitialization(BasicBlock basicBlock)
                 {
-                    Debug.Assert(_reachingDefinitionsMap[basicBlock] != null);
+                    Debug.Assert(_analysisDataByBasicBlockMap[basicBlock] != null);
 
                     // Ensure we are processing a basic block with following properties:
                     //  1. It has no predecessors
@@ -251,16 +251,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     }
                     while (containingTryCatchFinallyRegion == null);
 
-                    // All definitions reachable at start of try region are considered reachable at start of catch/finally region.
+                    // All symbol writes reachable at start of try region are considered reachable at start of catch/finally region.
                     var firstBasicBlockInOutermostRegion = ControlFlowGraph.Blocks[containingTryCatchFinallyRegion.FirstBlockOrdinal];
-                    var mergedAnalysisData = _reachingDefinitionsMap[basicBlock];
+                    var mergedAnalysisData = _analysisDataByBasicBlockMap[basicBlock];
                     mergedAnalysisData.SetAnalysisDataFrom(GetCurrentBlockAnalysisData(firstBasicBlockInOutermostRegion));
 
-                    // All definitions within the try region are considered reachable at start of catch/finally region.
-                    foreach (var (symbol, definition) in GetOrCreateDefinitionsInBlockRange(containingTryCatchFinallyRegion.FirstBlockOrdinal, basicBlock.Ordinal - 1))
+                    // All symbol writes within the try region are considered reachable at start of catch/finally region.
+                    foreach (var (symbol, write) in GetOrCreateSymbolWritesInBlockRange(containingTryCatchFinallyRegion.FirstBlockOrdinal, basicBlock.Ordinal - 1))
                     {
-                        mergedAnalysisData.OnWriteReferenceFound(symbol, definition, maybeWritten: true);
-                        DefinitionUsageMapBuilder[(symbol, definition)] = true;
+                        mergedAnalysisData.OnWriteReferenceFound(symbol, write, maybeWritten: true);
+                        SymbolsWriteBuilder[(symbol, write)] = true;
                         SymbolsReadBuilder.Add(symbol);
                     }
 
@@ -274,20 +274,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 {
                     foreach (var parameter in _parameters)
                     {
-                        DefinitionUsageMapBuilder[(parameter, null)] = false;
+                        SymbolsWriteBuilder[(parameter, null)] = false;
                         CurrentBlockAnalysisData.OnWriteReferenceFound(parameter, operation: null, maybeWritten: false);
                     }
                 }
 
                 public void SetBlockAnalysisData(BasicBlock basicBlock, BasicBlockAnalysisData data)
-                    => _reachingDefinitionsMap[basicBlock] = data;
+                    => _analysisDataByBasicBlockMap[basicBlock] = data;
 
                 public void SetBlockAnalysisDataFrom(BasicBlock basicBlock, BasicBlockAnalysisData data)
                     => GetOrCreateBlockAnalysisData(basicBlock).SetAnalysisDataFrom(data);
 
                 public void SetAnalysisDataOnExitBlockEnd()
                 {
-                    if (DefinitionUsageMapBuilder.Count == 0)
+                    if (SymbolsWriteBuilder.Count == 0)
                     {
                         return;
                     }
@@ -297,12 +297,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     {
                         if (parameter.RefKind == RefKind.Ref || parameter.RefKind == RefKind.Out)
                         {
-                            var currentDefinitions = CurrentBlockAnalysisData.GetCurrentDefinitions(parameter);
-                            foreach (var definition in currentDefinitions)
+                            var currentWrites = CurrentBlockAnalysisData.GetCurrentWrites(parameter);
+                            foreach (var write in currentWrites)
                             {
-                                if (definition != null)
+                                if (write != null)
                                 {
-                                    DefinitionUsageMapBuilder[(parameter, definition)] = true;
+                                    SymbolsWriteBuilder[(parameter, write)] = true;
                                 }
                             }
                         }
@@ -328,9 +328,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     if (_lValueFlowCapturesMap.TryGetValue(captureId, out var captures))
                     {
                         var mayBeWritten = captures.Count > 1;
-                        foreach (var (symbol, definition) in captures)
+                        foreach (var (symbol, write) in captures)
                         {
-                            OnWriteReferenceFound(symbol, definition, mayBeWritten);
+                            OnWriteReferenceFound(symbol, write, mayBeWritten);
                         }
                     }
                 }
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 }
 
                 public override bool IsTrackingDelegateCreationTargets => true;
-                public override void SetTargetsFromSymbolForDelegate(IOperation definition, ISymbol symbol)
+                public override void SetTargetsFromSymbolForDelegate(IOperation write, ISymbol symbol)
                 {
                     // Transfer reaching delegate creation targets when assigning from a local/parameter symbol
                     // that has known set of potential delegate creation targets. For example, this method will be called
@@ -371,71 +371,72 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     //      Action y = x;
 
                     var targetsBuilder = PooledHashSet<IOperation>.GetInstance();
-                    foreach (var symbolDefinition in CurrentBlockAnalysisData.GetCurrentDefinitions(symbol))
+                    foreach (var symbolWrite in CurrentBlockAnalysisData.GetCurrentWrites(symbol))
                     {
-                        if (symbolDefinition == null)
+                        if (symbolWrite == null)
                         {
                             continue;
                         }
 
-                        if (!_reachingDelegateCreationTargets.TryGetValue(symbolDefinition, out var targetsBuilderForDefinition))
+                        if (!_reachingDelegateCreationTargets.TryGetValue(symbolWrite, out var targetsBuilderForSymbolWrite))
                         {
-                            // Unable to find delegate creation targets for this symbol definition.
+                            // Unable to find delegate creation targets for this symbol write.
                             // Bail out without setting targets.
                             targetsBuilder.Free();
                             return;
                         }
                         else
                         {
-                            foreach (var target in targetsBuilderForDefinition)
+                            foreach (var target in targetsBuilderForSymbolWrite)
                             {
                                 targetsBuilder.Add(target);
                             }
                         }
                     }
 
-                    _reachingDelegateCreationTargets[definition] = targetsBuilder;
+                    _reachingDelegateCreationTargets[write] = targetsBuilder;
                 }
 
-                public override void SetLambdaTargetForDelegate(IOperation definition, IFlowAnonymousFunctionOperation lambdaTarget)
+                public override void SetLambdaTargetForDelegate(IOperation write, IFlowAnonymousFunctionOperation lambdaTarget)
                 {
-                    // Sets a lambda delegate target for the current definition.
+                    // Sets a lambda delegate target for the current write.
                     // For example, this method will be called for the definition 'x' below with assigned lambda.
                     //      Action x = () => { };
 
-                    SetReachingDelegateTargetCore(definition, lambdaTarget);
+                    SetReachingDelegateTargetCore(write, lambdaTarget);
                     _lambdaTargetsToAccessingCfgMap[lambdaTarget] = ControlFlowGraph;
                 }
 
-                public override void SetLocalFunctionTargetForDelegate(IOperation definition, IMethodReferenceOperation localFunctionTarget)
+                public override void SetLocalFunctionTargetForDelegate(IOperation write, IMethodReferenceOperation localFunctionTarget)
                 {
-                    // Sets a local function delegate target for the current definition.
+                    // Sets a local function delegate target for the current write.
                     // For example, this method will be called for the definition 'x' below with assigned LocalFunction delegate.
                     //      Action x = LocalFunction;
                     //      void LocalFunction() { }
 
                     Debug.Assert(localFunctionTarget.Method.IsLocalFunction());
-                    SetReachingDelegateTargetCore(definition, localFunctionTarget);
+                    SetReachingDelegateTargetCore(write, localFunctionTarget);
                     _localFunctionTargetsToAccessingCfgMap[localFunctionTarget.Method] = ControlFlowGraph;
                 }
 
-                public override void SetEmptyInvocationTargetsForDelegate(IOperation definition)
-                    => SetReachingDelegateTargetCore(definition, targetOpt: null);
+                public override void SetEmptyInvocationTargetsForDelegate(IOperation write)
+                    => SetReachingDelegateTargetCore(write, targetOpt: null);
 
-                private void SetReachingDelegateTargetCore(IOperation definition, IOperation targetOpt)
+                private void SetReachingDelegateTargetCore(IOperation write, IOperation targetOpt)
                 {
                     var targetsBuilder = PooledHashSet<IOperation>.GetInstance();
                     if (targetOpt != null)
                     {
                         targetsBuilder.Add(targetOpt);
                     }
-                    _reachingDelegateCreationTargets[definition] = targetsBuilder;
+
+                    _reachingDelegateCreationTargets[write] = targetsBuilder;
                 }
 
-                public override bool TryGetDelegateInvocationTargets(IOperation definition, out ImmutableHashSet<IOperation> targets)
+                public override bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets)
                 {
-                    // Attempts to return potential lamba/local function delegate invocation targets for the given definition.
-                    if (_reachingDelegateCreationTargets.TryGetValue(definition, out var targetsBuilder))
+                    // Attempts to return potential lamba/local function delegate invocation targets for the given write.
+                    if (_reachingDelegateCreationTargets.TryGetValue(write, out var targetsBuilder))
                     {
                         targets = targetsBuilder.ToImmutableHashSet();
                         return true;
@@ -477,7 +478,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     {
                         // Note the base type already disposes the BasicBlockAnalysisData values
                         // allocated by us, so we only need to free the map.
-                        _reachingDefinitionsMap.Free();
+                        _analysisDataByBasicBlockMap.Free();
 
                         foreach (var captures in _lValueFlowCapturesMap.Values)
                         {
@@ -485,11 +486,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                         }
                         _lValueFlowCapturesMap.Free();
 
-                        foreach (var operations in _definitionsInsideBlockRangeMap.Values)
+                        foreach (var operations in _symbolWritesInsideBlockRangeMap.Values)
                         {
                             operations.Free();
                         }
-                        _definitionsInsideBlockRangeMap.Free();
+                        _symbolWritesInsideBlockRangeMap.Free();
                     }
                 }
             }

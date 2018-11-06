@@ -2,40 +2,39 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
     internal sealed class SymbolUsageResult
     {
         public SymbolUsageResult(
-            ImmutableDictionary<(ISymbol Symbol, IOperation Definition), bool> definitionUsageMap,
+            ImmutableDictionary<(ISymbol Symbol, IOperation Write), bool> symbolWritesMap,
             ImmutableHashSet<ISymbol> symbolsRead)
         {
-            DefinitionUsageMap = definitionUsageMap;
+            SymbolWritesMap = symbolWritesMap;
             SymbolsRead = symbolsRead;
         }
 
         /// <summary>
-        /// Map from each symbol definition to a boolean indicating if the value assinged
-        /// at definition is used/read on some control flow path.
+        /// Map from each symbol write to a boolean indicating if the value assinged
+        /// at write is used/read on some control flow path.
         /// </summary>
-        public ImmutableDictionary<(ISymbol Symbol, IOperation Definition), bool> DefinitionUsageMap { get; }
+        public ImmutableDictionary<(ISymbol Symbol, IOperation Write), bool> SymbolWritesMap { get; }
 
         /// <summary>
-        /// Set of locals/parameters that have at least one use/read for one of its definitions.
+        /// Set of locals/parameters that have at least one use/read for one of its writes.
         /// </summary>
         public ImmutableHashSet<ISymbol> SymbolsRead { get; }
 
-        public bool HasUnusedSymbolWrites()
+        public bool HasUnreadSymbolWrites()
         {
-            if (DefinitionUsageMap.IsEmpty)
+            if (SymbolWritesMap.IsEmpty)
             {
                 return false;
             }
 
-            foreach (var kvp in DefinitionUsageMap)
+            foreach (var kvp in SymbolWritesMap)
             {
                 if (!kvp.Value)
                 {
@@ -47,12 +46,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         }
 
         /// <summary>
-        /// Gets symbol definitions (writes) that have are never read.
+        /// Gets symbol writes that have are never read.
         /// </summary>
-        /// <returns></returns>
-        public IEnumerable<(ISymbol Symbol, IOperation Definition)> GetUnusedSymbolWrites()
+        public IEnumerable<(ISymbol Symbol, IOperation WriteOperation)> GetUnreadSymbolWrites()
         {
-            foreach (var kvp in DefinitionUsageMap)
+            foreach (var kvp in SymbolWritesMap)
             {
                 if (!kvp.Value)
                 {
@@ -66,9 +64,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         /// </summary>
         public bool IsInitialParameterValueUsed(IParameterSymbol parameter)
         {
-            foreach (var kvp in DefinitionUsageMap)
+            foreach (var kvp in SymbolWritesMap)
             {
-                if (kvp.Key.Definition == null && kvp.Key.Symbol == parameter)
+                if (kvp.Key.Write == null && kvp.Key.Symbol == parameter)
                 {
                     return kvp.Value;
                 }
@@ -78,12 +76,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
         }
 
         /// <summary>
-        /// Gets the definition (write) count for a given local/parameter symbol.
+        /// Gets the write count for a given local/parameter symbol.
         /// </summary>
         public int GetSymbolWriteCount(ISymbol symbol)
         {
             int count = 0;
-            foreach (var kvp in DefinitionUsageMap)
+            foreach (var kvp in SymbolWritesMap)
             {
                 if (kvp.Key.Symbol == symbol)
                 {

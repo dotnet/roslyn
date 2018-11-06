@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         /// <summary>
         /// Analysis data for a particular <see cref="BasicBlock"/> for <see cref="ControlFlowGraph"/>
@@ -21,11 +21,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             private static readonly ObjectPool<BasicBlockAnalysisData> s_pool =
                 new ObjectPool<BasicBlockAnalysisData>(() => new BasicBlockAnalysisData());
 
-            private readonly Dictionary<ISymbol, PooledHashSet<IOperation>> _reachingDefinitions;
+            /// <summary>
+            /// Map from each symbol to possible set of reachable write operations that are live at current program point.
+            /// A write is live if there is no intermediate write operation that overwrites it.
+            /// </summary>
+            private readonly Dictionary<ISymbol, PooledHashSet<IOperation>> _reachingWrites;
 
             private BasicBlockAnalysisData()
             {
-                _reachingDefinitions = new Dictionary<ISymbol, PooledHashSet<IOperation>>();
+                _reachingWrites = new Dictionary<ISymbol, PooledHashSet<IOperation>>();
             }
 
             public static BasicBlockAnalysisData GetInstance() => s_pool.Allocate();
@@ -38,12 +42,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
             private void FreeAndClearValues()
             {
-                foreach (var value in _reachingDefinitions.Values)
+                foreach (var value in _reachingWrites.Values)
                 {
                     value.Free();
                 }
 
-                _reachingDefinitions.Clear();
+                _reachingWrites.Clear();
             }
 
             public void SetAnalysisDataFrom(BasicBlockAnalysisData other)
@@ -54,15 +58,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 }
 
                 FreeAndClearValues();
-                AddEntries(_reachingDefinitions, other);
+                AddEntries(_reachingWrites, other);
             }
 
             /// <summary>
-            /// Gets the currently reachable definitions (writes) for the given symbol.
+            /// Gets the currently reachable writes for the given symbol.
             /// </summary>
-            public IEnumerable<IOperation> GetCurrentDefinitions(ISymbol symbol)
+            public IEnumerable<IOperation> GetCurrentWrites(ISymbol symbol)
             {
-                if (_reachingDefinitions.TryGetValue(symbol, out var values))
+                if (_reachingWrites.TryGetValue(symbol, out var values))
                 {
                     foreach (var value in values)
                     {
@@ -72,15 +76,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             }
 
             /// <summary>
-            /// Marks the given symbol definition as a new unused reaching definition,
-            /// potentially clearing out the prior reaching definitions.
+            /// Marks the given symbol write as a new unread write operation,
+            /// potentially clearing out the prior write operations if <paramref name="maybeWritten"/> is <code>false</code>.
             /// </summary>
             public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten)
             {
-                if (!_reachingDefinitions.TryGetValue(symbol, out var values))
+                if (!_reachingWrites.TryGetValue(symbol, out var values))
                 {
                     values = PooledHashSet<IOperation>.GetInstance();
-                    _reachingDefinitions.Add(symbol, values);
+                    _reachingWrites.Add(symbol, values);
                 }
                 else if (!maybeWritten)
                 {
@@ -100,8 +104,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
             public override int GetHashCode()
             {
-                var hashCode = _reachingDefinitions.Count;
-                foreach ((int keyHash, int valueHash) in _reachingDefinitions.Select(GetKeyValueHashCodeTuple).OrderBy(hashTuple => hashTuple.keyHash))
+                var hashCode = _reachingWrites.Count;
+                foreach ((int keyHash, int valueHash) in _reachingWrites.Select(GetKeyValueHashCodeTuple).OrderBy(hashTuple => hashTuple.keyHash))
                 {
                     hashCode = Hash.Combine(Hash.Combine(keyHash, valueHash), hashCode);
                 }
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     => (keyValuePair.Key.GetHashCode(), Hash.Combine(keyValuePair.Value.Count, Hash.CombineValues(keyValuePair.Value)));
             }
 
-            private bool IsEmpty => _reachingDefinitions.Count == 0;
+            private bool IsEmpty => _reachingWrites.Count == 0;
 
             public static BasicBlockAnalysisData Merge(
                 BasicBlockAnalysisData data1,
@@ -138,8 +142,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 }
 
                 var mergedData = createBasicBlockAnalysisData();
-                AddEntries(mergedData._reachingDefinitions, data1);
-                AddEntries(mergedData._reachingDefinitions, data2);
+                AddEntries(mergedData._reachingWrites, data1);
+                AddEntries(mergedData._reachingWrites, data2);
 
                 if (mergedData.Equals(data1))
                 {
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             {
                 if (source != null)
                 {
-                    foreach (var kvp in source._reachingDefinitions)
+                    foreach (var kvp in source._reachingWrites)
                     {
                         if (!result.TryGetValue(kvp.Key, out var values))
                         {

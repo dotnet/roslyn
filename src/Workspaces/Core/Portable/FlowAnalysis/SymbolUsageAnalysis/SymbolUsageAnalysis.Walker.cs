@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         /// <summary>
         /// Operations walker used for walking high-level operation tree
@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
                 {
-                    foreach (var (symbol, definition) in pendingWrites)
+                    foreach (var (symbol, write) in pendingWrites)
                     {
-                        OnWriteReferenceFound(symbol, definition, maybeWritten: false);
+                        OnWriteReferenceFound(symbol, write, maybeWritten: false);
 
                         if (operation.Kind == OperationKind.CompoundAssignment &&
                             operation.Parent?.Kind != OperationKind.ExpressionStatement)
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
             
             public override void VisitLocalFunction(ILocalFunctionOperation operation)
             {
-                // Skip visiting if we are doing an operation tree walk of definition.
+                // Skip visiting if we are doing an operation tree walk.
                 // This will only happen if the operation is not the current root operation.
                 if (_currentRootOperation != operation)
                 {
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
 
             public override void VisitAnonymousFunction(IAnonymousFunctionOperation operation)
             {
-                // Skip visiting if we are doing an operation tree walk of definition.
+                // Skip visiting if we are doing an operation tree walk.
                 // This will only happen if the operation is not the current root operation.
                 if (_currentRootOperation != operation)
                 {
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 base.VisitFlowAnonymousFunction(operation);
             }
 
-            private void ProcessPossibleDelegateCreationAssignment(ISymbol symbol, IOperation definition)
+            private void ProcessPossibleDelegateCreationAssignment(ISymbol symbol, IOperation write)
             {
                 if (!_currentAnalysisData.IsTrackingDelegateCreationTargets ||
                     symbol.GetSymbolType()?.TypeKind != TypeKind.Delegate)
@@ -366,22 +366,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 }
 
                 IOperation initializerValue = null;
-                if (definition is IVariableDeclaratorOperation variableDeclarator)
+                if (write is IVariableDeclaratorOperation variableDeclarator)
                 {
                     initializerValue = variableDeclarator.GetVariableInitializer()?.Value;
                 }
-                else if (definition.Parent is ISimpleAssignmentOperation simpleAssignment)
+                else if (write.Parent is ISimpleAssignmentOperation simpleAssignment)
                 {
                     initializerValue = simpleAssignment.Value;
                 }
 
                 if (initializerValue != null)
                 {
-                    ProcessPossibleDelegateCreation(initializerValue, definition);
+                    ProcessPossibleDelegateCreation(initializerValue, write);
                 }
             }
 
-            private void ProcessPossibleDelegateCreation(IOperation creation, IOperation definition)
+            private void ProcessPossibleDelegateCreation(IOperation creation, IOperation write)
             {
                 var currentOperation = creation;
                 while (true)
@@ -407,35 +407,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                             throw ExceptionUtilities.Unreachable;
 
                         case OperationKind.FlowAnonymousFunction:
-                            _currentAnalysisData.SetLambdaTargetForDelegate(definition, (IFlowAnonymousFunctionOperation)currentOperation);
+                            _currentAnalysisData.SetLambdaTargetForDelegate(write, (IFlowAnonymousFunctionOperation)currentOperation);
                             return;
 
                         case OperationKind.MethodReference:
                             var methodReference = (IMethodReferenceOperation)currentOperation;
                             if (methodReference.Method.IsLocalFunction())
                             {
-                                _currentAnalysisData.SetLocalFunctionTargetForDelegate(definition, methodReference);
+                                _currentAnalysisData.SetLocalFunctionTargetForDelegate(write, methodReference);
                             }
                             else
                             {
-                                _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(definition);
+                                _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
                             return;
 
                         case OperationKind.LocalReference:
                             var localReference = (ILocalReferenceOperation)currentOperation;
-                            _currentAnalysisData.SetTargetsFromSymbolForDelegate(definition, localReference.Local);
+                            _currentAnalysisData.SetTargetsFromSymbolForDelegate(write, localReference.Local);
                             return;
 
                         case OperationKind.ParameterReference:
                             var parameterReference = (IParameterReferenceOperation)currentOperation;
-                            _currentAnalysisData.SetTargetsFromSymbolForDelegate(definition, parameterReference.Parameter);
+                            _currentAnalysisData.SetTargetsFromSymbolForDelegate(write, parameterReference.Parameter);
                             return;
 
                         case OperationKind.Literal:
                             if (currentOperation.ConstantValue.Value is null)
                             {
-                                _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(definition);
+                                _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
                             return;
 
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                     return;
                 }
 
-                ProcessPossibleDelegateCreation(creation: operation, definition: operation);
+                ProcessPossibleDelegateCreation(creation: operation, write: operation);
                 if (!_currentAnalysisData.TryGetDelegateInvocationTargets(operation, out var targets))
                 {
                     // Failed to identify targets, so conservatively reset the state.

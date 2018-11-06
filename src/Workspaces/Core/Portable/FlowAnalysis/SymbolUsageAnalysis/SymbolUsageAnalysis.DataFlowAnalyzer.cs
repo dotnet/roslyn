@@ -5,13 +5,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
-    internal static partial class ReachingDefinitionsAnalysis
+    internal static partial class SymbolUsageAnalysis
     {
         /// <summary>
-        /// Dataflow analysis to compute reaching symbol definitions (i.e. writes) for locals/parameters
-        /// in a given control flow graph, along with the information of whether or not the definition
+        /// Dataflow analysis to compute symbol usage information (i.e. reads/writes) for locals/parameters
+        /// in a given control flow graph, along with the information of whether or not the writes
         /// may be read on some control flow path.
         /// </summary>
         private sealed partial class DataFlowAnalyzer : DataFlowAnalyzer<BasicBlockAnalysisData>
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.ReachingDefinitions
                 }
             }
 
-            // Don't analyze blocks which are unreachable, as any definition
+            // Don't analyze blocks which are unreachable, as any write
             // in such a block which has a read outside will be marked redundant, which will just be noise for users.
             // For example,
             //      int x;
