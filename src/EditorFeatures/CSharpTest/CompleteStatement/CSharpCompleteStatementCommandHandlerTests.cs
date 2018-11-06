@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y)");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x, y)");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -194,7 +194,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y.ToString())");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x, y.ToString())");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -224,7 +224,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToS$$tring())");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToS;$$tring())");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -234,7 +234,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString$$())");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString;$$())");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -307,7 +307,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x.ToString(), y)");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x.ToString(), y)");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -482,7 +482,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x[0], x[1])");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x[0], x[1])");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -502,7 +502,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[$$0], x[1])");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[;$$0], x[1])");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -552,7 +552,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[$$1])");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[;$$1])");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1252,7 +1252,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for (C1 i = new C1();$$)
+        for (C1 i = new C1(;$$))
         int j;
     }
 }
@@ -1341,8 +1341,8 @@ class C
 {
     static void Main(string[] args)
     {
-        for (C1 i = new C1(
-        int j);$$;
+        for (C1 i = new C1(;$$
+        int j;
     }
 }
 public class C1
@@ -1446,7 +1446,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for (Goo f = new Goo { i = 0, s = ""abc"" };$$ )
+        for (Goo f = new Goo { i = 0, s = ""abc"";$$ } )
     }
 }
 public class Goo
@@ -1484,8 +1484,8 @@ class C
 {
     static void Main(string[] args)
     {
-        for (Goo f = new Goo { i = 0, s = ""abc""
-    };$$
+        for (Goo f = new Goo { i = 0, s = ""abc"";$$
+    }
 }
 public class Goo
 {
@@ -1595,7 +1595,7 @@ class C
 {
     static void Main(string[] args)
     {
-        Goo f = new Goo { i = 0, s = ""abc"" };$$
+        Goo f = new Goo { i = 0, s = ""abc"";$$ }
     }
 }
 
@@ -1635,7 +1635,7 @@ class C
 {
     static void Main(string[] args)
     {
-        Goo f = new Goo { i = 0, s = ""abc"" };$$
+        Goo f = new Goo { i = 0;$$, s = ""abc"" }
     }
 }
 
@@ -1675,7 +1675,7 @@ class C
 {
     static void Main(string[] args)
     {
-        Goo f = new Goo { i =$$ 0, s = ""abc"" };
+        Goo f = new Goo { i =;$$ 0, s = ""abc"" }
     }
 }
 
@@ -1715,8 +1715,8 @@ class C
 {
     static void Main(string[] args)
     {
-        Goo f = new Goo { i = 0, s = ""abc""
-    };$$
+        Goo f = new Goo { i = 0, s = ""abc"";$$
+    }
 }
 
 public class Goo
@@ -1905,7 +1905,7 @@ public class SaleItem
    string name;
    public string Name 
    {
-      get => name.ToUpper();$$
+      get => name.ToUpper(;$$)
       set => name = value;
    }
 }";
@@ -1953,7 +1953,7 @@ public class Class1
     void M()
     {
         string s = ""Test"";
-        throw new Exception(s.ToUpper());$$
+        throw new Exception(s.ToUpper(;$$
 
     }
 }";
@@ -2101,7 +2101,7 @@ class C
 {
     void Main()
     {
-        ;;$$ 
+        ; ;$$
     }
 }";
 
@@ -2137,7 +2137,7 @@ public class C
         {
             Console.WriteLine(n);
             n++;
-        } while (n < 5);$$
+        } while (n;$$ < 5)
     }
 }";
 
@@ -2491,7 +2491,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x,y);;$$");
+            var expected = CreateTestWithMethodCall(@"var test = ;$$ClassC.MethodM(x,y);");
 
             VerifyTypingSemicolon(code, expected);
         }

@@ -80,11 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             
 
             var token = GetToken(root, caretPosition, caret);
-            if (!ApplicableToken(token, caret, caretPosition))
-            {
-                nextCommandHandler();
-                return;
-            }
 
             var currentNode = token.Parent;
             // if cursor is right before a closing delimiter, make sure you start with node outside of delimiters
@@ -100,6 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (GetEnclosingArgumentList(currentNode, token, caret, caretPosition, syntaxFacts) == null)
+            {
+                nextCommandHandler();
+                return;
+            }
+
             var lastDelimiterPosition = -1;
             var finalDelimiterNeedsSemicolon = false;
 
@@ -148,6 +149,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             nextCommandHandler();
         }
 
+        private SyntaxNode GetEnclosingArgumentList(SyntaxNode currentNode, SyntaxToken token, SnapshotPoint? caret, int caretPosition, ISyntaxFactsService syntaxFacts)
+        {
+            if (token.Kind() == SyntaxKind.OpenParenToken && caretPosition == currentNode.SpanStart)
+            {
+                currentNode = currentNode.Parent;
+                if (currentNode == null) return null;
+            }
+            while (currentNode.Kind() != SyntaxKind.ArgumentList
+                    && currentNode.Kind() != SyntaxKind.ArrayRankSpecifier)
+            {
+                if (currentNode.Kind() == SyntaxKind.InterpolatedStringExpression || currentNode.Kind() == SyntaxKind.StringLiteralExpression) return null;
+                if (currentNode == null 
+                    || syntaxFacts.IsStatement(currentNode) 
+                    || currentNode.Kind() == SyntaxKind.VariableDeclaration)  return null;
+                currentNode = currentNode.Parent;
+                if (currentNode == null)
+                    return null;
+            }
+            // now we're in an argument list, so return the enclosing statement
+            while (!syntaxFacts.IsStatement(currentNode) && !(currentNode.Kind() == SyntaxKind.VariableDeclaration) )
+            {
+                currentNode = currentNode.Parent;
+                if (currentNode == null) return null;
+            }
+
+            return currentNode;
+            
+        }
+
+
         private bool IsCaretAtEndOfLine(SnapshotPoint? caret, int caretPosition)
         {
             return caret.Value.Position == caret.Value.GetContainingLine().End;
@@ -156,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private SyntaxToken GetToken(SyntaxNode root, int caretPosition, SnapshotPoint? caret)
         {
             //previously bailed if caret was null, so this is safe
-            if (IsCaretAtEndOfLine(caret, caretPosition))
+            if (IsCaretAtEndOfLine(caret, caretPosition) && caretPosition > 0)
                 return root.FindToken(caretPosition - 1);
             else
                 return root.FindToken(caretPosition);
