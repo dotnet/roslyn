@@ -130,11 +130,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Add Overloads.
+        '''  Looks up a localized string similar to Add &apos;Overloads&apos;.
         '''</summary>
         Friend ReadOnly Property Add_Overloads() As String
             Get
                 Return ResourceManager.GetString("Add_Overloads", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Shadows&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Shadows() As String
+            Get
+                Return ResourceManager.GetString("Add_Shadows", resourceCulture)
             End Get
         End Property
         
