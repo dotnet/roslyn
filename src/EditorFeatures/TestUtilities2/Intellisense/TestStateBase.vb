@@ -269,8 +269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim result = New List(Of Type) From {
                 GetType(TestCompletionPresenter),
                 GetType(TestSignatureHelpPresenter),
-                GetType(IntelliSenseTestState),
-                GetType(MockCompletionPresenterProvider)
+                GetType(IntelliSenseTestState)
             }
 
             If extraExportedTypes IsNot Nothing Then

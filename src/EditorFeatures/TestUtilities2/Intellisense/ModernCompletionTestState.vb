@@ -26,20 +26,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
 
-            MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, UpdateExportedTypes(extraExportedTypes), includeFormatCommandHandler, workspaceKind)
+            MyBase.New(workspaceElement, extraCompletionProviders, excludedTypes, extraExportedTypes, includeFormatCommandHandler, workspaceKind)
 
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
         End Sub
-
-        Private Shared Function UpdateExportedTypes(types As List(Of Type)) As List(Of Type)
-            If types Is Nothing Then
-                Return New List(Of Type) From {GetType(MockCompletionPresenterProvider)}
-            Else
-                types.Add(GetType(MockCompletionPresenterProvider))
-                Return types
-            End If
-        End Function
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
