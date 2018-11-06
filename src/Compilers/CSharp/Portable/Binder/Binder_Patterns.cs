@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.DiscardPattern:
-                    return BindDiscardPattern((DiscardPatternSyntax)node, inputType, hasErrors, diagnostics);
+                    return BindDiscardPattern((DiscardPatternSyntax)node, inputType);
 
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern((DeclarationPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
@@ -111,22 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
         {
-            // give an error if there is a bindable `_` in scope.
-            var lookupResult = LookupResult.GetInstance();
-            var name = node.UnderscoreToken.ValueText;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsInternal(
-                lookupResult, name, arity: 0, basesBeingResolved: null,
-                options: LookupOptions.AllMethodsOnArityZero, diagnose: false, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
-            if (lookupResult.IsMultiViable)
-            {
-                diagnostics.Add(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, node.Location, lookupResult.Symbols[0]);
-            }
-
-            lookupResult.Free();
             return new BoundDiscardPattern(node, inputType);
         }
 
@@ -143,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return BindConstantPattern(node, innerExpression, inputType, node.Expression, hasErrors, diagnostics, out _);
+            return BindConstantPattern(node, inputType, node.Expression, hasErrors, diagnostics, out _);
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -154,26 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            return BindConstantPattern(node, patternExpression.SkipParens(), inputType, patternExpression, hasErrors, diagnostics, out wasExpression);
-        }
-
-        internal BoundConstantPattern BindConstantPattern(
-            CSharpSyntaxNode node,
-            SyntaxNode innerExpression,
-            TypeSymbol inputType,
-            ExpressionSyntax patternExpression,
-            bool hasErrors,
-            DiagnosticBag diagnostics,
-            out bool wasExpression)
-        {
-            if (innerExpression.Kind() == SyntaxKind.IdentifierName &&
-                ((IdentifierNameSyntax)innerExpression).Identifier.Text == "_" &&
-                Compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
-            {
-                diagnostics.Add(ErrorCode.ERR_ConstantPatternNamedUnderscore, innerExpression.Location);
-                hasErrors = true;
-            }
-
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(inputType, patternExpression, expression, out constantValueOpt, diagnostics);
@@ -190,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedExpression = new BoundConversion(
                     convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
                     explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
-                    { WasCompilerGenerated = true };
+                { WasCompilerGenerated = true };
             }
 
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
