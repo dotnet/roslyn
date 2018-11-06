@@ -100,6 +100,35 @@ dim f = ""Hello "" $${op} {operand}",
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("+")>
         <InlineData("&")>
+        Public Async Function TestConcatenateExpression_EscapedChar(op As String) As Task
+            Await TestInMethodAsync($"
+dim f = Microsoft.VisualBasic.Strings.ChrW(&HFFFF) $${op} "".""c",
+                ConstantValueContent(
+                    ("ChrW", Method),
+                    ("(", Punctuation),
+                    ("65535", NumericLiteral),
+                    (")", Punctuation),
+                    (" ", Space),
+                    (op, [Operator]),
+                    (" ", Space),
+                    (""".""c", StringLiteral),
+                    (" ", Space),
+                    ("=", [Operator]),
+                    (" ", Space),
+                    ("ChrW", Method),
+                    ("(", Punctuation),
+                    ("65535", NumericLiteral),
+                    (")", Punctuation),
+                    (" ", Space),
+                    ("&", [Operator]),
+                    (" ", Space),
+                    (""".""", StringLiteral)
+                ))
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("+")>
+        <InlineData("&")>
         Public Async Function TestConcatenateExpression_MultiLineString(op As String) As Task
             Await TestInMethodAsync($"
 const v as string = ""Hello

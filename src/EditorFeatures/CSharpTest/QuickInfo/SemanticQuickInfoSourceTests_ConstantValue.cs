@@ -103,6 +103,24 @@ var f = ""Hello "" $$+ {operand}",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAddExpression_EscapedChar()
+        {
+            await TestInMethodAsync(@"
+var f = '\uFFFF' $$+ 0",
+                ConstantValueContent(
+                    ("'\\uffff'", StringLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("0", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    ("65535", NumericLiteral)
+                ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAddExpression_MultiLineString()
         {
             await TestInMethodAsync(@"
