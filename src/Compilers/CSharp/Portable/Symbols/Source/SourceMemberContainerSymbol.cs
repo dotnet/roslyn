@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
                     {
                         FieldSymbol field;
-                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
+                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixedSizeBuffer)
                         {
                             continue;
                         }

@@ -87,6 +87,11 @@
         <target state="translated">Mise en forme du document</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="new">Indexing can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="new">Introduce constant</target>
@@ -167,9 +172,24 @@
         <target state="new">Use expression body for lambda expressions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="new">Use index operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="new">{0} can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">

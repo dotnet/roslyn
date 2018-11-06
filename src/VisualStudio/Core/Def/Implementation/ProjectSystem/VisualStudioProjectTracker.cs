@@ -113,7 +113,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         public void AddProject(AbstractProject project)
         {
-            project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language);
+            var creationInfo = new VisualStudioProjectCreationInfo
+            {
+                AssemblyName = project.AssemblyName,
+                FilePath = project.ProjectFilePath,
+                Hierarchy = project.Hierarchy,
+                ProjectGuid = project.Guid,
+            };
+            project.VisualStudioProject = _projectFactory.CreateAndAddToWorkspace(project.ProjectSystemName, project.Language, creationInfo);
             project.UpdateVisualStudioProjectProperties();
         
             _typeScriptProjects[project.Id] = project;

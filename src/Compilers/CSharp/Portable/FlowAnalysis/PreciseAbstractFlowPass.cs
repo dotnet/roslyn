@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitFieldAccessInternal(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
         {
             bool asLvalue = (object)fieldSymbol != null &&
-                (fieldSymbol.IsFixed ||
+                (fieldSymbol.IsFixedSizeBuffer ||
                 !fieldSymbol.IsStatic &&
                 fieldSymbol.ContainingType.TypeKind == TypeKind.Struct &&
                 receiverOpt != null &&

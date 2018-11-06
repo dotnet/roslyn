@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
+                Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
                 state.NotePartComplete(CompletionPart.FixedSize);
                 return 0;
             }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
-            Debug.Assert(!this.IsFixed, "Subclasses representing fixed fields must override");
+            Debug.Assert(!this.IsFixedSizeBuffer, "Subclasses representing fixed fields must override");
             return null;
         }
     }
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (IsFixed)
+                if (IsFixedSizeBuffer)
                 {
                     type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
 

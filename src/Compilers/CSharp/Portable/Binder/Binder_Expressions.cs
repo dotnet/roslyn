@@ -3715,19 +3715,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeWithAnnotations = BindType(node.Type, diagnostics);
             var type = typeWithAnnotations.TypeSymbol;
+            var originalType = type; 
 
             if (typeWithAnnotations.IsAnnotated && !type.IsNullableType())
             {
                 diagnostics.Add(ErrorCode.ERR_AnnotationDisallowedInObjectCreation, node.Location, type);
             }
-
-            BoundObjectInitializerExpressionBase boundInitializerOpt = node.Initializer == null ?
-                null :
-                BindInitializerExpression(
-                    syntax: node.Initializer,
-                    type: type,
-                    typeSyntax: node.Type,
-                    diagnostics: diagnostics);
 
             switch (type.TypeKind)
             {
@@ -3735,16 +3728,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Class:
                 case TypeKind.Enum:
                 case TypeKind.Error:
-                    return BindClassCreationExpression(node, (NamedTypeSymbol)type, GetName(node.Type), boundInitializerOpt, diagnostics);
+                    return BindClassCreationExpression(node, (NamedTypeSymbol)type, GetName(node.Type), diagnostics, originalType);
 
                 case TypeKind.Delegate:
                     return BindDelegateCreationExpression(node, (NamedTypeSymbol)type, diagnostics);
 
                 case TypeKind.Interface:
-                    return BindInterfaceCreationExpression(node, (NamedTypeSymbol)type, boundInitializerOpt, diagnostics);
+                    return BindInterfaceCreationExpression(node, (NamedTypeSymbol)type, diagnostics);
 
                 case TypeKind.TypeParameter:
-                    return BindTypeParameterCreationExpression(node, (TypeParameterSymbol)type, boundInitializerOpt, diagnostics);
+                    return BindTypeParameterCreationExpression(node, (TypeParameterSymbol)type, diagnostics);
 
                 case TypeKind.Submission:
                     // script class is synthesized and should not be used as a type of a new expression:
@@ -3942,7 +3935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, string typeName, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, string typeName, DiagnosticBag diagnostics, TypeSymbol initializerType = null)
         {
             // Get the bound arguments and the argument names.
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
@@ -3956,15 +3949,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type.IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_InstantiatingStaticClass, node.Location, type);
-                    return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
+                    return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, diagnostics);
                 }
                 else if (node.Type.Kind() == SyntaxKind.TupleType)
                 {
                     diagnostics.Add(ErrorCode.ERR_NewWithTupleTypeSyntax, node.Type.GetLocation());
-                    return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
+                    return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, diagnostics);
                 }
 
-                return BindClassCreationExpression(node, typeName, node.Type, type, analyzedArguments, diagnostics, boundInitializerOpt);
+                return BindClassCreationExpression(node, typeName, node.Type, type, analyzedArguments, diagnostics, node.Initializer, initializerType);
             }
             finally
             {
@@ -3972,13 +3965,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
+        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
-            if (boundInitializerOpt != null)
+            if (node.Initializer != null)
             {
-                children.Add(boundInitializerOpt);
+                var boundInitializer = BindInitializerExpression(syntax: node.Initializer,
+                                                                 type: type,
+                                                                 typeSyntax: node.Type,
+                                                                 diagnostics: diagnostics);
+                children.Add(boundInitializer);
             }
 
             return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), children.ToImmutableAndFree(), type);
@@ -4723,7 +4720,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
-            BoundObjectInitializerExpressionBase boundInitializerOpt = null)
+            InitializerExpressionSyntax initializerSyntaxOpt = null,
+            TypeSymbol initializerTypeOpt = null)
         {
 
             BoundExpression result = null;
@@ -4736,6 +4734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            BoundObjectInitializerExpressionBase boundInitializerOpt = null;
 
             // If we have a dynamic argument then do overload resolution to see if there are one or more
             // applicable candidates. If there are, then this is a dynamic object creation; we'll work out
@@ -4756,6 +4755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
 
+                    boundInitializerOpt = makeBoundInitializerOpt();
                     result = new BoundDynamicObjectCreationExpression(
                         node,
                         typeName,
@@ -4807,7 +4807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
-                ConstantValue constantValueOpt = (boundInitializerOpt == null && method.IsDefaultValueTypeConstructor()) ?
+                ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
                     FoldParameterlessValueTypeConstructor(type) :
                     null;
 
@@ -4828,6 +4828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
                 }
 
+                boundInitializerOpt = makeBoundInitializerOpt();
                 result = new BoundObjectCreationExpression(
                     node,
                     method,
@@ -4876,15 +4877,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var childNodes = ArrayBuilder<BoundExpression>.GetInstance();
             childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors));
-            if (boundInitializerOpt != null)
+            if (initializerSyntaxOpt != null)
             {
-                childNodes.Add(boundInitializerOpt);
+                childNodes.Add(boundInitializerOpt ?? makeBoundInitializerOpt());
             }
 
             return new BoundBadExpression(node, resultKind, symbols.ToImmutableAndFree(), childNodes.ToImmutableAndFree(), type);
+
+            BoundObjectInitializerExpressionBase makeBoundInitializerOpt()
+            {
+                if (initializerSyntaxOpt != null)
+                {
+                    return BindInitializerExpression(syntax: initializerSyntaxOpt,
+                                                     type: initializerTypeOpt ?? type,
+                                                     typeSyntax: typeNode,
+                                                     diagnostics: diagnostics);
+                }
+                return null;
+            }
         }
 
-        private BoundExpression BindInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindInterfaceCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)type != null);
 
@@ -4901,7 +4914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol coClassType = type.ComImportCoClass;
                 if ((object)coClassType != null)
                 {
-                    return BindComImportCoClassCreationExpression(node, type, coClassType, boundInitializerOpt, diagnostics);
+                    return BindComImportCoClassCreationExpression(node, type, coClassType, diagnostics);
                 }
             }
 
@@ -4921,7 +4934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression BindComImportCoClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindComImportCoClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol interfaceType, NamedTypeSymbol coClassType, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)interfaceType != null);
             Debug.Assert(interfaceType.IsInterfaceType());
@@ -4956,10 +4969,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NoPIA support
                 if (interfaceType.ContainingAssembly.IsLinked)
                 {
-                    return BindNoPiaObjectCreationExpression(node, interfaceType, coClassType, boundInitializerOpt, diagnostics);
+                    return BindNoPiaObjectCreationExpression(node, interfaceType, coClassType, diagnostics);
                 }
 
-                var classCreation = BindClassCreationExpression(node, coClassType, coClassType.Name, boundInitializerOpt, diagnostics);
+                var classCreation = BindClassCreationExpression(node, coClassType, coClassType.Name, diagnostics, interfaceType);
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 Conversion conversion = this.Conversions.ClassifyConversionFromExpression(classCreation, interfaceType, ref useSiteDiagnostics, forCast: true);
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -4997,7 +5010,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ObjectCreationExpressionSyntax node,
             NamedTypeSymbol interfaceType,
             NamedTypeSymbol coClassType,
-            BoundObjectInitializerExpressionBase boundInitializerOpt,
             DiagnosticBag diagnostics)
         {
             string guidString;
@@ -5007,6 +5019,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# doesn't complain and instead uses zero guid.
                 guidString = System.Guid.Empty.ToString("D");
             }
+
+            var boundInitializerOpt = node.Initializer == null ? null :
+                                                BindInitializerExpression(syntax: node.Initializer,
+                                                 type: interfaceType,
+                                                 typeSyntax: node.Type,
+                                                 diagnostics: diagnostics);
 
             var creation = new BoundNoPiaObjectCreationExpression(node, guidString, boundInitializerOpt, interfaceType);
 
@@ -5032,7 +5050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return creation;
         }
 
-        private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, BoundObjectInitializerExpressionBase boundInitializerOpt, DiagnosticBag diagnostics)
+        private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, DiagnosticBag diagnostics)
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
@@ -5051,10 +5069,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    var boundInitializerOpt = node.Initializer == null ?
+                         null :
+                         BindInitializerExpression(
+                            syntax: node.Initializer,
+                            type: typeParameter,
+                            typeSyntax: node.Type,
+                            diagnostics: diagnostics);
                     return new BoundNewT(node, boundInitializerOpt, typeParameter);
                 }
 
-                return MakeBadExpressionForObjectCreation(node, typeParameter, boundInitializerOpt, analyzedArguments);
+                return MakeBadExpressionForObjectCreation(node, typeParameter, analyzedArguments, diagnostics);
             }
             finally
             {
@@ -6316,7 +6341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixed && !IsInsideNameof)
+            if (!hasError && fieldSymbol.IsFixedSizeBuffer && !IsInsideNameof)
             {
                 // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
                 // that struct type identifies a fixed size member, then E.I is evaluated an classified as follows:
