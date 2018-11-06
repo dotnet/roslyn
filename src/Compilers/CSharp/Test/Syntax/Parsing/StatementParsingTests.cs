@@ -3021,6 +3021,18 @@ System.Console.WriteLine(true)";
         public void ParseElseKeywordPlacedAsIfEmbeddedStatement()
         {
             UsingStatement("if (a) else {}",
+                // (1,8): error CS1003: Syntax error, 'if' expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("if", "else").WithLocation(1, 8),
+                // (1,8): error CS1003: Syntax error, '(' expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "else").WithArguments("(", "else").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term 'else'
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // if (a) else {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "else").WithLocation(1, 8),
                 // (1,8): error CS1525: Invalid expression term 'else'
                 // if (a) else {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "else").WithArguments("else").WithLocation(1, 8),
@@ -3037,21 +3049,31 @@ System.Console.WriteLine(true)";
                     N(SyntaxKind.IdentifierToken, "a");
                 }
                 N(SyntaxKind.CloseParenToken);
-                M(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.IfStatement);
                 {
+                    M(SyntaxKind.IfKeyword);
+                    M(SyntaxKind.OpenParenToken);
                     M(SyntaxKind.IdentifierName);
                     {
                         M(SyntaxKind.IdentifierToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.ElseClause);
-                {
-                    N(SyntaxKind.ElseKeyword);
-                    N(SyntaxKind.Block);
+                    M(SyntaxKind.CloseParenToken);
+                    M(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ElseClause);
+                    {
+                        N(SyntaxKind.ElseKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
             }
