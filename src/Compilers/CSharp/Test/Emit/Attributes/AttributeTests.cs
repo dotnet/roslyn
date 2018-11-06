@@ -8913,6 +8913,44 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
                 );
         }
 
+        [Fact, WorkItem(30833, "https://github.com/dotnet/roslyn/issues/30833")]
+        public void AttributeWithTaskDelegateParameter()
+        {
+            string code = @"
+using System;
+using System.Threading.Tasks;
+
+namespace a
+{
+    class Class1
+    {
+		[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+		class CommandAttribute : Attribute
+		{
+			public delegate Task FxCommand();
+
+			public CommandAttribute(FxCommand Fx)
+			{
+				this.Fx = Fx;
+			}
+
+			public FxCommand Fx { get; set; }
+		}
+		
+		[Command(UserInfo)]
+		public static async Task UserInfo()
+		{
+			await Task.CompletedTask;
+		}
+	}
+}
+";
+            CreateCompilationWithMscorlib46(code).VerifyDiagnostics(
+                // (22,4): error CS0181: Attribute constructor parameter 'Fx' has type 'Class1.CommandAttribute.FxCommand', which is not a valid attribute parameter type
+                // 		[Command(UserInfo)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
+        }
+
         #endregion
     }
 }
