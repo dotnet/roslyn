@@ -1,0 +1,214 @@
+{
+  "products": [
+    {
+      "name": "Roslyn.VisualStudio.Setup.vsix",
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
+          ]
+        },
+        {
+          "container": "VSPE",
+          "testCases": [
+            "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest",
+            "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs",
+            "VSPE.OptProfTests.vs_asl_cs_scenario",
+            "VSPE.OptProfTests.vs_ddbvtqa_vbwi",
+            "VSPE.OptProfTests.vs_asl_vb_scenario",
+            "VSPE.OptProfTests.vs_env_solution_createnewproject_vb_winformsapp"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ExpressionEvaluatorPackage.vsix",
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Microsoft.CodeAnalysis.Compilers.vsix",
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Roslyn.VisualStudio.InteractiveComponents.vsix",
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.EditingAndDesigner"
+          ]
+        }
+      ]
+    }
+  ],
+  "assemblies" : [
+    {
+      "assembly": "System.Collections.Immutable.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "Common7/IDE/PrivateAssemblies",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "System.Reflection.Metadata.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "Common7/IDE/PrivateAssemblies",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.Build.Conversion.Core.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.Build.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.Build.Engine.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.Build.Framework.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.Build.Tasks.Core.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.Build.Utilities.Core.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "System.Threading.Tasks.Dataflow.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "MSBuild/15.0/Bin",
+          "instrumentationExecutable" : "Common7/IDE/vsn.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "DDRIT.RPS.CSharp",
+          "testCases": [
+            "DDRIT.RPS.CSharp.CSharpTest.BuildAndDebugging"
+          ]
+        }
+      ]
+    }
+  ]
+}

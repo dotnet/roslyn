@@ -9864,6 +9864,23 @@ class C
                 result.Output.Trim());
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        public void LoadingAnalyzerNetStandard13()
+        {
+            var analyzerFileName = "AnalyzerNS13.dll";
+            var srcFileName = "src.cs";
+
+            var analyzerDir = Temp.CreateDirectory();
+            var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(DesktopTestHelpers.CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
+            var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
+
+            var result = ProcessUtilities.Run(s_CSharpCompilerExecutable, arguments: $"/nologo /t:library /analyzer:{analyzerFileName} {srcFileName}", workingDirectory: analyzerDir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                $"warning AD0001: Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.", result.Output);
+
+            Assert.Equal(0, result.ExitCode);
+        }
+
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void MicrosoftDiaSymReaderNativeAltLoadPath()
