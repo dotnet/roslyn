@@ -305,7 +305,7 @@ class { }
                     End Get
                 End Property
 
-                Public ReadOnly Property SupportsDiagnostics As Boolean Implements IDocumentOperationService.SupportsDiagnostics
+                Public ReadOnly Property SupportDiagnostics As Boolean Implements IDocumentOperationService.SupportDiagnostics
                     Get
                         Return False
                     End Get

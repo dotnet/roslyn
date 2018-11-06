@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// indicates whether this document supports diagnostics or not
         /// </summary>
-        bool SupportsDiagnostics { get; }
+        bool SupportDiagnostics { get; }
     }
 }
