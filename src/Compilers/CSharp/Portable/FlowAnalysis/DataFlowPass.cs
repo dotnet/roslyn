@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 walker.Free();
             }
 
-            if (member.NonNullTypes != null &&
+            if (member.NonNullTypes == true &&
                 compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fieldAccess = (BoundFieldAccess)expr;
                         var fieldSymbol = fieldAccess.FieldSymbol;
-                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixed)
+                        if (fieldSymbol.IsStatic || fieldSymbol.IsFixedSizeBuffer)
                         {
                             return false;
                         }
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)fieldSymbol != null && //simplifies calling pattern for events
                 receiverOpt != null &&
                 !fieldSymbol.IsStatic &&
-                !fieldSymbol.IsFixed &&
+                !fieldSymbol.IsFixedSizeBuffer &&
                 receiverOpt.Kind != BoundKind.TypeExpression &&
                 MayRequireTrackingReceiverType(receiverOpt.Type) &&
                 !receiverOpt.Type.IsPrimitiveRecursiveStruct();
@@ -1885,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     var field = (BoundFieldAccess)expr;
                     var symbol = field.FieldSymbol;
-                    if (!symbol.IsFixed && MayRequireTracking(field.ReceiverOpt, symbol))
+                    if (!symbol.IsFixedSizeBuffer && MayRequireTracking(field.ReceiverOpt, symbol))
                     {
                         CheckAssigned(expr, symbol, node);
                     }
@@ -2050,7 +2050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitFieldAccess(node);
             NoteRead(node.FieldSymbol);
 
-            if (node.FieldSymbol.IsFixed && node.Syntax != null && !SyntaxFacts.IsFixedStatementExpression(node.Syntax))
+            if (node.FieldSymbol.IsFixedSizeBuffer && node.Syntax != null && !SyntaxFacts.IsFixedStatementExpression(node.Syntax))
             {
                 Symbol receiver = UseNonFieldSymbolUnsafely(node.ReceiverOpt);
                 if ((object)receiver != null)

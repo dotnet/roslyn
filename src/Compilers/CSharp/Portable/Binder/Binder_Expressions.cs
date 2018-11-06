@@ -6329,7 +6329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixed && !IsInsideNameof)
+            if (!hasError && fieldSymbol.IsFixedSizeBuffer && !IsInsideNameof)
             {
                 // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
                 // that struct type identifies a fixed size member, then E.I is evaluated an classified as follows:

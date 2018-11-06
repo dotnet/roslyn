@@ -7,6 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
+    <!-- We need to support Windows OneCore, which runs Core CLR 1.0 (Windows OneCore) -->
     <TargetFramework>netstandard1.3</TargetFramework>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>

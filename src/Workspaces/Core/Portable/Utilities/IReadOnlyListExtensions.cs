@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Utilities
             return list[list.Count - 1];
         }
 
-        public static int IndexOf<T>(this IReadOnlyList<T> list, T item)
+        public static int IndexOf<T>(this IReadOnlyList<T> list, T value, int startIndex = 0)
         {
-            for (int i = 0; i < list.Count; ++i)
+            for (var index = startIndex; index < list.Count; index++)
             {
-                if (EqualityComparer<T>.Default.Equals(list[i], item))
+                if (EqualityComparer<T>.Default.Equals(list[index], value))
                 {
-                    return i;
+                    return index;
                 }
             }
 

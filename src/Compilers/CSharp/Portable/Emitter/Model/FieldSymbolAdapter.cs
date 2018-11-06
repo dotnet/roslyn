@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbolWithAnnotations fieldType = this.Type;
             var customModifiers = fieldType.CustomModifiers;
-            var isFixed = this.IsFixed;
+            var isFixed = this.IsFixedSizeBuffer;
             var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : fieldType.TypeSymbol;
             var type = moduleBeingBuilt.Translate(implType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,

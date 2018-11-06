@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
-                        return (field.IsFixed || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
+                        return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
 
                     case SymbolKind.Event:
                         EventSymbol eventSymbol = (EventSymbol)member;

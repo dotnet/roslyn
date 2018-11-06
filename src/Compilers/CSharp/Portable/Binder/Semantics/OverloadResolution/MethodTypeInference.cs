@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var withoutNullability = Fix(exact, lower, upper, ref ignoredDiagnostics, _conversions.WithNullability(false), ref ignoredHadMismatch);
                 // https://github.com/dotnet/roslyn/issues/27961 Results may differ by tuple names or dynamic.
                 // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
-                Debug.Assert(best.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Debug.Assert(best.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             }
 #endif
 
@@ -2366,7 +2366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization: if we have two or more exact bounds, fixing is impossible.
 
-            var candidates = new Dictionary<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations>(EqualsIgnoringDynamicAndTupleNamesComparer.Instance);
+            var candidates = new Dictionary<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations>(EqualsIgnoringDynamicTupleNamesAndNullabilityComparer.Instance);
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2430,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var candidate2 in initialCandidates)
                 {
-                    if (!candidate.Equals(candidate2, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                    if (!candidate.Equals(candidate2, TypeCompareKind.ConsiderEverything) &&
                         !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics, conversions.WithNullability(false)))
                     {
                         goto OuterBreak;
@@ -2443,7 +2443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                    Debug.Assert(!best.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                     // best candidate is not unique
                     best = default;
                     break;
@@ -2630,7 +2630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (!anonymousFunction.ParameterType(p).TypeSymbol.Equals(fixedDelegateParameters[p].Type.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    if (!anonymousFunction.ParameterType(p).TypeSymbol.Equals(fixedDelegateParameters[p].Type.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         return default;
                     }
@@ -2823,7 +2823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool hadNullabilityMismatch)
         {
             Debug.Assert(conversions.IncludeNullability ||
-                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.CompareNullableModifiersForReferenceTypes));
+                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
 
             if (candidates.TryGetValue(newCandidate, out TypeSymbolWithAnnotations oldCandidate))
             {
@@ -2852,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(variance == VarianceKind.In || variance == VarianceKind.Out);
             // SPEC:   For each lower (upper) bound U of Xi all types to which there is not an
             // SPEC:   implicit conversion from (to) U are removed from the candidate set.
-            var comparison = conversions.IncludeNullability ? TypeCompareKind.CompareNullableModifiersForReferenceTypes : TypeCompareKind.ConsiderEverything;
+            var comparison = conversions.IncludeNullability ? TypeCompareKind.ConsiderEverything : TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
             foreach (var bound in bounds)
             {
                 foreach (var candidate in initialCandidates)
@@ -2877,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         candidates.Remove(candidate);
                     }
-                    else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                    else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         // SPEC: 4.7 The Dynamic Type
                         //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
@@ -2928,9 +2928,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a comparer that ignores differences in dynamic-ness and tuple names.
         /// But it has a special case for top-level object vs. dynamic for purpose of method type inference.
         /// </summary>
-        private sealed class EqualsIgnoringDynamicAndTupleNamesComparer : EqualityComparer<TypeSymbolWithAnnotations>
+        private sealed class EqualsIgnoringDynamicTupleNamesAndNullabilityComparer : EqualityComparer<TypeSymbolWithAnnotations>
         {
-            internal static readonly EqualsIgnoringDynamicAndTupleNamesComparer Instance = new EqualsIgnoringDynamicAndTupleNamesComparer();
+            internal static readonly EqualsIgnoringDynamicTupleNamesAndNullabilityComparer Instance = new EqualsIgnoringDynamicTupleNamesAndNullabilityComparer();
 
             public override int GetHashCode(TypeSymbolWithAnnotations obj)
             {
@@ -2943,7 +2943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but dynamic and object are not considered equal for backwards compatibility.
                 if (x.IsDynamic() ^ y.IsDynamic()) { return false; }
 
-                return x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames);
+                return x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
             }
         }
     }
