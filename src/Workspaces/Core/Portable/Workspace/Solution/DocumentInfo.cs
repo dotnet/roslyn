@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis
         private DocumentInfo With(
             DocumentAttributes attributes = null,
             Optional<TextLoader> loader = default,
-            IDocumentServiceProvider documentServiceProvider = null)
+            Optional<IDocumentServiceProvider> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newLoader = loader.HasValue ? loader.Value : TextLoader;
-            var newDocumentServiceProvider = documentServiceProvider ?? DocumentServiceProvider;
+            var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
             if (newAttributes == Attributes &&
                 newLoader == TextLoader &&
