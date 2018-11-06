@@ -478,6 +478,26 @@ class C : I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
+        public async Task EventIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestDiagnosticMissingAsync(
+@"interface I
+{
+    event System.Action E;
+}
+
+class C : I
+{
+    event System.Action [|I.E|]
+    {
+        add { }
+        remove { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsUnused_Const()
         {
             await TestInRegularAndScriptAsync(

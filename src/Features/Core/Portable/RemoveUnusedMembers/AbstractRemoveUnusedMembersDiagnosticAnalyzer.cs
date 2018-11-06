@@ -450,6 +450,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         case SymbolKind.Property:
                             return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
+                        case SymbolKind.Event:
+                            return ((IEventSymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
+
                         default:
                             return true;
                     }
