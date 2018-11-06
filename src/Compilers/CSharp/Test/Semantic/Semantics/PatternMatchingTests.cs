@@ -4330,14 +4330,21 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            compilation.VerifyDiagnostics(
-                // (11,18): error CS8523: The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.
-                //             case _:
-                Diagnostic(ErrorCode.ERR_DiscardPatternInSwitchStatement, "_").WithLocation(11, 18),
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
+                );
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18)
                 );
         }
 
@@ -4365,18 +4372,12 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (12,18): error CS8523: The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.
-                //             case _:
-                Diagnostic(ErrorCode.ERR_DiscardPatternInSwitchStatement, "_").WithLocation(12, 18),
-                // (9,29): error CS8412: A constant named '_' cannot be used as a pattern.
+                // (9,29): error CS0118: '_' is a variable but is used like a type
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(9, 29),
-                // (9,29): error CS0150: A constant value is expected
-                //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
-                // (12,18): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
+                Diagnostic(ErrorCode.ERR_BadSKknown, "_").WithArguments("_", "variable", "type").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
                 //             case _:
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18)
                 );
         }
 

@@ -3140,15 +3140,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A constant named &apos;_&apos; cannot be used as a pattern..
-        /// </summary>
-        internal static string ERR_ConstantPatternNamedUnderscore {
-            get {
-                return ResourceManager.GetString("ERR_ConstantPatternNamedUnderscore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
         /// </summary>
         internal static string ERR_ConstantStringTooLong {
@@ -10007,15 +9998,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The discard pattern &apos;_&apos; cannot be used where &apos;{0}&apos; is in scope..
-        /// </summary>
-        internal static string ERR_UnderscoreDeclaredAndDiscardPattern {
-            get {
-                return ResourceManager.GetString("ERR_UnderscoreDeclaredAndDiscardPattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character must be escaped (by doubling) in an interpolated string..
         /// </summary>
         internal static string ERR_UnescapedCurly {
@@ -12803,6 +12785,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_CantInferNullabilityOfMethodTypeArgs_Title {
             get {
                 return ResourceManager.GetString("WRN_CantInferNullabilityOfMethodTypeArgs_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;_&apos; refers to the constant, not the discard pattern. Use &apos;var _&apos; to discard the value, or &apos;@_&apos; to refer to a constant by that name..
+        /// </summary>
+        internal static string WRN_CaseConstantNamedUnderscore {
+            get {
+                return ResourceManager.GetString("WRN_CaseConstantNamedUnderscore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use &apos;_&apos; for a case constant..
+        /// </summary>
+        internal static string WRN_CaseConstantNamedUnderscore_Title {
+            get {
+                return ResourceManager.GetString("WRN_CaseConstantNamedUnderscore_Title", resourceCulture);
             }
         }
         

@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // For totally broken syntax, parse a type for error recovery purposes
             switch (tk)
             {
+                case SyntaxKind.IdentifierToken when this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken:
+                    // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CloseBraceToken:
@@ -58,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
-            // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
-            bool typeCannotBePattern = this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken;
             // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (LooksLikeTypeOfPattern(tk))
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
 
-                    if (!type.IsMissing && !typeCannotBePattern)
+                    if (!type.IsMissing)
                     {
                         PatternSyntax p = ParsePatternContinued(type, false);
                         if (p != null)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool LooksLikeTypeOfPattern(SyntaxKind tk)
         {
             return SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken &&
+                (tk == SyntaxKind.IdentifierToken && this.CurrentToken.ContextualKind != SyntaxKind.UnderscoreToken &&
                   (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
                 LooksLikeTupleArrayType();
         }
@@ -337,14 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseIdentifierName(ErrorCode.ERR_MissingPattern);
             }
 
-            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken &&
-                // We permit parsing `case _:` in older language versions
-                !(forSwitchCase && this.Options.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
+            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken && !forSwitchCase)
             {
-                // In a pattern, we reserve `_` as a discard. It cannot be used (with that spelling) as the
-                // type of a declaration or recursive pattern. The binder will give a diagnostic if
-                // there is a usable symbol in scope by that name. You can always escape it, using `@_`,
-                // or force the use of a discard, using `var _`.
+                // In a switch case, we parse `_` as an expression.
                 return _syntaxFactory.DiscardPattern(this.EatContextualToken(SyntaxKind.UnderscoreToken));
             }
 

@@ -921,5 +921,468 @@ class C1
                 Assert.Empty(symbolInfo.CandidateSymbols);
             }
         }
+
+        [Fact]
+        public void DiscardVsConstantInCase_01()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        for (int i = 0; i < 6; i++)
+        {
+            switch (i)
+            {
+                case _:
+                    Console.Write(i);
+                    break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,22): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                //                 case _:
+                Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(11, 22)
+                );
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DiscardVsConstantInCase_02()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        for (int i = 0; i < 6; i++)
+        {
+            switch (i)
+            {
+                case _ when true:
+                    Console.Write(i);
+                    break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,22): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                //                 case _ when true:
+                Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(11, 22)
+                );
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DiscardVsConstantInCase_03()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        for (int i = 0; i < 6; i++)
+        {
+            switch (i)
+            {
+                case var _:
+                    Console.Write(i);
+                    break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,19): warning CS0219: The variable '_' is assigned but its value is never used
+                //         const int _ = 3;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(6, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "012345");
+        }
+
+        [Fact]
+        public void DiscardVsConstantInCase_04()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        for (int i = 0; i < 6; i++)
+        {
+            switch (i)
+            {
+                case var _ when true:
+                    Console.Write(i);
+                    break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,19): warning CS0219: The variable '_' is assigned but its value is never used
+                //         const int _ = 3;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(6, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "012345");
+        }
+
+        [Fact]
+        public void DiscardVsConstantInCase_05()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        for (int i = 0; i < 6; i++)
+        {
+            switch (i)
+            {
+                case @_:
+                    Console.Write(i);
+                    break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DiscardVsConstantInCase_06()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        for (int i = 0; i < 6; i++)
+        {
+            switch (i)
+            {
+                case @_ when true:
+                    Console.Write(i);
+                    break;
+            }
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DiscardVsTypeInCase_01()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        object o = new _();
+        switch (o)
+        {
+            case _ x: break;
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS0119: '_' is a type, which is not valid in the given context
+                //             case _ x: break;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "_").WithArguments("_", "type").WithLocation(9, 18),
+                // (9,20): error CS1003: Syntax error, ':' expected
+                //             case _ x: break;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(":", "").WithLocation(9, 20),
+                // (9,20): warning CS0164: This label has not been referenced
+                //             case _ x: break;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "x").WithLocation(9, 20)
+                );
+        }
+
+        [Fact]
+        public void DiscardVsTypeInCase_02()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        object o = new _();
+        foreach (var e in new[] { null, o, null })
+        {
+            switch (e)
+            {
+                case @_ x: Console.WriteLine(""3""); break;
+            }
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DiscardVsTypeInIs_01()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        object o = new _();
+        foreach (var e in new[] { null, o, null })
+        {
+            Console.Write(e is _);
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,32): warning CS8513: The name '_' refers to the type '_', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //             Console.Write(e is _);
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("_").WithLocation(9, 32)
+                );
+            CompileAndVerify(compilation, expectedOutput: "FalseTrueFalse");
+        }
+
+        [Fact]
+        public void DiscardVsTypeInIs_02()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        object o = new _();
+        foreach (var e in new[] { null, o, null })
+        {
+            Console.Write(e is _ x);
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,32): warning CS8513: The name '_' refers to the type '_', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //             Console.Write(e is _ x);
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("_").WithLocation(9, 32),
+                // (9,34): error CS1003: Syntax error, ',' expected
+                //             Console.Write(e is _ x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 34),
+                // (9,34): error CS0103: The name 'x' does not exist in the current context
+                //             Console.Write(e is _ x);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(9, 34)
+                );
+        }
+
+        [Fact]
+        public void DiscardVsTypeInIs_03()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        object o = new _();
+        foreach (var e in new[] { null, o, null })
+        {
+            Console.Write(e is var _);
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "TrueTrueTrue");
+        }
+
+        [Fact]
+        public void DiscardVsTypeInIs_04()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        object o = new _();
+        foreach (var e in new[] { null, o, null })
+        {
+            if (e is @_)
+            {
+                Console.Write(""3"");
+            }
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
+
+        [Fact]
+        public void DiscardVsDeclarationInNested_01()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        (object, object) o = (4, 4);
+        foreach (var e in new[] { ((object, object)?)null, o, null })
+        {
+            if (e is (_, _))
+            {
+                Console.Write(""5"");
+            }
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,19): warning CS0219: The variable '_' is assigned but its value is never used
+                //         const int _ = 3;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(6, 19)
+                );
+            CompileAndVerify(compilation, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void DiscardVsDeclarationInNested_02()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        (object, object) o = (4, 4);
+        foreach (var e in new[] { ((object, object)?)null, o, null })
+        {
+            if (e is (_ x, _))
+            {
+                Console.Write(""5"");
+            }
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,19): warning CS0219: The variable '_' is assigned but its value is never used
+                //         const int _ = 3;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "_").WithArguments("_").WithLocation(6, 19),
+                // (10,22): error CS8502: Matching the tuple type '(object, object)' requires '2' subpatterns, but '3' subpatterns are present.
+                //             if (e is (_ x, _))
+                Diagnostic(ErrorCode.ERR_WrongNumberOfSubpatterns, "(_ x, _)").WithArguments("(object, object)", "2", "3").WithLocation(10, 22),
+                // (10,25): error CS1003: Syntax error, ',' expected
+                //             if (e is (_ x, _))
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 25),
+                // (10,25): error CS0103: The name 'x' does not exist in the current context
+                //             if (e is (_ x, _))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 25)
+                );
+        }
+
+        [Fact]
+        public void DiscardVsDeclarationInNested_03()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        (object, object) o = (new _(), 4);
+        foreach (var e in new[] { ((object, object)?)null, o, (_, 8) })
+        {
+            if (e is (@_ x, var y))
+            {
+                Console.Write(y);
+            }
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "4");
+        }
+
+        [Fact]
+        public void DiscardVsDeclarationInNested_04()
+        {
+            var source = @"using System;
+class Program
+{
+    static void Main()
+    {
+        const int _ = 3;
+        (object, object) o = (new _(), 4);
+        foreach (var e in new[] { ((object, object)?)null, o, (_, 8) })
+        {
+            if (e is (@_, var y))
+            {
+                Console.Write(y);
+            }
+        }
+    }
+}
+class _
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "8");
+        }
     }
 }
