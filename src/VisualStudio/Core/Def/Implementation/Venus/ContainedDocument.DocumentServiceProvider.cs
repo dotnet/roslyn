@@ -20,7 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
     internal sealed partial class ContainedDocument
     {
-        // this is to support old venus/razor case. all new razor should use thier own implementation not ours
+        // this is to support old venus/razor case before dev16. 
+        // all new razor (asp.net core after dev16) should use thier own implementation not ours
         public class DocumentServiceProvider : IDocumentServiceProvider
         {
             private readonly SpanMapper _spanMapper;
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
 
                 // ask the default document service provider
-                return TextDocumentState.DefaultDocumentServiceProvider.Instance.GetService<TService>();
+                return DefaultTextDocumentServiceProvider.Instance.GetService<TService>();
             }
 
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)

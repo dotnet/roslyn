@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             this.textAndVersionSource = textAndVersionSource;
 
             Attributes = attributes;
-            Services = documentServiceProvider ?? DefaultDocumentServiceProvider.Instance;
+            Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
 
             // for now, let it re-calculate if anything changed.
             // TODO: optimize this so that we only re-calcuate checksums that are actually changed
@@ -396,31 +396,6 @@ namespace Microsoft.CodeAnalysis
         {
             TextAndVersion textAndVersion = await this.textAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
-        }
-
-        internal sealed class DefaultDocumentServiceProvider : IDocumentServiceProvider
-        {
-            public static readonly DefaultDocumentServiceProvider Instance = new DefaultDocumentServiceProvider();
-
-            private DefaultDocumentServiceProvider() { }
-
-            public TService GetService<TService>() where TService : class, IDocumentService
-            {
-                if (DocumentOperationService.Instance is TService service)
-                {
-                    return service;
-                }
-
-                return default;
-            }
-
-            private class DocumentOperationService : IDocumentOperationService
-            {
-                public static readonly DocumentOperationService Instance = new DocumentOperationService();
-
-                public bool CanApplyChange => true;
-                public bool SupportsDiagnostics => true;
-            }
         }
     }
 }
