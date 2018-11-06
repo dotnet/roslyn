@@ -4,11 +4,8 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
-Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Utilities
@@ -111,85 +108,52 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendUpKey(Sub(a, n, c) IntelliSenseCommandHandler.ExecuteCommand(a, Sub() handler.ExecuteCommand(a, n, c), c), Sub() Return)
         End Sub
 
-        Public Overrides Sub SendTab()
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TabKeyCommandArgs))
-            MyBase.SendTab(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertText(vbTab))
-        End Sub
-
-        Public Overrides Sub SendReturn()
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of ReturnKeyCommandArgs))
-            MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
-        End Sub
-
         Public Overrides Sub SendPageUp()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of PageUpKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PageUpKeyCommandArgs))
             MyBase.SendPageUp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendCut()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of CutCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of CutCommandArgs))
             MyBase.SendCut(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendPaste()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of PasteCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PasteCommandArgs))
             MyBase.SendPaste(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendInvokeCompletionList()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of InvokeCompletionListCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InvokeCompletionListCommandArgs))
             MyBase.SendInvokeCompletionList(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendInsertSnippetCommand()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of InsertSnippetCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InsertSnippetCommandArgs))
             MyBase.SendInsertSnippetCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendSurroundWithCommand()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of SurroundWithCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SurroundWithCommandArgs))
             MyBase.SendSurroundWithCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendSave()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of SaveCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SaveCommandArgs))
             MyBase.SendSave(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overrides Sub SendSelectAll()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of SelectAllCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SelectAllCommandArgs))
             MyBase.SendSelectAll(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
-        End Sub
-
-        Private Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
-            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-            ExecuteTypeCharCommand(args, finalHandler, context, compHandler)
-        End Sub
-
-        Public Overrides Sub SendTypeChars(typeChars As String)
-            MyBase.SendTypeChars(typeChars, Sub(a, n, c) ExecuteTypeCharCommand(a, n, c))
-        End Sub
-
-        Public Overrides Sub SendBackspace()
-            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))
-            MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
-        End Sub
-
-        Public Overrides Sub SendDelete()
-            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
-            MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
-        End Sub
-
-        Public Overrides Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
-            For Each ch In typeChars
-                Dim localCh = ch
-                ExecuteTypeCharCommand(New TypeCharCommandArgs(view, buffer, localCh), Sub() EditorOperations.InsertText(localCh.ToString()), TestCommandExecutionContext.Create())
-            Next
-        End Sub
-
-        Public Overrides Sub SendDeleteToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
-            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
-            compHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, buffer), AddressOf MyBase.SendDelete, TestCommandExecutionContext.Create())
         End Sub
 
         Public Overrides Sub SendDeleteWordToLeft()
@@ -197,11 +161,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendWordDeleteToStart(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDeleteWordToLeft)
         End Sub
 
+        Protected Overrides Function GetHandler(Of T As VSCommanding.ICommandHandler)() As T
+            Return DirectCast(EditorCompletionCommandHandler, T)
+        End Function
+
 #End Region
 
 #Region "Completion Operations"
 
         Public Overrides Sub SendCommitUniqueCompletionListItem()
+            ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of CommitUniqueCompletionListItemCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub

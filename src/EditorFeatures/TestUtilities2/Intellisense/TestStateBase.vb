@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
@@ -57,15 +58,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
 #Region "Editor Related Operations"
-        Public MustOverride Overloads Sub SendEscape()
 
-        Public MustOverride Overloads Sub SendDownKey()
-
-        Public MustOverride Overloads Sub SendUpKey()
-
-        Public MustOverride Overloads Sub SendTypeChars(typeChars As String)
-
-        Protected Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext, completionCommandHandler As VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+        Protected Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext, completionCommandHandler As VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
 
@@ -81,31 +75,67 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Sub
 
-        Public MustOverride Overloads Sub SendTab()
+        Public Overloads Sub SendTab()
+            Dim handler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of TabKeyCommandArgs))()
+            MyBase.SendTab(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertText(vbTab))
+        End Sub
 
-        Public MustOverride Overloads Sub SendReturn()
+        Public Overloads Sub SendReturn()
+            Dim handler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of ReturnKeyCommandArgs))()
+            MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
+        End Sub
 
-        Public MustOverride Overloads Sub SendPageUp()
+        Public Overrides Sub SendBackspace()
+            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))()
+            MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
+        End Sub
+
+        Public Overrides Sub SendDelete()
+            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))()
+            MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
+        End Sub
+
+        Public Sub SendDeleteToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
+            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))()
+            compHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, buffer), AddressOf MyBase.SendDelete, TestCommandExecutionContext.Create())
+        End Sub
+
+        Private Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
+            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))()
+            ExecuteTypeCharCommand(args, finalHandler, context, compHandler)
+        End Sub
+
+        Public Overloads Sub SendTypeChars(typeChars As String)
+            MyBase.SendTypeChars(typeChars, Sub(a, n, c) ExecuteTypeCharCommand(a, n, c))
+        End Sub
 
         Public MustOverride Overloads Sub SendCut()
 
         Public MustOverride Overloads Sub SendPaste()
 
-        Public MustOverride Overloads Sub SendInvokeCompletionList()
+        Public MustOverride Overloads Sub SendEscape()
+
+        Public MustOverride Overloads Sub SendDownKey()
+
+        Public MustOverride Overloads Sub SendUpKey()
+
+        Public MustOverride Overloads Sub SendPageUp()
 
         Public MustOverride Overloads Sub SendInsertSnippetCommand()
 
         Public MustOverride Overloads Sub SendSurroundWithCommand()
 
+        Public MustOverride Overloads Sub SendInvokeCompletionList()
+
         Public MustOverride Overloads Sub SendSave()
 
         Public MustOverride Overloads Sub SendSelectAll()
 
+        Protected MustOverride Function GetHandler(Of T As VSCommanding.ICommandHandler)() As T
+
 #End Region
 
 #Region "Completion Operations"
-
-        Public MustOverride Sub SendDeleteToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
 
         Public MustOverride Function GetSelectedItem() As CompletionItem
 
@@ -139,7 +169,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
 
-        Public MustOverride Overloads Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
+        Public Overloads Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
+            For Each ch In typeChars
+                Dim localCh = ch
+                ExecuteTypeCharCommand(New TypeCharCommandArgs(view, buffer, localCh), Sub() EditorOperations.InsertText(localCh.ToString()), TestCommandExecutionContext.Create())
+            Next
+        End Sub
 
         Public Async Function AssertLineTextAroundCaret(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
             Await WaitForAsynchronousOperationsAsync()
