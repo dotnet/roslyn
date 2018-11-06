@@ -437,9 +437,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 default:
                                     return methodSymbol.AssociatedSymbol == null &&
                                            !IsEntryPoint(methodSymbol) &&
-                                           !methodSymbol.IsAbstract &&
-                                           !methodSymbol.IsVirtual &&
-                                           !methodSymbol.IsOverride &&
                                            !methodSymbol.IsExtern &&
                                            methodSymbol.ExplicitInterfaceImplementations.IsEmpty;
                             }

@@ -433,7 +433,7 @@ class C
             await TestDiagnosticMissingAsync(
 @"class C
 {
-    private abstract void [|M|]();
+    protected abstract void [|M|]();
 }");
         }
 
