@@ -548,19 +548,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     {
                         if (projectionSpan is string text)
                         {
-                            // for {|Markup1:|}{|projection:|}{|Markup2:|}, span of {|Markup2:|} should not include {|projection:|}
-                            // when end of markup1 and start of markup2 are neightbor by projection marker (empty), we will prefer start of markup2
-                            // as start location for markup2 span
-                            if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart < positionInMarkup + text.Length)
+                            // this currently has a bug where it can't distinguish a markup of {|ProjectionMarkup:|}{|Markup1:|} and {|Markup1:{|ProjectionMarkup:|}|}
+                            // it always map markup1 span as the later one.
+                            // tracking issue - {|ProjectionMarkup:|}{|Markup1:|} and {|Markup1:{|ProjectionMarkup:|}|}
+                            if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {
                                 var offsetInText = markupSpanStart - positionInMarkup;
                                 spanStartLocation = projectionBufferSpanStartingPositions[spanIndex] + offsetInText;
                             }
 
-                            // for {|Markup1:|}{|projection:|}{|Markup2:|}, span of {|Markup1:|} should not include {|projection:|}
-                            // when end of markup1 and start of markup2 are neightbor by projection marker (empty), we will prefer end of markup1
-                            // as end location for markup1 span
-                            if (spanEndLocationExclusive == null && positionInMarkup < markupSpanEndExclusive && markupSpanEndExclusive <= positionInMarkup + text.Length)
+                            if (spanEndLocationExclusive == null && positionInMarkup <= markupSpanEndExclusive && markupSpanEndExclusive <= positionInMarkup + text.Length)
                             {
                                 var offsetInText = markupSpanEndExclusive - positionInMarkup;
                                 spanEndLocationExclusive = projectionBufferSpanStartingPositions[spanIndex] + offsetInText;

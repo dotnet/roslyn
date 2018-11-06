@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
+Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
@@ -184,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim projectedContent = <Code>class projected 
-{|Content:                        {|FirstText:{ 
+{|Content:                        {|WithoutLeadingWhitespace:{ 
                             private void SurfaceMethod() { }
 
                             |}{|Document:|}{|LastText:
@@ -209,8 +210,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim expectedContent = projectedDocument.TextBuffer.CurrentSnapshot.GetText(contentSpan.ToSpan())
                 Assert.Equal(expectedContent, content)
 
-                Dim firstText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "FirstText").ToSpan())
-                Dim lastText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "LastText").ToSpan())
+                Dim firstText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "WithoutLeadingWhitespace").ToSpan())
+                Dim documentSpan = GetNamedSpan(projectedDocument, "Document").ToSpan()
+                Dim lastText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(Span.FromBounds(documentSpan.End, projectedDocument.TextBuffer.CurrentSnapshot.Length))
 
                 Dim expcetedFormatted = {FormattedClassifications.Text(firstText),
                                          Keyword("class"),
@@ -227,8 +229,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
                 ' ExcerptResult.MappedSpan is relative to ExcerptResult.Content.
                 ' recalculate expected span relative to the content span
-                Dim documentSpan = GetNamedSpan(projectedDocument, "Document")
-
                 Assert.Equal(New TextSpan(documentSpan.Start - contentSpan.Start, documentSpan.Length), result.Value.MappedSpan)
             End Using
         End Function
