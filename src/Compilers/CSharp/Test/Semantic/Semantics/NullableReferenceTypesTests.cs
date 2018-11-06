@@ -51406,5 +51406,112 @@ class Test
             var comp = CreateCompilation(source2, new[] { ref1.WithEmbedInteropTypes(true), CSharpRef }, options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             CompileAndVerify(comp, expectedOutput: "4");
         }
+
+        [WorkItem(29605, "https://github.com/dotnet/roslyn/issues/29605")]
+        [Fact]
+        public void InferMethodReceiverType_01()
+        {
+            var source =
+@"class C<T>
+{
+    internal void F(T t) { }
+}
+class Program
+{
+    internal static C<T> Create<T>(T t) => throw null;
+    static void M(object x, object? y, string? z)
+    {
+        var c = Create(x);
+        c.F(x);
+        c.F(y); // 1
+        c.F(z); // 2
+        c.F(null); // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C<object>.F(object t)'.
+                //         c.F(y); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("t", "void C<object>.F(object t)").WithLocation(12, 13),
+                // (13,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C<object>.F(object t)'.
+                //         c.F(z); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z").WithArguments("t", "void C<object>.F(object t)").WithLocation(13, 13),
+                // (14,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         c.F(null); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 13));
+        }
+
+        [WorkItem(29605, "https://github.com/dotnet/roslyn/issues/29605")]
+        [Fact]
+        public void InferMethodReceiverType_02()
+        {
+            var source =
+@"class A<T> { }
+class B<T>
+{
+    internal void F<U>(U u) where U : A<T> { }
+}
+class Program
+{
+    internal static B<T> Create<T>(T t) => throw null;
+    static void M1(object x, A<object> y, A<object?> z)
+    {
+        var b1 = Create(x);
+        b1.F(y);
+        b1.F(z); // 1
+    }
+    static void M2(object? x, A<object> y, A<object?> z)
+    {
+        var b2 = Create(x);
+        b2.F(y); // 2
+        b2.F(z);
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8631: The type 'A<object?>' cannot be used as type parameter 'U' in the generic type or method 'B<object>.F<U>(U)'. Nullability of type argument 'A<object?>' doesn't match constraint type 'A<object>'.
+                //         b1.F(z); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "b1.F").WithArguments("B<object>.F<U>(U)", "A<object>", "U", "A<object?>").WithLocation(13, 9),
+                // (18,9): warning CS8631: The type 'A<object>' cannot be used as type parameter 'U' in the generic type or method 'B<object?>.F<U>(U)'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
+                //         b2.F(y); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "b2.F").WithArguments("B<object?>.F<U>(U)", "A<object?>", "U", "A<object>").WithLocation(18, 9));
+        }
+
+        [WorkItem(29605, "https://github.com/dotnet/roslyn/issues/29605")]
+        [Fact]
+        public void InferMethodReceiverType_03()
+        {
+            var source =
+@"class C<T>
+{
+    internal static T F() => throw null;
+}
+class Program
+{
+    internal static C<T> Create<T>(T t) => throw null;
+    static void M(object x)
+    {
+        var c1 = Create(x);
+        c1.F().ToString();
+        x = null; // 1
+        var c2 = Create(x);
+        c2.F().ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         c1.F().ToString();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.F").WithArguments("C<object>.F()").WithLocation(11, 9),
+                // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13),
+                // (14,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         c2.F().ToString(); // 2
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         c2.F().ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2.F()").WithLocation(14, 9));
+        }
     }
 }
