@@ -64,12 +64,50 @@
                    Content="{Binding ElementName=dialog, Path=NewFileName}" 
                    Padding="{StaticResource ResourceKey=labelPadding}"
                    Target="{Binding ElementName=fileNameTextBox}"/>
-            <TextBox x:Uid="FileNameTextBox" 
-                     AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}"
-                     Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     Padding="{StaticResource ResourceKey=textboxPadding}"
-                     Name="fileNameTextBox"
-                     GotFocus="SelectAllInTextBox"/>
+
+            <GroupBox x:Uid="DestinationSelectionGroupBox"
+                      Margin="0, 9, 0, 0"
+                      Header="{Binding ElementName=dialog, Path=SelectDestinationFile}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <RadioButton x:Uid="DestinationCurrentFileSelectionRadioButton"
+                                 GroupName="FileDestination"
+                                 Tag="CurrentFileDestinationTag"
+                                 Grid.Row="0"
+                                 Grid.ColumnSpan="2" 
+                                 Content="{Binding ElementName=dialog, Path=SelectCurrentFileAsDestination}"
+                                 Checked="DestinationFile_Checked"
+                                 />
+
+                    <RadioButton x:Uid="DestinationNewFileSelectionRadioButton"
+                                 GroupName="FileDestination"
+                                 Tag="NewFileDestinationTag"
+                                 Grid.Row="1"
+                                 Grid.Column="0"
+                                 Content="{Binding ElementName=dialog, Path=SelectNewFileAsDestination}"
+                                 IsChecked="True"
+                                 Checked="DestinationFile_Checked"
+                                 />
+
+                    <TextBox x:Uid="FileNameTextBox" 
+                             AutomationProperties.LabeledBy="{Binding ElementName=FileNameLabel}"
+                             Text="{Binding FileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                             Padding="{StaticResource ResourceKey=textboxPadding}"
+                             Name="fileNameTextBox"
+                             IsEnabled="{Binding FileNameEnabled, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                             GotFocus="SelectAllInTextBox"
+                             Grid.Column="1" 
+                             Grid.Row="1" />
+                </Grid>
+            </GroupBox>
         </StackPanel>
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   Margin="0, 9, 0, 0"

@@ -19,6 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 {
     internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
     {
+        public enum InterfaceDestination
+        {
+            CurrentFile,
+            NewFile
+        };
+
         private readonly ISyntaxFactsService _syntaxFactsService;
         private readonly INotificationService _notificationService;
         private readonly List<string> _conflictingTypeNames;
@@ -152,13 +158,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             set { SetProperty(ref _fileName, value); }
         }
 
+        private InterfaceDestination _destination;
+        public InterfaceDestination Destination
+        {
+            get { return _destination; }
+            set
+            {
+                if (SetProperty(ref _destination, value))
+                {
+                    NotifyPropertyChanged(nameof(FileNameEnabled));
+                }
+            }
+        }
+
+        public bool FileNameEnabled => Destination == InterfaceDestination.NewFile;
+
+
         internal class MemberSymbolViewModel : AbstractNotifyPropertyChanged
         {
             private readonly IGlyphService _glyphService;
 
             public ISymbol MemberSymbol { get; }
 
-            private static SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
+            private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
@@ -166,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             public MemberSymbolViewModel(ISymbol symbol, IGlyphService glyphService)
             {
-                this.MemberSymbol = symbol;
+                MemberSymbol = symbol;
                 _glyphService = glyphService;
                 _isChecked = true;
             }

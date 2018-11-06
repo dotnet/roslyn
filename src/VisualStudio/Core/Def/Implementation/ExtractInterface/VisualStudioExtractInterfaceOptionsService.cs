@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -51,11 +52,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             if (result.HasValue && result.Value)
             {
-                return new ExtractInterfaceOptionsResult(
-                    isCancelled: false,
-                    includedMembers: viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol),
-                    interfaceName: viewModel.InterfaceName.Trim(),
-                    fileName: viewModel.FileName.Trim());
+                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol);
+                var interfaceName = viewModel.InterfaceName.Trim();
+
+                switch (viewModel.Destination)
+                {
+                    case ExtractInterfaceDialogViewModel.InterfaceDestination.CurrentFile:
+                        return new ExtractInterfaceSameFileOptionsResult(
+                            isCancelled: false,
+                            includedMembers: includedMembers,
+                            interfaceName: interfaceName);
+
+                    case ExtractInterfaceDialogViewModel.InterfaceDestination.NewFile:
+                        return new ExtractInterfaceNewFileOptionsResult(
+                            isCancelled: false,
+                            includedMembers: includedMembers,
+                            interfaceName: interfaceName,
+                            fileName: viewModel.FileName.Trim());
+
+                    default: throw new InvalidOperationException($"Unable to send file to {viewModel.Destination}");
+                }
             }
             else
             {

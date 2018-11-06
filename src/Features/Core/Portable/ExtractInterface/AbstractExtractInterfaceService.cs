@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             var solution = refactoringResult.DocumentToExtractFrom.Project.Solution;
-            var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
 
             var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
                 extractInterfaceOptions.IncludedMembers,
@@ -147,13 +146,56 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 typeParameters: GetTypeParameters(refactoringResult.TypeToExtractFrom, extractInterfaceOptions.IncludedMembers),
                 members: CreateInterfaceMembers(extractInterfaceOptions.IncludedMembers));
 
-            var interfaceDocumentId = DocumentId.CreateNewId(refactoringResult.DocumentToExtractFrom.Project.Id, debugName: extractInterfaceOptions.FileName);
+            switch (extractInterfaceOptions)
+            {
+                case ExtractInterfaceNewFileOptionsResult extractInterfaceOptionsNewFile:
+                    var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
+                    return ExtractInterfaceToNewFile(
+                        solution: solution, 
+                        containingNamespaceDisplay: containingNamespaceDisplay, 
+                        extractedInterfaceSymbol: extractedInterfaceSymbol,
+                        symbolToDeclarationAnnotationMap: symbolToDeclarationAnnotationMap, 
+                        documentIds: documentIds, 
+                        typeNodeSyntaxAnnotation: typeNodeSyntaxAnnotation,
+                        projectId: refactoringResult.DocumentToExtractFrom.Project.Id,
+                        documentFolders: refactoringResult.DocumentToExtractFrom.Folders,
+                        documentId: refactoringResult.DocumentToExtractFrom.Id,
+                        typeToExtractFrom: refactoringResult.TypeToExtractFrom,
+                        fileName: extractInterfaceOptionsNewFile.FileName,
+                        includedMembers: extractInterfaceOptionsNewFile.IncludedMembers,
+                        cancellationToken: cancellationToken);
+
+                case ExtractInterfaceSameFileOptionsResult extractInterfaceOptionsSameFile:
+                    return ExtractInterfaceToSameFile(
+                        solution: solution, 
+                        extractedInterfaceSymbol: extractedInterfaceSymbol,
+                        symbolToDeclarationAnnotationMap: symbolToDeclarationAnnotationMap, 
+                        documentIds: documentIds, 
+                        typeNodeSyntaxAnnotation: typeNodeSyntaxAnnotation,
+                        projectId: refactoringResult.DocumentToExtractFrom.Project.Id,
+                        documentId: refactoringResult.DocumentToExtractFrom.Id,
+                        typeToExtractFrom: refactoringResult.TypeToExtractFrom,
+                        includedMembers: extractInterfaceOptionsSameFile.IncludedMembers,
+                        cancellationToken: cancellationToken);
+
+                default: throw new InvalidOperationException($"Unable to extract interface for operation of type {extractInterfaceOptions.GetType()}");
+            }
+
+        }
+
+        private ExtractInterfaceResult ExtractInterfaceToNewFile(
+            Solution solution, string containingNamespaceDisplay, INamedTypeSymbol extractedInterfaceSymbol, 
+            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap, List<DocumentId> documentIds, SyntaxAnnotation typeNodeSyntaxAnnotation, 
+            ProjectId projectId, IReadOnlyList<string> documentFolders, DocumentId documentId, INamedTypeSymbol typeToExtractFrom, 
+            string fileName, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
+        {
+            var interfaceDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
 
             var unformattedInterfaceDocument = GetUnformattedInterfaceDocument(
                 solution,
                 containingNamespaceDisplay,
-                extractInterfaceOptions.FileName,
-                refactoringResult.DocumentToExtractFrom.Folders,
+                fileName,
+                documentFolders,
                 extractedInterfaceSymbol,
                 interfaceDocumentId,
                 cancellationToken);
@@ -163,11 +205,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var completedSolution = GetSolutionWithOriginalTypeUpdated(
                 solutionWithFormattedInterfaceDocument,
                 documentIds,
-                refactoringResult.DocumentToExtractFrom.Id,
+                documentId,
                 typeNodeSyntaxAnnotation,
-                refactoringResult.TypeToExtractFrom,
+                typeToExtractFrom,
                 extractedInterfaceSymbol,
-                extractInterfaceOptions.IncludedMembers,
+                includedMembers,
                 symbolToDeclarationAnnotationMap,
                 cancellationToken);
 
@@ -175,6 +217,37 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 succeeded: true,
                 updatedSolution: completedSolution,
                 navigationDocumentId: interfaceDocumentId);
+        }
+
+        private ExtractInterfaceResult ExtractInterfaceToSameFile(
+            Solution solution, INamedTypeSymbol extractedInterfaceSymbol, 
+            Dictionary<ISymbol, SyntaxAnnotation> symbolToDeclarationAnnotationMap, List<DocumentId> documentIds, SyntaxAnnotation typeNodeSyntaxAnnotation, 
+            ProjectId projectId, DocumentId documentId, INamedTypeSymbol typeToExtractFrom, IEnumerable<ISymbol> includedMembers, CancellationToken cancellationToken)
+        {
+            var unformattedInterfaceDocument = GetUnformattedInterfaceDocument(
+                solution: solution,
+                extractedInterfaceSymbol: extractedInterfaceSymbol,
+                originalType: typeToExtractFrom,
+                interfaceDocumentId: documentId,
+                cancellationToken: cancellationToken);
+
+            var formattedInterfaceSolution = GetSolutionWithFormattedInterfaceDocument(unformattedInterfaceDocument, cancellationToken);
+
+            var completedSolution = GetSolutionWithOriginalTypeUpdated(
+                formattedInterfaceSolution,
+                documentIds,
+                documentId,
+                typeNodeSyntaxAnnotation,
+                typeToExtractFrom,
+                extractedInterfaceSymbol,
+                includedMembers,
+                symbolToDeclarationAnnotationMap,
+                cancellationToken);
+
+            return new ExtractInterfaceResult(
+                succeeded: true,
+                updatedSolution: completedSolution,
+                navigationDocumentId: documentId);
         }
 
         private Dictionary<ISymbol, SyntaxAnnotation> CreateSymbolToDeclarationAnnotationMap(
@@ -265,6 +338,23 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocumentSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 extractedInterfaceSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
                 options: new CodeGenerationOptions(interfaceDocumentSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
+                cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+
+            return unformattedInterfaceDocument;
+        }
+
+        private Document GetUnformattedInterfaceDocument(
+            Solution solution,
+            INamedTypeSymbol extractedInterfaceSymbol,
+            INamedTypeSymbol originalType,
+            DocumentId interfaceDocumentId,
+            CancellationToken cancellationToken)
+        {
+            var unformattedInterfaceDocument = CodeGenerator.AddNamedTypeDeclarationAsync(
+                solution: solution,
+                destination: originalType,
+                namedType: extractedInterfaceSymbol,
+                //options: new CodeGenerationOptions(beforeThisLocation: originalType.Locations.First()),
                 cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             return unformattedInterfaceDocument;

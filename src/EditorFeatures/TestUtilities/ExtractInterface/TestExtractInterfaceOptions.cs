@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
             return IsCancelled
                 ? ExtractInterfaceOptionsResult.Cancelled
-                : new ExtractInterfaceOptionsResult(
+                : new ExtractInterfaceNewFileOptionsResult(
                     isCancelled: false,
                     includedMembers: ChosenMembers ?? AllExtractableMembers,
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
