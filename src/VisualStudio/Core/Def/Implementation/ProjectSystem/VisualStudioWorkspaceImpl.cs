@@ -1145,15 +1145,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.Dispose(finalize);
         }
 
-        public void EnsureEditableDocuments(IEnumerable<DocumentId> documentIds)
+        public void EnsureEditableDocuments(IEnumerable<DocumentId> documents)
         {
             var queryEdit = (IVsQueryEditQuerySave2)ServiceProvider.GlobalProvider.GetService(typeof(SVsQueryEditQuerySave));
 
             // make sure given document id actually exist in current solution and the file is marked as supporting modifications
             // and actually has non null file path
-            var fileNames = documentIds.Select(id => CurrentSolution.GetDocument(id))
-                                       .Where(d => d.CanApplyChange())
-                                       .Select(d => d.FilePath).WhereNotNull().ToArray();
+            var fileNames = documents.Select(GetFilePath).ToArray();
 
             // TODO: meditate about the flags we can pass to this and decide what is most appropriate for Roslyn
             int result = queryEdit.QueryEditFiles(

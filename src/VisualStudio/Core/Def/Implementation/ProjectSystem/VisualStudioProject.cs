@@ -531,7 +531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // VisualStudioProject._filePath points to csproj/vbproj of the project
                 // and the parameter filePath points to dynamic file such as cshtml and etc
                 // 
-                // also, provider is free-threaded. so find to call Wait rather than JTF
+                // also, provider is free-threaded. so fine to call Wait rather than JTF
                 var fileInfo = provider.Value.GetDynamicFileInfoAsync(
                     projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
@@ -564,7 +564,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             var provider = _sourceFiles.RemoveDynamicFile(GetDynamicFileInfoPath(dynamicFilePath));
 
-            // provider is free-threaded. so find to call Wait rather than JTF
+            // provider is free-threaded. so fine to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
                 projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
         }
@@ -1085,7 +1085,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public void AddDynamicFile(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
             {
-                var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.IsDefault ? null : (IEnumerable<string>)folders);
+                var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.NullToEmpty());
                 var documentId = documentInfo.Id;
 
                 lock (_project._gate)
