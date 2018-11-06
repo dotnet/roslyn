@@ -899,12 +899,6 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var linkedDocument in linkedDocuments)
                 {
-                    if (!updatedSolution.State.GetAnyDocumentState(linkedDocument).CanApplyChange())
-                    {
-                        // skip any document that doesn't support modification
-                        continue;
-                    }
-
                     previousSolution = updatedSolution;
                     updatedSolution = updateSolutionWithText(updatedSolution, linkedDocument, newText, mode);
                     if (previousSolution != updatedSolution)
@@ -1222,7 +1216,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
-                && projectChanges.GetChangedDocuments(true).Any())
+                && projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
@@ -1270,6 +1264,15 @@ namespace Microsoft.CodeAnalysis
             if (projectChanges.GetRemovedAnalyzerReferences().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference))
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
+            }
+
+            foreach (var documentId in projectChanges.GetChangedDocuments())
+            {
+                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId);
+                if (!document.CanApplyChange())
+                {
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
+                }
             }
         }
 

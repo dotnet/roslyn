@@ -180,8 +180,7 @@ class C { }
                 Assert.False(document.CanApplyChange())
 
                 ' see whether changes can be applied to the solution
-                workspace.TryApplyChanges(newDocument.Project.Solution)
-                Assert.Equal(Await document.GetTextAsync(), Await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync())
+                Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
             End Using
         End Function
 

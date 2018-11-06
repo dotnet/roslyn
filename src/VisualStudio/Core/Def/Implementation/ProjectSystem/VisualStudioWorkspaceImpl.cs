@@ -233,7 +233,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
             }
 
-            var projectChanges = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().ToList();
+            var currentSolution = this.CurrentSolution;
+            var projectChanges = newSolution.GetChanges(currentSolution).GetProjectChanges().ToList();
+
             var projectsToLoad = new HashSet<Guid>();
             foreach (var pc in projectChanges)
             {
@@ -267,13 +269,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true)).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true)).Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
             }
 
             return base.TryApplyChanges(newSolution, progressTracker);
+
+            bool CanApplyChange(DocumentId documentId)
+            {
+                var document = newSolution.GetDocument(documentId) ?? currentSolution.GetDocument(documentId);
+                if (document == null)
+                {
+                    // we do this to keep existing behavior. we only filter out
+                    // cases where it meets certain criteria
+                    return true;
+                }
+
+                return document.CanApplyChange();
+            }
         }
 
         public override bool CanOpenDocuments
