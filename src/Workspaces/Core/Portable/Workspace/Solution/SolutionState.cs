@@ -347,11 +347,6 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        public TextDocumentState GetAnyDocumentState(DocumentId documentId)
-        {
-            return GetDocumentState(documentId) ?? GetAdditionalDocumentState(documentId);
-        }
-
         public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             return this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
