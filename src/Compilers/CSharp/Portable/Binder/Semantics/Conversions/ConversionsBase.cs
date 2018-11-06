@@ -80,11 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceType = sourceExpression.Type;
 
-            if (IncludeNullability)
-            {
-                sourceType = sourceType?.SetPossiblyNullableReferenceTypeTypeParametersAsNullable();
-            }
-
             //PERF: identity conversion is by far the most common implicit conversion, check for that first
             if ((object)sourceType != null && HasIdentityConversionInternal(sourceType, destination))
             {
@@ -1400,7 +1395,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            return source.IsNullable == destination.IsNullable;
+
+            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation == NullableAnnotation.Unknown)
+            {
+                return true;
+            }
+
+            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return destination.NullableAnnotation.IsAnyNullable();
+            }
+
+            if (destination.IsPossiblyNullableReferenceTypeTypeParameter() && !source.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return source.NullableAnnotation.IsAnyNullable();
+            }
+
+            return source.NullableAnnotation.IsAnyNullable() == destination.NullableAnnotation.IsAnyNullable();
         }
 
         internal bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
@@ -1409,7 +1421,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            return source.IsNullable != true || destination.IsNullable != false;
+
+            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation == NullableAnnotation.Unknown ||
+                destination.NullableAnnotation.IsAnyNullable())
+            {
+                return true;
+            }
+
+            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return false;
+            }
+
+            return !source.NullableAnnotation.IsAnyNullable();
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -2176,7 +2201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 // Check for identity conversion of underlying types if the top-level nullability is distinct.
                 // (An identity conversion where nullability matches is not considered an implicit reference conversion.)
-                if (source.IsNullable != destination.IsNullable &&
+                if (source.NullableAnnotation != destination.NullableAnnotation &&
                     HasIdentityConversionInternal(source.TypeSymbol, destination.TypeSymbol, includeNullability: true))
                 {
                     return true;

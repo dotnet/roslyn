@@ -274,11 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithPointedAtType(PointedAtType.SetUnknownNullabilityForReferenceTypes());
         }
 
-        internal override TypeSymbol SetPossiblyNullableReferenceTypeTypeParametersAsNullable()
-        {
-            return WithPointedAtType(PointedAtType.SetPossiblyNullableReferenceTypeTypeParametersAsNullable());
-        }
-
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));

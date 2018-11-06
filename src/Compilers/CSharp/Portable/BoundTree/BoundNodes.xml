@@ -31,6 +31,7 @@
   <ValueType Name="RefKind"/>
   <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
+  <ValueType Name="NullableAnnotation"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -1766,6 +1767,6 @@
   <Node Name="BoundExpressionWithNullability" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/> <!-- We use null Type for placeholders representing out vars -->
-    <Field Name="IsNullable" Type="bool?" Null="allow"/>
+    <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
   </Node>
 </Tree>

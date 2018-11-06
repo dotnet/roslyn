@@ -635,8 +635,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
 
-        internal abstract TypeSymbol SetPossiblyNullableReferenceTypeTypeParametersAsNullable();
-
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
         /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict

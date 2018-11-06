@@ -10,36 +10,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static bool? GetIsNullable(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            bool? isNullable = false;
+            NullableAnnotation result = NullableAnnotation.NotNullableBasedOnAnalysis;
             foreach (var type in types)
             {
                 if (type.IsNull)
                 {
                     // https://github.com/dotnet/roslyn/issues/27961 Should ignore untyped
                     // expressions such as unbound lambdas and typeless tuples.
-                    isNullable = true;
+                    result = NullableAnnotation.NullableBasedOnAnalysis;
                     continue;
                 }
-                if (!type.IsReferenceType)
+
+                if (!type.IsReferenceType && !type.TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
                 {
-                    return null;
+                    return NullableAnnotation.Unknown;
                 }
-                switch (type.IsNullable)
+
+                NullableAnnotation nullableAnnotation = type.GetValueNullableAnnotation();
+
+                if (nullableAnnotation == NullableAnnotation.Unknown)
                 {
-                    case null:
-                        if (isNullable == false)
-                        {
-                            isNullable = null;
-                        }
-                        break;
-                    case true:
-                        isNullable = true;
-                        break;
+                    if (result.IsAnyNotNullable())
+                    {
+                        result = NullableAnnotation.Unknown;
+                    }
+                }
+                else if (nullableAnnotation.IsAnyNullable())
+                {
+                    if (!result.IsAnyNullable())
+                    {
+                        result = nullableAnnotation;
+                    }
+                    else if (result != nullableAnnotation)
+                    {
+                        result = NullableAnnotation.Nullable;
+                    }
                 }
             }
-            return isNullable;
+
+            return result;
         }
 
         /// <remarks>

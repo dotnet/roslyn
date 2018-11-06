@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return annotation == NullableAnnotation.Nullable || annotation == NullableAnnotation.NullableBasedOnAnalysis;
         }
+
+        public static bool IsAnyNotNullable(this NullableAnnotation annotation)
+        {
+            return annotation == NullableAnnotation.NotNullable || annotation == NullableAnnotation.NotNullableBasedOnAnalysis;
+        }
     }
 
     /// <summary>
@@ -166,6 +171,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableAnnotation == NullableAnnotation.NotNullable && TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter();
         }
 
+        internal NullableAnnotation GetValueNullableAnnotation()
+        {
+            if (IsPossiblyNullableReferenceTypeTypeParameter())
+            {
+                return NullableAnnotation.NullableBasedOnAnalysis;
+            }
+
+            return NullableAnnotation;
+        }
+
+        internal bool? ValueCanBeNull()
+        {
+            switch (NullableAnnotation)
+            {
+                case NullableAnnotation.Unknown:
+                    return null;
+
+                case NullableAnnotation.Nullable:
+                case NullableAnnotation.NullableBasedOnAnalysis:
+                    return true;
+
+                case NullableAnnotation.NotNullableBasedOnAnalysis:
+                    return false;
+
+                case NullableAnnotation.NotNullable:
+                    return TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter();
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
+            }
+        }
+
         // https://github.com/dotnet/roslyn/issues/30050: Check we are not using this method on type references in
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
 
@@ -257,41 +294,94 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            bool? isNullable = MergeIsNullable(IsNullable, other.IsNullable, variance, out bool hadTopLevelMismatch);
-            TypeSymbol type = TypeSymbol.MergeNullability(other.TypeSymbol, variance, out bool hadNestedMismatch);
+            TypeSymbol typeSymbol = other.TypeSymbol;
+            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(typeSymbol, NullableAnnotation, other.NullableAnnotation, variance, out bool hadTopLevelMismatch);
+            TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
             Debug.Assert((object)type != null);
             hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
-            return Create(type, isNullable, CustomModifiers);
+            return Create(type, nullableAnnotation, CustomModifiers);
         }
 
         /// <summary>
         /// Merges nullability.
         /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict.
         /// </summary>
-        private static bool? MergeIsNullable(bool? a, bool? b, VarianceKind variance, out bool hadNullabilityMismatch)
+        private static NullableAnnotation MergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b, VarianceKind variance, out bool hadNullabilityMismatch)
         {
             hadNullabilityMismatch = false;
             if (a == b)
             {
                 return a;
             }
+
+            if (a.IsAnyNullable() && b.IsAnyNullable())
+            {
+                return NullableAnnotation.Nullable;
+            }
+
             switch (variance)
             {
                 case VarianceKind.In:
-                    return (a == false || b == false) ? (bool?)false : null;
+
+                    if (a == NullableAnnotation.NotNullableBasedOnAnalysis || b == NullableAnnotation.NotNullableBasedOnAnalysis)
+                    {
+                        return NullableAnnotation.NotNullableBasedOnAnalysis;
+                    }
+
+                    if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
+                    {
+                        return NullableAnnotation.NotNullable;
+                    }
+
+                    Debug.Assert(a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown);
+                    return NullableAnnotation.Unknown;
+
                 case VarianceKind.Out:
-                    return (a == true || b == true) ? (bool?)true : null;
-                default:
-                    if (a == null)
+                    if (a.IsAnyNullable())
+                    {
+                        Debug.Assert(!b.IsAnyNullable());
+                        return a;
+                    }
+
+                    if (b.IsAnyNullable())
                     {
                         return b;
                     }
-                    if (b == null)
+
+                    if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
+                    {
+                        return NullableAnnotation.Unknown;
+                    }
+
+                    Debug.Assert((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
+                        (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis));
+                    return NullableAnnotation.NotNullable;
+
+                default:
+                    if (a == NullableAnnotation.Unknown)
+                    {
+                        return b;
+                    }
+                    if (b == NullableAnnotation.Unknown)
                     {
                         return a;
                     }
+
+                    if ((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
+                        (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis))
+                    {
+                        if (!type.IsPossiblyNullableReferenceTypeTypeParameter())
+                        {
+                            return NullableAnnotation.NotNullable;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
+                    }
+
                     hadNullabilityMismatch = true;
-                    return null;
+                    return NullableAnnotation.Unknown;
             }
         }
 
@@ -342,8 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
 
                     case NullableAnnotation.NotNullableBasedOnAnalysis:
-                        return false;
-
                     case NullableAnnotation.NotNullable:
                         return false;
 
@@ -440,12 +528,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
             {
-                var thisIsNullable = IsNullable;
-                var otherIsNullable = other.IsNullable;
-                if (otherIsNullable != thisIsNullable)
+                var thisAnnotation = NullableAnnotation;
+                var otherAnnotation = other.NullableAnnotation;
+                if (otherAnnotation != thisAnnotation)
                 {
                     if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 ||
-                        (thisIsNullable != null && otherIsNullable != null))
+                        (thisAnnotation != NullableAnnotation.Unknown && otherAnnotation != NullableAnnotation.Unknown))
                     {
                         return false;
                     }
@@ -694,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbolWithAnnotations WithTopLevelNonNullabilityForReferenceTypes()
         {
             var typeSymbol = TypeSymbol;
-            if (IsNullable == false || typeSymbol.IsValueType)
+            if (NullableAnnotation == NullableAnnotation.NotNullableBasedOnAnalysis || typeSymbol.IsValueType)
             {
                 return this;
             }
@@ -717,29 +805,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
-
-            if ((object)newTypeSymbol != typeSymbol)
-            {
-                return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
-            }
-
-            return this;
-        }
-
-        public TypeSymbolWithAnnotations SetPossiblyNullableReferenceTypeTypeParametersAsNullable()
-        {
-            if (IsNull)
-            {
-                return this;
-            }
-
-            if (IsPossiblyNullableReferenceTypeTypeParameter())
-            {
-                return AsNullableReferenceType(fromDeclaration: false);
-            }
-
-            var typeSymbol = TypeSymbol;
-            var newTypeSymbol = typeSymbol.SetPossiblyNullableReferenceTypeTypeParametersAsNullable();
 
             if ((object)newTypeSymbol != typeSymbol)
             {

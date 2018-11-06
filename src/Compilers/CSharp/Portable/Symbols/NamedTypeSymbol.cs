@@ -847,40 +847,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal override TypeSymbol SetPossiblyNullableReferenceTypeTypeParametersAsNullable()
-        {
-            if (!IsGenericType)
-            {
-                return this;
-            }
-
-            var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
-
-            bool haveChanges = false;
-            for (int i = 0; i < allTypeArguments.Count; i++)
-            {
-                TypeSymbolWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeSymbolWithAnnotations newTypeArgument = oldTypeArgument.SetPossiblyNullableReferenceTypeTypeParametersAsNullable();
-                if (!oldTypeArgument.IsSameAs(newTypeArgument))
-                {
-                    allTypeArguments[i] = newTypeArgument;
-                    haveChanges = true;
-                }
-            }
-
-            TypeSymbol result = this;
-            if (haveChanges)
-            {
-                var definition = this.OriginalDefinition;
-                TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments.ToImmutable());
-                result = substitution.SubstituteNamedType(definition);
-            }
-
-            allTypeArguments.Free();
-            return result;
-        }
-
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));

@@ -1456,16 +1456,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.WithUnderlyingType(underlyingType);
         }
 
-        internal override TypeSymbol SetPossiblyNullableReferenceTypeTypeParametersAsNullable()
-        {
-            var underlyingType = (NamedTypeSymbol)_underlyingType.SetPossiblyNullableReferenceTypeTypeParametersAsNullable();
-            if ((object)underlyingType == _underlyingType)
-            {
-                return this;
-            }
-            return this.WithUnderlyingType(underlyingType);
-        }
-
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
