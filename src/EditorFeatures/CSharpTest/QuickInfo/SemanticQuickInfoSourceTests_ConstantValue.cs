@@ -45,6 +45,7 @@ var f = v $$+ 2",
         [InlineData("double.NaN", "NaN")]
         [InlineData("double.PositiveInfinity", "Infinity")]
         [InlineData("double.NegativeInfinity", "-Infinity")]
+        [InlineData("(byte)1", "1")]
         public async Task TestAddExpression_NumericTypeSpecialValue(string value, string displayValue)
         {
             await TestInMethodAsync($@"
@@ -273,6 +274,24 @@ var f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$+ ""o""",
                     ("\"abcdefghijklmnopqrstuvwxyzabcdefghijklmno", StringLiteral),
                     (UnicodeEllipsis, TextTags.Text)
                 ));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestNonConstantVariable()
+        {
+            await TestInMethodAsync(@"
+int v = 1;
+var f = v $$+ 2",
+                ConstantValue());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInvalidConstant()
+        {
+            await TestInMethodAsync(@"
+const int v = int.Parse(""1"");
+const int f = v $$+ 2",
+                ConstantValue());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

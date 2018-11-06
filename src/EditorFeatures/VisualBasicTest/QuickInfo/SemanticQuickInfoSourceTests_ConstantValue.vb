@@ -39,6 +39,8 @@ dim f = v $$+ 2",
         <InlineData("double.NaN", "NaN")>
         <InlineData("double.PositiveInfinity", "Infinity")>
         <InlineData("double.NegativeInfinity", "-Infinity")>
+        <InlineData("cbyte(1)", "1")>
+        <InlineData("ctype(1, byte)", "1")>
         Public Async Function TestAddExpression_NumericTypeSpecialValue(value As String, displayValue As String) As Task
             Await TestInMethodAsync($"
 dim f = {value} $$+ 0",
@@ -292,6 +294,22 @@ dim f = ""abcdefghijklmnopqrstuvwxyzabcdefghijklmn"" $$& ""o""",
                     ("""abcdefghijklmnopqrstuvwxyzabcdefghijklmno", StringLiteral),
                     (UnicodeEllipsis, TextTags.Text)
                 ))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNonConstantVariable() As Task
+            Await TestInMethodAsync("
+dim v as integer = 1
+dim f = v $$+ 2",
+                ConstantValue())
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestInvalidConstant() As Task
+            Await TestInMethodAsync("
+const v as integer = integer.Parse(""1"")
+const f = v $$+ 2",
+                ConstantValue())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
