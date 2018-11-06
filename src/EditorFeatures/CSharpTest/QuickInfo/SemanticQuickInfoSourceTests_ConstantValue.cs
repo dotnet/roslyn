@@ -40,6 +40,29 @@ var f = v $$+ 2",
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("int.MaxValue", "2147483647")]
+        [InlineData("float.NaN", "NaN")]
+        [InlineData("double.NaN", "NaN")]
+        [InlineData("double.PositiveInfinity", "Infinity")]
+        [InlineData("double.NegativeInfinity", "-Infinity")]
+        public async Task TestAddExpression_NumericTypeSpecialValue(string value, string displayValue)
+        {
+            await TestInMethodAsync($@"
+var f = {value} $$+ 0",
+                ConstantValueContent(
+                    (displayValue, NumericLiteral),
+                    (" ", Space),
+                    ("+", Operator),
+                    (" ", Space),
+                    ("0", NumericLiteral),
+                    (" ", Space),
+                    ("=", Operator),
+                    (" ", Space),
+                    (displayValue, NumericLiteral)
+                ));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData(NumericLiteral, "2", "67")]
         [InlineData(StringLiteral, "'B'", "131")]
         public async Task TestAddExpression_Char(string operandTag, string operand, string result)

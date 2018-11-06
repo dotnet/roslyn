@@ -34,6 +34,28 @@ dim f = v $$+ 2",
         End Function
 
         <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("integer.MaxValue", "2147483647")>
+        <InlineData("single.NaN", "NaN")>
+        <InlineData("double.NaN", "NaN")>
+        <InlineData("double.PositiveInfinity", "Infinity")>
+        <InlineData("double.NegativeInfinity", "-Infinity")>
+        Public Async Function TestAddExpression_NumericTypeSpecialValue(value As String, displayValue As String) As Task
+            Await TestInMethodAsync($"
+dim f = {value} $$+ 0",
+                ConstantValueContent(
+                    (displayValue, NumericLiteral),
+                    (" ", Space),
+                    ("+", [Operator]),
+                    (" ", Space),
+                    ("0", NumericLiteral),
+                    (" ", Space),
+                    ("=", [Operator]),
+                    (" ", Space),
+                    (displayValue, NumericLiteral)
+                ))
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("+", StringLiteral, """B""c", """AB""")>
         <InlineData("&", StringLiteral, """B""c", """AB""")>
         <InlineData("+", StringLiteral, """B""", """AB""")>
