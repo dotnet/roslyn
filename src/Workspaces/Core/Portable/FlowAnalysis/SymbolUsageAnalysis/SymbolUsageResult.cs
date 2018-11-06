@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
     internal sealed class SymbolUsageResult
     {
         public SymbolUsageResult(
-            ImmutableDictionary<(ISymbol Symbol, IOperation Write), bool> symbolWritesMap,
+            ImmutableDictionary<(ISymbol symbol, IOperation write), bool> symbolWritesMap,
             ImmutableHashSet<ISymbol> symbolsRead)
         {
             SymbolWritesMap = symbolWritesMap;
@@ -20,20 +20,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         /// Map from each symbol write to a boolean indicating if the value assinged
         /// at write is used/read on some control flow path.
         /// </summary>
-        public ImmutableDictionary<(ISymbol Symbol, IOperation Write), bool> SymbolWritesMap { get; }
+        public ImmutableDictionary<(ISymbol symbol, IOperation write), bool> SymbolWritesMap { get; }
 
         /// <summary>
-        /// Set of locals/parameters that have at least one use/read for one of its writes.
+        /// Set of locals/parameters that are read at least once.
         /// </summary>
         public ImmutableHashSet<ISymbol> SymbolsRead { get; }
 
         public bool HasUnreadSymbolWrites()
         {
-            if (SymbolWritesMap.IsEmpty)
-            {
-                return false;
-            }
-
             foreach (var kvp in SymbolWritesMap)
             {
                 if (!kvp.Value)
@@ -66,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         {
             foreach (var kvp in SymbolWritesMap)
             {
-                if (kvp.Key.Write == null && kvp.Key.Symbol == parameter)
+                if (kvp.Key.write == null && kvp.Key.symbol == parameter)
                 {
                     return kvp.Value;
                 }
@@ -83,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             int count = 0;
             foreach (var kvp in SymbolWritesMap)
             {
-                if (kvp.Key.Symbol == symbol)
+                if (kvp.Key.symbol == symbol)
                 {
                     count++;
                 }

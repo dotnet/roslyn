@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol.ToDisplayString(SymbolDisplayFormats.SignatureFormat);
         }
 
-        public static bool IsExternallyVisible(this ISymbol symbol)
+        public static bool HasPublicResultantVisibility(this ISymbol symbol)
             => symbol.GetResultantVisibility() == SymbolVisibility.Public;
 
         public static SymbolVisibility GetResultantVisibility(this ISymbol symbol)

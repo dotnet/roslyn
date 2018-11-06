@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             }
 
             /// <summary>
-            /// Map from each (symbol, write) to a boolean indicating if the value assinged
+            /// Map from each (symbol, write) to a boolean indicating if the value assigned
             /// at the write is read on some control flow path.
             /// </summary>
             protected PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
             /// <summary>
-            /// Set of locals/parameters that have at least one use/read for one of its writes.
+            /// Set of locals/parameters that are read at least once.
             /// </summary>
             protected PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 

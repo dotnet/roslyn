@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return analyzer._visited;
         }
 
-
         public override bool AnalyzeUnreachableBlocks => false;
 
         public override bool AnalyzeBlock(BasicBlock basicBlock, CancellationToken cancellationToken)

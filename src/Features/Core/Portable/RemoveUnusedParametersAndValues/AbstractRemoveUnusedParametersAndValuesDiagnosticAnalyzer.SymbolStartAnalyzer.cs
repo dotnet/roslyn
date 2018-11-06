@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // "Remove unused parameter '{0}'{1}"
                 var arg1 = parameter.Name;
                 var arg2 = string.Empty;
-                if (parameter.ContainingSymbol.IsExternallyVisible() &&
+                if (parameter.ContainingSymbol.HasPublicResultantVisibility() &&
                     !parameter.ContainingSymbol.IsLocalFunction() &&
                     !parameter.ContainingSymbol.IsAnonymousFunction())
                 {
