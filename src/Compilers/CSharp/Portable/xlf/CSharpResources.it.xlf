@@ -57,11 +57,6 @@
         <target state="new">Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ConstantPatternNamedUnderscore">
-        <source>A constant named '_' cannot be used as a pattern.</source>
-        <target state="new">A constant named '_' cannot be used as a pattern.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="new">The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</target>
@@ -245,11 +240,6 @@
       <trans-unit id="ERR_TupleSizesMismatchForBinOps">
         <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
         <target state="new">Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnderscoreDeclaredAndDiscardPattern">
-        <source>The discard pattern '_' cannot be used where '{0}' is in scope.</source>
-        <target state="new">The discard pattern '_' cannot be used where '{0}' is in scope.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -805,6 +795,16 @@
       <trans-unit id="WRN_CantInferNullabilityOfMethodTypeArgs_Title">
         <source>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</source>
         <target state="new">The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CaseConstantNamedUnderscore">
+        <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
+        <target state="new">The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CaseConstantNamedUnderscore_Title">
+        <source>Do not use '_' for a case constant.</source>
+        <target state="new">Do not use '_' for a case constant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">

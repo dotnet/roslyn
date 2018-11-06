@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         BoundConstantPattern pattern = sectionBinder.BindConstantPattern(
                             node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out bool wasExpression);
+                        reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         bool hasErrors = pattern.HasErrors;
                         SyntaxNode innerValueSyntax = caseLabelSyntax.Value.SkipParens();
@@ -254,6 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         BoundPattern pattern = sectionBinder.BindPattern(
                             matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, node.HasErrors, diagnostics);
+                        if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
+                            reportIfConstantNamedUnderscore(pattern, p.Expression);
+
                         return new BoundPatternSwitchLabel(node, label, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
                             node.HasErrors);
@@ -261,6 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
+            {
+                if (!pattern.HasErrors &&
+                    expression is IdentifierNameSyntax name && name.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken)
+                {
+                    diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
+                }
             }
         }
     }
