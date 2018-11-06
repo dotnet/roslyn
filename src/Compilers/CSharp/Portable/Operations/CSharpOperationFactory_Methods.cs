@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -20,19 +21,30 @@ namespace Microsoft.CodeAnalysis.Operations
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
-        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
+        private ImmutableArray<BoundStatement> ToStatements(BoundStatement statement)
         {
             if (statement == null)
             {
-                return ImmutableArray<IOperation>.Empty;
+                return ImmutableArray<BoundStatement>.Empty;
             }
 
             if (statement.Kind == BoundKind.StatementList)
             {
-                return ((BoundStatementList)statement).Statements.SelectAsArray(n => Create(n));
+                return ((BoundStatementList)statement).Statements;
             }
 
-            return ImmutableArray.Create(Create(statement));
+            return ImmutableArray.Create(statement);
+        }
+
+        private ImmutableArray<BoundNode> FilterNullNodes(ImmutableArray<BoundNode> boundNodes)
+        {
+
+            var builder = ArrayBuilder<BoundNode>.GetInstance(boundNodes.Length);
+            foreach (var node in boundNodes)
+            {
+                builder.AddIfNotNull(node);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private IInstanceReferenceOperation CreateImplicitReciever(SyntaxNode syntax, ITypeSymbol type) =>
@@ -85,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             ImmutableArray<IOperation> ignoredArguments = boundLocalDeclaration.ArgumentsOpt.IsDefault ?
                                                             ImmutableArray<IOperation>.Empty :
-                                                            boundLocalDeclaration.ArgumentsOpt.SelectAsArray(arg => Create(arg));
+                                                            CreateFromArray<BoundExpression, IOperation>(boundLocalDeclaration.ArgumentsOpt);
             ILocalSymbol symbol = boundLocalDeclaration.LocalSymbol;
             SyntaxNode syntaxNode = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
@@ -95,12 +107,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableDeclaratorOperation(symbol, initializer, ignoredArguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
+        internal IVariableDeclaratorOperation CreateVariableDeclarator(BoundLocal boundLocal)
         {
             return new VariableDeclaratorOperation(boundLocal.LocalSymbol, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: boundLocal.Syntax, type: null, constantValue: default, isImplicit: false);
         }
 
-        private Lazy<IOperation> CreateReceiverOperation(BoundNode instance, ISymbol symbol)
+        internal IOperation CreateReceiverOperation(BoundNode instance, ISymbol symbol)
         {
             if (instance == null || instance.Kind == BoundKind.TypeExpression)
             {
@@ -113,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return OperationFactory.NullOperation;
             }
 
-            return new Lazy<IOperation>(() => Create(instance));
+            return Create(instance);
         }
 
         private bool IsCallVirtual(MethodSymbol targetMethod, BoundExpression receiver)
@@ -126,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
             resultKind == LookupResultKind.OverloadResolutionFailure || targetMethod?.OriginalDefinition is ErrorMethodSymbol;
 
-        private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
+        internal IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             // BoundEventAssignmentOperator doesn't hold on to BoundEventAccess provided during binding.
@@ -135,11 +147,138 @@ namespace Microsoft.CodeAnalysis.Operations
             //  2. the constant value of BoundEventAccess is always null.
             //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
             IEventSymbol @event = boundEventAssignmentOperator.Event;
-            Lazy<IOperation> instance = CreateReceiverOperation(boundEventAssignmentOperator.ReceiverOpt, @event);
+            BoundNode instance = boundEventAssignmentOperator.ReceiverOpt;
             SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
             bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
 
-            return new LazyEventReferenceOperation(@event, instance, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
+            return new CSharpLazyEventReferenceOperation(this, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
+        }
+
+        internal IOperation CreateDelegateTargetOperation(BoundNode delegateNode)
+        {
+            if (delegateNode is BoundConversion boundConversion)
+            {
+                if (boundConversion.ConversionKind == ConversionKind.MethodGroup)
+                {
+                    // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
+                    // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
+                    // hide the resolved method.
+                    return CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
+                                                                       boundConversion.SymbolOpt,
+                                                                       boundConversion.SuppressVirtualCalls);
+                }
+                else
+                {
+                    return Create(boundConversion.Operand);
+                }
+            }
+            else
+            {
+                var boundDelegateCreationExpression = (BoundDelegateCreationExpression)delegateNode;
+                if (boundDelegateCreationExpression.Argument.Kind == BoundKind.MethodGroup &&
+                    boundDelegateCreationExpression.MethodOpt != null)
+                {
+                    // If this is a method binding, and a valid candidate method was found, then we want to expose
+                    // this child as an IMethodBindingReference. Otherwise, we want to just delegate to the standard
+                    // CSharpOperationFactory behavior. Note we don't check HasErrors here because if we have a method group,
+                    // overload resolution succeeded, even if the resulting method isn't valid for some other reason.
+                    BoundMethodGroup boundMethodGroup = (BoundMethodGroup)boundDelegateCreationExpression.Argument;
+                    return CreateBoundMethodGroupSingleMethodOperation(boundMethodGroup, boundDelegateCreationExpression.MethodOpt, boundMethodGroup.SuppressVirtualCalls);
+                }
+                else
+                {
+                    return Create(boundDelegateCreationExpression.Argument);
+                }
+            }
+        }
+
+        internal IOperation CreateMemberInitializerInitializedMember(BoundNode initializedMember)
+        {
+
+            switch (initializedMember.Kind)
+            {
+                case BoundKind.ObjectInitializerMember:
+                    return _nodeMap.GetOrAdd(initializedMember, key =>
+                        CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)key, isObjectOrCollectionInitializer: true));
+                case BoundKind.DynamicObjectInitializerMember:
+                    return _nodeMap.GetOrAdd(initializedMember, key =>
+                        CreateBoundDynamicObjectInitializerMemberOperation((BoundDynamicObjectInitializerMember)key));
+                default:
+                    return Create(initializedMember);
+            }
+        }
+
+        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
+        {
+            switch (containingExpression.Kind)
+            {
+                case BoundKind.IndexerAccess:
+                {
+                    var boundIndexer = (BoundIndexerAccess)containingExpression;
+                    return DeriveArguments(boundIndexer,
+                                           boundIndexer.BinderOpt,
+                                           boundIndexer.Indexer,
+                                           boundIndexer.UseSetterForDefaultArgumentGeneration ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod() :
+                                                                                                boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
+                                           boundIndexer.Arguments,
+                                           boundIndexer.ArgumentNamesOpt,
+                                           boundIndexer.ArgsToParamsOpt,
+                                           boundIndexer.ArgumentRefKindsOpt,
+                                           boundIndexer.Indexer.Parameters,
+                                           boundIndexer.Expanded,
+                                           boundIndexer.Syntax);
+                }
+                case BoundKind.ObjectCreationExpression:
+                {
+                    var objectCreation = (BoundObjectCreationExpression)containingExpression;
+                    return DeriveArguments(objectCreation,
+                                           objectCreation.BinderOpt,
+                                           objectCreation.Constructor,
+                                           objectCreation.Constructor,
+                                           objectCreation.Arguments,
+                                           objectCreation.ArgumentNamesOpt,
+                                           objectCreation.ArgsToParamsOpt,
+                                           objectCreation.ArgumentRefKindsOpt,
+                                           objectCreation.Constructor.Parameters,
+                                           objectCreation.Expanded,
+                                           objectCreation.Syntax);
+                }
+                case BoundKind.Call:
+                {
+                    var boundCall = (BoundCall)containingExpression;
+                    return DeriveArguments(boundCall,
+                                           boundCall.BinderOpt,
+                                           boundCall.Method,
+                                           boundCall.Method,
+                                           boundCall.Arguments,
+                                           boundCall.ArgumentNamesOpt,
+                                           boundCall.ArgsToParamsOpt,
+                                           boundCall.ArgumentRefKindsOpt,
+                                           boundCall.Method.Parameters,
+                                           boundCall.Expanded,
+                                           boundCall.Syntax,
+                                           boundCall.InvokedAsExtensionMethod);
+                }
+                case BoundKind.CollectionElementInitializer:
+                {
+                    var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
+                    return DeriveArguments(boundCollectionElementInitializer,
+                                           boundCollectionElementInitializer.BinderOpt,
+                                           boundCollectionElementInitializer.AddMethod,
+                                           boundCollectionElementInitializer.AddMethod,
+                                           boundCollectionElementInitializer.Arguments,
+                                           argumentNamesOpt: default,
+                                           boundCollectionElementInitializer.ArgsToParamsOpt,
+                                           argumentRefKindsOpt: default,
+                                           boundCollectionElementInitializer.AddMethod.Parameters,
+                                           boundCollectionElementInitializer.Expanded,
+                                           boundCollectionElementInitializer.Syntax,
+                                           boundCollectionElementInitializer.InvokedAsExtensionMethod);
+                }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(containingExpression.Kind);
+            }
         }
 
         private ImmutableArray<IArgumentOperation> DeriveArguments(
@@ -178,38 +317,25 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInvalidOperation CreateInvalidExpressionForHasArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
-            Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(
-                      () =>
-                      {
-                          ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance();
+            var builder = ArrayBuilder<BoundNode>.GetInstance();
 
-                          if (receiverOpt != null
-                             && (!receiverOpt.WasCompilerGenerated
-                                 || (receiverOpt.Kind != BoundKind.ThisReference
-                                    && receiverOpt.Kind != BoundKind.BaseReference
-                                    && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
-                          {
-                              builder.Add(Create(receiverOpt));
-                          }
+            if (receiverOpt != null
+               && (!receiverOpt.WasCompilerGenerated
+                   || (receiverOpt.Kind != BoundKind.ThisReference
+                      && receiverOpt.Kind != BoundKind.BaseReference
+                      && receiverOpt.Kind != BoundKind.ImplicitReceiver)))
+            {
+                builder.Add(receiverOpt);
+            }
 
-                          builder.AddRange(arguments.Select(a => Create(a)));
+            builder.AddRange(arguments.CastArray<BoundNode>());
 
-                          if (additionalNodeOpt != null)
-                          {
-                              builder.Add(Create(additionalNodeOpt));
-                          }
+            builder.AddIfNotNull(additionalNodeOpt);
 
-                          return builder.ToImmutableAndFree();
-                      });
-            return new LazyInvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyInvalidOperation(this, builder.ToImmutableAndFree(), _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(BoundAnonymousObjectCreationExpression expression)
-        {
-            return GetAnonymousObjectCreationInitializers(expression.Arguments, expression.Declarations, expression.Syntax, expression.Type, expression.WasCompilerGenerated);
-        }
-
-        private ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(
+        internal ImmutableArray<IOperation> GetAnonymousObjectCreationInitializers(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<BoundAnonymousPropertyDeclaration> declarations,
             SyntaxNode syntax,
@@ -256,7 +382,15 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 else
                 {
-                    target = CreateBoundAnonymousPropertyDeclarationOperation(declarations[currentDeclarationIndex++], instance);
+                    BoundAnonymousPropertyDeclaration anonymousProperty = declarations[currentDeclarationIndex++];
+                    target = new PropertyReferenceOperation(anonymousProperty.Property,
+                                                            instance,
+                                                            ImmutableArray<IArgumentOperation>.Empty,
+                                                            _semanticModel,
+                                                            anonymousProperty.Syntax,
+                                                            anonymousProperty.Type,
+                                                            ConvertToOptional(anonymousProperty.ConstantValue),
+                                                            anonymousProperty.WasCompilerGenerated);
                     isImplicitAssignment = isImplicit;
                 }
 
@@ -270,19 +404,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Debug.Assert(currentDeclarationIndex == declarations.Length);
             return builder.ToImmutableAndFree();
-        }
-
-        private ImmutableArray<ISwitchCaseOperation> GetSwitchStatementCases(BoundSwitchStatement statement)
-        {
-            return statement.SwitchSections.SelectAsArray(switchSection =>
-            {
-                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
-                var body = switchSection.Statements.SelectAsArray(s => Create(s));
-                var locals = switchSection.Locals.CastArray<ILocalSymbol>();
-
-                return (ISwitchCaseOperation)new SwitchCaseOperation(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
-                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
-            });
         }
 
         private ImmutableArray<ISwitchCaseOperation> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)

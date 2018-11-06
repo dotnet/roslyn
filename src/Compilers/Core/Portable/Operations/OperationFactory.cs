@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvalidOperation(children, semanticModel, syntax, type: null, constantValue: default(Optional<object>), isImplicit: isImplicit);
         }
 
-        public static Lazy<IOperation> NullOperation { get; } = new Lazy<IOperation>(() => null);
-        public static Lazy<IVariableInitializerOperation> NullInitializer { get; } = new Lazy<IVariableInitializerOperation>(() => null);
+        public static IOperation NullOperation { get; } = null;
+        public static IVariableInitializerOperation NullInitializer { get; } = null;
     }
 }
