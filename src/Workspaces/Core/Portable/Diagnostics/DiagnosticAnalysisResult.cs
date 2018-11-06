@@ -61,8 +61,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
             var version = VersionStamp.Default;
 
-            // filter out any document that doesn't support diagnostics
-            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => project.GetDocument(g.Key).SupportsDiagnostics()).ToList();
+            // filter out any document that doesn't support diagnostics.
+            // g.Key == null means diagnostics on the project which assigned to "others" error category
+            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => g.Key == null || project.GetDocument(g.Key).SupportsDiagnostics()).ToList();
 
             var result = new DiagnosticAnalysisResult(
                 project.Id,
