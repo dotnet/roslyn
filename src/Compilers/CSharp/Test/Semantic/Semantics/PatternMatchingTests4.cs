@@ -961,6 +961,42 @@ class C {
 
         [Fact]
         [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_01b()
+        {
+            var source = @"using System;
+class C {
+    static ((int, int)?, int) Get(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                return ((1, 2), 1);
+            case 2:
+                return ((3, 4), 1);
+            default:
+                return (null, 1);
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var ((x, y), z))
+                Console.WriteLine($""{i} {x} {y}"");
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"1 1 2
+2 3 4";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
         public void NullableTupleWithTuplePattern_02()
         {
             var source = @"using System;
@@ -987,6 +1023,73 @@ class C {
         for (int i = 0; i < 6; i++)
         {
             if (Get(i) is var (x, y))
+                Console.WriteLine($""{i} {x} {y}"");
+        }
+    }
+}
+
+// Provide a ValueTuple that implements ITuple
+namespace System
+{
+    using ITuple = System.Runtime.CompilerServices.ITuple;
+    public struct ValueTuple<T1, T2>: ITuple
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
+        int ITuple.Length => 2;
+        object ITuple.this[int index]
+        {
+            get
+            {
+                switch (index)
+                {
+                    case 0: return Item1;
+                    case 1: return Item2;
+                    default: throw new System.ArgumentException(""index"");
+                }
+            }
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"0 a b
+1 1 2
+2 3 4";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(30906, "https://github.com/dotnet/roslyn/issues/30906")]
+        public void NullableTupleWithTuplePattern_02b()
+        {
+            var source = @"using System;
+class C {
+    static object Get(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return (('a', 'b'), 1);
+            case 1:
+                return ((1, 2), 1);
+            case 2:
+                return ((3, 4), 1);
+            case 3:
+                return new object();
+            default:
+                return null;
+        }
+    }
+
+    static void Main()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            if (Get(i) is var ((x, y), z))
                 Console.WriteLine($""{i} {x} {y}"");
         }
     }

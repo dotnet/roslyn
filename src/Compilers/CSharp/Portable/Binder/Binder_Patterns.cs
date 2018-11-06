@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundConstantPattern BindConstantPattern(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
         }
 
-        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, out ConstantValue constantValue, DiagnosticBag diagnostics)
+        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, SyntaxNode node, BoundExpression expression, out ConstantValue constantValue, DiagnosticBag diagnostics)
         {
             BoundExpression convertedExpression;
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Check that the pattern type is valid for the operand. Return true if an error was reported.
         /// </summary>
         private bool CheckValidPatternType(
-            CSharpSyntaxNode typeSyntax,
+            SyntaxNode typeSyntax,
             TypeSymbol inputType,
             TypeSymbol patternType,
             bool patternTypeWasInSource,
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void BindPatternDesignation(
-            PatternSyntax node,
+            SyntaxNode node,
             VariableDesignationSyntax designation,
             TypeSymbol declType,
             uint inputValEscape,
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPattern BindITuplePattern(
-            VarPatternSyntax node,
+            ParenthesizedVariableDesignationSyntax deconstruction,
             TypeSymbol strippedInputType,
             NamedTypeSymbol iTupleType,
             MethodSymbol iTupleGetLength,
@@ -551,19 +551,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since the input has been cast to ITuple, it must be escapable.
             const uint valEscape = Binder.ExternalScope;
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
-            Debug.Assert(node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation);
-            var deconstruction = (ParenthesizedVariableDesignationSyntax)node.Designation;
             var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(deconstruction.Variables.Count);
             foreach (var variable in deconstruction.Variables)
             {
                 var boundSubpattern = new BoundSubpattern(
                     variable,
                     null,
-                    BindVarDesignation(node, variable, objectType, valEscape, hasErrors, diagnostics));
+                    BindVarDesignation(variable, variable, objectType, valEscape, hasErrors, diagnostics));
                 patterns.Add(boundSubpattern);
             }
 
-            return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), strippedInputType, hasErrors);
+            return new BoundITuplePattern(deconstruction, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), strippedInputType, hasErrors);
         }
 
         private ImmutableArray<BoundSubpattern> BindDeconstructionPatternClause(
@@ -696,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool ShouldUseITuple(
-            CSharpSyntaxNode node,
+            SyntaxNode node,
             TypeSymbol declType,
             DiagnosticBag diagnostics,
             out NamedTypeSymbol iTupleType,
@@ -814,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindVarDesignation(node, node.Designation, inputType, inputValEscape, hasErrors, diagnostics);
         }
 
-        private BoundPattern BindVarDesignation(VarPatternSyntax node, VariableDesignationSyntax designation, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindVarDesignation(SyntaxNode node, VariableDesignationSyntax designation, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
             switch (designation.Kind())
             {
@@ -842,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (ShouldUseITuple(node, strippedInputType, diagnostics, out NamedTypeSymbol iTupleType, out MethodSymbol iTupleGetLength, out MethodSymbol iTupleGetItem))
                         {
-                            return BindITuplePattern(node, strippedInputType, iTupleType, iTupleGetLength, iTupleGetItem, hasErrors, diagnostics);
+                            return BindITuplePattern(tupleDesignation, strippedInputType, iTupleType, iTupleGetLength, iTupleGetItem, hasErrors, diagnostics);
                         }
                         else if (strippedInputType.IsTupleType)
                         {
