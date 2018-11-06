@@ -137,12 +137,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="obj">A value to display as a string.</param>
         /// <param name="quoteStrings">Whether or not to quote string literals.</param>
         /// <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
-        /// <returns>A string representation of an object of primitive type (or null if the type is not supported).</returns>
+        /// <returns>A string representation of an object of primitive type (or <see langword="null"/> if the type is not supported).</returns>
         /// <remarks>
         /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
         /// <see cref="byte"/>, <see cref="short"/>, <see cref="ushort"/>, <see cref="int"/>, <see cref="uint"/>,
         /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
-        /// and <c>null</c>.
+        /// and <see langword="null"/>.
         /// </remarks>
         public static string FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
@@ -197,6 +197,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ObjectDisplay.FormatLiteral(c, options);
         }
 
+        /// <summary>
+        /// Returns a textual representation of an object of primitive type as an array of string parts,
+        /// each of which has a kind. Useful for colorizing the display string.
+        /// </summary>
+        /// <param name="obj">A value to display as string parts.</param>
+        /// <param name="quoteStrings">Whether or not to quote string literals.</param>
+        /// <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
+        /// <returns>A list of display parts (or <see langword="default"/> if the type is not supported).</returns>
+        /// <remarks>
+        /// Handles <see cref="bool"/>, <see cref="string"/>, <see cref="char"/>, <see cref="sbyte"/>
+        /// <see cref="byte"/>, <see cref="short"/>, <see cref="ushort"/>, <see cref="int"/>, <see cref="uint"/>,
+        /// <see cref="long"/>, <see cref="ulong"/>, <see cref="double"/>, <see cref="float"/>, <see cref="decimal"/>,
+        /// and <see langword="null"/>.
+        /// </remarks>
         public static ImmutableArray<SymbolDisplayPart> FormatPrimitiveToDisplayParts(object obj, bool quoteStrings, bool useHexadecimalNumbers)
         {
             if (!(obj is null || obj.GetType().IsPrimitive || obj.GetType().IsEnum || obj is string || obj is decimal))

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddNonEnumConstantValue(namedType.EnumUnderlyingType, value);
         }
 
-        private static bool CanDefinitelyBeNull(ITypeSymbol type)
+        private static bool CanUseNullLiteral(ITypeSymbol type)
             => type.IsReferenceType || type.TypeKind == TypeKind.Pointer || ITypeSymbolHelpers.IsNullableType(type);
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(type.TypeKind != TypeKind.Enum);
 
-            if (value is null && !CanDefinitelyBeNull(type))
+            if (value is null && !CanUseNullLiteral(type))
             {
                 // For default arguments of value types and type parameters, we have to use a default expression.
                 AddKeyword(SyntaxKind.DefaultKeyword);

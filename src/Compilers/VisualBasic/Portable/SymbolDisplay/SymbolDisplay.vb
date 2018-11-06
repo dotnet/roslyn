@@ -113,12 +113,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="obj">A value to display as a string.</param>
         ''' <param name="quoteStrings">Whether or not to quote string literals.</param>
         ''' <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
-        ''' <returns>A string representation of an object of primitive type (or null if the type is not supported).</returns>
+        ''' <returns>A string representation of an object of primitive type (or <see langword="Nothing"/> if the type is not supported).</returns>
         ''' <remarks>
         ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
         ''' <see cref="Byte"/>, <see cref="Short"/>, <see cref="UShort"/>, <see cref="Integer"/>, <see cref="UInteger"/>,
         ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
-        ''' <see cref="Date"/>, and <c>Nothing</c>.
+        ''' <see cref="Date"/>, and <see langword="Nothing"/>.
         ''' </remarks>
         Public Function FormatPrimitive(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As String
             Dim options = GetObjectDisplayOptions(quoteStrings, useHexadecimalNumbers)
@@ -137,6 +137,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return options
         End Function
 
+        ''' <summary>
+        ''' Returns a textual representation of an object of primitive type as an array of string parts,
+        ''' each of which has a kind. Useful for colorizing the display string.
+        ''' </summary>
+        ''' <param name="obj">A value to display as string parts.</param>
+        ''' <param name="quoteStrings">Whether or not to quote string literals.</param>
+        ''' <param name="useHexadecimalNumbers">Whether or not to display integral literals in hexadecimal.</param>
+        ''' <returns>A list of display parts (or <see langword="Nothing"/> if the type is not supported).</returns>
+        ''' <remarks>
+        ''' Handles <see cref="Boolean"/>, <see cref="String"/>, <see cref="Char"/>, <see cref="SByte"/>
+        ''' <see cref="Byte"/>, <see cref="Short"/>, <see cref="UShort"/>, <see cref="Integer"/>, <see cref="UInteger"/>,
+        ''' <see cref="Long"/>, <see cref="ULong"/>, <see cref="Double"/>, <see cref="Single"/>, <see cref="Decimal"/>,
+        ''' <see cref="Date"/>, and <see langword="Nothing"/>.
+        ''' </remarks>
         Public Function FormatPrimitiveToDisplayParts(obj As Object, quoteStrings As Boolean, useHexadecimalNumbers As Boolean) As ImmutableArray(Of SymbolDisplayPart)
             If Not (obj Is Nothing OrElse obj.GetType().IsPrimitive OrElse obj.GetType().IsEnum OrElse TypeOf obj Is String OrElse TypeOf obj Is Decimal OrElse TypeOf obj Is Date) Then
                 Return Nothing
