@@ -341,12 +341,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">'начальное значение не должно быть отрицательным</target>
+        <target state="translated">начальное значение не должно быть отрицательным</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'конечное значение не должно быть меньше начального</target>
+        <target state="translated">конечное значение не должно быть меньше начального</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -678,7 +678,7 @@
       </trans-unit>
       <trans-unit id="KeepAliveWithoutShared">
         <source>'/keepalive' option is only valid with '/shared' option.</source>
-        <target state="translated">'Параметр "/keepalive" является допустимым только при использовании с параметром "/shared".</target>
+        <target state="translated">Параметр "/keepalive" является допустимым только при использовании с параметром "/shared".</target>
         <note />
       </trans-unit>
       <trans-unit id="MismatchedVersion">

@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="new">Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</target>
+        <target state="translated">Durch Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung aufgrund eines internen Fehlers verhindert: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
-        <target state="translated">Schnittstelle konnte nicht extrahiert werden: Der Typ enthält kein Element, das in eine Schnittstelle extrahiert werden kann.</target>
+        <target state="translated">Schnittstelle konnte nicht extrahiert werden: Der Typ enthält keinen Member, der in eine Schnittstelle extrahiert werden kann.</target>
         <note />
       </trans-unit>
       <trans-unit id="can_t_not_construct_final_tree">
@@ -339,7 +339,7 @@
       </trans-unit>
       <trans-unit id="Generate_enum_member_1_0">
         <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Aufzählungselement "{1}.{0}" generieren</target>
+        <target state="translated">Enumeartionsmember "{1}.{0}" generieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constant_1_0">
@@ -774,12 +774,12 @@
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Beim Hinzufügen von abstrakten '{0}' oder beim Überschreiben von vererbten '{0}' wird die Debuggingsitzung unterbrochen.</target>
+        <target state="translated">Beim Hinzufügen von abstrakten "{0}" oder beim Überschreiben von vererbten "{0}" wird die Debuggingsitzung unterbrochen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Beim Hinzufügen von MustOverride '{0}' oder beim Überschreiben von vererbten '{0}' wird die Debuggingsitzung unterbrochen.</target>
+        <target state="translated">Beim Hinzufügen von MustOverride "{0}" oder beim Überschreiben von vererbten "{0}" wird die Debuggingsitzung unterbrochen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
@@ -944,7 +944,7 @@
       </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
         <source>Unexpected interface member kind: {0}</source>
-        <target state="translated">Unerwartete Schnittstellenelementart: {0}</target>
+        <target state="translated">Unerwartete Schnittstellenmemberart: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_symbol_kind">
@@ -1044,7 +1044,7 @@
       </trans-unit>
       <trans-unit id="The_member_is_defined_in_metadata">
         <source>The member is defined in metadata.</source>
-        <target state="translated">Das Element wird in den Metadaten definiert.</target>
+        <target state="translated">Der Member wird in den Metadaten definiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate">
@@ -1135,7 +1135,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <target state="translated">    {0}: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
@@ -1220,7 +1220,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Argument_cannot_have_a_null_element">
         <source>Argument cannot have a null element.</source>
-        <target state="translated">Argument darf kein Nullelement enthalten.</target>
+        <target state="translated">Argument darf kein NULL-Element enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="Argument_cannot_be_empty">
@@ -1265,7 +1265,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: große Felder auf Null setzen.</target>
+        <target state="translated">TODO: große Felder auf NULL setzen.</target>
         <note />
       </trans-unit>
       <trans-unit id="To_detect_redundant_calls">
@@ -1887,7 +1887,7 @@ Diese Version wird verwendet in: {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_hex">
         <source>Convert to hex</source>
-        <target state="translated">In 'hex' konvertieren</target>
+        <target state="translated">In "hex" konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_thousands">
@@ -2002,7 +2002,7 @@ Diese Version wird verwendet in: {2}</target>
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'"default"-Ausdruck kann vereinfacht werden</target>
+        <target state="translated">"default"-Ausdruck kann vereinfacht werden</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">

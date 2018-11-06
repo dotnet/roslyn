@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Place_members_in_object_initializers_on_new_line">
         <source>Place members in object initializers on new line</source>
-        <target state="translated">Elemente in Objektinitialisierern in neue Zeile setzen</target>
+        <target state="translated">Member in Objektinitialisierern in neue Zeile setzen</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
@@ -569,12 +569,12 @@
       </trans-unit>
       <trans-unit id="this_preferences_colon">
         <source>'this.' preferences:</source>
-        <target state="translated">'this.-Einstellungen:</target>
+        <target state="translated">this.-Einstellungen:</target>
         <note />
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
-        <target state="translated">'var-Einstellungen:</target>
+        <target state="translated">var-Einstellungen:</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="null_checking_colon">
         <source>'null' checking:</source>
-        <target state="translated">'NULL-Überprüfung:</target>
+        <target state="translated">NULL-Überprüfung:</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_throw_expression">
