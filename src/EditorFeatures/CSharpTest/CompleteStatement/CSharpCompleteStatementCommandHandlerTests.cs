@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y)");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x, y)");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -114,9 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x, y
+            var test = ClassC.MethodM(x, y;$$
 
-            int z = 4);$$;
+            int z = 4;
         }
     }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);;$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -194,7 +194,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x, y.ToString())");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x, y.ToString())");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -287,7 +287,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$));");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());;$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -307,7 +307,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x.ToString(), y)");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x.ToString(), y)");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -347,7 +347,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);;$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -398,9 +398,9 @@ var test = ClassC.MethodM(
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x.ToString(, y
+            var test = ClassC.MethodM(x.ToString(;$$, y
 
-            int z = 4));$$;
+            int z = 4;
         }
     }
 
@@ -427,9 +427,9 @@ var test = ClassC.MethodM(
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x.ToString(, y)
+            var test = ClassC.MethodM(x.ToString(;$$, y)
 
-            int z = 4);$$;
+            int z = 4;
         }
     }
 
@@ -456,9 +456,9 @@ var test = ClassC.MethodM(
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x.ToString(), y
+            var test = ClassC.MethodM(x.ToString(;$$), y
 
-            int z = 4);$$;
+            int z = 4;
         }
     }
 
@@ -482,7 +482,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM($$x[0], x[1])");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(;$$x[0], x[1])");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -502,7 +502,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[$$0], x[1])");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[;$$0], x[1])");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -552,7 +552,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[$$1])");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]);$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[;$$1])");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -601,9 +601,9 @@ var test = ClassC.MethodM(
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x[0], x[1
+            var test = ClassC.MethodM(x[0], x[1;$$
 
-            int z = 4]);$$;
+            int z = 4;
         }
     }
 
@@ -631,9 +631,9 @@ var test = ClassC.MethodM(
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x[0], x[1])
+            var test = ClassC.MethodM(x[0], x[1];$$
 
-            int z = 4);$$;
+            int z = 4;
         }
     }
 
@@ -662,9 +662,9 @@ var test = ClassC.MethodM(
             int x = 1;
             int y = 2;
             int[] a = { 1,2 }
-            var test = ClassC.MethodM(x[0], x[1)
+            var test = ClassC.MethodM(x[0], x[1);$$
 
-            int z = 4]);$$;
+            int z = 4;
         }
     }
 
@@ -742,8 +742,8 @@ class C
 @"
 class C
 {
-    int i = Min(2,3
-    int j = 5);$$;
+    int i = Min(2;$$,3
+    int j = 5;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -786,8 +786,8 @@ class C
 @"
 class C
 {
-    int i = Min(Max(4,5,3)
-    int j = 5);$$;
+    int i = Min(Max(4,5;$$,3)
+    int j = 5;
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1366,7 +1366,7 @@ class C
 {
     static void Main(string[] args)
     {
-        string s = ""abcdefghij""
+        string s = ""abcdefghij"";
         for (int i = s.IndexOf(""bcd""$$) i < 10; i++)
 ";
 
@@ -1376,8 +1376,8 @@ class C
 {
     static void Main(string[] args)
     {
-        string s = ""abcdefghij""
-        for (int i = s.IndexOf(""bcd"");$$ i < 10; i++)
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd"";$$) i < 10; i++)
 ";
 
             VerifyTypingSemicolon(code, expected);
@@ -1675,7 +1675,7 @@ class C
 {
     static void Main(string[] args)
     {
-        Goo f = new Goo { i = 0, s = ""abc"" };$$
+        Goo f = new Goo { i =$$ 0, s = ""abc"" };
     }
 }
 
@@ -2101,7 +2101,7 @@ class C
 {
     void Main()
     {
-        ; ;$$
+        ;;$$ 
     }
 }";
 
@@ -2491,7 +2491,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ;$$ClassC.MethodM(x,y);");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x,y);;$$");
 
             VerifyTypingSemicolon(code, expected);
         }
