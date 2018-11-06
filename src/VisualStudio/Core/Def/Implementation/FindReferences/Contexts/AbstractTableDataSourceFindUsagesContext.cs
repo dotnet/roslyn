@@ -280,7 +280,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult);
+                    guid, mappedDocumentSpan.Value, excerptResult,
+                    AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
             private async Task<ExcerptResult> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)

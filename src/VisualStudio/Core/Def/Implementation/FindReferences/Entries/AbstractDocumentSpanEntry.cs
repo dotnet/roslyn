@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames.ProjectGuid:
                         return _boxedProjectGuid;
                     case StandardTableKeyNames.Text:
-                        return _lineText.ToString();
+                        return _lineText.ToString().Trim();
                 }
 
                 return null;

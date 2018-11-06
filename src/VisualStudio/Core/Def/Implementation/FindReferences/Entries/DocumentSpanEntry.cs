@@ -40,12 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 string documentName,
                 Guid projectGuid,
                 MappedSpanResult mappedSpanResult,
-                ExcerptResult excerptResult)
+                ExcerptResult excerptResult,
+                SourceText lineText)
                 : base(context,
                       definitionBucket,
                       documentName,
                       projectGuid,
-                      GetLineContainingPosition(excerptResult.Content, excerptResult.MappedSpan.Start),
+                      lineText,
                       mappedSpanResult)
             {
                 _spanKind = spanKind;
