@@ -789,21 +789,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         [WorkItem(26305, "https://github.com/dotnet/roslyn/issues/26305")]
-        public void WithChangesOverlap()
+        public void WithChangesDeleteOverlap()
         {
             var sourceText = SourceText.From("Hello World");
 
             var changedText = sourceText
-                .WithChanges(new TextChange(TextSpan.FromBounds(5, 6), ""))
-                .WithChanges(new TextChange(TextSpan.FromBounds(5, 5), "_"))
-                .WithChanges(new TextChange(TextSpan.FromBounds(5, 5), "+"));
+                .WithChanges(new TextChange(new TextSpan(5, 1), "_")) // "Hello_World"
+                .WithChanges(new TextChange(new TextSpan(6, 0), "+")); // "Hello_+World"
 
             var changedText2 = sourceText.WithChanges(
-                new TextChange(TextSpan.FromBounds(5, 6), ""),
-                new TextChange(TextSpan.FromBounds(5, 5), "_"),
-                new TextChange(TextSpan.FromBounds(5, 5), "+"));
+                new TextChange(new TextSpan(5, 1), "_"), // "Hello_World"
+                new TextChange(new TextSpan(6, 0), "+")); // "Hello_+World"
+
+            var changedText1 = sourceText
+                .WithChanges(new TextChange(new TextSpan(6, 0), "+"))
+                .WithChanges(new TextChange(new TextSpan(5, 1), "_"));
 
             var changeList = changedText.GetTextChanges(sourceText);
+            Assert.Equal(1, changeList.Count);
+            Assert.Equal(new TextSpan(5, 1), changeList[0].Span);
+            Assert.Equal("_+", changeList[0].NewText);
+            Assert.Equal("Hello_+World", changedText.ToString());
         }
 
         [Fact]
