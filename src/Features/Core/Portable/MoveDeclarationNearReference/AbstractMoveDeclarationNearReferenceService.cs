@@ -31,28 +31,20 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         protected abstract SyntaxToken GetIdentifierOfVariableDeclarator(TVariableDeclaratorSyntax variableDeclarator);
         protected abstract Task<bool> TypesAreCompatibleAsync(Document document, ILocalSymbol localSymbol, TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode right, CancellationToken cancellationToken);
 
-        public async Task<bool> CanMoveDeclarationNearReferenceAsync(
-            Document document,
-            SyntaxNode node,
-            bool canMovePastOtherDeclarationStatements,
-            CancellationToken cancellationToken)
+        public async Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var state = await ComputeStateAsync(document, node, canMovePastOtherDeclarationStatements, cancellationToken).ConfigureAwait(false);
+            var state = await ComputeStateAsync(document, node, cancellationToken).ConfigureAwait(false);
             return state != null;
         }
 
-        private async Task<State> ComputeStateAsync(
-            Document document,
-            SyntaxNode node,
-            bool canMovePastOtherDeclarationStatements,
-            CancellationToken cancellationToken)
+        private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (!(node is TLocalDeclarationStatementSyntax statement))
             {
                 return null;
             }
 
-            var state = await State.GenerateAsync((TService)this, document, statement, canMovePastOtherDeclarationStatements, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateAsync((TService)this, document, statement, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
                 return null;
@@ -69,7 +61,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         public async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken)
         {
-            var state = await ComputeStateAsync(document, localDeclarationStatement, canMovePastOtherDeclarationStatements: true, cancellationToken);
+            var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken);
             if (state == null)
             {
                 return document;

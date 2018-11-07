@@ -60,23 +60,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         public abstract bool AnalyzeUnreachableBlocks { get; }
 
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose()
         {
-            if (!disposedValue)
-            {
-                disposedValue = true;
-            }
         }
-
-        // This code added to correctly implement the disposable pattern.
-        void IDisposable.Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-        }
-        #endregion
     }
 }

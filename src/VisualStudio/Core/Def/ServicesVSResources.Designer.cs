@@ -1624,11 +1624,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to None.
+        ///   Looks up a localized string similar to Non-public methods.
         /// </summary>
-        internal static string None {
+        internal static string Non_public_methods {
             get {
-                return ResourceManager.GetString("None", resourceCulture);
+                return ResourceManager.GetString("Non_public_methods", resourceCulture);
             }
         }
         
@@ -2061,15 +2061,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Preview_unavailable {
             get {
                 return ResourceManager.GetString("Preview_unavailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private methods.
-        /// </summary>
-        internal static string Private_methods {
-            get {
-                return ResourceManager.GetString("Private_methods", resourceCulture);
             }
         }
         
@@ -2797,6 +2788,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused value is explicitly assigned to an unused local.
+        /// </summary>
+        internal static string Unused_value_is_explicitly_assigned_to_an_unused_local {
+            get {
+                return ResourceManager.GetString("Unused_value_is_explicitly_assigned_to_an_unused_local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unused value is explicitly assigned to discard.
+        /// </summary>
+        internal static string Unused_value_is_explicitly_assigned_to_discard {
+            get {
+                return ResourceManager.GetString("Unused_value_is_explicitly_assigned_to_discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for accessors.
         /// </summary>
         internal static string Use_expression_body_for_accessors {
@@ -2865,6 +2874,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Validating_breakpoint_location {
             get {
                 return ResourceManager.GetString("Validating_breakpoint_location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value assigned here is never used.
+        /// </summary>
+        internal static string Value_assigned_here_is_never_used {
+            get {
+                return ResourceManager.GetString("Value_assigned_here_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value returned by invocation is implicitly ignored.
+        /// </summary>
+        internal static string Value_returned_by_invocation_is_implicitly_ignored {
+            get {
+                return ResourceManager.GetString("Value_returned_by_invocation_is_implicitly_ignored", resourceCulture);
             }
         }
         

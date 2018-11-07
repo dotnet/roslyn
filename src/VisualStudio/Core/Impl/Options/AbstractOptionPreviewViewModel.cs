@@ -247,15 +247,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             var unusedParameterPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(ServicesVSResources.None, isChecked: false),
-                new CodeStylePreference(ServicesVSResources.Private_methods, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.Non_public_methods, isChecked: false),
                 new CodeStylePreference(ServicesVSResources.All_methods, isChecked: true),
             };
 
             var enumValues = new[]
             {
-                UnusedParametersPreference.None,
-                UnusedParametersPreference.PrivateMethods,
+                UnusedParametersPreference.NonPublicMethods,
                 UnusedParametersPreference.AllMethods
             };
 

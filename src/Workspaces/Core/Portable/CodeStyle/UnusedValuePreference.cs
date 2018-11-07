@@ -7,9 +7,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     internal enum UnusedValuePreference
     {
-        // No preference, unused values are not flagged.
-        None = 0,
-
         // Unused values must be explicitly assigned to a local variable
         // that is never read/used.
         UnusedLocalVariable = 1,

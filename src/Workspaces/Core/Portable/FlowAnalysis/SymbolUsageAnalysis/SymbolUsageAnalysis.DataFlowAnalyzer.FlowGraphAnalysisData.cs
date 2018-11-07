@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     _lambdaTargetsToAccessingCfgMap = lambdaTargetsToAccessingCfgMap;
 
                     _lValueFlowCapturesMap = PooledDictionary<CaptureId, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
-                    LValueFlowCapturesInGraph = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(controlFlowGraph);
+                    LValueFlowCapturesInGraph = LValueFlowCapturesProvider.CreateLValueFlowCaptures(controlFlowGraph);
                     _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
 

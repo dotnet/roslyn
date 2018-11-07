@@ -40,13 +40,16 @@ namespace Microsoft.CodeAnalysis
             | nameof(x)       |      |       |             |             |       ✔️        | ️
             | sizeof(x)       |      |       |             |             |       ✔️        | ️
             | typeof(x)       |      |       |             |             |       ✔️        | ️
+            | out var x       |      |  ✔️   |             |             |                 | ️
+            | case X x:       |      |  ✔️   |             |             |                 | ️
+            | obj is X x      |  ✔️  |  ✔️   |             |             |                 |
 
             */
             if (operation is ILocalReferenceOperation localReference &&
                 localReference.IsDeclaration &&
                 !localReference.IsImplicit) // Workaround for https://github.com/dotnet/roslyn/issues/30753
             {
-                // Declaration expression.
+                // Declaration expression is a definition (write) for the declared local.
                 return ValueUsageInfo.Write;
             }
             else if (operation is IDeclarationPatternOperation)
@@ -54,13 +57,26 @@ namespace Microsoft.CodeAnalysis
                 switch (operation.Parent)
                 {
                     case IPatternCaseClauseOperation _:
+                        // A declaration pattern within a pattern case clause is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      switch (obj)
+                        //      {
+                        //          case X x:
+                        //
                         return ValueUsageInfo.Write;
 
                     case IIsPatternOperation _:
+                        // A declaration pattern within an is pattern is a
+                        // both a write and read for the declared local.
+                        // For example, 'x' is both written and read in the following expression:
+                        //      if (obj is X x)
+                        //
                         return ValueUsageInfo.ReadWrite;
 
                     default:
                         Debug.Fail("Unhandled declaration pattern context");
+                        
                         // Conservatively assume read/write.
                         return ValueUsageInfo.ReadWrite;
                 }
@@ -155,24 +171,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
-        }
-
-        public static ILocalFunctionOperation GetLocalFunctionOperation(this IOperation rootOperation, IMethodSymbol localFunction)
-        {
-            Debug.Assert(localFunction.IsLocalFunction());
-            foreach (var operation in rootOperation.DescendantsAndSelf())
-            {
-                if (operation.Kind == OperationKind.LocalFunction)
-                {
-                    var localFunctionOperation = (ILocalFunctionOperation)operation;
-                    if (localFunctionOperation.Symbol == localFunction)
-                    {
-                        return localFunctionOperation;
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

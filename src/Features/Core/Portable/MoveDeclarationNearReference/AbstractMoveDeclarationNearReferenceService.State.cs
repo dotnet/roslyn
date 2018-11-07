@@ -33,11 +33,10 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 TService service,
                 Document document,
                 TLocalDeclarationStatementSyntax statement,
-                bool canMovePastOtherDeclarationStatements,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, statement, canMovePastOtherDeclarationStatements, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, statement, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 TService service,
                 Document document,
                 TLocalDeclarationStatementSyntax node,
-                bool canMovePastOtherDeclarationStatements,
                 CancellationToken cancellationToken)
             {
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
-                if (!canMovePastOtherDeclarationStatements)
+                if (syntaxFacts.GetInitializerOfVariableDeclarator(this.VariableDeclarator) != null)
                 {
                     var originalIndexInBlock = this.InnermostBlockStatements.IndexOf(this.DeclarationStatement);
                     var firstStatementIndexAffectedInBlock = this.InnermostBlockStatements.IndexOf(this.FirstStatementAffectedInInnermostBlock);

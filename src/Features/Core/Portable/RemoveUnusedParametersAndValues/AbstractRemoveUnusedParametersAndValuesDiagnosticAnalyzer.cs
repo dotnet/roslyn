@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly DiagnosticDescriptor s_unusedParameterRule = CreateDescriptorWithId(
             IDEDiagnosticIds.UnusedParameterDiagnosticId,
             new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0_1), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+            new LocalizableResourceString(nameof(FeaturesResources.Remove_unused_parameter_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
             isUnneccessary: true);
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
@@ -171,18 +171,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 return false;
             }
 
-            var unusedParametersPreference = optionSet.GetOption(CodeStyleOptions.UnusedParameters, language).Value;
+            var unusedParametersOption = optionSet.GetOption(CodeStyleOptions.UnusedParameters, language);
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(UnusedValueExpressionStatementOption);
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(UnusedValueAssignmentOption);
-            if (unusedParametersPreference == UnusedParametersPreference.None &&
-                unusedValueExpressionStatementPreference == UnusedValuePreference.None &&
-                unusedValueAssignmentPreference == UnusedValuePreference.None)
+            if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
+                unusedValueExpressionStatementSeverity == ReportDiagnostic.Suppress &&
+                unusedValueAssignmentSeverity == ReportDiagnostic.Suppress)
             {
                 return false;
             }
 
             options = new Options(unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity,
-                unusedValueAssignmentPreference, unusedValueAssignmentSeverity, unusedParametersPreference);
+                                  unusedValueAssignmentPreference, unusedValueAssignmentSeverity,
+                                  unusedParametersOption.Value, unusedParametersOption.Notification.Severity);
             return true;
 
             // Local functions.
@@ -190,43 +191,48 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 Option<CodeStyleOption<UnusedValuePreference>> codeStyleOption)
             {
                 var option = optionSet.GetOption(codeStyleOption);
-                var preference = option?.Value ?? UnusedValuePreference.None;
-                if (preference == UnusedValuePreference.None ||
+                var preferenceOpt = option?.Value;
+                if (preferenceOpt == null ||
                     option.Notification.Severity == ReportDiagnostic.Suppress)
                 {
-                    return (UnusedValuePreference.None, ReportDiagnostic.Suppress);
+                    // Prefer does not matter as the severity is suppressed - we will never report this diagnostic.
+                    return (default(UnusedValuePreference), ReportDiagnostic.Suppress);
                 }
 
                 // If language or language version does not support discard, fall back to prefer unused local variable.
-                if (preference == UnusedValuePreference.DiscardVariable &&
+                if (preferenceOpt.Value == UnusedValuePreference.DiscardVariable &&
                     !SupportsDiscard(syntaxTree))
                 {
-                    preference = UnusedValuePreference.UnusedLocalVariable;
+                    preferenceOpt = UnusedValuePreference.UnusedLocalVariable;
                 }
 
-                return (preference, option.Notification.Severity);
+                return (preferenceOpt.Value, option.Notification.Severity);
             }
         }
 
         private sealed class Options
         {
             private readonly UnusedParametersPreference _unusedParametersPreference;
+            private readonly ReportDiagnostic _unusedParametersSeverity;
+
             public Options(
                 UnusedValuePreference unusedValueExpressionStatementPreference,
                 ReportDiagnostic unusedValueExpressionStatementSeverity,
                 UnusedValuePreference unusedValueAssignmentPreference,
                 ReportDiagnostic unusedValueAssignmentSeverity,
-                UnusedParametersPreference unusedParametersPreference)
+                UnusedParametersPreference unusedParametersPreference,
+                ReportDiagnostic unusedParametersSeverity)
             {
-                Debug.Assert(unusedValueExpressionStatementPreference != UnusedValuePreference.None ||
-                             unusedValueAssignmentPreference != UnusedValuePreference.None ||
-                             unusedParametersPreference != UnusedParametersPreference.None);
+                Debug.Assert(unusedValueExpressionStatementSeverity != ReportDiagnostic.Suppress ||
+                             unusedValueAssignmentSeverity != ReportDiagnostic.Suppress ||
+                             unusedParametersSeverity != ReportDiagnostic.Suppress);
 
                 UnusedValueExpressionStatementPreference = unusedValueExpressionStatementPreference;
                 UnusedValueExpressionStatementSeverity = unusedValueExpressionStatementSeverity;
                 UnusedValueAssignmentPreference = unusedValueAssignmentPreference;
                 UnusedValueAssignmentSeverity = unusedValueAssignmentSeverity;
                 _unusedParametersPreference = unusedParametersPreference;
+                _unusedParametersSeverity = unusedParametersSeverity;
             }
 
             public UnusedValuePreference UnusedValueExpressionStatementPreference { get; }
@@ -234,51 +240,60 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             public UnusedValuePreference UnusedValueAssignmentPreference { get; }
             public ReportDiagnostic UnusedValueAssignmentSeverity { get; }
             public bool IsComputingUnusedParams(ISymbol symbol)
-                => ShouldReportUnusedParameters(symbol, _unusedParametersPreference);
+                => ShouldReportUnusedParameters(symbol, _unusedParametersPreference, _unusedParametersSeverity);
         }
 
-        public static bool ShouldReportUnusedParameters(ISymbol symbol, UnusedParametersPreference unusedParametersPreference)
+        public static bool ShouldReportUnusedParameters(
+            ISymbol symbol,
+            UnusedParametersPreference unusedParametersPreference,
+            ReportDiagnostic unusedParametersSeverity)
         {
+            if (unusedParametersSeverity == ReportDiagnostic.Suppress)
+            {
+                return false;
+            }
+
             switch (unusedParametersPreference)
             {
-                case UnusedParametersPreference.None:
-                    return false;
                 case UnusedParametersPreference.AllMethods:
                     return true;
-                case UnusedParametersPreference.PrivateMethods:
-                    return symbol.DeclaredAccessibility == Accessibility.Private;
+                case UnusedParametersPreference.NonPublicMethods:
+                    return !symbol.HasPublicResultantVisibility();
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
         }
 
-        public static UnusedValuePreference GetUnusedValuePreference(Diagnostic diagnostic)
+        public static bool TryGetUnusedValuePreference(Diagnostic diagnostic, out UnusedValuePreference preference)
         {
             if (diagnostic.Properties != null &&
-                diagnostic.Properties.TryGetValue(UnusedValuePreferenceKey, out var preference))
+                diagnostic.Properties.TryGetValue(UnusedValuePreferenceKey, out var preferenceString))
             {
-                switch (preference)
+                switch (preferenceString)
                 {
                     case nameof(UnusedValuePreference.DiscardVariable):
-                        return UnusedValuePreference.DiscardVariable;
+                        preference = UnusedValuePreference.DiscardVariable;
+                        return true;
 
                     case nameof(UnusedValuePreference.UnusedLocalVariable):
-                        return UnusedValuePreference.UnusedLocalVariable;
+                        preference = UnusedValuePreference.UnusedLocalVariable;
+                        return true;
                 }
             }
 
-            return UnusedValuePreference.None;
+            preference = default;
+            return false;
         }
 
         public static bool GetIsUnusedLocalDiagnostic(Diagnostic diagnostic)
         {
-            Debug.Assert(GetUnusedValuePreference(diagnostic) != UnusedValuePreference.None);
+            Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsUnusedLocalAssignmentKey);
         }
 
         public static bool GetIsRemovableAssignmentDiagnostic(Diagnostic diagnostic)
         {
-            Debug.Assert(GetUnusedValuePreference(diagnostic) != UnusedValuePreference.None);
+            Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
     }

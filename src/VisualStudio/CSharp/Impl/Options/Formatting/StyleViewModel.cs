@@ -1172,18 +1172,7 @@ class C
 
         #region unused parameters
 
-        private static readonly string s_avoidUnusedParametersNever = $@"
-class C
-{{
-//[
-    void M(int unused)
-    {{
-    }}
-//]
-}}
-";
-
-        private static readonly string s_avoidUnusedParametersPrivateMethods = $@"
+        private static readonly string s_avoidUnusedParametersNonPublicMethods = $@"
 class C1
 {{
 //[
@@ -1197,7 +1186,7 @@ class C2
 {{
 //[
     // {ServicesVSResources.Over_colon}
-    private void M(int unused)
+    private void M(int param)
     {{
     }}
 //]
@@ -1218,7 +1207,7 @@ class C2
 {{
 //[
     // {ServicesVSResources.Over_colon}
-    public void M(int unused)
+    public void M(int param)
     {{
     }}
 //]
@@ -1228,22 +1217,6 @@ class C2
 
         #region unused values
 
-        private static readonly string s_avoidUnusedValueAssignmentNever = $@"
-class C
-{{
-    int M()
-    {{
-//[
-        int x = Computation();  // Value assigned here to 'x' is never used.
-        x = 1;
-//]
-        return x;
-    }}
-
-    int Computation() => 0;
-}}
-";
-
         private static readonly string s_avoidUnusedValueAssignmentUnusedLocal = $@"
 class C
 {{
@@ -1251,7 +1224,7 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        int unused = Computation();  // Unused value is explicitly assigned to an unused local.
+        int unused = Computation();  // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
         int x = 1;
 //]
         return x;
@@ -1265,7 +1238,7 @@ class C2
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        int x = Computation();  // Value assigned here to 'x' is never used.
+        int x = Computation();  // {ServicesVSResources.Value_assigned_here_is_never_used}
         x = 1;
 //]
         return x;
@@ -1282,7 +1255,7 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        _ = Computation();      // Unused value is explicitly assigned to discard '_'.
+        _ = Computation();      // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}
         int x = 1;
 //]
         return x;
@@ -1296,24 +1269,10 @@ class C2
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        int x = Computation();  // Value assigned here to 'x' is never used.
+        int x = Computation();  // {ServicesVSResources.Value_assigned_here_is_never_used}
         x = 1;
 //]
         return x;
-    }}
-
-    int Computation() => 0;
-}}
-";
-
-        private static readonly string s_avoidUnusedValueExpressionStatementNever = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        Computation();  // Value returned by 'Computation()' is implicitly ignored.
-//]
     }}
 
     int Computation() => 0;
@@ -1327,7 +1286,7 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        int unused = Computation();  // Unused value is explicitly assigned to an unused local.
+        int unused = Computation();  //  {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
 //]
     }}
 
@@ -1339,7 +1298,7 @@ class C2
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        Computation();               // Value returned by 'Computation()' is implicitly ignored.
+        Computation();               // {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
 //]
     }}
 
@@ -1354,7 +1313,7 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        _ = Computation();      // Unused value is explicitly assigned to discard '_'.
+        _ = Computation();      // {ServicesVSResources.Unused_value_is_explicitly_assigned_to_discard}
 //]
     }}
 
@@ -1366,7 +1325,7 @@ class C2
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        Computation();          // Value returned by 'Computation()' is implicitly ignored.
+        Computation();          // {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
 //]
     }}
 
@@ -1558,14 +1517,12 @@ class C2
         {
             var unusedValuePreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Never, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Unused_local, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Discard, isChecked: true),
             };
 
             var enumValues = new[]
             {
-                UnusedValuePreference.None,
                 UnusedValuePreference.UnusedLocalVariable,
                 UnusedValuePreference.DiscardVariable
             };
@@ -1574,7 +1531,7 @@ class C2
                 CSharpCodeStyleOptions.UnusedValueAssignment,
                 ServicesVSResources.Avoid_unused_value_assignments,
                 enumValues,
-                new[] { s_avoidUnusedValueAssignmentNever, s_avoidUnusedValueAssignmentUnusedLocal, s_avoidUnusedValueAssignmentDiscard },
+                new[] { s_avoidUnusedValueAssignmentUnusedLocal, s_avoidUnusedValueAssignmentDiscard },
                 this,
                 optionSet,
                 expressionPreferencesGroupTitle,
@@ -1584,7 +1541,7 @@ class C2
                 CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                 ServicesVSResources.Avoid_expression_statements_that_implicitly_ignore_value,
                 enumValues,
-                new[] { s_avoidUnusedValueExpressionStatementNever, s_avoidUnusedValueExpressionStatementUnusedLocal, s_avoidUnusedValueExpressionStatementDiscard },
+                new[] { s_avoidUnusedValueExpressionStatementUnusedLocal, s_avoidUnusedValueExpressionStatementDiscard },
                 this,
                 optionSet,
                 expressionPreferencesGroupTitle,
@@ -1595,8 +1552,7 @@ class C2
         {
             var examples = new[]
             {
-                s_avoidUnusedParametersNever,
-                s_avoidUnusedParametersPrivateMethods,
+                s_avoidUnusedParametersNonPublicMethods,
                 s_avoidUnusedParametersAllMethods
             };
 

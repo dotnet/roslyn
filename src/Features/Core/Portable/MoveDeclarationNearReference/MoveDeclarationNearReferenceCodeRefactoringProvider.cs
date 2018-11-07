@@ -61,14 +61,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     int y = 0;
                     Console.WriteLine(x + y);
 #endif
-            // Each of these declarations will want to 'move' down to the WriteLine
-            // statement and we don't want to keep offering the refactoring.  Note: this
-            // solution is overly aggressive.  Technically if 'y' weren't referenced in
-            // Console.Writeline, then it might be a good idea to move the 'x'.  But this
-            // gives good enough behavior most of the time.
-            var canMovePastOtherDeclarationStatements = false;
-
-            if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, canMovePastOtherDeclarationStatements, cancellationToken))
+            if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, cancellationToken))
             {
                 return;
             }

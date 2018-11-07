@@ -88,12 +88,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 private void AnalyzeExpressionStatement(OperationAnalysisContext context)
                 {
-                    if (_options.UnusedValueExpressionStatementPreference == UnusedValuePreference.None)
+                    if (_options.UnusedValueExpressionStatementSeverity == ReportDiagnostic.Suppress)
                     {
                         return;
                     }
 
-                    Debug.Assert(_options.UnusedValueExpressionStatementSeverity != ReportDiagnostic.Suppress);
                     var expressionStatement = (IExpressionStatementOperation)context.Operation;
                     var value = expressionStatement.Operation;
 
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     // Bail out if we are neither computing unused parameters nor unused value assignments.
                     var isComputingUnusedParams = _options.IsComputingUnusedParams(context.OwningSymbol);
-                    if (_options.UnusedValueAssignmentPreference == UnusedValuePreference.None &&
+                    if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress &&
                         !isComputingUnusedParams)
                     {
                         return;
@@ -357,12 +356,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         out ImmutableDictionary<string, string> properties)
                     {
                         properties = null;
-                        if (_options.UnusedValueAssignmentPreference == UnusedValuePreference.None)
+                        if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress)
                         {
                             return false;
                         }
-
-                        Debug.Assert(_options.UnusedValueAssignmentSeverity != ReportDiagnostic.Suppress);
 
                         // Flag to indicate if the symbol has no reads.
                         var isUnusedLocalAssignment = symbol is ILocalSymbol localSymbol &&

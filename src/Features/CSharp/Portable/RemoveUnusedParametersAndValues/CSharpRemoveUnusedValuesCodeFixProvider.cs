@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
             ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
     {
-        protected override BlockSyntax GenerateBlock(IEnumerable<StatementSyntax> statements)
+        protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
             => SyntaxFactory.Block(statements);
 
         protected override SyntaxToken GetForEachStatementIdentifier(ForEachStatementSyntax node)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
         }
 
-        protected override void InsertAtStartOfSwitchCaseBlock(SwitchSectionSyntax switchCaseBlock, SyntaxEditor editor, LocalDeclarationStatementSyntax declarationStatement)
+        protected override void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(SwitchSectionSyntax switchCaseBlock, SyntaxEditor editor, LocalDeclarationStatementSyntax declarationStatement)
         {
             var firstStatement = switchCaseBlock.Statements.FirstOrDefault();
             if (firstStatement != null)

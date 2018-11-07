@@ -162,10 +162,25 @@
         <target state="new">Remove unused parameter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_1">
-        <source>Remove unused parameter '{0}'{1}</source>
-        <target state="new">Remove unused parameter '{0}'{1}</target>
-        <note>String {1} is an optional addition to this message, see comma_its_initial_value_is_never_used</note>
+      <trans-unit id="Remove_unused_parameter_0">
+        <source>Remove unused parameter '{0}'</source>
+        <target state="new">Remove unused parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
+        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
+        <source>Remove unused parameter '{0}', its initial value is never used</source>
+        <target state="new">Remove unused parameter '{0}', its initial value is never used</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
@@ -232,11 +247,6 @@
         <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
-      <trans-unit id="comma_its_initial_value_is_never_used">
-        <source>, its initial value is never used</source>
-        <target state="new">, its initial value is never used</target>
-        <note>Optional addition to Remove_unused_parameter_0_1</note>
-      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">surcharge générique</target>
@@ -246,11 +256,6 @@
         <source>generic overloads</source>
         <target state="translated">surcharges génériques</target>
         <note />
-      </trans-unit>
-      <trans-unit id="if_it_is_not_part_of_a_shipped_public_API">
-        <source> if it is not part of a shipped public API</source>
-        <target state="new"> if it is not part of a shipped public API</target>
-        <note>Optional addition to Remove_unused_parameter_0_1</note>
       </trans-unit>
       <trans-unit id="overload">
         <source>overload</source>

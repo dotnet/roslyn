@@ -10,17 +10,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// Helper class to detect <see cref="IFlowCaptureOperation"/>s that are l-value captures.
+    /// L-value captures are essentially captures of a symbol's location/address.
+    /// Corresponding <see cref="IFlowCaptureReferenceOperation"/>s which share the same
+    /// <see cref="CaptureId"/> as this flow capture, dereferences and writes to this locaion
+    /// subsequently in the flow graph.
+    /// For example, consider the below code:
+    ///     a[i] = x ?? a[j];
+    /// The control flow graph contains an initial flow capture of "a[i]" to capture the l-value
+    /// of this array element:
+    ///     FC0 (a[i])
+    /// Then it evaluates the right hand side, which can have different
+    /// values on different control flow paths, and the resultant value is then written
+    /// to the captured location:
+    ///     FCR0 = result
     /// </summary>
+    /// <remarks>
+    /// NOTE: This type is a temporary workaround for https://github.com/dotnet/roslyn/issues/31007
+    /// and it can be deleted once that feature is implemented.
+    /// </remarks>
     internal static class LValueFlowCapturesProvider
     {
-        private static readonly ConditionalWeakTable<ControlFlowGraph, ImmutableHashSet<CaptureId>> s_lValueFlowCapturesCache =
-            new ConditionalWeakTable<ControlFlowGraph, ImmutableHashSet<CaptureId>>();
-
-        public static ImmutableHashSet<CaptureId> GetOrCreateLValueFlowCaptures(ControlFlowGraph cfg)
-            => s_lValueFlowCapturesCache.GetValue(cfg, CreateLValueFlowCaptures);
-
-        private static ImmutableHashSet<CaptureId> CreateLValueFlowCaptures(ControlFlowGraph cfg)
+        public static ImmutableHashSet<CaptureId> CreateLValueFlowCaptures(ControlFlowGraph cfg)
         {
+            // This method identifies flow capture reference operations that are target of an assignment
+            // and marks them as lvalue flow captures.
+            // Note that currently the control flow graph does not contain flow captures
+            // that are r-value captures at some point and l-values captures at other point in
+            // the flow graph. The debug only asserts in this method ensure this invariant.
+            // If these asserts fire, we should adjust this algorithm.
+
             ImmutableHashSet<CaptureId>.Builder lvalueFlowCaptureIdBuilder = null;
 #if DEBUG
             var rvalueFlowCaptureIds = new HashSet<CaptureId>();

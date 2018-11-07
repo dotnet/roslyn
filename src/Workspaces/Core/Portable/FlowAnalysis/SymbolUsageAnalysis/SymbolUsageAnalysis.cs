@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
@@ -37,7 +39,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             // Local functions.
             BasicBlockAnalysisData AnalyzeLocalFunction(IMethodSymbol localFunction)
             {
-                var localFunctionOperation = rootOperation.GetLocalFunctionOperation(localFunction);
+                var localFunctionOperation = rootOperation.Descendants()
+                    .FirstOrDefault(o => (o as ILocalFunctionOperation)?.Symbol == localFunction);
 
                 // Can likely be null for broken code.
                 if (localFunctionOperation != null)

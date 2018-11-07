@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
             }
 
-            protected override void Dispose(bool disposing)
+            public override void Dispose()
                 => _analysisData.Dispose();
 
             private static BasicBlockAnalysisData AnalyzeLocalFunctionOrLambdaInvocation(

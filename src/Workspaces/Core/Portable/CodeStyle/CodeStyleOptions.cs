@@ -209,17 +209,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
 
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
-            new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.None, NotificationOption.Silent);
+            new CodeStyleOption<UnusedParametersPreference>(default(UnusedParametersPreference), NotificationOption.None);
+        private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
+            new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion);
 
         internal static readonly PerLanguageOption<CodeStyleOption<UnusedParametersPreference>> UnusedParameters = CreateOption(
             CodeStyleOptionGroups.Parameter,
             nameof(UnusedParameters),
-            defaultValue: new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion),
+            defaultValue: s_preferAllMethodsUnusedParametersPreference,
             storageLocations: new OptionStorageLocation[]{
                 new EditorConfigStorageLocation<CodeStyleOption<UnusedParametersPreference>>(
                         "dotnet_style_unused_parameters",
                         ParseUnusedParametersPreference,
-                        GetUnusedParametersPreferenceEditorConfigString),
+                        o => GetUnusedParametersPreferenceEditorConfigString(o, s_preferAllMethodsUnusedParametersPreference.Value)),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference") });
 
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
@@ -340,8 +342,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
             new BidirectionalMap<string, UnusedParametersPreference>(new[]
             {
-                KeyValuePairUtil.Create("none", UnusedParametersPreference.None),
-                KeyValuePairUtil.Create("private", UnusedParametersPreference.PrivateMethods),
+                KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
@@ -385,10 +386,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return s_preferNoneUnusedParametersPreference;
         }
 
-        private static string GetUnusedParametersPreferenceEditorConfigString(CodeStyleOption<UnusedParametersPreference> option)
+        private static string GetUnusedParametersPreferenceEditorConfigString(CodeStyleOption<UnusedParametersPreference> option, UnusedParametersPreference defaultPreference)
         {
             Debug.Assert(s_unusedParametersPreferenceMap.ContainsValue(option.Value));
-            var value = s_unusedParametersPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedParametersPreferenceMap.GetKeyOrDefault(UnusedParametersPreference.None);
+            var value = s_unusedParametersPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedParametersPreferenceMap.GetKeyOrDefault(defaultPreference);
             return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
         }
     }

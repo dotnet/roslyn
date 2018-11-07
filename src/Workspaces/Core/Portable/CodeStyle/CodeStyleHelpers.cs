@@ -128,12 +128,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption<UnusedValuePreference> s_preferNoneUnusedValuePreference =
-            new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.None, NotificationOption.Silent);
+            new CodeStyleOption<UnusedValuePreference>(default(UnusedValuePreference), NotificationOption.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
             new BidirectionalMap<string, UnusedValuePreference>(new[]
             {
-                KeyValuePairUtil.Create("none", UnusedValuePreference.None),
                 KeyValuePairUtil.Create("discard_variable", UnusedValuePreference.DiscardVariable),
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
             });
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     new EditorConfigStorageLocation<CodeStyleOption<UnusedValuePreference>>(
                         editorConfigName,
                         s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
-                        GetUnusedExpressionAssignmentPreferenceEditorConfigString),
+                        o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue.Value)),
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference")});
 
         private static Optional<CodeStyleOption<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
@@ -172,10 +171,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return s_preferNoneUnusedValuePreference;
         }
 
-        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption<UnusedValuePreference> option)
+        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption<UnusedValuePreference> option, UnusedValuePreference defaultPreference)
         {
             Debug.Assert(s_unusedExpressionAssignmentPreferenceMap.ContainsValue(option.Value));
-            var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(UnusedValuePreference.None);
+            var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(defaultPreference);
             return option.Notification == null ? value : $"{value}:{option.Notification.ToEditorConfigString()}";
         }
     }

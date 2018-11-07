@@ -14,11 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ForEachBlockSyntax,
             CaseBlockSyntax, CaseClauseSyntax, CatchStatementSyntax, CatchBlockSyntax)
 
-        Protected Overrides Function GenerateBlock(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
+        Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
+            ' Unreachable code path as VB statements don't need to be wrapped in special BlockSyntax.
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Sub InsertAtStartOfSwitchCaseBlock(switchCaseBlock As CaseBlockSyntax, editor As SyntaxEditor, declarationStatement As LocalDeclarationStatementSyntax)
+        Protected Overrides Sub InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(switchCaseBlock As CaseBlockSyntax, editor As SyntaxEditor, declarationStatement As LocalDeclarationStatementSyntax)
+            ' VB does not support declarations in select case clause.
             Throw ExceptionUtilities.Unreachable
         End Sub
 

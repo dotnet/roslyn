@@ -78,18 +78,23 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         /// <summary>
         /// Wrap the given statements within a block statement.
+        /// Note this method is invoked when replacing a statement that is parented by a non-block statement syntax.
         /// </summary>
-        protected abstract TBlockSyntax GenerateBlock(IEnumerable<TStatementSyntax> statements);
+        protected abstract TBlockSyntax WrapWithBlockIfNecessary(IEnumerable<TStatementSyntax> statements);
 
         /// <summary>
         /// Insert the given declaration statement at the start of the given switch case block.
         /// </summary>
-        protected abstract void InsertAtStartOfSwitchCaseBlock(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
+        protected abstract void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(TSwitchCaseBlockSyntax switchCaseBlock, SyntaxEditor editor, TLocalDeclarationStatementSyntax declarationStatement);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
-            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostic);
+            if (!AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.TryGetUnusedValuePreference(diagnostic, out var preference))
+            {
+                return Task.CompletedTask;
+            }
+
             var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
 
             string title;
@@ -146,7 +151,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static string GetEquivalenceKey(Diagnostic diagnostic)
         {
-            var preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostic);
+            if (!AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.TryGetUnusedValuePreference(diagnostic, out var preference))
+            {
+                return string.Empty;
+            }
+
             var isRemovableAssignment = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic);
             return GetEquivalenceKey(preference, isRemovableAssignment);
         }
@@ -174,13 +183,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             out bool removeAssignments)
         {
             diagnosticId = diagnostics[0].Id;
-            preference = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostics[0]);
+            var success = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.TryGetUnusedValuePreference(diagnostics[0], out preference);
+            Debug.Assert(success);
             removeAssignments = AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostics[0]);
 #if DEBUG
             foreach (var diagnostic in diagnostics)
             {
                 Debug.Assert(diagnosticId == diagnostic.Id);
-                Debug.Assert(preference == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetUnusedValuePreference(diagnostic));
+                Debug.Assert(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.TryGetUnusedValuePreference(diagnostic, out var diagnosticPreference) &&
+                             diagnosticPreference == preference);
                 Debug.Assert(removeAssignments == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.GetIsRemovableAssignmentDiagnostic(diagnostic));
             }
 #endif
@@ -194,7 +205,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode root)
             => diagnostics.GroupBy(d => syntaxFacts.GetContainingMemberDeclaration(root, d.Location.SourceSpan.Start));
 
-        protected override async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // Track all the member declaration nodes that have diagnostics.
             // We will post process all these tracked nodes after applying the fix (see "PostProcessDocumentAsync" below in this source file).
@@ -203,59 +214,61 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var memberDeclarations = GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root).Select(g => g.Key);
             root = root.ReplaceNodes(memberDeclarations, computeReplacementNode: (_, n) => n.WithAdditionalAnnotations(s_memberAnnotation));
-            document = document.WithSyntaxRoot(root);
-            return await base.FixAllAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            return document.WithSyntaxRoot(root);
         }
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            document = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            // We compute the code fix in two passes:
-            //   1. The first pass groups the diagnostics to fix by containing member declaration and
-            //      computes and applies the core code fixes. Grouping is done to ensure we choose
-            //      the most appropriate name for new unused local declarations, which can clash
-            //      with existing local declarations in the method body.
-            //   2. Second pass (PostProcessDocumentAsync) performs additional syntax manipulations
-            //      for the fixes produced from from first pass:
-            //      a. Replace discard declarations, such as "var _ = M();" that conflict with newly added
-            //         discard assignments, with discard assignments of the form "_ = M();"
-            //      b. Move newly introduced local declaration statements closer to the local variable's
-            //         first reference.
+            var originalEditor = editor;
+            editor = new SyntaxEditor(root, editor.Generator);
 
-            // Get diagnostics grouped by member.
-            var diagnosticsGroupedByMember = GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root,
-                out var diagnosticId, out var preference, out var removeAssignments);
-            if (preference == UnusedValuePreference.None)
+            try
             {
-                return;
-            }
+                // We compute the code fix in two passes:
+                //   1. The first pass groups the diagnostics to fix by containing member declaration and
+                //      computes and applies the core code fixes. Grouping is done to ensure we choose
+                //      the most appropriate name for new unused local declarations, which can clash
+                //      with existing local declarations in the method body.
+                //   2. Second pass (PostProcessDocumentAsync) performs additional syntax manipulations
+                //      for the fixes produced from from first pass:
+                //      a. Replace discard declarations, such as "var _ = M();" that conflict with newly added
+                //         discard assignments, with discard assignments of the form "_ = M();"
+                //      b. Move newly introduced local declaration statements closer to the local variable's
+                //         first reference.
 
-            // First pass to compute and apply the core code fixes.
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
-            {
-                var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
-                using (var nameGenerator = new UniqueVariableNameGenerator(semanticModel, syntaxFacts))
+                // Get diagnostics grouped by member.
+                var diagnosticsGroupedByMember = GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root,
+                    out var diagnosticId, out var preference, out var removeAssignments);
+
+                // First pass to compute and apply the core code fixes.
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var diagnosticsToFix in diagnosticsGroupedByMember)
                 {
-                    FixAll(diagnosticId, orderedDiagnostics, semanticModel, root, preference,
-                        removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
+                    var orderedDiagnostics = diagnosticsToFix.OrderBy(d => d.Location.SourceSpan.Start);
+                    using (var nameGenerator = new UniqueVariableNameGenerator(semanticModel, syntaxFacts))
+                    {
+                        FixAll(diagnosticId, orderedDiagnostics, semanticModel, root, preference,
+                            removeAssignments, nameGenerator, editor, syntaxFacts, cancellationToken);
+                    }
+                }
+
+                // Second pass to post process the document.
+                var currentRoot = editor.GetChangedRoot();
+                var newRoot = await PostProcessDocumentAsync(document, currentRoot,
+                    diagnosticId, preference, cancellationToken).ConfigureAwait(false);
+                if (currentRoot != newRoot)
+                {
+                    editor.ReplaceNode(root, newRoot);
                 }
             }
-
-            // Second pass to post process the document.
-            var currentRoot = editor.GetChangedRoot();
-            var newRoot = await PostProcessDocumentAsync(document, currentRoot,
-                diagnosticId, preference, cancellationToken).ConfigureAwait(false);
-            if (currentRoot != newRoot)
+            finally
             {
-                editor.ReplaceNode(root, newRoot);
+                originalEditor.ReplaceNode(originalEditor.OriginalRoot, editor.GetChangedRoot());
             }
-
-            return;
-
-            
         }
 
         private void FixAll(
@@ -538,7 +551,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                                                               !(n is TCatchBlockSyntax));
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
-                    InsertAtStartOfSwitchCaseBlock(insertionNode.GetAncestor<TSwitchCaseBlockSyntax>(), editor, declarationStatement);
+                    InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(insertionNode.GetAncestor<TSwitchCaseBlockSyntax>(), editor, declarationStatement);
                 }
                 else
                 {
@@ -683,7 +696,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 else
                 {
                     // Otherwise, move the declaration closer to the first reference if possible.
-                    if (await service.CanMoveDeclarationNearReferenceAsync(document, declStatement, canMovePastOtherDeclarationStatements: true, cancellationToken).ConfigureAwait(false))
+                    if (await service.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false))
                     {
                         document = await service.MoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
                         documentUpdated = true;

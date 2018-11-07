@@ -104,34 +104,43 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 var option = optionSet.GetOption(CodeStyleOptions.UnusedParameters, parameter.Language);
                 if (option.Notification.Severity == ReportDiagnostic.Suppress ||
-                    !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value))
+                    !ShouldReportUnusedParameters(parameter.ContainingSymbol, option.Value, option.Notification.Severity))
                 {
                     return;
                 }
 
-                // "Remove unused parameter '{0}'{1}"
-                var arg1 = parameter.Name;
-                var arg2 = string.Empty;
-                if (parameter.ContainingSymbol.HasPublicResultantVisibility() &&
-                    !parameter.ContainingSymbol.IsLocalFunction() &&
-                    !parameter.ContainingSymbol.IsAnonymousFunction())
-                {
-                    arg2 += FeaturesResources.if_it_is_not_part_of_a_shipped_public_API;
-                }
-
-                if (hasReference)
-                {
-                    arg2 += FeaturesResources.comma_its_initial_value_is_never_used;
-                }
-
-                var diagnostic = DiagnosticHelper.Create(s_unusedParameterRule,
+                var diagnostic = DiagnosticHelper.CreateWithMessage(s_unusedParameterRule,
                                                          location,
                                                          option.Notification.Severity,
                                                          additionalLocations: null,
                                                          properties: null,
-                                                         arg1,
-                                                         arg2);
+                                                         message: GetMessage());
                 reportDiagnostic(diagnostic);
+
+                return;
+
+                // Local functions.
+                LocalizableString GetMessage()
+                {
+                    LocalizableString messageFormat;
+                    if (parameter.ContainingSymbol.HasPublicResultantVisibility() &&
+                        !parameter.ContainingSymbol.IsLocalFunction())
+                    {
+                        messageFormat = hasReference
+                            ? FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used
+                            : FeaturesResources.Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API;
+                    }
+                    else if (hasReference)
+                    {
+                        messageFormat = FeaturesResources.Remove_unused_parameter_0_its_initial_value_is_never_used;
+                    }
+                    else
+                    {
+                        messageFormat = s_unusedParameterRule.MessageFormat;
+                    }
+
+                    return new DiagnosticHelper.LocalizableStringWithArguments(messageFormat, parameter.Name);
+                }
             }
 
             private static IEnumerable<INamedTypeSymbol> GetAttributesForMethodsToIgnore(Compilation compilation)

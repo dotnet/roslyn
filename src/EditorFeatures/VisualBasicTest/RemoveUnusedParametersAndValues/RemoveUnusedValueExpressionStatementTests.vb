@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
         Protected Overrides ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.None, NotificationOption.Silent))
+                                New CodeStyleOption(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption.None))
             End Get
         End Property
 

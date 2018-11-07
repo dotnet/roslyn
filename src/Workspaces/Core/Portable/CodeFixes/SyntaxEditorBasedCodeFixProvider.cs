@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
         }
 
-        protected virtual Task<Document> FixAllAsync(
+        private Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             return FixAllWithEditorAsync(document,

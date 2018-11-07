@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
-        private IDictionary<OptionKey, object> PrivateMethodsOnly =>
+        private IDictionary<OptionKey, object> NonPublicMethodsOnly =>
             Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.PrivateMethods, NotificationOption.Suggestion));
+                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Suggestion));
 
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup)
@@ -64,11 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         [InlineData("public", "public")]
-        [InlineData("public", "internal")]
         [InlineData("public", "protected")]
-        [InlineData("internal", "public")]
-        [InlineData("internal", "internal")]
-        [InlineData("internal", "protected")]
         public async Task Parameter_Unused_NonPrivate_NotApplicable(string typeAccesibility, string methodAccessibility)
         {
             await TestDiagnosticMissingAsync(
@@ -77,13 +73,17 @@ $@"{typeAccesibility} class C
     {methodAccessibility} void M(int [|p|])
     {{
     }}
-}}", PrivateMethodsOnly);
+}}", NonPublicMethodsOnly);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         [InlineData("public", "private")]
+        [InlineData("public", "internal")]
         [InlineData("internal", "private")]
-        public async Task Parameter_Unused_Private(string typeAccesibility, string methodAccessibility)
+        [InlineData("internal", "public")]
+        [InlineData("internal", "internal")]
+        [InlineData("internal", "protected")]
+        public async Task Parameter_Unused_NonPublicMethod(string typeAccesibility, string methodAccessibility)
         {
             await TestDiagnosticsAsync(
 $@"{typeAccesibility} class C
@@ -91,15 +91,15 @@ $@"{typeAccesibility} class C
     {methodAccessibility} void M(int [|p|])
     {{
     }}
-}}", PrivateMethodsOnly,
+}}", NonPublicMethodsOnly,
     Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_Unused_UnusedExpressionAssignment_PreferNone()
         {
-            var unusedExpressionAssignmentOptionSuppressed = Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.None, NotificationOption.Suggestion));
+            var unusedValueAssignmentOptionSuppressed = Option(CSharpCodeStyleOptions.UnusedValueAssignment,
+                new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
 
             await TestDiagnosticMissingAsync(
 @"class C
@@ -108,7 +108,7 @@ $@"{typeAccesibility} class C
     {
         var x = p;
     }
-}", options: unusedExpressionAssignmentOptionSuppressed);
+}", options: unusedValueAssignmentOptionSuppressed);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]

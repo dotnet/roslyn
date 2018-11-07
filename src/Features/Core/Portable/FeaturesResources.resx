@@ -1484,20 +1484,11 @@ This version used in: {2}</value>
   <data name="Remove_redundant_assignment" xml:space="preserve">
     <value>Remove redundant assignment</value>
   </data>
-  <data name="comma_its_initial_value_is_never_used" xml:space="preserve">
-    <value>, its initial value is never used</value>
-    <comment>Optional addition to Remove_unused_parameter_0_1</comment>
-  </data>
-  <data name="if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
-    <value> if it is not part of a shipped public API</value>
-    <comment>Optional addition to Remove_unused_parameter_0_1</comment>
-  </data>
   <data name="Remove_unused_parameter" xml:space="preserve">
     <value>Remove unused parameter</value>
   </data>
-  <data name="Remove_unused_parameter_0_1" xml:space="preserve">
-    <value>Remove unused parameter '{0}'{1}</value>
-    <comment>String {1} is an optional addition to this message, see comma_its_initial_value_is_never_used</comment>
+  <data name="Remove_unused_parameter_0" xml:space="preserve">
+    <value>Remove unused parameter '{0}'</value>
   </data>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
@@ -1513,5 +1504,14 @@ This version used in: {2}</value>
   </data>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
+  </data>
+  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</value>
+  </data>
+  <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
 </root>

@@ -531,17 +531,8 @@ End Class"
 
 #Region "unused parameters"
 
-        Private Shared ReadOnly s_avoidUnusedParametersNever As String = $"
-Class C
-//[
-    Sub M(unused As Integer)
-    End Sub
-//]
-End Class
-"
-
-        Private Shared ReadOnly s_avoidUnusedParametersPrivateMethods As String = $"
-Class C1
+        Private Shared ReadOnly s_avoidUnusedParametersNonPublicMethods As String = $"
+Public Class C1
 //[
     ' {ServicesVSResources.Prefer_colon}
     Private Sub M()
@@ -549,17 +540,17 @@ Class C1
 //]
 End Class
 
-Class C2
+Public Class C2
 //[
     ' {ServicesVSResources.Over_colon}
-    Private Sub M(unused As Integer)
+    Private Sub M(param As Integer)
     End Sub
 //]
 End Class
 "
 
         Private Shared ReadOnly s_avoidUnusedParametersAllMethods As String = $"
-Class C1
+Public Class C1
 //[
     ' {ServicesVSResources.Prefer_colon}
     Public Sub M()
@@ -567,10 +558,10 @@ Class C1
 //]
 End Class
 
-Class C2
+Public Class C2
 //[
     ' {ServicesVSResources.Over_colon}
-    Public Sub M(unused As Integer)
+    Public Sub M(param As Integer)
     End Sub
 //]
 End Class
@@ -580,24 +571,12 @@ End Class
 
 #Region "unused values"
 
-        Private Shared ReadOnly s_avoidUnusedValueAssignmentNever As String = $"
-Class C
-    Function M() As Integer
-//[
-        Dim x = Computation()   ' Value assigned here to 'x' is never used.
-        x = 1
-//]
-        Return x
-    End Function
-End Class
-"
-
         Private Shared ReadOnly s_avoidUnusedValueAssignmentUnusedLocal As String = $"
 Class C1
     Function M() As Integer
 //[
         ' {ServicesVSResources.Prefer_colon}
-        Dim unused = Computation()   ' Unused value is explicitly assigned to an unused local.
+        Dim unused = Computation()   ' {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
         Dim x = 1
 //]
         Return x
@@ -608,21 +587,11 @@ Class C2
     Function M() As Integer
 //[
         ' {ServicesVSResources.Over_colon}
-        Dim x = Computation()   ' Value assigned here to 'x' is never used.
+        Dim x = Computation()   ' {ServicesVSResources.Value_assigned_here_is_never_used}
         x = 1
 //]
         Return x
     End Function
-End Class
-"
-
-        Private Shared ReadOnly s_avoidUnusedValueExpressionStatementNever As String = $"
-Class C
-    Sub M()
-//[
-        Computation()   ' Value returned by 'Computation()' is implicitly ignored.
-//]
-    End Sub
 End Class
 "
 
@@ -631,7 +600,7 @@ Class C1
     Sub M()
 //[
         ' {ServicesVSResources.Prefer_colon}
-        Dim unused = Computation()   ' Unused value is explicitly assigned to an unused local.
+        Dim unused = Computation()   ' {ServicesVSResources.Unused_value_is_explicitly_assigned_to_an_unused_local}
 //]
     End Sub
 End Class
@@ -640,7 +609,7 @@ Class C2
     Sub M()
 //[
         ' {ServicesVSResources.Over_colon}
-        Computation()   ' Value returned by 'Computation()' is implicitly ignored.
+        Computation()   ' {ServicesVSResources.Value_returned_by_invocation_is_implicitly_ignored}
 //]
     End Sub
 End Class
@@ -742,13 +711,11 @@ End Class
         Private Sub AddUnusedValueOptions(optionSet As OptionSet, expressionPreferencesGroupTitle As String)
             Dim unusedValuePreferences = New List(Of CodeStylePreference) From
             {
-                New CodeStylePreference(BasicVSResources.Never, isChecked:=False),
                 New CodeStylePreference(BasicVSResources.Unused_local, isChecked:=True)
             }
 
             Dim enumValues =
             {
-                UnusedValuePreference.None,
                 UnusedValuePreference.UnusedLocalVariable
             }
 
@@ -756,7 +723,7 @@ End Class
                                     VisualBasicCodeStyleOptions.UnusedValueAssignment,
                                     ServicesVSResources.Avoid_unused_value_assignments,
                                     enumValues,
-                                    {s_avoidUnusedValueAssignmentNever, s_avoidUnusedValueAssignmentUnusedLocal},
+                                    {s_avoidUnusedValueAssignmentUnusedLocal},
                                     Me,
                                     optionSet,
                                     expressionPreferencesGroupTitle,
@@ -766,7 +733,7 @@ End Class
                                     VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
                                     ServicesVSResources.Avoid_expression_statements_that_implicitly_ignore_value,
                                     enumValues,
-                                    {s_avoidUnusedValueExpressionStatementNever, s_avoidUnusedValueExpressionStatementUnusedLocal},
+                                    {s_avoidUnusedValueExpressionStatementUnusedLocal},
                                     Me,
                                     optionSet,
                                     expressionPreferencesGroupTitle,
@@ -777,8 +744,7 @@ End Class
         Private Sub AddParameterOptions(optionSet As OptionSet, parameterPreferencesGroupTitle As String)
             Dim examples =
             {
-                s_avoidUnusedParametersNever,
-                s_avoidUnusedParametersPrivateMethods,
+                s_avoidUnusedParametersNonPublicMethods,
                 s_avoidUnusedParametersAllMethods
             }
 

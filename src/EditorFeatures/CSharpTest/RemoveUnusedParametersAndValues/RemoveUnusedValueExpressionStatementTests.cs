@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
     {
         protected override IDictionary<OptionKey, object> PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.None, NotificationOption.Silent));
+                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
 
         protected override IDictionary<OptionKey, object> PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
