@@ -1316,5 +1316,25 @@ public sealed class MyTaskMethodBuilder
                 //         await new MyTask();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await new MyTask();").WithArguments("MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "IMyAwaiter", "TAwaiter", "MyTask.Awaiter").WithLocation(5, 9));
         }
+ 
+        [WorkItem(21500, "https://github.com/dotnet/roslyn/issues/27228")]
+        [Fact]
+        public void TaskLikeCheck_DoesntCauseBindingLoop_DuringOverloadResolution()
+        {
+            var source =
+@"
+[C(new C(null))]
+public class C : System.Attribute {
+  public C(C c) { }
+  public C(object o) { }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                // (2,2): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
+                // [C(new C(null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2)
+                );
+        }
     }
 }

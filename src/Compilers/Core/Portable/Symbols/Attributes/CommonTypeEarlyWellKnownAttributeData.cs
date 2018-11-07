@@ -109,5 +109,26 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
+
+        #region AsyncMethodBuilderAttribute
+
+        private TypedConstant _asyncMethodBuilderTarget = default;
+
+        public TypedConstant AsyncMethodBuilderTarget
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _asyncMethodBuilderTarget;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _asyncMethodBuilderTarget = value;
+                SetDataStored();
+            }
+        }
+
+        #endregion
     }
 }

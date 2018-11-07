@@ -1458,15 +1458,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the AsyncBuilder attribute.
-                foreach (var attr in type.GetAttributes())
+                // special case for SourceNamedTypeSymbol which early decodes method builder to prevent possible binding loops
+                if (type is SourceNamedTypeSymbol namedTypeSymbol)
                 {
-                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
-                        && attr.CommonConstructorArguments.Length == 1
-                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                    var earlyDecodeData = namedTypeSymbol.GetEarlyDecodedWellKnownAttributeData();
+                    if (earlyDecodeData != null 
+                        && !earlyDecodeData.AsyncMethodBuilderTarget.IsNull 
+                        && earlyDecodeData.AsyncMethodBuilderTarget.Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].Value;
+                        builderArgument = namedTypeSymbol.GetEarlyDecodedWellKnownAttributeData().AsyncMethodBuilderTarget.Value;
                         return true;
+                    }
+                }
+                else
+                {
+                    // Find the AsyncBuilder attribute.
+                    foreach (var attr in type.GetAttributes())
+                    {
+                        if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
+                            && attr.CommonConstructorArguments.Length == 1
+                            && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                        {
+                            builderArgument = attr.CommonConstructorArguments[0].Value;
+                            return true;
+                        }
                     }
                 }
             }
