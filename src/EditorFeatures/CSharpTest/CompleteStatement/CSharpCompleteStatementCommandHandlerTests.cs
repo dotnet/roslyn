@@ -954,7 +954,24 @@ public class C1
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        for (C1 i = new C1();$$)
+        int j;
+    }
+}
+public class C1
+{
+    public static C1 operator ++(C1 obj)
+    {
+        return obj;
+    }
+}
+";
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1015,7 +1032,7 @@ public class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void ForLoopMethodInitializer()
+        public void ForLoopInitializer()
         {
             var code =
 @"
@@ -1027,7 +1044,125 @@ class C
         for (int i = s.IndexOf(""bcd""$$) i < 10; i++)
 ";
 
-            var expected = code.Replace("$$", ";$$");
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd"");$$ i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopInitializer_MissingParen()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""$$ i < 10; i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd"";$$ i < 10; i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopCondition()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""); i < s.IndexOf(""x""$$) i++)
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""); i < s.IndexOf(""x"");$$ i++)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopIncrement()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""); i < s.IndexOf(""x""); i = i.IndexOf(""x""$$))
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""); i < s.IndexOf(""x""); i = i.IndexOf(""x"");$$)
+";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ForLoopBody()
+        {
+            var code =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""); i < 10; i++)
+        {
+            i.ToString($$)
+        }
+";
+
+            var expected =
+@"
+class C
+{
+    static void Main(string[] args)
+    {
+        string s = ""abcdefghij"";
+        for (int i = s.IndexOf(""bcd""); i < 10; i++)
+        {
+            i.ToString();$$
+        }
+";
 
             VerifyTypingSemicolon(code, expected);
         }

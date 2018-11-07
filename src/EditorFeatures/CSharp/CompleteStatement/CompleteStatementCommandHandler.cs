@@ -113,12 +113,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 currentNode = currentNode.Parent;
             }
 
-            if (currentNode.Ancestors().Any(n => n.Kind() == SyntaxKind.ForStatement))
-            {
-                nextCommandHandler();
-                return;
-            }
-
             // if the statement syntax itself requires a closing delimeter, verify it is there
             if (finalDelimiterNeedsSemicolon)
             {
@@ -375,11 +369,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 if (!currentNode.Ancestors().Any(n => n.IsKind(SyntaxKind.LocalDeclarationStatement)))
                 {
                     return true;
-                }
-
-                if (currentNode.Ancestors().Any(n => n.IsKind(SyntaxKind.ForStatement)))
-                {
-                    return false;
                 }
             }
 
