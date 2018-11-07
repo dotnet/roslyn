@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
                             }
                         }
-                    next:;
+next:;
                     }
                     else if (!typeParameterMismatchReported)
                     {
@@ -599,14 +599,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.AsyncMethodBuilderAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
-                {
-                    var typeData = arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>();
-                    typeData.AsyncMethodBuilderTarget = boundAttribute.ConstructorArguments.FirstOrDefault();
 
-                    // don't return the attribute. We need to bind it again later for full diagnostic reporting
-                }
+                var typeData = arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>();
+                typeData.AsyncMethodBuilderTarget = boundAttribute.ConstructorArguments.FirstOrDefault();
 
+                // don't return the attribute. We need to bind it again later for full diagnostic reporting
                 return null;
             }
 
@@ -1200,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
                 //
-                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes:true))
+                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
                         ImmutableArray.Create(
