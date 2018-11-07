@@ -1550,6 +1550,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        /// <summary>
+        /// Returns true if the type is generic or non-generic custom task-like type due to the
+        /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
+        /// </summary>
+        /// <param name="builderArgument">The argument to the <see cref="AsyncMethodBuilderAttribute"/> or null if not a custom task</param>
+        /// <returns>True if this type is a custom task type</returns>
+        /// <remarks>
+        /// The definition of "custom task-like type" is one that has an [AsyncMethodBuilder(typeof(B))] attribute,
+        /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
+        /// without validation of any kind.
+        /// </remarks>
+        public virtual bool IsCustomTaskType(out object builderArgument)
+        {
+            if (this.Arity < 2)
+            {
+                foreach (var attr in this.GetAttributes())
+                {
+                    if (attr.IsTargetAttribute(this, AttributeDescription.AsyncMethodBuilderAttribute)
+                        && attr.CommonConstructorArguments.Length == 1
+                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                    {
+                        builderArgument = attr.CommonConstructorArguments[0].Value;
+                        return true;
+                    }
+                }
+            }
+
+            builderArgument = null;
+            return false;
+        }
+
         #region INamedTypeSymbol Members
 
         int INamedTypeSymbol.Arity

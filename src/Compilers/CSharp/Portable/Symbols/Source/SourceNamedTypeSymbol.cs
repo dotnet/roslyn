@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
                             }
                         }
-next:;
+                    next:;
                     }
                     else if (!typeParameterMismatchReported)
                     {
@@ -1197,7 +1197,7 @@ next:;
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
                 //
-                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
+                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes:true))
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
                         ImmutableArray.Create(
@@ -1247,6 +1247,34 @@ next:;
                 AddSynthesizedAttribute(ref attributes,
                                         compilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
             }
+        }
+
+        /// <summary>
+        /// Returns true if the type is generic or non-generic custom task-like type due to the
+        /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
+        /// </summary>
+        /// <param name="builderArgument">The argument to the <see cref="System.Runtime.CompilerServices.AsyncMethodBuilderAttribute"/> or null if not a custom task</param>
+        /// <returns>True if this type is a custom task type</returns>
+        /// <remarks>
+        /// The definition of "custom task-like type" is one that has an [AsyncMethodBuilder(typeof(B))] attribute,
+        /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
+        /// without validation of any kind.
+        /// 
+        /// This specialization retrieves B from the early decoded attributed data: this prevents binding loops 
+        /// when we're binding attributes on a type and need to know during binding if the same type is task-like
+        /// </remarks>
+        public override bool IsCustomTaskType(out object builderArgument)
+        {
+            var earlyDecodeData = this.GetEarlyDecodedWellKnownAttributeData();
+            if (earlyDecodeData != null
+                && earlyDecodeData.AsyncMethodBuilderTarget.Kind == TypedConstantKind.Type)
+            {
+                builderArgument = earlyDecodeData.AsyncMethodBuilderTarget.Value;
+                return true;
+            }
+
+            builderArgument = null;
+            return false;
         }
 
         #endregion

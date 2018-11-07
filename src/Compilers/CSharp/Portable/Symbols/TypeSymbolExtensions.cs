@@ -1442,54 +1442,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the type is generic or non-generic custom task-like type due to the
-        /// [AsyncMethodBuilder(typeof(B))] attribute. It returns the "B".
-        /// </summary>
-        /// <remarks>
-        /// For the Task types themselves, this method might return true or false depending on mscorlib.
-        /// The definition of "custom task-like type" is one that has an [AsyncMethodBuilder(typeof(B))] attribute,
-        /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
-        /// without validation of any kind.
-        /// </remarks>
-        internal static bool IsCustomTaskType(this NamedTypeSymbol type, out object builderArgument)
-        {
-            Debug.Assert((object)type != null);
-
-            var arity = type.Arity;
-            if (arity < 2)
-            {
-                // special case for SourceNamedTypeSymbol which early decodes method builder to prevent possible binding loops
-                if (type is SourceNamedTypeSymbol namedTypeSymbol)
-                {
-                    var earlyDecodeData = namedTypeSymbol.GetEarlyDecodedWellKnownAttributeData();
-                    if (earlyDecodeData != null 
-                        && earlyDecodeData.AsyncMethodBuilderTarget.Kind == TypedConstantKind.Type)
-                    {
-                        builderArgument = namedTypeSymbol.GetEarlyDecodedWellKnownAttributeData().AsyncMethodBuilderTarget.Value;
-                        return true;
-                    }
-                }
-                else
-                {
-                    // Find the AsyncBuilder attribute.
-                    foreach (var attr in type.GetAttributes())
-                    {
-                        if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
-                            && attr.CommonConstructorArguments.Length == 1
-                            && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
-                        {
-                            builderArgument = attr.CommonConstructorArguments[0].Value;
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            builderArgument = null;
-            return false;
-        }
-
-        /// <summary>
         /// Replace Task-like types with Task types.
         /// </summary>
         internal static TypeSymbol NormalizeTaskTypes(this TypeSymbol type, CSharpCompilation compilation)
