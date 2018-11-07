@@ -27,15 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
-        Private Sub ChangeBlockForCompletionItemsFlag(state As TestStateBase, completionImplementation As CompletionImplementation)
-            If completionImplementation = CompletionImplementation.Legacy Then
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
-            Else
-                Dim key = New EditorOptionKey(Of Boolean)("NonBlockingCompletion")
-                state.TextView.Options.GlobalOptions.SetOptionValue(key, True)
-            End If
-        End Sub
-
         <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -3404,7 +3395,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys.")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3423,7 +3414,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
 
-                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3443,7 +3434,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()
@@ -3470,7 +3461,7 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                ChangeBlockForCompletionItemsFlag(state, completionImplementation)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()

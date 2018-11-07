@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return null;
             }
 
-            if (!session.Properties.TryGetProperty<RoslynTrigger>(CompletionSource.InitialTrigger, out var initialRoslynTrigger))
+            if (!session.Properties.TryGetProperty<CompletionTriggerKind>(CompletionSource.InitialTriggerKind, out var initialRoslynTriggerKind))
             {
-                return null;
+                initialRoslynTriggerKind = CompletionTriggerKind.Invoke;
             }
 
             // Check if the user is typing a number. If so, only proceed if it's a number
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                     roslynItem = RoslynCompletionItem.Create(item.DisplayText, item.FilterText, item.SortText);
                 }
 
-                if (Session.MatchesFilterText(_completionHelper, roslynItem, filterText, initialRoslynTrigger.Kind, filterReason, _recentItems))
+                if (Session.MatchesFilterText(_completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItems))
                 {
                     initialListOfItemsToBeIncluded.Add(new ExtendedFilterResult(item, new FilterResult(roslynItem, filterText, matchedFilterText: true)));
                 }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var highlightedList = GetHighlightedList(initialListOfItemsToBeIncluded, filterText, highlightMatchingPortions).ToImmutableArray();
 
             // If this was deletion, then we control the entire behavior of deletion ourselves.
-            if (initialRoslynTrigger.Kind == CompletionTriggerKind.Deletion)
+            if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
             {
                 return HandleDeletionTrigger(initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
             }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 completionService,
                 filterText,
                 updatedFilters,
-                initialRoslynTrigger.Kind,
+                initialRoslynTriggerKind,
                 filterReason,
                 data.Trigger.Character,
                 initialListOfItemsToBeIncluded,

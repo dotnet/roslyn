@@ -19,11 +19,6 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract class CompletionService : ILanguageService
     {
-        private static readonly ImmutableArray<char> s_commitChars = ImmutableArray.Create(
-            ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
-            ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
-            '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
-
         /// <summary>
         /// Gets the service corresponding to the specified document.
         /// </summary>
@@ -175,11 +170,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return bestItems.ToImmutableAndFree();
         }
-
-        /// <summary>
-        /// Provides potential commit characters supported by the completion service.
-        /// </summary>
-        public virtual ImmutableArray<char> PotentialCommitCharacters => s_commitChars;
 
         internal async Task<CompletionList> GetCompletionsAndSetItemDocumentAsync(
             Document documentOpt, int caretPosition, CompletionTrigger trigger = default,

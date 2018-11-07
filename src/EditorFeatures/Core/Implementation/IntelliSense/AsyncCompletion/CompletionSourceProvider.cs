@@ -15,15 +15,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class CompletionSourceProvider : IAsyncCompletionSourceProvider
     {
-        private readonly IAsyncCompletionSource _instance;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionSourceProvider(IThreadingContext threadingContext)
         {
-            _instance = new CompletionSource(threadingContext);
+            _threadingContext = threadingContext;
         }
 
-        public IAsyncCompletionSource GetOrCreate(ITextView textView) => _instance;
+        public IAsyncCompletionSource GetOrCreate(ITextView textView)
+            => new CompletionSource(textView, _threadingContext);
     }
 }

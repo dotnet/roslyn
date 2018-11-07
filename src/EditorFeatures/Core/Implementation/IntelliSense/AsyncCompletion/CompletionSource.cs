@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Text.Editor;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
@@ -30,15 +31,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
-        internal const string InitialTrigger = nameof(InitialTrigger);
+        internal const string InitialTriggerKind = nameof(InitialTriggerKind);
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
+        internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray = 
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element_automation_name));
 
-        internal CompletionSource(IThreadingContext threadingContext) : base(threadingContext)
+        private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
+
+        private readonly ITextView _textView;
+
+        internal CompletionSource(ITextView textView, IThreadingContext threadingContext) : base(threadingContext)
         {
+            _textView = textView;
         }
 
         public AsyncCompletionData.CompletionStartData InitializeCompletion(
@@ -60,8 +67,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
+            if (document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language) == false)
+            {
+                _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
+            }
+
             triggerLocation.Snapshot.TextBuffer.Properties.RemoveProperty(PotentialCommitCharacters);
-            triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.PotentialCommitCharacters);
+            triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
 
             if (!Helpers.TryGetRoslynTrigger(trigger, triggerLocation, out var roslynTrigger))
             {
@@ -175,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
-            session.Properties.AddProperty(InitialTrigger, roslynTrigger);
+            session.Properties.AddProperty(InitialTriggerKind, roslynTrigger.Kind);
             var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
             if (excludedCommitCharacters.Length > 0)
             {
