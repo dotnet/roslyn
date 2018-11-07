@@ -419,6 +419,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             switch (methodSymbol.MethodKind)
                             {
                                 case MethodKind.Constructor:
+                                    // It is fine to have an unused private constructor
+                                    // without parameters.
+                                    // This is commonly used for static holder types
+                                    // that want to block instantiation of the type.
                                     return methodSymbol.Parameters.Length > 0;
 
                                 case MethodKind.Ordinary:
