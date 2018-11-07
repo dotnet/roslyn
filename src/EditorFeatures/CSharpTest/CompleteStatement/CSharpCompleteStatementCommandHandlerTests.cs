@@ -1783,6 +1783,42 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DoWhile_MissingParen()
+        {
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,$$5)
+    }
+}";
+
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,;$$5)
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_Break()
         {
             var code =

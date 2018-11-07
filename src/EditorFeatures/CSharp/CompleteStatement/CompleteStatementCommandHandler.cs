@@ -2,7 +2,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -118,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 if (!StatementClosingDelimiterExists(currentNode, ref lastDelimiterSpan))
                 {
+                    // Example: missing final `)` in `do { } while (x$$`
                     nextCommandHandler();
                     return;
                 }
