@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(" (");
 
             // Kind
-            LogString($"{nameof(OperationKind)}.{operation.Kind}");
+            LogString($"{nameof(OperationKind)}.{GetKindText(operation.Kind)}");
 
             // Type
             LogString(", ");
@@ -102,6 +102,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" (Syntax: {GetSnippetFromSyntax(operation.Syntax)})");
 
             LogNewLine();
+
+            // Some of these kinds were inconsistent in the first release, and in standardizing them the
+            // string output isn't guaranteed to be one or the other. So standardize manually.
+            string GetKindText(OperationKind kind)
+            {
+                switch (kind)
+                {
+                    case OperationKind.Unary:
+                        return "Unary";
+                    case OperationKind.Binary:
+                        return "Binary";
+                    case OperationKind.TupleBinary:
+                        return "TupleBinary";
+                    case OperationKind.MethodBody:
+                        return "MethodBody";
+                    case OperationKind.ConstructorBody:
+                        return "ConstructorBody";
+                    default:
+                        return kind.ToString();
+                }
+            }
         }
 
         private static string GetSnippetFromSyntax(SyntaxNode syntax)
@@ -581,9 +602,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
             ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
-            _ = info.GetEnumeratorArguments?.Value;
-            _ = info.MoveNextArguments?.Value;
-            _ = info.CurrentArguments?.Value;
         }
 
         public override void VisitLabeled(ILabeledOperation operation)

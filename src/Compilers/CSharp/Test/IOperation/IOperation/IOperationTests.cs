@@ -60,7 +60,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
         Right: 
           IConditionalOperation (IsRef) (OperationKind.Conditional, Type: System.Int32) (Syntax: '"""".Length = ... y = ref rx)')
             Condition: 
-              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '"""".Length == 0')
+              IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: '"""".Length == 0')
                 Left: 
                   IPropertyReferenceOperation: System.Int32 System.String.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '"""".Length')
                     Instance Receiver: 
@@ -117,7 +117,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
   IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
     Locals: Local_1: C.LinkedList cur
     Condition: 
-      IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'cur != null')
+      IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'cur != null')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'cur')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)

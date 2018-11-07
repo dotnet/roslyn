@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     }
                 }
 
-                // We are using very simple approach: 
+                // We are using very simple approach:
                 // If try block is reachable, we should dispatch an exception from it, even if it is empty.
                 // To simplify implementation, we dispatch exception from every reachable basic block and rely
                 // on dispatchedExceptionsFromRegions cache to avoid doing duplicate work.
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     // For simplicity, we do a complete walk of the finally/filter region in isolation
                     // to make sure that the resume dispatch point is reachable from its beginning.
-                    // It could also be reachable through invalid branches into the finally and we don't want to consider 
+                    // It could also be reachable through invalid branches into the finally and we don't want to consider
                     // these cases for regular finally handling.
                     BitVector isolated = MarkReachableBlocks(blocks,
                                                              @finally.FirstBlockOrdinal,
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         regionMap[block] = region;
 #if DEBUG
                                         subRegion.AboutToFree();
-#endif 
+#endif
                                         subRegion.Free();
                                         region.Regions.RemoveAt(i);
                                         result = true;
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             do
             {
-                // We set this local to true during the loop below when we make some changes that might enable 
+                // We set this local to true during the loop below when we make some changes that might enable
                 // transformations for basic blocks that were already looked at. We simply keep repeating the
                 // pass untill no such changes are made.
                 retry = false;
@@ -1068,13 +1068,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
                         int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
 
-                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
+                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number
                         // of movements up during direct and indirect transition, we must have made the same movements up.
                         if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
                             fromCurrent.Count - lastLeftRegionOnTheWayFromCurrentToDestination) !=
                             (fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToDestination))
                         {
-                            // We have different transitions 
+                            // We have different transitions
                             return false;
                         }
                     }
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             int stackDepth = _evalStack.Count;
             Debug.Assert(stackDepth == 0 || _evalStack.Peek().frameOpt != null);
-#endif 
+#endif
             if (operation == null)
             {
                 return;
@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             Debug.Assert(_evalStack.Count == stackDepth);
             Debug.Assert(stackDepth == 0 || _evalStack.Peek().frameOpt != null);
-#endif 
+#endif
             _currentStatement = saveCurrentStatement;
         }
 
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
 #if DEBUG
             Debug.Assert(spillingTheStack || _evalStack.All(
-                slot => slot.operationOpt == null 
+                slot => slot.operationOpt == null
                     || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
                     || slot.operationOpt.Kind == OperationKind.DeclarationExpression
                     || slot.operationOpt.Kind == OperationKind.Discard
@@ -1269,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
                 Debug.Assert(_evalStack.Count == _startSpillingAt);
                 VerifySpilledStackFrames();
-#endif 
+#endif
             }
 
             _currentRegion?.Add(region);
@@ -1298,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     Debug.Assert(enclosed != frameOpt.RegionBuilderOpt);
                 }
             }
-#endif 
+#endif
             _currentRegion = _currentRegion.Enclosing;
             _currentRegion?.ExtendToInclude(enclosed.LastBlock);
             _currentBasicBlock = null;
@@ -1444,8 +1444,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (operation.WhenFalse == null)
                 {
-                    // if (condition) 
-                    //   consequence;  
+                    // if (condition)
+                    //   consequence;
                     //
                     // becomes
                     //
@@ -1462,7 +1462,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     // if (condition)
                     //     consequence;
-                    // else 
+                    // else
                     //     alternative
                     //
                     // becomes
@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// This class captures information about beginning of stack frame
         /// and corresponding <see cref="RegionBuilder"/> if one was allocated to
-        /// track <see cref="CaptureId"/>s used by the stack spilling, etc. 
+        /// track <see cref="CaptureId"/>s used by the stack spilling, etc.
         /// Do not create instances of this type manually, use <see cref="PushStackFrame"/>
         /// helper instead. Also, do not assign <see cref="RegionBuilderOpt"/> explicitly.
         /// Let the builder machinery do this when appropriate.
@@ -1715,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(_startSpillingAt <= _evalStack.Count);
 #if DEBUG
             VerifySpilledStackFrames();
-#endif 
+#endif
             int currentFrameIndex = -1;
 
             for (int i = _startSpillingAt - 1; i >= 0; i--)
@@ -1840,7 +1840,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
         }
-#endif 
+#endif
 
         private void PushOperand(IOperation operation)
         {
@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 jumpIfTrue = false;
 
-                if (unaryOperatorMethod == null || 
+                if (unaryOperatorMethod == null ||
                     (ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType) &&
                      (ITypeSymbolHelpers.IsNullableType(left.Type) || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))))
                 {
@@ -2418,15 +2418,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax,
                                          new BinaryOperation(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
                                                                       PopOperand(),
-                                                                      visitedRight, 
-                                                                      isLifted, 
-                                                                      binOp.IsChecked, 
+                                                                      visitedRight,
+                                                                      isLifted,
+                                                                      binOp.IsChecked,
                                                                       binOp.IsCompareText,
-                                                                      binOp.OperatorMethod, 
-                                                                      unaryOperatorMethod: null, 
+                                                                      binOp.OperatorMethod,
+                                                                      unaryOperatorMethod: null,
                                                                       semanticModel: null,
-                                                                      binOp.Syntax, 
-                                                                      binOp.Type, 
+                                                                      binOp.Syntax,
+                                                                      binOp.Type,
                                                                       binOp.ConstantValue, IsImplicit(binOp))));
 
             PopStackFrameAndLeaveRegion(frame);
@@ -2441,7 +2441,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                         int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
         {
             Debug.Assert(IsBooleanConditionalOperator(condition));
-                    
+
             // we generate:
             //
             // gotoif (a == stopSense) fallThrough
@@ -2601,7 +2601,7 @@ oneMoreTime:
                         }
                     }
 
-                    // none of above. 
+                    // none of above.
                     // then it is regular binary expression - Or, And, Xor ...
                     goto default;
 
@@ -2806,7 +2806,7 @@ oneMoreTime:
                 LinkBlocks(CurrentBasicBlock, afterCoalesce);
                 _currentBasicBlock = null;
                 PopStackFrame(frame);
-                
+
                 AppendNewBlock(whenNull);
 
                 IOperation rewrittenThrow = base.Visit(conversion.Operand, null);
@@ -3096,7 +3096,7 @@ oneMoreTime:
                 }
                 else
                 {
-                    CaptureResultIfNotAlready(currentConditionalAccess.WhenNotNull.Syntax, resultCaptureId, 
+                    CaptureResultIfNotAlready(currentConditionalAccess.WhenNotNull.Syntax, resultCaptureId,
                                               Visit(currentConditionalAccess.WhenNotNull, resultCaptureId));
                 }
 
@@ -3168,7 +3168,7 @@ oneMoreTime:
 
             if (operation.ConditionIsTop)
             {
-                // while (condition) 
+                // while (condition)
                 //   body;
                 //
                 // becomes
@@ -3197,7 +3197,7 @@ oneMoreTime:
                 //
                 // becomes
                 //
-                // start: 
+                // start:
                 // {
                 //   body
                 //   continue:
@@ -3330,7 +3330,7 @@ oneMoreTime:
                                                           filterAndHandlerRegion.Regions[0].LastBlock.Ordinal >= p.Ordinal));
                             predecessors.Free();
                         }
-#endif 
+#endif
                     }
                     else
                     {
@@ -3539,7 +3539,7 @@ oneMoreTime:
             {
                 var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-                
+
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
@@ -3549,7 +3549,7 @@ oneMoreTime:
                 }
 
                 resourceQueue.ReverseContents();
-                
+
                 processQueue(resourceQueue);
             }
             else
@@ -3603,27 +3603,27 @@ oneMoreTime:
             void processResource(IOperation resource, ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
             {
                 // When ResourceType is a non-nullable value type, the expansion is:
-                // 
-                // { 
-                //   ResourceType resource = expr; 
-                //   try { statement; } 
+                //
+                // {
+                //   ResourceType resource = expr;
+                //   try { statement; }
                 //   finally { ((IDisposable)resource).Dispose(); }
                 // }
-                // 
+                //
                 // Otherwise, when Resource type is a nullable value type or
                 // a reference type other than dynamic, the expansion is:
-                // 
-                // { 
-                //   ResourceType resource = expr; 
-                //   try { statement; } 
+                //
+                // {
+                //   ResourceType resource = expr;
+                //   try { statement; }
                 //   finally { if (resource != null) ((IDisposable)resource).Dispose(); }
                 // }
-                // 
+                //
                 // Otherwise, when ResourceType is dynamic, the expansion is:
-                // { 
-                //   dynamic resource = expr; 
+                // {
+                //   dynamic resource = expr;
                 //   IDisposable d = (IDisposable)resource;
-                //   try { statement; } 
+                //   try { statement; }
                 //   finally { if (d != null) d.Dispose(); }
                 // }
 
@@ -3932,13 +3932,13 @@ oneMoreTime:
             if (!operation.Locals.IsEmpty && operation.LoopControlVariable.Kind == OperationKind.VariableDeclarator)
             {
                 // VB has rather interesting scoping rules for control variable.
-                // It is in scope in the collection expression. However, it is considered to be 
+                // It is in scope in the collection expression. However, it is considered to be
                 // "a different" version of that local. Effectively when the code is emitted,
-                // there are two distinct locals, one is used in the collection expression and the 
-                // other is used as a loop control variable. This is done to have proper hoisting 
+                // there are two distinct locals, one is used in the collection expression and the
+                // other is used as a loop control variable. This is done to have proper hoisting
                 // and lifetime in presence of lambdas.
-                // Rather than introducing a separate local symbol, we will simply add another 
-                // lifetime region for that local around the collection expression. 
+                // Rather than introducing a separate local symbol, we will simply add another
+                // lifetime region for that local around the collection expression.
 
                 var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                 ILocalSymbol local = declarator.Symbol;
@@ -4031,7 +4031,7 @@ oneMoreTime:
             IOperation getEnumerator()
             {
                 IOperation result;
-                EvalStackFrame getEnumeratorFrame = PushStackFrame(); 
+                EvalStackFrame getEnumeratorFrame = PushStackFrame();
 
                 if (info.GetEnumeratorMethod != null)
                 {
@@ -4118,12 +4118,12 @@ oneMoreTime:
                 }
             }
 
-            InvocationOperation makeInvocationDroppingInstanceForStaticMethods(IMethodSymbol method, IOperation instance, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            InvocationOperation makeInvocationDroppingInstanceForStaticMethods(IMethodSymbol method, IOperation instance, ImmutableArray<IArgumentOperation> arguments)
             {
                 return makeInvocation(instance.Syntax, method, method.IsStatic ? null : instance, arguments);
             }
 
-            InvocationOperation makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation instanceOpt, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            InvocationOperation makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation instanceOpt, ImmutableArray<IArgumentOperation> arguments)
             {
                 Debug.Assert(method.IsStatic == (instanceOpt == null));
                 return new InvocationOperation(method, instanceOpt,
@@ -4132,11 +4132,11 @@ oneMoreTime:
                                                 method.ReturnType, constantValue: default, isImplicit: true);
             }
 
-            ImmutableArray<IArgumentOperation> makeArguments(Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments)
             {
                 if (arguments != null)
                 {
-                    return VisitArguments(arguments.Value);
+                    return VisitArguments(arguments);
                 }
 
                 return ImmutableArray<IArgumentOperation>.Empty;
@@ -4196,8 +4196,8 @@ oneMoreTime:
             IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
             {
                 bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                var loopObjectReference = new LocalReferenceOperation(loopObject, 
-                                                                       isDeclaration: isInitialization, 
+                var loopObjectReference = new LocalReferenceOperation(loopObject,
+                                                                       isDeclaration: isInitialization,
                                                                        semanticModel: null,
                                                                        operation.LoopControlVariable.Syntax, loopObject.Type,
                                                                        constantValue: default, isImplicit: true);
@@ -4266,14 +4266,14 @@ oneMoreTime:
                     //   Dim loopObj        ' mysterious object that holds the loop state
                     //
                     //   ' helper does internal initialization and tells if we need to do any iterations
-                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
+                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl)
                     //                               goto exit:
                     //   start:
                     //       body
                     //
                     //   continue:
                     //       ' helper updates loop state and tells if we need to do another iteration.
-                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
+                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl)
                     //                               GoTo start
                     // }
                     // exit:
@@ -4366,7 +4366,7 @@ oneMoreTime:
                             }
 
                             IOperation literal = new LiteralOperation(semanticModel: null, stepValue.Syntax, stepValue.Type,
-                                                                       constantValue: ConstantValue.Default(stepValueEnumUnderlyingTypeOrSelf.SpecialType).Value, 
+                                                                       constantValue: ConstantValue.Default(stepValueEnumUnderlyingTypeOrSelf.SpecialType).Value,
                                                                        isImplicit: true);
 
                             isUp = new BinaryOperation(BinaryOperatorKind.GreaterThanOrEqual,
@@ -4392,7 +4392,7 @@ oneMoreTime:
                         else
                         {
                             // This must be an error case.
-                            // It is fine to do nothing in this case, we are in recovery mode. 
+                            // It is fine to do nothing in this case, we are in recovery mode.
                         }
                     }
 
@@ -4422,14 +4422,14 @@ oneMoreTime:
                     //   Dim loopObj        ' mysterious object that holds the loop state
                     //
                     //   ' helper does internal initialization and tells if we need to do any iterations
-                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
+                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl)
                     //                               goto exit:
                     //   start:
                     //       body
                     //
                     //   continue:
                     //       ' helper updates loop state and tells if we need to do another iteration.
-                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
+                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl)
                     //                               GoTo start
                     // }
                     // exit:
@@ -4499,7 +4499,7 @@ oneMoreTime:
                     }
                     else if (operation.StepValue.ConstantValue.HasValue)
                     {
-                        // Up/Down for numeric constants is also simple 
+                        // Up/Down for numeric constants is also simple
                         object value = operation.StepValue.ConstantValue.Value;
                         ConstantValueTypeDiscriminator discriminator = ConstantValue.GetDiscriminator(stepEnumUnderlyingTypeOrSelf.SpecialType);
 
@@ -4776,13 +4776,13 @@ oneMoreTime:
                                                                     isRef: false,
                                                                     new DefaultValueOperation(semanticModel: null,
                                                                                                controlVariableReferenceForAssignment.Syntax,
-                                                                                               controlVariableReferenceForAssignment.Type, 
+                                                                                               controlVariableReferenceForAssignment.Type,
                                                                                                constantValue: default,
-                                                                                               isImplicit: true), 
+                                                                                               isImplicit: true),
                                                                     semanticModel: null,
-                                                                    controlVariableReferenceForAssignment.Syntax, 
-                                                                    type: null, 
-                                                                    constantValue: default, 
+                                                                    controlVariableReferenceForAssignment.Syntax,
+                                                                    type: null,
+                                                                    constantValue: default,
                                                                     isImplicit: true));
 
                         LinkBlocks(CurrentBasicBlock, afterIncrement);
@@ -4896,7 +4896,7 @@ oneMoreTime:
 
             if (defaultBody != null)
             {
-                LinkBlocks(CurrentBasicBlock, defaultBody); 
+                LinkBlocks(CurrentBasicBlock, defaultBody);
             }
 
             Debug.Assert(_currentRegion == switchRegion);
@@ -5047,7 +5047,7 @@ oneMoreTime:
                             break;
                         }
 
-                        // A switch section with a relational case other than an equality must have 
+                        // A switch section with a relational case other than an equality must have
                         // a condition associated with it. This point should not be reachable.
                         throw ExceptionUtilities.UnexpectedValue(relationalValueClause.Relation);
 
@@ -5058,7 +5058,7 @@ oneMoreTime:
                             defaultBody = labeled;
                         }
 
-                        // 'default' clause is never entered from the top, we'll jump back to it after all 
+                        // 'default' clause is never entered from the top, we'll jump back to it after all
                         // sections are processed.
                         LinkBlocks(CurrentBasicBlock, nextCase);
                         AppendNewBlock(labeled);
@@ -5084,7 +5084,7 @@ oneMoreTime:
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable; 
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
@@ -5715,7 +5715,7 @@ oneMoreTime:
                 PushOperand(Visit(initializer));
                 SpillEvalStack();
                 IOperation captured = PeekOperand(); // Keep it on the stack so that we know it is still used.
-                
+
                 // For VB, previously initialized properties can be referenced in subsequent initializers.
                 // We store the capture Id for the property for such property references.
                 // Note that for VB error cases with duplicate property names, all the property symbols are considered equal.
@@ -5850,7 +5850,7 @@ oneMoreTime:
             }
             else
             {
-                return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
+                return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type,
                                                        operation.ConstantValue, IsImplicit(operation));
             }
         }
@@ -6023,7 +6023,7 @@ oneMoreTime:
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
-            return PopStackFrame(PushStackFrame(), 
+            return PopStackFrame(PushStackFrame(),
                                  Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, VisitArray(operation.Children.ToImmutableArray()), IsImplicit(operation)));
         }
 
@@ -6145,7 +6145,7 @@ oneMoreTime:
             {
                 if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation captured))
                 {
-                    return captured is IFlowCaptureReferenceOperation reference ? 
+                    return captured is IFlowCaptureReferenceOperation reference ?
                                GetCaptureReference(reference.Id.Value, operation) :
                                OperationCloner.CloneOperation(captured);
                 }
@@ -6189,7 +6189,7 @@ oneMoreTime:
         {
             return new SizeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
-        
+
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopOperation(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -6307,7 +6307,7 @@ oneMoreTime:
             else
             {
                 Debug.Assert(operation.EventReference != null);
-                
+
                 PushOperand(Visit(operation.EventReference));
                 visitedHandler = Visit(operation.HandlerValue);
                 visitedEventReference = PopOperand();
@@ -6368,7 +6368,7 @@ oneMoreTime:
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
             bool isDecrement = operation.Kind == OperationKind.Decrement;
-            return new IncrementOrDecrementOperation(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, 
+            return new IncrementOrDecrementOperation(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod,
                 semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -6473,7 +6473,7 @@ oneMoreTime:
                 PopStackFrame(frame);
                 return initializedInstance;
             }
-        
+
             IOperation result;
             if (_currentStatement == operation)
             {
@@ -6483,7 +6483,7 @@ oneMoreTime:
             {
                 result = visitInvalidOperationExpression(operation);
             }
-            
+
             children.Free();
             return result;
 

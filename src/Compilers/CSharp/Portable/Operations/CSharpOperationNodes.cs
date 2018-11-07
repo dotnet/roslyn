@@ -1093,16 +1093,18 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly IOperation _instanceNonLazy;
         private readonly BoundNode _instance;
         private readonly BoundNode _argumentsInstance;
+        private readonly bool _isObjectOrCollectionInitializer = false;
 
         internal CSharpLazyPropertyReferenceOperation(CSharpOperationFactory operationFactory, BoundNode instance, IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : this(operationFactory, instance, argumentsInstance: null, property, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
-        internal CSharpLazyPropertyReferenceOperation(CSharpOperationFactory operationFactory, IOperation instance, BoundNode argumentsInstance, IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(property, semanticModel, syntax, type, constantValue, isImplicit)
+        internal CSharpLazyPropertyReferenceOperation(CSharpOperationFactory operationFactory, IOperation instance, BoundNode argumentsInstance, IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit, bool isObjectOrCollectionInitializer = false) : base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _instanceNonLazy = SetParentOperation(instance, this);
             _argumentsInstance = argumentsInstance;
+            _isObjectOrCollectionInitializer = isObjectOrCollectionInitializer;
         }
 
         internal CSharpLazyPropertyReferenceOperation(CSharpOperationFactory operationFactory, BoundNode instance, BoundNode argumentsInstance, IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(property, semanticModel, syntax, type, constantValue, isImplicit)
@@ -1119,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override ImmutableArray<IArgumentOperation> CreateArguments()
         {
-            return _argumentsInstance is null ? ImmutableArray<IArgumentOperation>.Empty : _operationFactory.DeriveArguments(_argumentsInstance);
+            return _argumentsInstance is null ? ImmutableArray<IArgumentOperation>.Empty : SetParentOperation(_operationFactory.DeriveArguments(_argumentsInstance, _isObjectOrCollectionInitializer), this);
         }
     }
 
@@ -1201,11 +1203,11 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed class CSharpLazySwitchCaseOperation : LazySwitchCaseOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
-        private readonly ImmutableArray<BoundExpression> _clauses;
+        private readonly ImmutableArray<BoundNode> _clauses;
         private readonly BoundNode _condition;
         private readonly ImmutableArray<BoundStatement> _body;
 
-        internal CSharpLazySwitchCaseOperation(CSharpOperationFactory operationFactory, ImmutableArray<BoundExpression> clauses, BoundNode condition, ImmutableArray<BoundStatement> body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+        internal CSharpLazySwitchCaseOperation(CSharpOperationFactory operationFactory, ImmutableArray<BoundNode> clauses, BoundNode condition, ImmutableArray<BoundStatement> body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _clauses = clauses;
@@ -1215,12 +1217,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override ImmutableArray<ICaseClauseOperation> CreateClauses()
         {
-            return SetParentOperation(_operationFactory.CreateFromArray<BoundExpression, ICaseClauseOperation>(_clauses), this);
+            return SetParentOperation(_operationFactory.CreateFromArray<BoundNode, ICaseClauseOperation>(_clauses), this);
         }
 
         protected override IOperation CreateCondition()
         {
-            return SetParentOperation(_operationFactory.Create(_condition), this);
+            return SetParentOperation(_operationFactory.Create(_condition), null);
         }
 
         protected override ImmutableArray<IOperation> CreateBody()

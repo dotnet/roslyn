@@ -204,7 +204,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
                       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x + y')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: 
-                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
+                          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'x + y')
                             Left: 
                               ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
                             Right: 
@@ -401,7 +401,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B2]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -483,7 +483,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -562,7 +562,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -642,7 +642,7 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (0)
             Jump if False (Regular) to Block[B4]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '0')
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                   Right: 
@@ -672,7 +672,7 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (0)
             Jump if False (Regular) to Block[B6]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                   Right: 
@@ -741,7 +741,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B2]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -808,7 +808,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B2]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -876,7 +876,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B2]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '2')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -887,7 +887,7 @@ Block[B0] - Entry
         Predecessors: [B1]
         Statements (0)
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -960,7 +960,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B2]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -971,7 +971,7 @@ Block[B0] - Entry
         Predecessors: [B1]
         Statements (0)
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '2')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '2')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -982,7 +982,7 @@ Block[B0] - Entry
         Predecessors: [B2]
         Statements (0)
         Jump if False (Regular) to Block[B5]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '3')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '3')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1067,7 +1067,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1144,7 +1144,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B2]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int64, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1244,7 +1244,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1L')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1L')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1690,7 +1690,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1761,7 +1761,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'null')
+            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: 'null')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1836,7 +1836,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other')
+            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
               Right: 
@@ -1910,7 +1910,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
               Right: 
@@ -2161,7 +2161,7 @@ Block[B0] - Entry
         Predecessors: [B2] [B3]
         Statements (0)
         Jump if False (Regular) to Block[B6]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input1 ?? input2')
               Right: 
@@ -2280,7 +2280,7 @@ Block[B0] - Entry
             Predecessors: [B3] [B4]
             Statements (0)
             Jump if False (Regular) to Block[B7]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'input1 ?? input2')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'input1 ?? input2')
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input3')
                   Right: 
@@ -2350,7 +2350,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
 
         Jump if False (Regular) to Block[B4]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input1')
               Right: 
@@ -3122,11 +3122,11 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (0)
             Jump if False (Regular) to Block[B4]
-                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+TakeOutPa ... MyClass x1)')
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+TakeOutPa ... MyClass x1)')
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                   Right: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+TakeOutPa ... MyClass x1)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, IsInvalid) (Syntax: '1+TakeOutPa ... MyClass x1)')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                       Right: 
@@ -3253,7 +3253,7 @@ Block[B0] - Entry
                 Predecessors: [B3] [B4]
                 Statements (0)
                 Jump if False (Regular) to Block[B7]
-                    IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+                    IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.Binary, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
                       Left: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
                       Right: 
@@ -3261,7 +3261,7 @@ Block[B0] - Entry
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (ImplicitNullable)
                           Operand: 
-                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+                            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, IsInvalid) (Syntax: '1+(input is ... 1 ? x1 : 0)')
                               Left: 
                                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
                               Right: 

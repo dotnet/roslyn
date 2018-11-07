@@ -189,12 +189,16 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         internal static void VerifyParentOperation(IOperation parent, IOperation child)
         {
-            Debug.Assert((object)child.Parent == parent);
+            if (!(child is null))
+            {
+                Debug.Assert((object)child.Parent == parent);
+            }
         }
 
         [Conditional("DEBUG")]
         internal static void VerifyParentOperation<T>(IOperation parent, ImmutableArray<T> children) where T : IOperation
         {
+            Debug.Assert(!children.IsDefault);
             foreach (var child in children)
             {
                 VerifyParentOperation(parent, child);

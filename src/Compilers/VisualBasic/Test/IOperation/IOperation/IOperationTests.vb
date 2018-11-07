@@ -79,7 +79,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
       Right: 
-        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: B2, IsInvalid) (Syntax: 'x + 10')
+        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: B2, IsInvalid) (Syntax: 'x + 10')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
           Right: 
@@ -112,7 +112,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
       Right: 
-        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperator, Type: B2) (Syntax: 'x + y')
+        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.Binary, Type: B2) (Syntax: 'x + y')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
           Right: 
@@ -141,7 +141,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, Is
       Left: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2) (Syntax: 'x')
       Right: 
-        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: B2, IsInvalid) (Syntax: '-x')
+        IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.Unary, Type: B2, IsInvalid) (Syntax: '-x')
           Operand: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: B2, IsInvalid) (Syntax: 'x')")
         End Sub
@@ -251,7 +251,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x <> 0 T ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x <> 0')
+    IBinaryOperation (BinaryOperatorKind.NotEquals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
       Right: 
@@ -582,7 +582,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If i = 0 Th ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i = 0')
+    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i = 0')
       Left: 
         IFieldReferenceOperation: C.i As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
           Instance Receiver: 
@@ -639,7 +639,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If i = 0 Th ... End If')
   Condition: 
-    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i = 0')
+    IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i = 0')
       Left: 
         IFieldReferenceOperation: C.i As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
           Instance Receiver: 
@@ -682,7 +682,7 @@ ICatchClauseOperation (Exception type: System.Exception) (OperationKind.CatchCla
       Initializer: 
         null
   Filter: 
-    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'ex Is Nothing')
+    IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: 
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)

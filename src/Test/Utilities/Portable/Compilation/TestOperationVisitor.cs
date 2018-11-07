@@ -287,11 +287,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             visitArguments(info.MoveNextArguments);
             visitArguments(info.CurrentArguments);
 
-            void visitArguments(Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            void visitArguments(ImmutableArray<IArgumentOperation> arguments)
             {
                 if (arguments != null)
                 {
-                    foreach (IArgumentOperation arg in arguments.Value)
+                    foreach (IArgumentOperation arg in arguments)
                     {
                         VerifySubTree(arg);
                     }

@@ -2675,7 +2675,7 @@ internal abstract class LazyFixedOperation : BaseFixedOperation, IFixedOperation
             }
         }
 
-        public ForEachLoopOperationInfo Info { get; }
+        public virtual ForEachLoopOperationInfo Info { get; }
 
         /// <summary>
         /// Optional loop control variable in VB that refers to the operation for declaring a new local variable or reference an existing variable or an expression.
@@ -5975,7 +5975,7 @@ internal abstract class LazySwitchCaseOperation : BaseSwitchCaseOperation, ISwit
             if (_lazyConditionInterlocked is null)
             {
                 Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), null);
-                VerifyParentOperation(this, _lazyConditionInterlocked);
+                VerifyParentOperation(null, _lazyConditionInterlocked);
             }
 
             return _lazyConditionInterlocked;

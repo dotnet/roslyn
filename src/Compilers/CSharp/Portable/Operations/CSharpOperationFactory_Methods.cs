@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,17 +32,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return ImmutableArray.Create(statement);
-        }
-
-        private ImmutableArray<BoundNode> FilterNullNodes(ImmutableArray<BoundNode> boundNodes)
-        {
-
-            var builder = ArrayBuilder<BoundNode>.GetInstance(boundNodes.Length);
-            foreach (var node in boundNodes)
-            {
-                builder.AddIfNotNull(node);
-            }
-            return builder.ToImmutableAndFree();
         }
 
         private IInstanceReferenceOperation CreateImplicitReciever(SyntaxNode syntax, ITypeSymbol type) =>
@@ -205,6 +192,34 @@ namespace Microsoft.CodeAnalysis.Operations
                         CreateBoundDynamicObjectInitializerMemberOperation((BoundDynamicObjectInitializerMember)key));
                 default:
                     return Create(initializedMember);
+            }
+        }
+
+        internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression, bool isObjectOrCollectionInitializer)
+        {
+            switch (containingExpression.Kind)
+            {
+                case BoundKind.ObjectInitializerMember:
+                {
+                    var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
+                    var property = (PropertySymbol)boundObjectInitializerMember.MemberSymbol;
+                    MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                    return DeriveArguments(
+                                boundObjectInitializerMember,
+                                boundObjectInitializerMember.BinderOpt,
+                                property,
+                                accessor,
+                                boundObjectInitializerMember.Arguments,
+                                boundObjectInitializerMember.ArgumentNamesOpt,
+                                boundObjectInitializerMember.ArgsToParamsOpt,
+                                boundObjectInitializerMember.ArgumentRefKindsOpt,
+                                property.Parameters,
+                                boundObjectInitializerMember.Expanded,
+                                boundObjectInitializerMember.Syntax);
+                }
+
+                default:
+                    return DeriveArguments(containingExpression);
             }
         }
 

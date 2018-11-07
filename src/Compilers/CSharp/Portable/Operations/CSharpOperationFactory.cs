@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return _nodeMap.GetOrAdd(boundNode, _cachedCreateInternal);
         }
 
-        public ImmutableArray<TOperation> CreateFromArray<TBoundNode, TOperation>(ImmutableArray<TBoundNode> boundNodes) where TBoundNode : BoundNode where TOperation : IOperation
+        public ImmutableArray<TOperation> CreateFromArray<TBoundNode, TOperation>(ImmutableArray<TBoundNode> boundNodes) where TBoundNode : BoundNode where TOperation : class, IOperation
         {
             var builder = ArrayBuilder<TOperation>.GetInstance(boundNodes.Length);
             foreach (var node in boundNodes)
             {
-                builder.Add((TOperation)Create(node));
+                builder.AddIfNotNull((TOperation)Create(node));
             }
             return builder.ToImmutableAndFree();
         }
@@ -421,13 +421,13 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
             bool isImplicit = boundLocal.WasCompilerGenerated;
-            var localReference = new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
+                var localReference = new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
                 return new DeclarationExpressionOperation(localReference, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
             }
-            return localReference;
+            return new LocalReferenceOperation(local, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundFieldAccessOperation(BoundFieldAccess boundFieldAccess)
@@ -439,13 +439,13 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundFieldAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundFieldAccess.ConstantValue);
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
-            var fieldReference = new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 syntax = declarationExpressionSyntax.Designation;
+                var fieldReference = new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
                 return new DeclarationExpressionOperation(fieldReference, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
             }
-            return fieldReference;
+            return new CSharpLazyFieldReferenceOperation(this, instance, field, isDeclaration, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IPropertyReferenceOperation CreateBoundPropertyAccessOperation(BoundPropertyAccess boundPropertyAccess)
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         argumentsInstance = boundObjectInitializerMember;
                     }
 
-                    return new CSharpLazyPropertyReferenceOperation(this, instance, argumentsInstance, property, _semanticModel, syntax, type, constantValue, isImplicit);
+                    return new CSharpLazyPropertyReferenceOperation(this, instance, argumentsInstance, property, _semanticModel, syntax, type, constantValue, isImplicit, isObjectOrCollectionInitializer: true);
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
@@ -715,12 +715,18 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue value,
             bool isImplicit)
         {
+            ITypeSymbol containingType = null;
+            if (receiverOpt?.Kind == BoundKind.TypeExpression)
+            {
+                containingType = receiverOpt.Type;
+                receiverOpt = null;
+            }
+
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
             if (!typeArgumentsOpt.IsDefault)
             {
                 typeArguments = ImmutableArray<ITypeSymbol>.CastUp(typeArgumentsOpt);
             }
-            ITypeSymbol containingType = receiverOpt?.Kind == BoundKind.TypeExpression ? receiverOpt.Type : null;
             Optional<object> constantValue = ConvertToOptional(value);
             return new CSharpLazyDynamicMemberReferenceOperation(this, receiverOpt, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue, isImplicit);
         }
@@ -1053,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInvalidOperation CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)
         {
-            ImmutableArray<BoundNode> children = FilterNullNodes(boundBadExpression.ChildBoundNodes.CastArray<BoundNode>());
+            ImmutableArray<BoundNode> children = boundBadExpression.ChildBoundNodes.CastArray<BoundNode>();
             SyntaxNode syntax = boundBadExpression.Syntax;
             // We match semantic model here: if the expression IsMissing, we have a null type, rather than the ErrorType of the bound node.
             ITypeSymbol type = syntax.IsMissing ? null : boundBadExpression.Type;
@@ -1283,14 +1289,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConditionalAccessOperation CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)
         {
-            BoundNode whenNotNull = boundConditionalAccess.AccessExpression;
             BoundNode expression = boundConditionalAccess.Receiver;
+            BoundNode whenNotNull = boundConditionalAccess.AccessExpression;
             SyntaxNode syntax = boundConditionalAccess.Syntax;
             ITypeSymbol type = boundConditionalAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundConditionalAccess.ConstantValue);
             bool isImplicit = boundConditionalAccess.WasCompilerGenerated;
 
-            return new CSharpLazyConditionalAccessOperation(this, whenNotNull, expression, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyConditionalAccessOperation(this, expression, whenNotNull, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalAccessInstanceOperation CreateBoundConditionalReceiverOperation(BoundConditionalReceiver boundConditionalReceiver)
@@ -1452,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             ImmutableArray<BoundStatement> before = ToStatements(boundForStatement.Initializer);
             BoundNode condition = boundForStatement.Condition;
-            ImmutableArray<BoundStatement> atLoopBottom = ToStatements(boundForStatement.Initializer);
+            ImmutableArray<BoundStatement> atLoopBottom = ToStatements(boundForStatement.Increment);
             ImmutableArray<ILocalSymbol> locals = boundForStatement.OuterLocals.As<ILocalSymbol>();
             ImmutableArray<ILocalSymbol> conditionLocals = boundForStatement.InnerLocals.As<ILocalSymbol>();
             BoundNode body = boundForStatement.Body;
@@ -1558,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ISwitchCaseOperation CreateBoundSwitchSectionOperation(BoundSwitchSection boundSwitchSection)
         {
-            ImmutableArray<BoundExpression> clauses = boundSwitchSection.SwitchLabels.CastArray<BoundExpression>();
+            ImmutableArray<BoundNode> clauses = boundSwitchSection.SwitchLabels.CastArray<BoundNode>();
             BoundNode condition = null;
             ImmutableArray<BoundStatement> body = boundSwitchSection.Statements;
             ImmutableArray<ILocalSymbol> locals = boundSwitchSection.Locals.CastArray<ILocalSymbol>();
@@ -1668,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInvalidOperation CreateBoundBadStatementOperation(BoundBadStatement boundBadStatement)
         {
-            ImmutableArray<BoundNode> children = FilterNullNodes(boundBadStatement.ChildBoundNodes);
+            ImmutableArray<BoundNode> children = boundBadStatement.ChildBoundNodes;
             SyntaxNode syntax = boundBadStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -1804,14 +1810,14 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundTupleExpression.WasCompilerGenerated;
             ITypeSymbol type = boundTupleExpression.Type;
             Optional<object> constantValue = default;
-            var tuple = new CSharpLazyTupleOperation(this, elements, _semanticModel, syntax, type, naturalType, constantValue, isImplicit);
             if (syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
                 var tupleSyntax = declarationExpressionSyntax.Designation;
+                var tuple = new CSharpLazyTupleOperation(this, elements, _semanticModel, tupleSyntax, type, naturalType, constantValue, isImplicit);
                 return new DeclarationExpressionOperation(tuple, _semanticModel, declarationExpressionSyntax, type, constantValue: default, isImplicit: false);
             }
 
-            return tuple;
+            return new CSharpLazyTupleOperation(this, elements, _semanticModel, syntax, type, naturalType, constantValue, isImplicit);
         }
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
@@ -1903,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ISwitchCaseOperation CreateBoundPatternSwitchSectionOperation(BoundPatternSwitchSection boundPatternSwitchSection)
         {
-            ImmutableArray<BoundExpression> clauses = boundPatternSwitchSection.SwitchLabels.CastArray<BoundExpression>();
+            ImmutableArray<BoundNode> clauses = boundPatternSwitchSection.SwitchLabels.CastArray<BoundNode>();
             BoundNode condition = null;
             ImmutableArray<BoundStatement> body = boundPatternSwitchSection.Statements;
             ImmutableArray<ILocalSymbol> locals = boundPatternSwitchSection.Locals.CastArray<ILocalSymbol>();

@@ -248,7 +248,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (var  ... }')
                   null
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1.ToString ... .ToString()')
-                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
+                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
                         Left: 
                           IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'c1.ToString()')
                             Instance Receiver: 
@@ -309,7 +309,7 @@ IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using (c1) ... }')
                   null
                 Arguments(1):
                     IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1.ToString ... .ToString()')
-                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
+                      IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
                         Left: 
                           IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'c1.ToString()')
                             Instance Receiver: 
@@ -383,7 +383,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (va
               null
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1.ToString ... .ToString()')
-                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
+                  IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
                     Left: 
                       IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'c1.ToString()')
                         Instance Receiver: 
@@ -479,7 +479,7 @@ IBlockOperation (5 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
             null
           Arguments(1):
               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'c1.ToString ... .ToString()')
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: 'c1.ToString ... .ToString()')
                   Left: 
                     IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'c1.ToString()')
                       Instance Receiver: 
