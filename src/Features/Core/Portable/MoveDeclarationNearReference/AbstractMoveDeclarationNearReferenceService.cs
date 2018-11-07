@@ -50,6 +50,15 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 return null;
             }
 
+            if (state.IndexOfDeclarationStatemntInInnermostBlock >= 0 &&
+                state.IndexOfDeclarationStatemntInInnermostBlock == state.IndexOfFirstStatementAffectedInInnermostBlock - 1 &&
+                !await CanMergeDeclarationAndAssignmentAsync(document, state, cancellationToken).ConfigureAwait(false))
+            {
+                // Declaration statement is already closest to the first reference
+                // and they both cannot be merged into a single statement, so bail out.
+                return null;
+            }
+
             if (!CanMoveToBlock(state.LocalSymbol, state.OutermostBlock, state.InnermostBlock))
             {
                 return null;
