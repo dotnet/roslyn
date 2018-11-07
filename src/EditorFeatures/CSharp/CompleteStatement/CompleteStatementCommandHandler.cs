@@ -359,17 +359,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (syntaxFacts.IsStatement(currentNode)
                 || currentNode.IsKind(SyntaxKind.GetAccessorDeclaration)
                 || currentNode.IsKind(SyntaxKind.SetAccessorDeclaration)
-                || currentNode.IsKind(SyntaxKind.LocalDeclarationStatement))
+                || currentNode.IsKind(SyntaxKind.LocalDeclarationStatement)
+                || currentNode.IsKind(SyntaxKind.VariableDeclaration))
             {
                 return true;
-            }
-
-            if (currentNode.IsKind(SyntaxKind.VariableDeclaration))
-            {
-                if (!currentNode.Ancestors().Any(n => n.IsKind(SyntaxKind.LocalDeclarationStatement)))
-                {
-                    return true;
-                }
             }
 
             return false;
