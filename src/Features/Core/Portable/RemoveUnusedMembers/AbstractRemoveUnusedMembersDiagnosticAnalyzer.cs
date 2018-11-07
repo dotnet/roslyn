@@ -304,6 +304,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 : s_removeUnreadMembersRule;
 
                             // Do not flag write-only properties that are not read.
+                            // Write-only properties are assumed to have side effects
+                            // visible through other means than a property getter.
                             if (rule == s_removeUnreadMembersRule &&
                                 member is IPropertySymbol property &&
                                 property.IsWriteOnly)
