@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return propertyType;
             }
 
-            if (!initializer.Type.IsReferenceType || propertyType.IsDynamic())
+            if (initializer.Type == null || !initializer.Type.IsReferenceType || initializer.Type.IsDynamic())
             {
                 //If it is not a reference type, it can't be an implicit reference conversion.
                 return propertyType;
