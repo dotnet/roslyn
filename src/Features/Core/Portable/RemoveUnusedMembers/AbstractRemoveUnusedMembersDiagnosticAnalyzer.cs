@@ -405,6 +405,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
+            /// <summary>
+            /// Returns true if the given symbol meets the following criteria to be
+            /// a candidate for dead code analysis:
+            ///     1. It is marked as "private".
+            ///     2. It is not an implicitly declared symbol.
+            ///     3. It is either a method, field, property or an event.
+            ///     4. If method, then one of the following must be true:
+            ///         a. It is a constructor with non-zero parameters OR
+            ///         b. It is a method with <see cref="MethodKind.Ordinary"/>,
+            ///            such that it is not an accessor, not an entry point method,
+            ///            not an extern method and is not an explicit interface method implementation.
+            ///     5. If field, then it must not be a backing field for an auto property.
+            ///        Backing fields have a non-null <see cref="IFieldSymbol.AssociatedSymbol"/>.
+            ///     6. If property, then it must not be an explicit interface property implementation.
+            ///     7. If event, then it must not be an explicit interface event implementation.
+            /// </summary>
             private bool IsCandidateSymbol(ISymbol memberSymbol)
             {
                 Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
