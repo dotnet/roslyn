@@ -26,9 +26,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ControlFlowGraph parentControlFlowGraph,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisDataOpt,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
-            ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
-            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
-            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
+            TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
+            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
             : base(
                   valueDomain, 
                   wellKnownTypeProvider, 
@@ -43,10 +42,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   parentControlFlowGraphOpt: parentControlFlowGraph,
                   interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
         {
-            this.TaintedSourceInfos = taintedSourceInfos ?? throw new ArgumentNullException(nameof(taintedSourceInfos));
-            this.TaintedSanitizerInfos = taintedSanitizerInfos ?? throw new ArgumentNullException(nameof(taintedSanitizerInfos));
-            this.TaintedConcreteSinkInfos = taintedConcreteSinkInfos ?? throw new ArgumentNullException(nameof(taintedConcreteSinkInfos));
-            this.TaintedInterfaceSinkInfos = taintedInterfaceSinkInfos ?? throw new ArgumentNullException(nameof(taintedInterfaceSinkInfos));
+            this.SourceInfos = taintedSourceInfos ?? throw new ArgumentNullException(nameof(taintedSourceInfos));
+            this.SanitizerInfos = taintedSanitizerInfos ?? throw new ArgumentNullException(nameof(taintedSanitizerInfos));
+            this.SinkInfos = taintedSinkInfos ?? throw new ArgumentNullException(nameof(taintedSinkInfos));
         }
 
         public static TaintedDataAnalysisContext Create(
@@ -59,9 +57,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> pointsToAnalysisResultOpt,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult> getOrComputeAnalysisResult,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
-            ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
-            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
-            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
+            TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
+            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
         {
             return new TaintedDataAnalysisContext(
                 valueDomain,
@@ -76,8 +73,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 null,
                 taintedSourceInfos,
                 taintedSanitizerInfos,
-                taintedConcreteSinkInfos,
-                taintedInterfaceSinkInfos);
+                taintedSinkInfos);
         }
 
         public override TaintedDataAnalysisContext ForkForInterproceduralAnalysis(
@@ -99,27 +95,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.GetOrComputeAnalysisResult,
                 this.ControlFlowGraph,
                 interproceduralAnalysisData,
-                this.TaintedSourceInfos,
-                this.TaintedSanitizerInfos,
-                this.TaintedConcreteSinkInfos,
-                this.TaintedInterfaceSinkInfos);
+                this.SourceInfos,
+                this.SanitizerInfos,
+                this.SinkInfos);
         }
 
-        public TaintedDataSymbolMap<SourceInfo> TaintedSourceInfos { get; }
+        public TaintedDataSymbolMap<SourceInfo> SourceInfos { get; }
 
-        public ImmutableDictionary<ITypeSymbol, SanitizerInfo> TaintedSanitizerInfos { get; }
+        public TaintedDataSymbolMap<SanitizerInfo> SanitizerInfos { get; }
 
-        public ImmutableDictionary<ITypeSymbol, SinkInfo> TaintedConcreteSinkInfos { get; }
-
-        public ImmutableDictionary<ITypeSymbol, SinkInfo> TaintedInterfaceSinkInfos { get; }
+        public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
         protected override int GetHashCode(int hashCode)
         {
-            return HashUtilities.Combine(this.TaintedSourceInfos.GetHashCode(),
-                HashUtilities.Combine(this.TaintedSanitizerInfos,
-                HashUtilities.Combine(this.TaintedConcreteSinkInfos,
-                HashUtilities.Combine(this.TaintedInterfaceSinkInfos,
-                hashCode))));
+            return HashUtilities.Combine(this.SourceInfos.GetHashCode(),
+                HashUtilities.Combine(this.SanitizerInfos.GetHashCode(),
+                HashUtilities.Combine(this.SinkInfos.GetHashCode(),
+                hashCode)));
         }
     }
 }

@@ -24,9 +24,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             Compilation compilation,
             ISymbol containingMethod,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
-            ImmutableDictionary<ITypeSymbol, SanitizerInfo> taintedSanitizerInfos,
-            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedConcreteSinkInfos,
-            ImmutableDictionary<ITypeSymbol, SinkInfo> taintedInterfaceSinkInfos)
+            TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
+            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
         {
             WellKnownTypeProvider wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             PointsToAnalysisResult pointsToAnalysisResult = PointsToAnalysis.GetOrComputeResult(
@@ -48,8 +47,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 GetOrComputeResultForAnalysisContext,
                 taintedSourceInfos,
                 taintedSanitizerInfos,
-                taintedConcreteSinkInfos,
-                taintedInterfaceSinkInfos);
+                taintedSinkInfos);
 
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }

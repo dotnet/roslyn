@@ -159,7 +159,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 // If the property reference itself is a tainted data source
                 if (operation is IPropertyReferenceOperation propertyReferenceOperation
-                    && this.DataFlowAnalysisContext.TaintedSourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceProperty(propertyReferenceOperation.Property))
                 {
                     return TaintedDataAbstractValue.CreateTainted(propertyReferenceOperation.Member, propertyReferenceOperation.Syntax, this.OwningSymbol);
                 }
@@ -221,7 +221,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 {
                     return TaintedDataAbstractValue.NotTainted;
                 }
-                else if (this.DataFlowAnalysisContext.TaintedSourceInfos.IsSourceMethod(method))
+                else if (this.DataFlowAnalysisContext.SourceInfos.IsSourceMethod(method))
                 {
                     return TaintedDataAbstractValue.CreateTainted(method, originalOperation.Syntax, this.OwningSymbol);
                 }
@@ -401,7 +401,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <returns>True if the method returns tainted data, false otherwise.</returns>
             private bool IsSanitizingMethod(IMethodSymbol method)
             {
-                foreach (SanitizerInfo sanitizerInfo in this.GetSanitizerInfosForType(method.ContainingType))
+                foreach (SanitizerInfo sanitizerInfo in this.DataFlowAnalysisContext.SanitizerInfos.GetInfosForType(method.ContainingType))
                 {
                     if (method.MethodKind == MethodKind.Constructor
                         && sanitizerInfo.IsConstructorSanitizing)
@@ -418,30 +418,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return false;
             }
 
-            private IEnumerable<SanitizerInfo> GetSanitizerInfosForType(INamedTypeSymbol namedTypeSymbol)
-            {
-                if (namedTypeSymbol == null)
-                {
-                    yield break;
-                }
-
-                for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
-                {
-                    if (!this.DataFlowAnalysisContext.TaintedSanitizerInfos.TryGetValue(typeSymbol, out SanitizerInfo sinkInfo))
-                    {
-                        continue;
-                    }
-
-                    yield return sinkInfo;
-                }
-            }
-
             /// <summary>
             /// Determines if tainted data passed as arguments to a method enters a tainted data sink.
             /// </summary>
             /// <param name="method">Method being invoked.</param>
             /// <param name="taintedArguments">Arguments passed to the method invocation that are tainted.</param>
-            /// <returns>True if any of the tainted data arguments enters a sink,  false otherwise.</returns>
+            /// <returns>True if any of the tainted data arguments enters a sink, false otherwise.</returns>
             private bool IsMethodArgumentASink(IMethodSymbol method, IEnumerable<IArgumentOperation> taintedArguments)
             {
                 if (method.ContainingType == null || !taintedArguments.Any())
@@ -449,7 +431,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return false;
                 }
 
-                foreach (SinkInfo sinkInfo in this.GetSinkInfosForType(method.ContainingType))
+                foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(method.ContainingType))
                 {
                     if (method.MethodKind == MethodKind.Constructor
                         && sinkInfo.IsAnyStringParameterInConstructorASink
@@ -475,7 +457,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <returns>True if the property is a sink, false otherwise.</returns>
             private bool IsPropertyASink(IPropertyReferenceOperation propertyReferenceOperation)
             {
-                foreach (SinkInfo sinkInfo in this.GetSinkInfosForType(propertyReferenceOperation.Member.ContainingType))
+                foreach (SinkInfo sinkInfo in this.DataFlowAnalysisContext.SinkInfos.GetInfosForType(propertyReferenceOperation.Member.ContainingType))
                 {
                     if (sinkInfo.SinkProperties.Contains(propertyReferenceOperation.Member.MetadataName))
                     {
@@ -484,42 +466,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
 
                 return false;
-            }
-
-            private IEnumerable<SinkInfo> GetSinkInfosForType(INamedTypeSymbol namedTypeSymbol)
-            {
-                Debug.Assert(namedTypeSymbol != null);
-
-                if (namedTypeSymbol == null)
-                {
-                    yield break;
-                }
-
-                if (!this.DataFlowAnalysisContext.TaintedInterfaceSinkInfos.IsEmpty)
-                {
-                    foreach (INamedTypeSymbol interfaceSymbol in namedTypeSymbol.AllInterfaces)
-                    {
-                        if (!this.DataFlowAnalysisContext.TaintedInterfaceSinkInfos.TryGetValue(interfaceSymbol, out SinkInfo sinkInfo))
-                        {
-                            continue;
-                        }
-
-                        yield return sinkInfo;
-                    }
-                }
-
-                if (!this.DataFlowAnalysisContext.TaintedConcreteSinkInfos.IsEmpty)
-                {
-                    for (INamedTypeSymbol typeSymbol = namedTypeSymbol; typeSymbol != null; typeSymbol = typeSymbol.BaseType)
-                    {
-                        if (!this.DataFlowAnalysisContext.TaintedConcreteSinkInfos.TryGetValue(typeSymbol, out SinkInfo sinkInfo))
-                        {
-                            continue;
-                        }
-
-                        yield return sinkInfo;
-                    }
-                }
             }
         }
     }
