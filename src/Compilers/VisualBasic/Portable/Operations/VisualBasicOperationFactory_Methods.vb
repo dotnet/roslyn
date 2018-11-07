@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     If boundCreation.Arguments.IsDefault Then
                         Return ImmutableArray(Of IArgumentOperation).Empty
                     End If
-                    Return DeriveArguments(boundCreation.Arguments, boundCreation.ConstructorOpt.Parameters, boundCreation.DefaultArguments)
+                    Return If(boundCreation.ConstructorOpt Is Nothing, ImmutableArray(Of IArgumentOperation).Empty, DeriveArguments(boundCreation.Arguments, boundCreation.ConstructorOpt.Parameters, boundCreation.DefaultArguments))
                 Case BoundKind.PropertyAccess
                     Dim boundProperty = DirectCast(boundNode, BoundPropertyAccess)
                     Return DeriveArguments(boundProperty.Arguments, boundProperty.PropertySymbol.Parameters, boundProperty.DefaultArguments)
