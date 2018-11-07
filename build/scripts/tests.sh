@@ -108,7 +108,8 @@ do
     if [[ "${runtime}" == "dotnet" ]]; then
         # Disable the VB Semantic tests while we investigate the core dump issue
         # https://github.com/dotnet/roslyn/issues/29660
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ]] 
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.dll' ||
+              "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.dll' ]]
         then
             echo "Skipping ${file_name[@]}"
             continue
