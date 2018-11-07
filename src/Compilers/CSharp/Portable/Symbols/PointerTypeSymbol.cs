@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
         {
-            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             TypeSymbolWithAnnotations pointedAtType = PointedAtType.MergeNullability(((PointerTypeSymbol)other).PointedAtType, VarianceKind.None, out hadNullabilityMismatch);
             return WithPointedAtType(pointedAtType);
         }

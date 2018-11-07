@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If no such S exists, the expressions have no best common type.
 
             // All non-null types are candidates for best type inference.
-            IEqualityComparer<TypeSymbol> comparer = conversions.IncludeNullability ? TypeSymbol.EqualsIncludingNullableComparer : TypeSymbol.EqualsConsiderEverything;
+            IEqualityComparer<TypeSymbol> comparer = conversions.IncludeNullability ? TypeSymbol.EqualsConsiderEverything : TypeSymbol.EqualsIgnoringNullableComparer;
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (!better.Equals(best, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                        if (!better.Equals(best, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                         {
                             hadNullabilityMismatch = false;
                         }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol type = types[i];
                 TypeSymbol better = Better(best, type, conversions, out bool hadMismatch, ref useSiteDiagnostics);
-                if (!best.Equals(better, TypeCompareKind.ConsiderEverything))
+                if (!best.Equals(better, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     hadNullabilityMismatch = false;
                     return null;
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return type2;
                 }
 
-                if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return MethodTypeInferrer.Merge(
                         TypeSymbolWithAnnotations.Create(type1),

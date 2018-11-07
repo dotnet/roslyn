@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((comparison & TypeCompareKind.CompareNullableModifiersForReferenceTypes) != 0)
+            if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
             {
                 var thisIsNullable = IsNullable;
                 var otherIsNullable = other.IsNullable;
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return y.IsNull;
                 }
-                return x.Equals(y, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
+                return x.Equals(y, TypeCompareKind.ConsiderEverything);
             }
         }
 
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(newTypeWithModifiers.NonNullTypesContext.NonNullTypes == null);
                 Debug.Assert(newTypeWithModifiers.CustomModifiers.IsEmpty);
 
-                if (typeSymbol.Equals(newTypeWithModifiers.TypeSymbol, TypeCompareKind.CompareNullableModifiersForReferenceTypes) &&
+                if (typeSymbol.Equals(newTypeWithModifiers.TypeSymbol, TypeCompareKind.ConsiderEverything) &&
                     newCustomModifiers == CustomModifiers)
                 {
                     return this; // substitution had no effect on the type or modifiers
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return 0;
             }
-            return Hash.Combine(TypeSymbol.GetHashCode(), IsAnnotated.GetHashCode());
+            return TypeSymbol.GetHashCode();
         }
 
 #pragma warning disable CS0809
@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
-                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.CompareNullableModifiersForReferenceTypes) ||
+                    if ((newUnderlying.TypeSymbol.Equals(this._underlying.TypeSymbol, TypeCompareKind.ConsiderEverything) ||
                             newUnderlying.TypeSymbol is IndexedTypeParameterSymbolForOverriding) &&
                         newUnderlying.CustomModifiers.IsEmpty)
                     {

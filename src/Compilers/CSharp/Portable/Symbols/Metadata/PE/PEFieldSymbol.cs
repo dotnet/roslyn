@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyType.ToType();
         }
 
-        public override bool IsFixed
+        public override bool IsFixedSizeBuffer
         {
             get
             {

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsVolatile
             => (Modifiers & DeclarationModifiers.Volatile) != 0;
 
-        public sealed override bool IsFixed
+        public sealed override bool IsFixedSizeBuffer
             => (Modifiers & DeclarationModifiers.Fixed) != 0;
 
         /// <summary>
