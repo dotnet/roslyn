@@ -675,7 +675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundLocalDeclaration declaration = declarations[0];
             TypeSymbol declType = declaration.DeclaredType.Type;
-            BoundLocal declarationLocal = new BoundLocal(declaration.Syntax, declaration.LocalSymbol, null, declType);
 
             if (declType.IsDynamic())
             {
@@ -690,15 +689,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!iDisposableConversion.IsImplicit)
                 {
-                   disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, diagnostics);
-                   if (disposeMethod is null)
-                   {
-                       if (!declType.IsErrorType())
-                       {
-                           Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
-                       }
-                       hasErrors = true;
-                   }
+                    var declarationLocal = new BoundLocal(declaration.Syntax, declaration.LocalSymbol, null, declType);
+
+                    disposeMethod = TryFindDisposePatternMethod(declarationLocal, declarationSyntax, diagnostics);
+                    if (disposeMethod is null)
+                    {
+                        if (!declType.IsErrorType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                        }
+                        hasErrors = true;
+                    }
                 }
             }
             return declarations;
@@ -713,7 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
         internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            if(expr?.Type is null)
+            Debug.Assert(!(expr is null));
+            if(expr.Type is null)
             {
                 return null;
             }
