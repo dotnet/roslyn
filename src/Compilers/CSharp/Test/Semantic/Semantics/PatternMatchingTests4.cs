@@ -1384,5 +1384,217 @@ class _
                 );
             CompileAndVerify(compilation, expectedOutput: "8");
         }
+
+        [Fact]
+        public void ShortTuplePattern_01()
+        {
+            // test 0-element tuple pattern via ITuple
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new object[] { null, new ValueTuple(), new C(), new object() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+public class C : ITuple
+{
+    int ITuple.Length => 0;
+    object ITuple.this[int i] => throw new NotImplementedException();
+}
+namespace System
+{
+    struct ValueTuple : ITuple
+    {
+        int ITuple.Length => 0;
+        object ITuple.this[int i] => throw new NotImplementedException();
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "12");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_02()
+        {
+            // test 0-element tuple pattern via ITuple
+            var source = @"using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new object[] { null, new ValueTuple<char>('a'), new C(), new object() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+public class C : ITuple
+{
+    int ITuple.Length => 1;
+    object ITuple.this[int i] => 'b';
+}
+namespace System
+{
+    struct ValueTuple<TItem1> : ITuple
+    {
+        public TItem1 Item1;
+        public ValueTuple(TItem1 item1) => this.Item1 = item1;
+        int ITuple.Length => 1;
+        object ITuple.this[int i] => this.Item1;
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 a 2 b");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_03()
+        {
+            // test 0-element tuple pattern via Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+public class C
+{
+    public void Deconstruct() {}
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_04()
+        {
+            // test 1-element tuple pattern via Deconstruct
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+        var data = new C[] { null, new C() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+public class C
+{
+    public void Deconstruct(out char a) => a = 'a';
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "1 a");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_05()
+        {
+            // test 0-element tuple pattern via System.ValueTuple
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new ValueTuple[] { new ValueTuple() };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is ()) Console.Write(i);
+        }
+    }
+}
+
+namespace System
+{
+    struct ValueTuple
+    {
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ShortTuplePattern_06()
+        {
+            // test 1-element tuple pattern via System.ValueTuple
+            var source = @"using System;
+
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable CS0436
+        var data = new ValueTuple<char>[] { new ValueTuple<char>('a') };
+        for (int i = 0; i < data.Length; i++)
+        {
+            var datum = data[i];
+            if (datum is (var x) _) Console.Write($""{i} {x} "");
+        }
+    }
+}
+
+namespace System
+{
+    struct ValueTuple<TItem1>
+    {
+        public TItem1 Item1;
+        public ValueTuple(TItem1 item1) => this.Item1 = item1;
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "0 a");
+        }
     }
 }

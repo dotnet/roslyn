@@ -539,6 +539,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundITuplePattern(node, iTupleGetLength, iTupleGetItem, patterns.ToImmutableAndFree(), inputType, hasErrors);
         }
 
+        // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
+        // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
+        // required to identify it.  When that bug is fixed we should be able to remove this code and its callers.
+        internal static bool IsZeroElementTupleType(TypeSymbol type)
+        {
+            return type.IsStructType() && type.Name == "ValueTuple" && type.GetArity() == 0 && type.ContainingSymbol is var declContainer &&
+                declContainer.Kind == SymbolKind.Namespace && declContainer.Name == "System" && declContainer.ContainingSymbol?.Kind == SymbolKind.Namespace &&
+                declContainer.ContainingSymbol.ContainingSymbol?.Kind == SymbolKind.NetModule;
+        }
+
         private ImmutableArray<BoundSubpattern> BindDeconstructionPatternClause(
             DeconstructionPatternClauseSyntax node,
             TypeSymbol declType,
@@ -549,7 +559,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             deconstructMethod = null;
             var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
-            if (declType.IsTupleType)
+
+            // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
+            // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
+            // required to identify it.  When that bug is fixed we should be able to remove this if statement.
+            if (IsZeroElementTupleType(declType))
+            {
+                if (0 != node.Subpatterns.Count && !hasErrors)
+                {
+                    var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(node.OpenParenToken.SpanStart, node.CloseParenToken.Span.End - node.OpenParenToken.SpanStart));
+                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType, 0, node.Subpatterns.Count);
+                    hasErrors = true;
+                }
+
+                for (int i = 0; i < node.Subpatterns.Count; i++)
+                {
+                    var subpatternSyntax = node.Subpatterns[i];
+                    bool isError = true;
+                    TypeSymbol elementType = CreateErrorType();
+                    FieldSymbol foundField = null;
+                    if (subpatternSyntax.NameColon != null)
+                    {
+                        string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
+                        diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, subpatternSyntax.NameColon.Name.Location, name, $"Item{i + 1}");
+                    }
+
+                    BoundSubpattern boundSubpattern = new BoundSubpattern(
+                        subpatternSyntax,
+                        foundField,
+                        BindPattern(subpatternSyntax.Pattern, elementType, GetValEscape(elementType, inputValEscape), isError, diagnostics));
+                    patterns.Add(boundSubpattern);
+                }
+            }
+            else if (declType.IsTupleType)
             {
                 // It is a tuple type. Work according to its elements
                 ImmutableArray<TypeSymbolWithAnnotations> elementTypes = declType.TupleElementTypes;
@@ -663,9 +705,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (node.Designation != null)
+            if (node.Designation?.Kind() == SyntaxKind.SingleVariableDesignation)
             {
-                // ITuple matching only applies if there is no designation (what type would the designation be?)
+                // ITuple matching only applies if there is no designation (what type would the variable be?)
                 return false;
             }
 
@@ -824,6 +866,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                                 tupleDesignation.Variables.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                             deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
+                            if (!hasErrors)
+                                hasErrors = outPlaceholders.IsDefaultOrEmpty || tupleDesignation.Variables.Count != outPlaceholders.Length;
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
                             {
                                 var variable = tupleDesignation.Variables[i];
