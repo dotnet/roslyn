@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 }";
         }
 
-
         #region ArgumentListOfMethodInvocation
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -126,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
             => a * b;
     }
 }";
-
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -270,7 +268,6 @@ var test = ClassC.MethodM(
             VerifyTypingSemicolon(code, expected);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ArgumentListOfNestedMethodInvocation9()
         {
@@ -410,7 +407,6 @@ var test = ClassC.MethodM(
             => a * b;
     }
 }";
-            
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -439,7 +435,6 @@ var test = ClassC.MethodM(
             => a * b;
     }
 }";
-            
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -468,7 +463,6 @@ var test = ClassC.MethodM(
             => a * b;
     }
 }";
-
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -587,13 +581,12 @@ var test = ClassC.MethodM(
             VerifyTypingSemicolon(code, expected);
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ArgumentList_Array_MissingBoth()
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$");
 
-            var expected = 
+            var expected =
 @"class C
     {
         static void Main(string[] args)
@@ -644,7 +637,6 @@ var test = ClassC.MethodM(
     }
 }";
 
-
             VerifyTypingSemicolon(code, expected);
         }
 
@@ -677,7 +669,6 @@ var test = ClassC.MethodM(
 
             VerifyTypingSemicolon(code, expected);
         }
-
 
         #endregion
 
@@ -910,7 +901,6 @@ class C
 
             VerifyTypingSemicolon(code, expected);
         }
-
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ForLoopNoStatements()
@@ -1991,7 +1981,6 @@ public class Class1
 
         #region Don't Complete
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_SemicolonBeforeClassDeclaration()
         {
@@ -2579,15 +2568,14 @@ class ContinueTest
         #endregion
 
         internal override VSCommanding.ICommandHandler CreateCommandHandler(
-        IWaitIndicator waitIndicator,
-        ITextUndoHistoryRegistry undoHistoryRegistry,
-        IEditorOperationsFactoryService editorOperationsFactoryService)
+            IWaitIndicator waitIndicator,
+            ITextUndoHistoryRegistry undoHistoryRegistry,
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             return new CompleteStatementCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
-
     }
 }

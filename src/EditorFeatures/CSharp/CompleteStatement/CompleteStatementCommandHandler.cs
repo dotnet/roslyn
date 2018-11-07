@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -77,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
             var caretPosition = caret.Value.Position;
-            
 
             var token = GetToken(root, caretPosition, caret);
 
@@ -154,30 +152,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (token.Kind() == SyntaxKind.OpenParenToken && caretPosition == currentNode.SpanStart)
             {
                 currentNode = currentNode.Parent;
-                if (currentNode == null) return null;
+                if (currentNode == null)
+                {
+                    return null;
+                }
             }
+
             while (currentNode.Kind() != SyntaxKind.ArgumentList
-                    && currentNode.Kind() != SyntaxKind.ArrayRankSpecifier)
+                && currentNode.Kind() != SyntaxKind.ArrayRankSpecifier)
             {
-                if (currentNode.Kind() == SyntaxKind.InterpolatedStringExpression || currentNode.Kind() == SyntaxKind.StringLiteralExpression) return null;
-                if (currentNode == null 
-                    || syntaxFacts.IsStatement(currentNode) 
-                    || currentNode.Kind() == SyntaxKind.VariableDeclaration)  return null;
+                if (currentNode.Kind() == SyntaxKind.InterpolatedStringExpression || currentNode.Kind() == SyntaxKind.StringLiteralExpression)
+                {
+                    return null;
+                }
+
+                if (currentNode == null
+                    || syntaxFacts.IsStatement(currentNode)
+                    || currentNode.Kind() == SyntaxKind.VariableDeclaration)
+                {
+                    return null;
+                }
+
                 currentNode = currentNode.Parent;
                 if (currentNode == null)
+                {
                     return null;
+                }
             }
+
             // now we're in an argument list, so return the enclosing statement
-            while (!syntaxFacts.IsStatement(currentNode) && !(currentNode.Kind() == SyntaxKind.VariableDeclaration) )
+            while (!syntaxFacts.IsStatement(currentNode) && !(currentNode.Kind() == SyntaxKind.VariableDeclaration))
             {
                 currentNode = currentNode.Parent;
-                if (currentNode == null) return null;
+                if (currentNode == null)
+                {
+                    return null;
+                }
             }
 
             return currentNode;
-            
         }
-
 
         private bool IsCaretAtEndOfLine(SnapshotPoint? caret, int caretPosition)
         {
@@ -188,9 +202,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         {
             //previously bailed if caret was null, so this is safe
             if (IsCaretAtEndOfLine(caret, caretPosition) && caretPosition > 0)
+            {
                 return root.FindToken(caretPosition - 1);
+            }
             else
+            {
                 return root.FindToken(caretPosition);
+            }
         }
 
         private bool SemiColonIsMissing(SyntaxNode currentNode)
@@ -286,6 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                         lastDelimiterPosition = dostatement.CloseParenToken.Span.End;
                         return true;
                     }
+
                 default:
                     // Statement I'm not handling yet so shouldn't proceed with statement completion
                     return false;
@@ -302,7 +321,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     {
                         return false;
                     }
-                    else lastDelimiterPosition = argumentList.CloseParenToken.Span.End;
+                    else
+                    {
+                        lastDelimiterPosition = argumentList.CloseParenToken.Span.End;
+                    }
+
                     return true;
                 case SyntaxKind.ParenthesizedExpression:
                     var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
@@ -310,7 +333,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     {
                         return false;
                     }
-                    else lastDelimiterPosition = parenthesizedExpression.CloseParenToken.Span.End;
+                    else
+                    {
+                        lastDelimiterPosition = parenthesizedExpression.CloseParenToken.Span.End;
+                    }
+
                     return true;
                 case SyntaxKind.BracketedArgumentList:
                     var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
@@ -318,7 +345,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     {
                         return false;
                     }
-                    else lastDelimiterPosition = bracketedArgumentList.CloseBracketToken.Span.End;
+                    else
+                    {
+                        lastDelimiterPosition = bracketedArgumentList.CloseBracketToken.Span.End;
+                    }
+
                     return true;
                 case SyntaxKind.ObjectInitializerExpression:
                     var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
@@ -326,7 +357,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     {
                         return false;
                     }
-                    else lastDelimiterPosition = initializerExpressionSyntax.CloseBraceToken.Span.End;
+                    else
+                    {
+                        lastDelimiterPosition = initializerExpressionSyntax.CloseBraceToken.Span.End;
+                    }
+
                     return true;
                 default:
                     // Type of node does not require a closing delimiter
@@ -358,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     return true;
                 }
+
                 if (currentNode.Ancestors().Any(n => n.IsKind(SyntaxKind.ForStatement)))
                 {
                     return false;
@@ -380,9 +416,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 return token.TrailingTrivia.Span.Start;
             }
+
             return end;
-                //var previousToken = root.FindToken(end).GetPreviousToken();
-                //return previousToken.Span.End;
+            //var previousToken = root.FindToken(end).GetPreviousToken();
+            //return previousToken.Span.End;
         }
 
         private bool ApplicableToken(SyntaxToken token, SnapshotPoint? caret, int caretPosition)
@@ -392,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (caretIsBetweenFirstTokenAndOpeningBrace(token, caretPosition))
+            if (CaretIsBetweenFirstTokenAndOpeningBrace(token, caretPosition))
             {
                 return false;
             }
@@ -405,40 +442,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                         {
                             return false;
                         }
+
                         var previousKind = token.GetPreviousToken().Kind();
-                        if ( previousKind == SyntaxKind.IdentifierToken
+                        if (previousKind == SyntaxKind.IdentifierToken
                             || previousKind == SyntaxKind.EqualsExpression)
                         {
                             return false;
                         }
+
                         return true;
                     }
+
                 case SyntaxKind.EqualsToken:
                     {
                         return false;
                     }
+
                 case SyntaxKind.BreakKeyword:
                 case SyntaxKind.ContinueKeyword:
                 case SyntaxKind.EmptyStatement:
                     {
                         return false;
                     }
+
                 case SyntaxKind.IdentifierToken:
                     {
                         if (caretPosition == token.Span.End && token.GetNextToken().Kind() != SyntaxKind.DotToken)
                         {
                             return true;
                         }
+
                         if (caretPosition == token.SpanStart && token.GetPreviousToken().Kind() != SyntaxKind.DotToken)
                         {
                             return true;
                         }
+
                         return false;
                     }
+
                 case SyntaxKind.DotToken:
                     {
                         return false;
                     }
+
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.StringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
@@ -446,21 +492,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     {
                         return true;
                     }
+
                     return false;
             }
             return true;
         }
 
-        private bool caretIsBetweenFirstTokenAndOpeningBrace(SyntaxToken token, int caretPosition)
+        private bool CaretIsBetweenFirstTokenAndOpeningBrace(SyntaxToken token, int caretPosition)
         {
-
             if (caretPosition == token.SpanStart)
             {
                 if ((token.Kind() != SyntaxKind.CloseParenToken && token.GetPreviousToken().Kind() == SyntaxKind.OpenParenToken)
                     || (token.Kind() != SyntaxKind.CloseBraceToken && token.GetPreviousToken().Kind() == SyntaxKind.OpenBraceToken)
                     || (token.Kind() != SyntaxKind.CloseBracketToken && token.GetPreviousToken().Kind() == SyntaxKind.OpenBracketToken))
                 {
-                return true;
+                    return true;
                 }
             }
 
