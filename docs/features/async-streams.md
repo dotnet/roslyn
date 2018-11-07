@@ -96,7 +96,8 @@ The state machine for an async-iterator method primarily implements `IAsyncEnume
 It is similar to a state machine produced for an async method. It contains builder and awaiter fields, used to run the state machine in the background (when an `await` is reached in the async-iterator). It also captures parameter values (if any) or `this` (if needed).
 But it contains additional state:
 - a promise of a value-or-end,
-- a current yielded value of type `T`.
+- a current yielded value of type `T`,
+- an `int` capturing the id of the thread that created it.
 
 The central method of the state machine is `MoveNext()`. It gets run by `MoveNextAsync()`, or as a background continuation initiated from these from an `await` in the method.
 
