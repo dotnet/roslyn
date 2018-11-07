@@ -51655,9 +51655,9 @@ class Program
     {
         var c1 = Create(x);
         c1.F().ToString();
-        x = null; // 1
+        x = null;
         var c2 = Create(x);
-        c2.F().ToString(); // 2
+        c2.F().ToString();
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -51666,14 +51666,11 @@ class Program
                 //         c1.F().ToString();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.F").WithArguments("C<object>.F()").WithLocation(11, 9),
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x = null; // 1
+                //         x = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13),
                 // (14,9): error CS0176: Member 'C<object>.F()' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         c2.F().ToString(); // 2
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         c2.F().ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2.F()").WithLocation(14, 9));
+                //         c2.F().ToString();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c2.F").WithArguments("C<object>.F()").WithLocation(14, 9));
         }
     }
 }

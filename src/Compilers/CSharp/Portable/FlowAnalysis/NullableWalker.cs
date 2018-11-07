@@ -1951,20 +1951,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we analyze even omitted calls
             var method = node.Method;
             var receiverOpt = node.ReceiverOpt;
+            TypeSymbolWithAnnotations receiverType = default;
+
             if (receiverOpt != null && method.MethodKind != MethodKind.Constructor)
             {
-                var receiverType = VisitRvalueWithResult(receiverOpt);
+                receiverType = VisitRvalueWithResult(receiverOpt);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
-                // Update method based on inferred receiver type.
-                method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
             }
 
             // https://github.com/dotnet/roslyn/issues/29605 Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors)
             {
+                if (!receiverType.IsNull)
+                {
+                    // Update method based on inferred receiver type.
+                    method = (MethodSymbol)AsMemberOfResultType(receiverType, method);
+                }
+
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
                 (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
