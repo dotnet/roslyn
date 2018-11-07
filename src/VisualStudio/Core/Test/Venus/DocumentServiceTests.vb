@@ -199,7 +199,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                ' make sure single line buffer doesn't throw on ExcerptMode.Tooltip
                 Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
                 Assert.True(result.HasValue)
 
@@ -230,6 +229,46 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 ' ExcerptResult.MappedSpan is relative to ExcerptResult.Content.
                 ' recalculate expected span relative to the content span
                 Assert.Equal(New TextSpan(documentSpan.Start - contentSpan.Start, documentSpan.Length), result.Value.MappedSpan)
+            End Using
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        Public Async Function TestExcerptService_LeadingWhiteSpace() As Task
+            Using workspace = TestWorkspace.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>class outter { {|Document:            class C { }         |} }</Document>
+                    </Project>
+                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+
+                Dim projectedContent = <Code>class projected 
+{ 
+    {|Document:|}
+}</Code>
+
+                Dim subjectDocument = workspace.Documents.Single()
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument}, LanguageNames.CSharp)
+
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim excerptService = service.GetService(Of IDocumentExcerptService)
+
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
+                Assert.True(result.HasValue)
+
+                Dim content = result.Value.Content.ToString()
+
+                ' confirm leading whitespace is removed
+                Dim expcetedFormatted = {Keyword("class"),
+                                         FormattedClassifications.Text(" "),
+                                         [Class]("C"),
+                                         FormattedClassifications.Text(" "),
+                                         Punctuation.OpenCurly,
+                                         FormattedClassifications.Text(" "),
+                                         Punctuation.CloseCurly,
+                                         FormattedClassifications.Text("         ")}
+
+                Dim actualFormatted = result.Value.ClassifiedSpans.Select(Function(a) New FormattedClassification(content.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType))
+                Assert.Equal(expcetedFormatted, actualFormatted)
             End Using
         End Function
 

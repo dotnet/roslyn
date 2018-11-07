@@ -162,6 +162,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     // span on the content and create ClassifiedSpan
                     var contentSpan = contentSpanOnPrimarySnapshot.Span.ToTextSpan();
 
+                    // anything based on content is starting from 0
+                    var startPositionOnContentSpan = GetNonWhitespaceStartPositionOnContent(contentSpanOnPrimarySnapshot);
+
                     using (var pooledObject = SharedPools.Default<List<ClassifiedSpan>>().GetPooledObject())
                     {
                         var list = pooledObject.Object;
@@ -191,17 +194,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                                     continue;
                                 }
 
-                                list.Add(new ClassifiedSpan(GetSpanOnContent(mappedSpan.Value.Span.ToTextSpan(), contentSpan), classifiedSpan.ClassificationType));
+                                var spanOnContentSpan = GetSpanOnContent(mappedSpan.Value.Span.ToTextSpan(), contentSpan);
+                                if (spanOnContentSpan.Start < startPositionOnContentSpan)
+                                {
+                                    // skip span before start position.
+                                    continue;
+                                }
+
+                                list.Add(new ClassifiedSpan(spanOnContentSpan, classifiedSpan.ClassificationType));
                             }
                         }
 
-                        // everything is mapped to content which always start from 0
                         // classifier expects there is no gap between classification spans. any empty space
                         // from the above classification call will be filled with "text"
+                        //
+                        // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
+                        // multiple spans with html code, so we need to fill those gaps
                         var builder = ArrayBuilder<ClassifiedSpan>.GetInstance();
-
-                        var startPosition = GetNonWhitespaceStartPositionOnContent(contentSpanOnPrimarySnapshot);
-                        EditorClassifier.FillInClassifiedSpanGaps(startPosition, list, builder);
+                        EditorClassifier.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
 
                         // add html after roslyn content if there is any
                         if (builder.Count == 0)

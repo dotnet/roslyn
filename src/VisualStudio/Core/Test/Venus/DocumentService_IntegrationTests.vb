@@ -78,8 +78,8 @@ class {|Definition:C1|}
                 Dim definitionSpan = definitionDocument.AnnotatedSpans("Definition").Single()
                 Dim referenceSpan = definitionDocument.SelectedSpans.First()
                 Dim expected = {
-                    (definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(definitionSpan).Start, definitionText.Lines.GetLineFromPosition(definitionSpan.Start).ToString()),
-                    (definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(referenceSpan).Start, definitionText.Lines.GetLineFromPosition(referenceSpan.Start).ToString())}
+                    (definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(definitionSpan).Start, definitionText.Lines.GetLineFromPosition(definitionSpan.Start).ToString().Trim()),
+                    (definitionDocument.Name, definitionText.Lines.GetLinePositionSpan(referenceSpan).Start, definitionText.Lines.GetLineFromPosition(referenceSpan.Start).ToString().Trim())}
 
                 Dim factory = TestFindAllReferencesService.Instance.LastWindow.MyTableManager.LastSink.LastFactory
                 Dim snapshot = factory.GetCurrentSnapshot()

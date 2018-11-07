@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var document = documentSpan.Document;
                 var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
-                var excerptResult = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
@@ -280,11 +280,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult,
-                    AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
+                    guid, mappedDocumentSpan.Value, excerptResult, lineText);
             }
 
-            private async Task<ExcerptResult> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
+            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
@@ -292,17 +291,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, CancellationToken).ConfigureAwait(false);
                     if (result != null)
                     {
-                        return result.Value;
+                        return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
                     }
                 }
 
                 var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
-                return new ExcerptResult(
+
+                // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
+                var excerptResult = new ExcerptResult(
                     sourceText,
                     classificationResult.HighlightSpan,
                     classificationResult.ClassifiedSpans,
                     documentSpan.Document,
                     documentSpan.SourceSpan);
+
+                return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
             private TextSpan GetRegionSpanForReference(SourceText sourceText, TextSpan referenceSpan)
