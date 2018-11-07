@@ -562,7 +562,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveDynamicSourceFile(string dynamicFilePath)
         {
-            var provider = _sourceFiles.RemoveDynamicFile(GetDynamicFileInfoPath(dynamicFilePath));
+            var provider = _sourceFiles.RemoveDynamicFile(_dynamicFilePathMaps[dynamicFilePath]);
 
             // provider is free-threaded. so fine to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
@@ -571,12 +571,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
         {
-            _sourceFiles.ProcessFileChange(dynamicFilePath, GetDynamicFileInfoPath(dynamicFilePath));
-        }
+            if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var fileInfoPath))
+            {
+                // given file doesn't belong to this project. 
+                // this happen since the event this is handling is shared between all projects
+                return;
+            }
 
-        private string GetDynamicFileInfoPath(string dynamicFilePath)
-        {
-            return _dynamicFilePathMaps[dynamicFilePath];
+            _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
         }
 
         #endregion
