@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IAsynchronousOperationListener _listener;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
-        private readonly IFeatureCookie _legacyCompletionEnabledCookie;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
 
 #pragma warning disable IDE1006 // Naming Styles -- This name is picked up by the IFeatureService.
         [Export]
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
 
-            _legacyCompletionEnabledCookie = featureServiceFactory.GlobalFeatureService.GetCookie(nameof(LegacyRoslynCompletion));
+            _featureServiceFactory = featureServiceFactory;
         }
 
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             // Allow others to disable Roslyn's completion command handling
-            if (!_legacyCompletionEnabledCookie.IsEnabled)
+            if (!textView.Properties.GetOrCreateSingletonProperty(this, () => CreateLegacyCompletionEnabledCookie(textView)).IsEnabled)
             {
                 controller = null;
                 return false;
@@ -101,6 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 autobraceCompletionCharSet);
 
             return true;
+        }
+
+        private IFeatureCookie CreateLegacyCompletionEnabledCookie(ITextView textView)
+        {
+            return _featureServiceFactory.GetOrCreate(textView).GetCookie(nameof(LegacyRoslynCompletion));
         }
 
         private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(IContentType bufferContentType)
