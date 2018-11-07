@@ -10,9 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     Friend NotInheritable Class VisualBasicRemoveUnusedMembersDiagnosticAnalyzer
         Inherits AbstractRemoveUnusedMembersDiagnosticAnalyzer(Of DocumentationCommentTriviaSyntax, IdentifierNameSyntax)
 
-        Protected Overrides Sub RegisterCustomSymbolReferenceActions(context As SymbolStartAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
+        Protected Overrides Sub HandleNamedTypeSymbolStart(context As SymbolStartAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
             ' Mark all methods with handles clause as having a read reference
             ' to ensure that we consider the method as "used".
+            ' Such methods are essentially event handlers and are normally
+            ' not referenced directly.
             For Each method In DirectCast(context.Symbol, INamedTypeSymbol).GetMembers().OfType(Of IMethodSymbol)
                 If Not method.HandledEvents.IsEmpty Then
                     onSymbolUsageFound(method, ValueUsageInfo.Read)
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
             Next
 
             ' Register syntax node action for HandlesClause
-            ' This is a temporary workaround for following bugs:
+            ' This is a workaround for following bugs:
             '  1. https://github.com/dotnet/roslyn/issues/30978
             '  2. https://github.com/dotnet/roslyn/issues/30979
 

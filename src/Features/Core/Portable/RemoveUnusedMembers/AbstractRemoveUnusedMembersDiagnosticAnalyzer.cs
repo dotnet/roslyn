@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         /// <summary>
         /// Override this method to register custom language specific actions to find symbol usages.
         /// </summary>
-        protected virtual void RegisterCustomSymbolReferenceActions(SymbolStartAnalysisContext context, Action<ISymbol, ValueUsageInfo> onSymbolUsageFound)
+        protected virtual void HandleNamedTypeSymbolStart(SymbolStartAnalysisContext context, Action<ISymbol, ValueUsageInfo> onSymbolUsageFound)
         {
         }
 
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 compilationStartContext.RegisterSymbolAction(AnalyzeSymbolDeclaration, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property, SymbolKind.Event);
 
+                Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     if (symbolStartContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
 
                     // Register custom language-specific actions, if any.
-                    _analyzer.RegisterCustomSymbolReferenceActions(symbolStartContext, OnSymbolUsage);
+                    _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
                 }, SymbolKind.NamedType);
             }
 
