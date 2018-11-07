@@ -412,33 +412,24 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&
                     !memberSymbol.IsImplicitlyDeclared)
                 {
-                    // Do not track accessors, as we will track the associated symbol.
                     switch (memberSymbol.Kind)
                     {
                         case SymbolKind.Method:
-                            // Skip following methods:
-                            //   1. Entry point (Main) method
-                            //   2. Abstract/Virtual/Override methods
-                            //   3. Extern methods
-                            //   4. Interface implementation methods
-                            //   5. Constructors with no parameters.
-                            //   6. Static constructors.
-                            //   7. Destructors.
                             var methodSymbol = (IMethodSymbol)memberSymbol;
                             switch (methodSymbol.MethodKind)
                             {
                                 case MethodKind.Constructor:
                                     return methodSymbol.Parameters.Length > 0;
 
-                                case MethodKind.StaticConstructor:
-                                case MethodKind.Destructor:
-                                    return false;
-
-                                default:
+                                case MethodKind.Ordinary:
+                                    // Do not flag accessors, as we will track the associated symbol.
                                     return methodSymbol.AssociatedSymbol == null &&
                                            !IsEntryPoint(methodSymbol) &&
                                            !methodSymbol.IsExtern &&
                                            methodSymbol.ExplicitInterfaceImplementations.IsEmpty;
+
+                                default:
+                                    return false;
                             }
 
                         case SymbolKind.Field:
@@ -449,9 +440,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                         case SymbolKind.Event:
                             return ((IEventSymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
-
-                        default:
-                            return true;
                     }
                 }
 
