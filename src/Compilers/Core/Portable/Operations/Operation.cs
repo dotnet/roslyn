@@ -16,7 +16,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        private static readonly IOperation s_unset = new EmptyOperation(null, null, null, default, isImplicit: true);
+        protected static readonly IOperation s_unset = new EmptyOperation(null, null, null, default, isImplicit: true);
+        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(ImmutableArray<IOperation>.Empty, default, null, null, null, default, isImplicit: true);
+        protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, default, isImplicit: true);
+        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(null, null, null, null, null, default, isImplicit: true);
+        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, null, default, isImplicit: true);
+        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(null, null, null, null, default, isImplicit: true);
+        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation>.Empty, null, null, null, default, isImplicit: true);
+        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(null, null, null, null, default, isImplicit: true);
         private readonly SemanticModel _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once

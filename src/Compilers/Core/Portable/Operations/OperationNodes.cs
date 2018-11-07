@@ -56,33 +56,33 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation Reference { get; }
     }
-/// <summary>
-/// Represents an operation that creates a pointer value by taking the address of a reference.
-/// </summary>
-internal abstract class LazyAddressOfOperation : BaseAddressOfOperation, IAddressOfOperation
-{
-    private IOperation _lazyReferenceInterlocked;
-
-    public LazyAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an operation that creates a pointer value by taking the address of a reference.
+    /// </summary>
+    internal abstract class LazyAddressOfOperation : BaseAddressOfOperation, IAddressOfOperation
     {
-    }
+        private IOperation _lazyReferenceInterlocked = s_unset;
 
-    protected abstract IOperation CreateReference();
-
-    public override IOperation Reference
-    {
-        get
+        public LazyAddressOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyReferenceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyReferenceInterlocked, CreateReference(), null);
-                VerifyParentOperation(this, _lazyReferenceInterlocked);
-            }
+        }
 
-            return _lazyReferenceInterlocked;
+        protected abstract IOperation CreateReference();
+
+        public override IOperation Reference
+        {
+            get
+            {
+                if (_lazyReferenceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyReferenceInterlocked, CreateReference(), s_unset);
+                    VerifyParentOperation(this, _lazyReferenceInterlocked);
+                }
+
+                return _lazyReferenceInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents C# nameof and VB NameOf expression.
@@ -131,33 +131,33 @@ internal abstract class LazyAddressOfOperation : BaseAddressOfOperation, IAddres
 
         public override IOperation Argument { get; }
     }
-/// <summary>
-/// Represents C# nameof and VB NameOf expression.
-/// </summary>
-internal abstract class LazyNameOfOperation : BaseNameOfOperation, INameOfOperation
-{
-    private IOperation _lazyArgumentInterlocked;
-
-    public LazyNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents C# nameof and VB NameOf expression.
+    /// </summary>
+    internal abstract class LazyNameOfOperation : BaseNameOfOperation, INameOfOperation
     {
-    }
+        private IOperation _lazyArgumentInterlocked = s_unset;
 
-    protected abstract IOperation CreateArgument();
-
-    public override IOperation Argument
-    {
-        get
+        public LazyNameOfOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyArgumentInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyArgumentInterlocked, CreateArgument(), null);
-                VerifyParentOperation(this, _lazyArgumentInterlocked);
-            }
+        }
 
-            return _lazyArgumentInterlocked;
+        protected abstract IOperation CreateArgument();
+
+        public override IOperation Argument
+        {
+            get
+            {
+                if (_lazyArgumentInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyArgumentInterlocked, CreateArgument(), s_unset);
+                    VerifyParentOperation(this, _lazyArgumentInterlocked);
+                }
+
+                return _lazyArgumentInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents C# throw expression.
@@ -206,33 +206,33 @@ internal abstract class LazyNameOfOperation : BaseNameOfOperation, INameOfOperat
 
         public override IOperation Exception { get; }
     }
-/// <summary>
-/// Represents C# throw expression.
-/// </summary>
-internal abstract class LazyThrowOperation : BaseThrowOperation, IThrowOperation
-{
-    private IOperation _lazyExceptionInterlocked;
-
-    public LazyThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents C# throw expression.
+    /// </summary>
+    internal abstract class LazyThrowOperation : BaseThrowOperation, IThrowOperation
     {
-    }
+        private IOperation _lazyExceptionInterlocked = s_unset;
 
-    protected abstract IOperation CreateException();
-
-    public override IOperation Exception
-    {
-        get
+        public LazyThrowOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyExceptionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyExceptionInterlocked, CreateException(), null);
-                VerifyParentOperation(this, _lazyExceptionInterlocked);
-            }
+        }
 
-            return _lazyExceptionInterlocked;
+        protected abstract IOperation CreateException();
+
+        public override IOperation Exception
+        {
+            get
+            {
+                if (_lazyExceptionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyExceptionInterlocked, CreateException(), s_unset);
+                    VerifyParentOperation(this, _lazyExceptionInterlocked);
+                }
+
+                return _lazyExceptionInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an argument in a method invocation.
@@ -301,30 +301,30 @@ internal abstract class LazyThrowOperation : BaseThrowOperation, IThrowOperation
         public override IOperation Value { get; }
     }
 
-internal abstract class LazyArgumentOperation : BaseArgumentOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) : base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, isImplicit)
+    internal abstract class LazyArgumentOperation : BaseArgumentOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyArgumentOperation(ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) : base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents the creation of an array instance.
@@ -386,49 +386,49 @@ internal abstract class LazyArgumentOperation : BaseArgumentOperation
         public override IArrayInitializerOperation Initializer { get; }
     }
 
-/// <summary>
-/// Represents the creation of an array instance.
-/// </summary>
-internal abstract class LazyArrayCreationOperation : BaseArrayCreationOperation, IArrayCreationOperation
-{
-    private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
-    private IArrayInitializerOperation _lazyInitializerInterlocked;
-
-    public LazyArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents the creation of an array instance.
+    /// </summary>
+    internal abstract class LazyArrayCreationOperation : BaseArrayCreationOperation, IArrayCreationOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
+        private IArrayInitializerOperation _lazyInitializerInterlocked = s_unsetArrayInitializer;
 
-    protected abstract ImmutableArray<IOperation> CreateDimensionSizes();
-    protected abstract IArrayInitializerOperation CreateInitializer();
-
-    public override ImmutableArray<IOperation> DimensionSizes
-    {
-        get
+        public LazyArrayCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyDimensionSizesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, CreateDimensionSizes(), default);
-                VerifyParentOperation(this, _lazyDimensionSizesInterlocked);
-            }
+        }
 
-            return _lazyDimensionSizesInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateDimensionSizes();
+        protected abstract IArrayInitializerOperation CreateInitializer();
+
+        public override ImmutableArray<IOperation> DimensionSizes
+        {
+            get
+            {
+                if (_lazyDimensionSizesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, CreateDimensionSizes(), default);
+                    VerifyParentOperation(this, _lazyDimensionSizesInterlocked);
+                }
+
+                return _lazyDimensionSizesInterlocked;
+            }
+        }
+
+        public override IArrayInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetArrayInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetArrayInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
         }
     }
-
-    public override IArrayInitializerOperation Initializer
-    {
-        get
-        {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
-
-            return _lazyInitializerInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a reference to an array element.
@@ -492,49 +492,49 @@ internal abstract class LazyArrayCreationOperation : BaseArrayCreationOperation,
         public override ImmutableArray<IOperation> Indices { get; }
     }
 
-/// <summary>
-/// Represents a reference to an array element.
-/// </summary>
-internal abstract class LazyArrayElementReferenceOperation : BaseArrayElementReferenceOperation, IArrayElementReferenceOperation
-{
-    private IOperation _lazyArrayReferenceInterlocked;
-    private ImmutableArray<IOperation> _lazyIndicesInterlocked;
-
-    public LazyArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a reference to an array element.
+    /// </summary>
+    internal abstract class LazyArrayElementReferenceOperation : BaseArrayElementReferenceOperation, IArrayElementReferenceOperation
     {
-    }
+        private IOperation _lazyArrayReferenceInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyIndicesInterlocked;
 
-    protected abstract IOperation CreateArrayReference();
-    protected abstract ImmutableArray<IOperation> CreateIndices();
-
-    public override IOperation ArrayReference
-    {
-        get
+        public LazyArrayElementReferenceOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyArrayReferenceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyArrayReferenceInterlocked, CreateArrayReference(), null);
-                VerifyParentOperation(this, _lazyArrayReferenceInterlocked);
-            }
+        }
 
-            return _lazyArrayReferenceInterlocked;
+        protected abstract IOperation CreateArrayReference();
+        protected abstract ImmutableArray<IOperation> CreateIndices();
+
+        public override IOperation ArrayReference
+        {
+            get
+            {
+                if (_lazyArrayReferenceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyArrayReferenceInterlocked, CreateArrayReference(), s_unset);
+                    VerifyParentOperation(this, _lazyArrayReferenceInterlocked);
+                }
+
+                return _lazyArrayReferenceInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> Indices
+        {
+            get
+            {
+                if (_lazyIndicesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIndicesInterlocked, CreateIndices(), default);
+                    VerifyParentOperation(this, _lazyIndicesInterlocked);
+                }
+
+                return _lazyIndicesInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IOperation> Indices
-    {
-        get
-        {
-            if (_lazyIndicesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIndicesInterlocked, CreateIndices(), default);
-                VerifyParentOperation(this, _lazyIndicesInterlocked);
-            }
-
-            return _lazyIndicesInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents the initialization of an array instance.
@@ -587,33 +587,33 @@ internal abstract class LazyArrayElementReferenceOperation : BaseArrayElementRef
         public override ImmutableArray<IOperation> ElementValues { get; }
     }
 
-/// <summary>
-/// Represents the initialization of an array instance.
-/// </summary>
-internal abstract class LazyArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
-{
-    private ImmutableArray<IOperation> _lazyElementValuesInterlocked;
-
-    public LazyArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, constantValue, isImplicit)
+    /// <summary>
+    /// Represents the initialization of an array instance.
+    /// </summary>
+    internal abstract class LazyArrayInitializerOperation : BaseArrayInitializerOperation, IArrayInitializerOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyElementValuesInterlocked;
 
-    protected abstract ImmutableArray<IOperation> CreateElementValues();
-
-    public override ImmutableArray<IOperation> ElementValues
-    {
-        get
+        public LazyArrayInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, constantValue, isImplicit)
         {
-            if (_lazyElementValuesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementValuesInterlocked, CreateElementValues(), default);
-                VerifyParentOperation(this, _lazyElementValuesInterlocked);
-            }
+        }
 
-            return _lazyElementValuesInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateElementValues();
+
+        public override ImmutableArray<IOperation> ElementValues
+        {
+            get
+            {
+                if (_lazyElementValuesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementValuesInterlocked, CreateElementValues(), default);
+                    VerifyParentOperation(this, _lazyElementValuesInterlocked);
+                }
+
+                return _lazyElementValuesInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an base type of assignment expression.
@@ -688,49 +688,49 @@ internal abstract class LazyArrayInitializerOperation : BaseArrayInitializerOper
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents a simple assignment expression.
-/// </summary>
-internal abstract class LazySimpleAssignmentOperation : BaseSimpleAssignmentOperation, ISimpleAssignmentOperation
-{
-    private IOperation _lazyTargetInterlocked;
-    private IOperation _lazyValueInterlocked;
-
-    public LazySimpleAssignmentOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a simple assignment expression.
+    /// </summary>
+    internal abstract class LazySimpleAssignmentOperation : BaseSimpleAssignmentOperation, ISimpleAssignmentOperation
     {
-    }
+        private IOperation _lazyTargetInterlocked = s_unset;
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateTarget();
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Target
-    {
-        get
+        public LazySimpleAssignmentOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTargetInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), null);
-                VerifyParentOperation(this, _lazyTargetInterlocked);
-            }
+        }
 
-            return _lazyTargetInterlocked;
+        protected abstract IOperation CreateTarget();
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Target
+        {
+            get
+            {
+                if (_lazyTargetInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
+                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                }
+
+                return _lazyTargetInterlocked;
+            }
+        }
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-
-    public override IOperation Value
-    {
-        get
-        {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
-
-            return _lazyValueInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a deconstruction assignment expression.
@@ -766,49 +766,49 @@ internal abstract class LazySimpleAssignmentOperation : BaseSimpleAssignmentOper
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents a deconstruction assignment expression.
-/// </summary>
-internal abstract class LazyDeconstructionAssignmentOperation : BaseDeconstructionAssignmentOperation, IDeconstructionAssignmentOperation
-{
-    private IOperation _lazyTargetInterlocked;
-    private IOperation _lazyValueInterlocked;
-
-    public LazyDeconstructionAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal abstract class LazyDeconstructionAssignmentOperation : BaseDeconstructionAssignmentOperation, IDeconstructionAssignmentOperation
     {
-    }
+        private IOperation _lazyTargetInterlocked = s_unset;
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateTarget();
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Target
-    {
-        get
+        public LazyDeconstructionAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTargetInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), null);
-                VerifyParentOperation(this, _lazyTargetInterlocked);
-            }
+        }
 
-            return _lazyTargetInterlocked;
+        protected abstract IOperation CreateTarget();
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Target
+        {
+            get
+            {
+                if (_lazyTargetInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
+                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                }
+
+                return _lazyTargetInterlocked;
+            }
+        }
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-
-    public override IOperation Value
-    {
-        get
-        {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
-
-            return _lazyValueInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a declaration expression in C#.
@@ -866,38 +866,38 @@ internal abstract class LazyDeconstructionAssignmentOperation : BaseDeconstructi
         public override IOperation Expression { get; }
     }
 
-/// <summary>
-/// Represents a declaration expression in C#.
-/// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
-/// For example,
-///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
-///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
-///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
-/// </summary>
-internal abstract class LazyDeclarationExpressionOperation : BaseDeclarationExpressionOperation, IDeclarationExpressionOperation
-{
-    private IOperation _lazyExpressionInterlocked;
-
-    public LazyDeclarationExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a declaration expression in C#.
+    /// Unlike a regular variable declaration, this operation represents an "expression" declaring a variable.
+    /// For example,
+    ///   1. "var (x, y)" is a deconstruction declaration expression with variables x and y.
+    ///   2. "(var x, var y)" is a tuple expression with two declaration expressions.
+    ///   3. "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// </summary>
+    internal abstract class LazyDeclarationExpressionOperation : BaseDeclarationExpressionOperation, IDeclarationExpressionOperation
     {
-    }
+        private IOperation _lazyExpressionInterlocked = s_unset;
 
-    protected abstract IOperation CreateExpression();
-
-    public override IOperation Expression
-    {
-        get
+        public LazyDeclarationExpressionOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyExpressionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyExpressionInterlocked, CreateExpression(), null);
-                VerifyParentOperation(this, _lazyExpressionInterlocked);
-            }
+        }
 
-            return _lazyExpressionInterlocked;
+        protected abstract IOperation CreateExpression();
+
+        public override IOperation Expression
+        {
+            get
+            {
+                if (_lazyExpressionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyExpressionInterlocked, CreateExpression(), s_unset);
+                    VerifyParentOperation(this, _lazyExpressionInterlocked);
+                }
+
+                return _lazyExpressionInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an await expression.
@@ -947,33 +947,33 @@ internal abstract class LazyDeclarationExpressionOperation : BaseDeclarationExpr
         public override IOperation Operation { get; }
     }
 
-/// <summary>
-/// Represents an await expression.
-/// </summary>
-internal abstract class LazyAwaitOperation : BaseAwaitOperation, IAwaitOperation
-{
-    private IOperation _lazyOperationInterlocked;
-
-    public LazyAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an await expression.
+    /// </summary>
+    internal abstract class LazyAwaitOperation : BaseAwaitOperation, IAwaitOperation
     {
-    }
+        private IOperation _lazyOperationInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperation();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyAwaitOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
+        }
 
-            return _lazyOperationInterlocked;
+        protected abstract IOperation CreateOperation();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
@@ -1072,49 +1072,49 @@ internal abstract class LazyAwaitOperation : BaseAwaitOperation, IAwaitOperation
         public override IOperation RightOperand { get; }
     }
 
-/// <summary>
-/// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
-/// </summary>
-internal abstract class LazyBinaryOperation : BaseBinaryOperation, IBinaryOperation
-{
-    private IOperation _lazyLeftOperandInterlocked;
-    private IOperation _lazyRightOperandInterlocked;
-
-    public LazyBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal abstract class LazyBinaryOperation : BaseBinaryOperation, IBinaryOperation
     {
-    }
+        private IOperation _lazyLeftOperandInterlocked = s_unset;
+        private IOperation _lazyRightOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateLeftOperand();
-    protected abstract IOperation CreateRightOperand();
-
-    public override IOperation LeftOperand
-    {
-        get
+        public LazyBinaryOperation(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyLeftOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, CreateLeftOperand(), null);
-                VerifyParentOperation(this, _lazyLeftOperandInterlocked);
-            }
+        }
 
-            return _lazyLeftOperandInterlocked;
+        protected abstract IOperation CreateLeftOperand();
+        protected abstract IOperation CreateRightOperand();
+
+        public override IOperation LeftOperand
+        {
+            get
+            {
+                if (_lazyLeftOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, CreateLeftOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyLeftOperandInterlocked);
+                }
+
+                return _lazyLeftOperandInterlocked;
+            }
+        }
+
+        public override IOperation RightOperand
+        {
+            get
+            {
+                if (_lazyRightOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, CreateRightOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyRightOperandInterlocked);
+                }
+
+                return _lazyRightOperandInterlocked;
+            }
         }
     }
-
-    public override IOperation RightOperand
-    {
-        get
-        {
-            if (_lazyRightOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, CreateRightOperand(), null);
-                VerifyParentOperation(this, _lazyRightOperandInterlocked);
-            }
-
-            return _lazyRightOperandInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
@@ -1181,49 +1181,49 @@ internal abstract class LazyBinaryOperation : BaseBinaryOperation, IBinaryOperat
         public override IOperation RightOperand { get; }
     }
 
-/// <summary>
-/// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
-/// </summary>
-internal abstract class LazyTupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
-{
-    private IOperation _lazyLeftOperandInterlocked;
-    private IOperation _lazyRightOperandInterlocked;
-
-    public LazyTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    internal abstract class LazyTupleBinaryOperation : BaseTupleBinaryOperation, ITupleBinaryOperation
     {
-    }
+        private IOperation _lazyLeftOperandInterlocked = s_unset;
+        private IOperation _lazyRightOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateLeftOperand();
-    protected abstract IOperation CreateRightOperand();
-
-    public override IOperation LeftOperand
-    {
-        get
+        public LazyTupleBinaryOperation(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyLeftOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, CreateLeftOperand(), null);
-                VerifyParentOperation(this, _lazyLeftOperandInterlocked);
-            }
+        }
 
-            return _lazyLeftOperandInterlocked;
+        protected abstract IOperation CreateLeftOperand();
+        protected abstract IOperation CreateRightOperand();
+
+        public override IOperation LeftOperand
+        {
+            get
+            {
+                if (_lazyLeftOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyLeftOperandInterlocked, CreateLeftOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyLeftOperandInterlocked);
+                }
+
+                return _lazyLeftOperandInterlocked;
+            }
+        }
+
+        public override IOperation RightOperand
+        {
+            get
+            {
+                if (_lazyRightOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, CreateRightOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyRightOperandInterlocked);
+                }
+
+                return _lazyRightOperandInterlocked;
+            }
         }
     }
-
-    public override IOperation RightOperand
-    {
-        get
-        {
-            if (_lazyRightOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyRightOperandInterlocked, CreateRightOperand(), null);
-                VerifyParentOperation(this, _lazyRightOperandInterlocked);
-            }
-
-            return _lazyRightOperandInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a block scope.
@@ -1281,33 +1281,33 @@ internal abstract class LazyTupleBinaryOperation : BaseTupleBinaryOperation, ITu
         public override ImmutableArray<IOperation> Operations { get; }
     }
 
-/// <summary>
-/// Represents a block scope.
-/// </summary>
-internal abstract class LazyBlockOperation : BaseBlockOperation, IBlockOperation
-{
-    private ImmutableArray<IOperation> _lazyOperationsInterlocked;
-
-    public LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a block scope.
+    /// </summary>
+    internal abstract class LazyBlockOperation : BaseBlockOperation, IBlockOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyOperationsInterlocked;
 
-    protected abstract ImmutableArray<IOperation> CreateOperations();
-
-    public override ImmutableArray<IOperation> Operations
-    {
-        get
+        public LazyBlockOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyOperationsInterlocked, CreateOperations(), default);
-                VerifyParentOperation(this, _lazyOperationsInterlocked);
-            }
+        }
 
-            return _lazyOperationsInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateOperations();
+
+        public override ImmutableArray<IOperation> Operations
+        {
+            get
+            {
+                if (_lazyOperationsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyOperationsInterlocked, CreateOperations(), default);
+                    VerifyParentOperation(this, _lazyOperationsInterlocked);
+                }
+
+                return _lazyOperationsInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# goto, break, or continue statement, or a VB GoTo, Exit ***, or Continue *** statement
@@ -1445,65 +1445,65 @@ internal abstract class LazyBlockOperation : BaseBlockOperation, IBlockOperation
         public override IOperation ExceptionDeclarationOrExpression { get; }
     }
 
-/// <summary>
-/// Represents a C# catch or VB Catch clause.
-/// </summary>
-internal abstract class LazyCatchClauseOperation : BaseCatchClauseOperation, ICatchClauseOperation
-{
-    private IOperation _lazyExceptionDeclarationOrExpressionInterlocked;
-    private IOperation _lazyFilterInterlocked;
-    private IBlockOperation _lazyHandlerInterlocked;
-
-    public LazyCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# catch or VB Catch clause.
+    /// </summary>
+    internal abstract class LazyCatchClauseOperation : BaseCatchClauseOperation, ICatchClauseOperation
     {
-    }
+        private IOperation _lazyExceptionDeclarationOrExpressionInterlocked = s_unset;
+        private IOperation _lazyFilterInterlocked = s_unset;
+        private IBlockOperation _lazyHandlerInterlocked = s_unsetBlock;
 
-    protected abstract IOperation CreateExceptionDeclarationOrExpression();
-    protected abstract IOperation CreateFilter();
-    protected abstract IBlockOperation CreateHandler();
-
-    public override IOperation ExceptionDeclarationOrExpression
-    {
-        get
+        public LazyCatchClauseOperation(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyExceptionDeclarationOrExpressionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyExceptionDeclarationOrExpressionInterlocked, CreateExceptionDeclarationOrExpression(), null);
-                VerifyParentOperation(this, _lazyExceptionDeclarationOrExpressionInterlocked);
-            }
+        }
 
-            return _lazyExceptionDeclarationOrExpressionInterlocked;
+        protected abstract IOperation CreateExceptionDeclarationOrExpression();
+        protected abstract IOperation CreateFilter();
+        protected abstract IBlockOperation CreateHandler();
+
+        public override IOperation ExceptionDeclarationOrExpression
+        {
+            get
+            {
+                if (_lazyExceptionDeclarationOrExpressionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyExceptionDeclarationOrExpressionInterlocked, CreateExceptionDeclarationOrExpression(), s_unset);
+                    VerifyParentOperation(this, _lazyExceptionDeclarationOrExpressionInterlocked);
+                }
+
+                return _lazyExceptionDeclarationOrExpressionInterlocked;
+            }
+        }
+
+        public override IOperation Filter
+        {
+            get
+            {
+                if (_lazyFilterInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyFilterInterlocked, CreateFilter(), s_unset);
+                    VerifyParentOperation(this, _lazyFilterInterlocked);
+                }
+
+                return _lazyFilterInterlocked;
+            }
+        }
+
+        public override IBlockOperation Handler
+        {
+            get
+            {
+                if (_lazyHandlerInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyHandlerInterlocked, CreateHandler(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyHandlerInterlocked);
+                }
+
+                return _lazyHandlerInterlocked;
+            }
         }
     }
-
-    public override IOperation Filter
-    {
-        get
-        {
-            if (_lazyFilterInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyFilterInterlocked, CreateFilter(), null);
-                VerifyParentOperation(this, _lazyFilterInterlocked);
-            }
-
-            return _lazyFilterInterlocked;
-        }
-    }
-
-    public override IBlockOperation Handler
-    {
-        get
-        {
-            if (_lazyHandlerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyHandlerInterlocked, CreateHandler(), null);
-                VerifyParentOperation(this, _lazyHandlerInterlocked);
-            }
-
-            return _lazyHandlerInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
@@ -1564,46 +1564,46 @@ internal abstract class LazyCatchClauseOperation : BaseCatchClauseOperation, ICa
         public override IOperation Value { get; }
     }
 
-internal abstract class LazyCompoundAssignmentOperation : BaseCompoundAssignmentOperation
-{
-    private IOperation _lazyTargetInterlocked;
-    private IOperation _lazyValueInterlocked;
-
-    public LazyCompoundAssignmentOperation(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyCompoundAssignmentOperation : BaseCompoundAssignmentOperation
     {
-    }
+        private IOperation _lazyTargetInterlocked = s_unset;
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateTarget();
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Target
-    {
-        get
+        public LazyCompoundAssignmentOperation(IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTargetInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), null);
-                VerifyParentOperation(this, _lazyTargetInterlocked);
-            }
+        }
 
-            return _lazyTargetInterlocked;
+        protected abstract IOperation CreateTarget();
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Target
+        {
+            get
+            {
+                if (_lazyTargetInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
+                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                }
+
+                return _lazyTargetInterlocked;
+            }
+        }
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-
-    public override IOperation Value
-    {
-        get
-        {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
-
-            return _lazyValueInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an expression that includes a ? or ?. conditional access instance expression.
@@ -1663,49 +1663,49 @@ internal abstract class LazyCompoundAssignmentOperation : BaseCompoundAssignment
         public override IOperation WhenNotNull { get; }
     }
 
-/// <summary>
-/// Represents an expression that includes a ? or ?. conditional access instance expression.
-/// </summary>
-internal abstract class LazyConditionalAccessOperation : BaseConditionalAccessOperation, IConditionalAccessOperation
-{
-    private IOperation _lazyWhenNotNullInterlocked;
-    private IOperation _lazyOperationInterlocked;
-
-    public LazyConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an expression that includes a ? or ?. conditional access instance expression.
+    /// </summary>
+    internal abstract class LazyConditionalAccessOperation : BaseConditionalAccessOperation, IConditionalAccessOperation
     {
-    }
+        private IOperation _lazyWhenNotNullInterlocked = s_unset;
+        private IOperation _lazyOperationInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperation();
-    protected abstract IOperation CreateWhenNotNull();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyConditionalAccessOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyWhenNotNullInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyWhenNotNullInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyWhenNotNullInterlocked);
-            }
+        }
 
-            return _lazyWhenNotNullInterlocked;
+        protected abstract IOperation CreateOperation();
+        protected abstract IOperation CreateWhenNotNull();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyWhenNotNullInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyWhenNotNullInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyWhenNotNullInterlocked);
+                }
+
+                return _lazyWhenNotNullInterlocked;
+            }
+        }
+
+        public override IOperation WhenNotNull
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateWhenNotNull(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
         }
     }
-
-    public override IOperation WhenNotNull
-    {
-        get
-        {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateWhenNotNull(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
-
-            return _lazyOperationInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents the value of a conditionally-accessed expression within an expression containing a conditional access.
@@ -1816,70 +1816,70 @@ internal abstract class LazyConditionalAccessOperation : BaseConditionalAccessOp
         public override IOperation WhenFalse { get; }
     }
 
-/// <summary>
-/// Represents a conditional operation with:
-///  1. <see cref="IConditionalOperation.Condition"/> to be tested,
-///  2. <see cref="IConditionalOperation.WhenTrue"/> operation to be executed when <see cref="IConditionalOperation.Condition"/> is true and
-///  3. <see cref="IConditionalOperation.WhenFalse"/> operation to be executed when the <see cref="IConditionalOperation.Condition"/> is false.
-/// For example, a C# ternary expression "a ? b : c" or a VB "If(a, b, c)" expression is represented as a conditional operation whose resulting value is the result of the expression.
-/// Additionally, a C# "if else" statement or VB "If Then Else" is also is represented as a conditional operation, but with a dropped or no result value.
-/// </summary>
-internal abstract class LazyConditionalOperation : BaseConditionalOperation, IConditionalOperation
-{
-    private IOperation _lazyConditionInterlocked;
-    private IOperation _lazyWhenTrueInterlocked;
-    private IOperation _lazyWhenFalseInterlocked;
-
-    public LazyConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a conditional operation with:
+    ///  1. <see cref="IConditionalOperation.Condition"/> to be tested,
+    ///  2. <see cref="IConditionalOperation.WhenTrue"/> operation to be executed when <see cref="IConditionalOperation.Condition"/> is true and
+    ///  3. <see cref="IConditionalOperation.WhenFalse"/> operation to be executed when the <see cref="IConditionalOperation.Condition"/> is false.
+    /// For example, a C# ternary expression "a ? b : c" or a VB "If(a, b, c)" expression is represented as a conditional operation whose resulting value is the result of the expression.
+    /// Additionally, a C# "if else" statement or VB "If Then Else" is also is represented as a conditional operation, but with a dropped or no result value.
+    /// </summary>
+    internal abstract class LazyConditionalOperation : BaseConditionalOperation, IConditionalOperation
     {
-    }
+        private IOperation _lazyConditionInterlocked = s_unset;
+        private IOperation _lazyWhenTrueInterlocked = s_unset;
+        private IOperation _lazyWhenFalseInterlocked = s_unset;
 
-    protected abstract IOperation CreateCondition();
-    protected abstract IOperation CreateWhenTrue();
-    protected abstract IOperation CreateWhenFalse();
-
-    public override IOperation Condition
-    {
-        get
+        public LazyConditionalOperation(bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyConditionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), null);
-                VerifyParentOperation(this, _lazyConditionInterlocked);
-            }
+        }
 
-            return _lazyConditionInterlocked;
+        protected abstract IOperation CreateCondition();
+        protected abstract IOperation CreateWhenTrue();
+        protected abstract IOperation CreateWhenFalse();
+
+        public override IOperation Condition
+        {
+            get
+            {
+                if (_lazyConditionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
+                    VerifyParentOperation(this, _lazyConditionInterlocked);
+                }
+
+                return _lazyConditionInterlocked;
+            }
+        }
+
+        public override IOperation WhenTrue
+        {
+            get
+            {
+                if (_lazyWhenTrueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyWhenTrueInterlocked, CreateWhenTrue(), s_unset);
+                    VerifyParentOperation(this, _lazyWhenTrueInterlocked);
+                }
+
+                return _lazyWhenTrueInterlocked;
+            }
+        }
+
+        public override IOperation WhenFalse
+        {
+            get
+            {
+                if (_lazyWhenFalseInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyWhenFalseInterlocked, CreateWhenFalse(), s_unset);
+                    VerifyParentOperation(this, _lazyWhenFalseInterlocked);
+                }
+
+                return _lazyWhenFalseInterlocked;
+            }
         }
     }
-
-    public override IOperation WhenTrue
-    {
-        get
-        {
-            if (_lazyWhenTrueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyWhenTrueInterlocked, CreateWhenTrue(), null);
-                VerifyParentOperation(this, _lazyWhenTrueInterlocked);
-            }
-
-            return _lazyWhenTrueInterlocked;
-        }
-    }
-
-    public override IOperation WhenFalse
-    {
-        get
-        {
-            if (_lazyWhenFalseInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyWhenFalseInterlocked, CreateWhenFalse(), null);
-                VerifyParentOperation(this, _lazyWhenFalseInterlocked);
-            }
-
-            return _lazyWhenFalseInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a conversion operation.
@@ -1934,30 +1934,30 @@ internal abstract class LazyConditionalOperation : BaseConditionalOperation, ICo
         public override IOperation Operand { get; }
     }
 
-internal abstract class LazyConversionOperation : BaseConversionOperation
-{
-    private IOperation _lazyOperandInterlocked;
-
-    public LazyConversionOperation(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyConversionOperation : BaseConversionOperation
     {
-    }
+        private IOperation _lazyOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperand();
-
-    public override IOperation Operand
-    {
-        get
+        public LazyConversionOperation(IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), null);
-                VerifyParentOperation(this, _lazyOperandInterlocked);
-            }
+        }
 
-            return _lazyOperandInterlocked;
+        protected abstract IOperation CreateOperand();
+
+        public override IOperation Operand
+        {
+            get
+            {
+                if (_lazyOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                }
+
+                return _lazyOperandInterlocked;
+            }
         }
     }
-}
 
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -2103,49 +2103,49 @@ internal abstract class LazyConversionOperation : BaseConversionOperation
         public override IOperation HandlerValue { get; }
     }
 
-/// <summary>
-/// Represents a binding of an event.
-/// </summary>
-internal abstract class LazyEventAssignmentOperation : BaseEventAssignmentOperation, IEventAssignmentOperation
-{
-    private IOperation _lazyEventReferenceInterlocked;
-    private IOperation _lazyHandlerValueInterlocked;
-
-    public LazyEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(adds, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a binding of an event.
+    /// </summary>
+    internal abstract class LazyEventAssignmentOperation : BaseEventAssignmentOperation, IEventAssignmentOperation
     {
-    }
+        private IOperation _lazyEventReferenceInterlocked = s_unset;
+        private IOperation _lazyHandlerValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateEventReference();
-    protected abstract IOperation CreateHandlerValue();
-
-    public override IOperation EventReference
-    {
-        get
+        public LazyEventAssignmentOperation(bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(adds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyEventReferenceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, CreateEventReference(), null);
-                VerifyParentOperation(this, _lazyEventReferenceInterlocked);
-            }
+        }
 
-            return _lazyEventReferenceInterlocked;
+        protected abstract IOperation CreateEventReference();
+        protected abstract IOperation CreateHandlerValue();
+
+        public override IOperation EventReference
+        {
+            get
+            {
+                if (_lazyEventReferenceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, CreateEventReference(), s_unset);
+                    VerifyParentOperation(this, _lazyEventReferenceInterlocked);
+                }
+
+                return _lazyEventReferenceInterlocked;
+            }
+        }
+
+        public override IOperation HandlerValue
+        {
+            get
+            {
+                if (_lazyHandlerValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyHandlerValueInterlocked, CreateHandlerValue(), s_unset);
+                    VerifyParentOperation(this, _lazyHandlerValueInterlocked);
+                }
+
+                return _lazyHandlerValueInterlocked;
+            }
         }
     }
-
-    public override IOperation HandlerValue
-    {
-        get
-        {
-            if (_lazyHandlerValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyHandlerValueInterlocked, CreateHandlerValue(), null);
-                VerifyParentOperation(this, _lazyHandlerValueInterlocked);
-            }
-
-            return _lazyHandlerValueInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a reference to an event.
@@ -2195,33 +2195,33 @@ internal abstract class LazyEventAssignmentOperation : BaseEventAssignmentOperat
         public override IOperation Instance { get; }
     }
 
-/// <summary>
-/// Represents a reference to an event.
-/// </summary>
-internal abstract class LazyEventReferenceOperation : BaseEventReferenceOperation, IEventReferenceOperation
-{
-    private IOperation _lazyInstanceInterlocked;
-
-    public LazyEventReferenceOperation(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(@event, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a reference to an event.
+    /// </summary>
+    internal abstract class LazyEventReferenceOperation : BaseEventReferenceOperation, IEventReferenceOperation
     {
-    }
+        private IOperation _lazyInstanceInterlocked = s_unset;
 
-    protected abstract IOperation CreateInstance();
-
-    public override IOperation Instance
-    {
-        get
+        public LazyEventReferenceOperation(IEventSymbol @event, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInstanceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), null);
-                VerifyParentOperation(this, _lazyInstanceInterlocked);
-            }
+        }
 
-            return _lazyInstanceInterlocked;
+        protected abstract IOperation CreateInstance();
+
+        public override IOperation Instance
+        {
+            get
+            {
+                if (_lazyInstanceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
+                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                }
+
+                return _lazyInstanceInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# or VB statement that consists solely of an expression.
@@ -2271,33 +2271,33 @@ internal abstract class LazyEventReferenceOperation : BaseEventReferenceOperatio
         public override IOperation Operation { get; }
     }
 
-/// <summary>
-/// Represents a C# or VB statement that consists solely of an expression.
-/// </summary>
-internal abstract class LazyExpressionStatementOperation : BaseExpressionStatementOperation, IExpressionStatementOperation
-{
-    private IOperation _lazyOperationInterlocked;
-
-    public LazyExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# or VB statement that consists solely of an expression.
+    /// </summary>
+    internal abstract class LazyExpressionStatementOperation : BaseExpressionStatementOperation, IExpressionStatementOperation
     {
-    }
+        private IOperation _lazyOperationInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperation();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyExpressionStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
+        }
 
-            return _lazyOperationInterlocked;
+        protected abstract IOperation CreateOperation();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an initialization of a local variable.
@@ -2344,33 +2344,33 @@ internal abstract class LazyExpressionStatementOperation : BaseExpressionStateme
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents an initialization of a local variable.
-/// </summary>
-internal abstract class LazyVariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyVariableInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an initialization of a local variable.
+    /// </summary>
+    internal abstract class LazyVariableInitializerOperation : BaseVariableInitializerOperation, IVariableInitializerOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyVariableInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an initialization of a field.
@@ -2424,33 +2424,33 @@ internal abstract class LazyVariableInitializerOperation : BaseVariableInitializ
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents an initialization of a field.
-/// </summary>
-internal abstract class LazyFieldInitializerOperation : BaseFieldInitializerOperation, IFieldInitializerOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyFieldInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an initialization of a field.
+    /// </summary>
+    internal abstract class LazyFieldInitializerOperation : BaseFieldInitializerOperation, IFieldInitializerOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyFieldInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a reference to a field.
@@ -2501,33 +2501,33 @@ internal abstract class LazyFieldInitializerOperation : BaseFieldInitializerOper
         public override IOperation Instance { get; }
     }
 
-/// <summary>
-/// Represents a reference to a field.
-/// </summary>
-internal abstract class LazyFieldReferenceOperation : BaseFieldReferenceOperation, IFieldReferenceOperation
-{
-    private IOperation _lazyInstanceInterlocked;
-
-    public LazyFieldReferenceOperation(IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a reference to a field.
+    /// </summary>
+    internal abstract class LazyFieldReferenceOperation : BaseFieldReferenceOperation, IFieldReferenceOperation
     {
-    }
+        private IOperation _lazyInstanceInterlocked = s_unset;
 
-    protected abstract IOperation CreateInstance();
-
-    public override IOperation Instance
-    {
-        get
+        public LazyFieldReferenceOperation(IFieldSymbol field, bool isDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInstanceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), null);
-                VerifyParentOperation(this, _lazyInstanceInterlocked);
-            }
+        }
 
-            return _lazyInstanceInterlocked;
+        protected abstract IOperation CreateInstance();
+
+        public override IOperation Instance
+        {
+            get
+            {
+                if (_lazyInstanceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
+                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                }
+
+                return _lazyInstanceInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# fixed statement.
@@ -2593,49 +2593,49 @@ internal abstract class LazyFieldReferenceOperation : BaseFieldReferenceOperatio
         public override IOperation Body { get; }
     }
 
-/// <summary>
-/// Represents a C# fixed statement.
-/// </summary>
-internal abstract class LazyFixedOperation : BaseFixedOperation, IFixedOperation
-{
-    private IVariableDeclarationGroupOperation _lazyVariablesInterlocked;
-    private IOperation _lazyBodyInterlocked;
-
-    public LazyFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# fixed statement.
+    /// </summary>
+    internal abstract class LazyFixedOperation : BaseFixedOperation, IFixedOperation
     {
-    }
+        private IVariableDeclarationGroupOperation _lazyVariablesInterlocked = s_unsetVariableDeclarationGroup;
+        private IOperation _lazyBodyInterlocked = s_unset;
 
-    protected abstract IVariableDeclarationGroupOperation CreateVariables();
-    protected abstract IOperation CreateBody();
-
-    public override IVariableDeclarationGroupOperation Variables
-    {
-        get
+        public LazyFixedOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyVariablesInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyVariablesInterlocked, CreateVariables(), null);
-                VerifyParentOperation(this, _lazyVariablesInterlocked);
-            }
+        }
 
-            return _lazyVariablesInterlocked;
+        protected abstract IVariableDeclarationGroupOperation CreateVariables();
+        protected abstract IOperation CreateBody();
+
+        public override IVariableDeclarationGroupOperation Variables
+        {
+            get
+            {
+                if (_lazyVariablesInterlocked == s_unsetVariableDeclarationGroup)
+                {
+                    Interlocked.CompareExchange(ref _lazyVariablesInterlocked, CreateVariables(), s_unsetVariableDeclarationGroup);
+                    VerifyParentOperation(this, _lazyVariablesInterlocked);
+                }
+
+                return _lazyVariablesInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# 'foreach' statement or a VB 'For Each' statement.
@@ -2723,81 +2723,81 @@ internal abstract class LazyFixedOperation : BaseFixedOperation, IFixedOperation
         public override IOperation Body { get; }
     }
 
-/// <summary>
-/// Represents a C# 'foreach' statement or a VB 'For Each' statement.
-/// </summary>
-internal abstract class LazyForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
-{
-    private IOperation _lazyLoopControlVariableInterlocked;
-    private IOperation _lazyCollectionInterlocked;
-    private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
-    private IOperation _lazyBodyInterlocked;
-
-    public LazyForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, ForEachLoopOperationInfo info, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, continueLabel, exitLabel, info, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# 'foreach' statement or a VB 'For Each' statement.
+    /// </summary>
+    internal abstract class LazyForEachLoopOperation : BaseForEachLoopOperation, IForEachLoopOperation
     {
-    }
+        private IOperation _lazyLoopControlVariableInterlocked = s_unset;
+        private IOperation _lazyCollectionInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
+        private IOperation _lazyBodyInterlocked = s_unset;
 
-    protected abstract IOperation CreateLoopControlVariable();
-    protected abstract IOperation CreateCollection();
-    protected abstract ImmutableArray<IOperation> CreateNextVariables();
-    protected abstract IOperation CreateBody();
-
-    public override IOperation LoopControlVariable
-    {
-        get
+        public LazyForEachLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, ForEachLoopOperationInfo info, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, continueLabel, exitLabel, info, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyLoopControlVariableInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, CreateLoopControlVariable(), null);
-                VerifyParentOperation(this, _lazyLoopControlVariableInterlocked);
-            }
+        }
 
-            return _lazyLoopControlVariableInterlocked;
+        protected abstract IOperation CreateLoopControlVariable();
+        protected abstract IOperation CreateCollection();
+        protected abstract ImmutableArray<IOperation> CreateNextVariables();
+        protected abstract IOperation CreateBody();
+
+        public override IOperation LoopControlVariable
+        {
+            get
+            {
+                if (_lazyLoopControlVariableInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, CreateLoopControlVariable(), s_unset);
+                    VerifyParentOperation(this, _lazyLoopControlVariableInterlocked);
+                }
+
+                return _lazyLoopControlVariableInterlocked;
+            }
+        }
+
+        public override IOperation Collection
+        {
+            get
+            {
+                if (_lazyCollectionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyCollectionInterlocked, CreateCollection(), s_unset);
+                    VerifyParentOperation(this, _lazyCollectionInterlocked);
+                }
+
+                return _lazyCollectionInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> NextVariables
+        {
+            get
+            {
+                if (_lazyNextVariablesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, CreateNextVariables(), default);
+                    VerifyParentOperation(this, _lazyNextVariablesInterlocked);
+                }
+
+                return _lazyNextVariablesInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-
-    public override IOperation Collection
-    {
-        get
-        {
-            if (_lazyCollectionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyCollectionInterlocked, CreateCollection(), null);
-                VerifyParentOperation(this, _lazyCollectionInterlocked);
-            }
-
-            return _lazyCollectionInterlocked;
-        }
-    }
-
-    public override ImmutableArray<IOperation> NextVariables
-    {
-        get
-        {
-            if (_lazyNextVariablesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, CreateNextVariables(), default);
-                VerifyParentOperation(this, _lazyNextVariablesInterlocked);
-            }
-
-            return _lazyNextVariablesInterlocked;
-        }
-    }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# 'for' loop statement.
@@ -2886,81 +2886,81 @@ internal abstract class LazyForEachLoopOperation : BaseForEachLoopOperation, IFo
         public override IOperation Body { get; }
     }
 
-/// <summary>
-/// Represents a C# 'for' loop statement.
-/// </summary>
-internal abstract class LazyForLoopOperation : BaseForLoopOperation, IForLoopOperation
-{
-    private ImmutableArray<IOperation> _lazyBeforeInterlocked;
-    private IOperation _lazyConditionInterlocked;
-    private ImmutableArray<IOperation> _lazyAtLoopBottomInterlocked;
-    private IOperation _lazyBodyInterlocked;
-
-    public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# 'for' loop statement.
+    /// </summary>
+    internal abstract class LazyForLoopOperation : BaseForLoopOperation, IForLoopOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyBeforeInterlocked;
+        private IOperation _lazyConditionInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyAtLoopBottomInterlocked;
+        private IOperation _lazyBodyInterlocked = s_unset;
 
-    protected abstract ImmutableArray<IOperation> CreateBefore();
-    protected abstract IOperation CreateCondition();
-    protected abstract ImmutableArray<IOperation> CreateAtLoopBottom();
-    protected abstract IOperation CreateBody();
-
-    public override ImmutableArray<IOperation> Before
-    {
-        get
+        public LazyForLoopOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ILocalSymbol> conditionLocals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, conditionLocals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyBeforeInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBeforeInterlocked, CreateBefore(), default);
-                VerifyParentOperation(this, _lazyBeforeInterlocked);
-            }
+        }
 
-            return _lazyBeforeInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateBefore();
+        protected abstract IOperation CreateCondition();
+        protected abstract ImmutableArray<IOperation> CreateAtLoopBottom();
+        protected abstract IOperation CreateBody();
+
+        public override ImmutableArray<IOperation> Before
+        {
+            get
+            {
+                if (_lazyBeforeInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBeforeInterlocked, CreateBefore(), default);
+                    VerifyParentOperation(this, _lazyBeforeInterlocked);
+                }
+
+                return _lazyBeforeInterlocked;
+            }
+        }
+
+        public override IOperation Condition
+        {
+            get
+            {
+                if (_lazyConditionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
+                    VerifyParentOperation(this, _lazyConditionInterlocked);
+                }
+
+                return _lazyConditionInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> AtLoopBottom
+        {
+            get
+            {
+                if (_lazyAtLoopBottomInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAtLoopBottomInterlocked, CreateAtLoopBottom(), default);
+                    VerifyParentOperation(this, _lazyAtLoopBottomInterlocked);
+                }
+
+                return _lazyAtLoopBottomInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-
-    public override IOperation Condition
-    {
-        get
-        {
-            if (_lazyConditionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), null);
-                VerifyParentOperation(this, _lazyConditionInterlocked);
-            }
-
-            return _lazyConditionInterlocked;
-        }
-    }
-
-    public override ImmutableArray<IOperation> AtLoopBottom
-    {
-        get
-        {
-            if (_lazyAtLoopBottomInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAtLoopBottomInterlocked, CreateAtLoopBottom(), default);
-                VerifyParentOperation(this, _lazyAtLoopBottomInterlocked);
-            }
-
-            return _lazyAtLoopBottomInterlocked;
-        }
-    }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a VB 'For To' loop statement.
@@ -3079,113 +3079,113 @@ internal abstract class LazyForLoopOperation : BaseForLoopOperation, IForLoopOpe
         public override ImmutableArray<IOperation> NextVariables { get; }
     }
 
-/// <summary>
-/// Represents a VB 'For To' loop statement.
-/// </summary>
-internal abstract class LazyForToLoopOperation : BaseForToLoopOperation, IForToLoopOperation
-{
-    private IOperation _lazyLoopControlVariableInterlocked;
-    private IOperation _lazyInitialValueInterlocked;
-    private IOperation _lazyLimitValueInterlocked;
-    private IOperation _lazyStepValueInterlocked;
-    private IOperation _lazyBodyInterlocked;
-    private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
-
-    public LazyForToLoopOperation(ImmutableArray<ILocalSymbol> locals, bool isChecked, (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a VB 'For To' loop statement.
+    /// </summary>
+    internal abstract class LazyForToLoopOperation : BaseForToLoopOperation, IForToLoopOperation
     {
-    }
+        private IOperation _lazyLoopControlVariableInterlocked = s_unset;
+        private IOperation _lazyInitialValueInterlocked = s_unset;
+        private IOperation _lazyLimitValueInterlocked = s_unset;
+        private IOperation _lazyStepValueInterlocked = s_unset;
+        private IOperation _lazyBodyInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyNextVariablesInterlocked;
 
-    protected abstract IOperation CreateLoopControlVariable();
-    protected abstract IOperation CreateInitialValue();
-    protected abstract IOperation CreateLimitValue();
-    protected abstract IOperation CreateStepValue();
-    protected abstract IOperation CreateBody();
-    protected abstract ImmutableArray<IOperation> CreateNextVariables();
-
-    public override IOperation LoopControlVariable
-    {
-        get
+        public LazyForToLoopOperation(ImmutableArray<ILocalSymbol> locals, bool isChecked, (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyLoopControlVariableInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, CreateLoopControlVariable(), null);
-                VerifyParentOperation(this, _lazyLoopControlVariableInterlocked);
-            }
+        }
 
-            return _lazyLoopControlVariableInterlocked;
+        protected abstract IOperation CreateLoopControlVariable();
+        protected abstract IOperation CreateInitialValue();
+        protected abstract IOperation CreateLimitValue();
+        protected abstract IOperation CreateStepValue();
+        protected abstract IOperation CreateBody();
+        protected abstract ImmutableArray<IOperation> CreateNextVariables();
+
+        public override IOperation LoopControlVariable
+        {
+            get
+            {
+                if (_lazyLoopControlVariableInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyLoopControlVariableInterlocked, CreateLoopControlVariable(), s_unset);
+                    VerifyParentOperation(this, _lazyLoopControlVariableInterlocked);
+                }
+
+                return _lazyLoopControlVariableInterlocked;
+            }
+        }
+
+        public override IOperation InitialValue
+        {
+            get
+            {
+                if (_lazyInitialValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitialValueInterlocked, CreateInitialValue(), s_unset);
+                    VerifyParentOperation(this, _lazyInitialValueInterlocked);
+                }
+
+                return _lazyInitialValueInterlocked;
+            }
+        }
+
+        public override IOperation LimitValue
+        {
+            get
+            {
+                if (_lazyLimitValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyLimitValueInterlocked, CreateLimitValue(), s_unset);
+                    VerifyParentOperation(this, _lazyLimitValueInterlocked);
+                }
+
+                return _lazyLimitValueInterlocked;
+            }
+        }
+
+        public override IOperation StepValue
+        {
+            get
+            {
+                if (_lazyStepValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyStepValueInterlocked, CreateStepValue(), s_unset);
+                    VerifyParentOperation(this, _lazyStepValueInterlocked);
+                }
+
+                return _lazyStepValueInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> NextVariables
+        {
+            get
+            {
+                if (_lazyNextVariablesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, CreateNextVariables(), default);
+                    VerifyParentOperation(this, _lazyNextVariablesInterlocked);
+                }
+
+                return _lazyNextVariablesInterlocked;
+            }
         }
     }
-
-    public override IOperation InitialValue
-    {
-        get
-        {
-            if (_lazyInitialValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitialValueInterlocked, CreateInitialValue(), null);
-                VerifyParentOperation(this, _lazyInitialValueInterlocked);
-            }
-
-            return _lazyInitialValueInterlocked;
-        }
-    }
-
-    public override IOperation LimitValue
-    {
-        get
-        {
-            if (_lazyLimitValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyLimitValueInterlocked, CreateLimitValue(), null);
-                VerifyParentOperation(this, _lazyLimitValueInterlocked);
-            }
-
-            return _lazyLimitValueInterlocked;
-        }
-    }
-
-    public override IOperation StepValue
-    {
-        get
-        {
-            if (_lazyStepValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyStepValueInterlocked, CreateStepValue(), null);
-                VerifyParentOperation(this, _lazyStepValueInterlocked);
-            }
-
-            return _lazyStepValueInterlocked;
-        }
-    }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-
-    public override ImmutableArray<IOperation> NextVariables
-    {
-        get
-        {
-            if (_lazyNextVariablesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyNextVariablesInterlocked, CreateNextVariables(), default);
-                VerifyParentOperation(this, _lazyNextVariablesInterlocked);
-            }
-
-            return _lazyNextVariablesInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an increment expression.
@@ -3259,33 +3259,33 @@ internal abstract class LazyForToLoopOperation : BaseForToLoopOperation, IForToL
         public override IOperation Target { get; }
     }
 
-/// <summary>
-/// Represents an increment expression.
-/// </summary>
-internal abstract class LazyIncrementOrDecrementOperation : BaseIncrementOrDecrementOperation, IIncrementOrDecrementOperation
-{
-    private IOperation _lazyTargetInterlocked;
-
-    public LazyIncrementOrDecrementOperation(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an increment expression.
+    /// </summary>
+    internal abstract class LazyIncrementOrDecrementOperation : BaseIncrementOrDecrementOperation, IIncrementOrDecrementOperation
     {
-    }
+        private IOperation _lazyTargetInterlocked = s_unset;
 
-    protected abstract IOperation CreateTarget();
-
-    public override IOperation Target
-    {
-        get
+        public LazyIncrementOrDecrementOperation(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTargetInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), null);
-                VerifyParentOperation(this, _lazyTargetInterlocked);
-            }
+        }
 
-            return _lazyTargetInterlocked;
+        protected abstract IOperation CreateTarget();
+
+        public override IOperation Target
+        {
+            get
+            {
+                if (_lazyTargetInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
+                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                }
+
+                return _lazyTargetInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# this or base expression, or a VB Me, MyClass, or MyBase expression.
@@ -3366,33 +3366,33 @@ internal abstract class LazyIncrementOrDecrementOperation : BaseIncrementOrDecre
         public override ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
     }
 
-/// <remarks>
-/// Represents an interpolated string expression.
-/// </remarks>
-internal abstract class LazyInterpolatedStringOperation : BaseInterpolatedStringOperation, IInterpolatedStringOperation
-{
-    private ImmutableArray<IInterpolatedStringContentOperation> _lazyPartsInterlocked;
-
-    public LazyInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal abstract class LazyInterpolatedStringOperation : BaseInterpolatedStringOperation, IInterpolatedStringOperation
     {
-    }
+        private ImmutableArray<IInterpolatedStringContentOperation> _lazyPartsInterlocked;
 
-    protected abstract ImmutableArray<IInterpolatedStringContentOperation> CreateParts();
-
-    public override ImmutableArray<IInterpolatedStringContentOperation> Parts
-    {
-        get
+        public LazyInterpolatedStringOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyPartsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPartsInterlocked, CreateParts(), default);
-                VerifyParentOperation(this, _lazyPartsInterlocked);
-            }
+        }
 
-            return _lazyPartsInterlocked;
+        protected abstract ImmutableArray<IInterpolatedStringContentOperation> CreateParts();
+
+        public override ImmutableArray<IInterpolatedStringContentOperation> Parts
+        {
+            get
+            {
+                if (_lazyPartsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPartsInterlocked, CreateParts(), default);
+                    VerifyParentOperation(this, _lazyPartsInterlocked);
+                }
+
+                return _lazyPartsInterlocked;
+            }
         }
     }
-}
 
     /// <remarks>
     /// Represents a constituent string literal part of an interpolated string expression.
@@ -3442,33 +3442,33 @@ internal abstract class LazyInterpolatedStringOperation : BaseInterpolatedString
         public override IOperation Text { get; }
     }
 
-/// <remarks>
-/// Represents a constituent string literal part of an interpolated string expression.
-/// </remarks>
-internal abstract class LazyInterpolatedStringTextOperation : BaseInterpolatedStringTextOperation, IInterpolatedStringTextOperation
-{
-    private IOperation _lazyTextInterlocked;
-
-    public LazyInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal abstract class LazyInterpolatedStringTextOperation : BaseInterpolatedStringTextOperation, IInterpolatedStringTextOperation
     {
-    }
+        private IOperation _lazyTextInterlocked = s_unset;
 
-    protected abstract IOperation CreateText();
-
-    public override IOperation Text
-    {
-        get
+        public LazyInterpolatedStringTextOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTextInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTextInterlocked, CreateText(), null);
-                VerifyParentOperation(this, _lazyTextInterlocked);
-            }
+        }
 
-            return _lazyTextInterlocked;
+        protected abstract IOperation CreateText();
+
+        public override IOperation Text
+        {
+            get
+            {
+                if (_lazyTextInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTextInterlocked, CreateText(), s_unset);
+                    VerifyParentOperation(this, _lazyTextInterlocked);
+                }
+
+                return _lazyTextInterlocked;
+            }
         }
     }
-}
 
     /// <remarks>
     /// Represents a constituent interpolation part of an interpolated string expression.
@@ -3538,65 +3538,65 @@ internal abstract class LazyInterpolatedStringTextOperation : BaseInterpolatedSt
         public override IOperation FormatString { get; }
     }
 
-/// <remarks>
-/// Represents a constituent interpolation part of an interpolated string expression.
-/// </remarks>
-internal abstract class LazyInterpolationOperation : BaseInterpolationOperation, IInterpolationOperation
-{
-    private IOperation _lazyExpressionInterlocked;
-    private IOperation _lazyAlignmentInterlocked;
-    private IOperation _lazyFormatStringInterlocked;
-
-    public LazyInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal abstract class LazyInterpolationOperation : BaseInterpolationOperation, IInterpolationOperation
     {
-    }
+        private IOperation _lazyExpressionInterlocked = s_unset;
+        private IOperation _lazyAlignmentInterlocked = s_unset;
+        private IOperation _lazyFormatStringInterlocked = s_unset;
 
-    protected abstract IOperation CreateExpression();
-    protected abstract IOperation CreateAlignment();
-    protected abstract IOperation CreateFormatString();
-
-    public override IOperation Expression
-    {
-        get
+        public LazyInterpolationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyExpressionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyExpressionInterlocked, CreateExpression(), null);
-                VerifyParentOperation(this, _lazyExpressionInterlocked);
-            }
+        }
 
-            return _lazyExpressionInterlocked;
+        protected abstract IOperation CreateExpression();
+        protected abstract IOperation CreateAlignment();
+        protected abstract IOperation CreateFormatString();
+
+        public override IOperation Expression
+        {
+            get
+            {
+                if (_lazyExpressionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyExpressionInterlocked, CreateExpression(), s_unset);
+                    VerifyParentOperation(this, _lazyExpressionInterlocked);
+                }
+
+                return _lazyExpressionInterlocked;
+            }
+        }
+
+        public override IOperation Alignment
+        {
+            get
+            {
+                if (_lazyAlignmentInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyAlignmentInterlocked, CreateAlignment(), s_unset);
+                    VerifyParentOperation(this, _lazyAlignmentInterlocked);
+                }
+
+                return _lazyAlignmentInterlocked;
+            }
+        }
+
+        public override IOperation FormatString
+        {
+            get
+            {
+                if (_lazyFormatStringInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyFormatStringInterlocked, CreateFormatString(), s_unset);
+                    VerifyParentOperation(this, _lazyFormatStringInterlocked);
+                }
+
+                return _lazyFormatStringInterlocked;
+            }
         }
     }
-
-    public override IOperation Alignment
-    {
-        get
-        {
-            if (_lazyAlignmentInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyAlignmentInterlocked, CreateAlignment(), null);
-                VerifyParentOperation(this, _lazyAlignmentInterlocked);
-            }
-
-            return _lazyAlignmentInterlocked;
-        }
-    }
-
-    public override IOperation FormatString
-    {
-        get
-        {
-            if (_lazyFormatStringInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyFormatStringInterlocked, CreateFormatString(), null);
-                VerifyParentOperation(this, _lazyFormatStringInterlocked);
-            }
-
-            return _lazyFormatStringInterlocked;
-        }
-    }
-}
 
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -3738,49 +3738,49 @@ internal abstract class LazyInterpolationOperation : BaseInterpolationOperation,
         public override ImmutableArray<IArgumentOperation> Arguments { get; }
     }
 
-/// <summary>
-/// Represents a C# or VB method invocation.
-/// </summary>
-internal abstract class LazyInvocationOperation : BaseInvocationOperation, IInvocationOperation
-{
-    private IOperation _lazyInstanceInterlocked;
-    private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
-
-    public LazyInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# or VB method invocation.
+    /// </summary>
+    internal abstract class LazyInvocationOperation : BaseInvocationOperation, IInvocationOperation
     {
-    }
+        private IOperation _lazyInstanceInterlocked = s_unset;
+        private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-    protected abstract IOperation CreateInstance();
-    protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
-
-    public override IOperation Instance
-    {
-        get
+        public LazyInvocationOperation(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInstanceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), null);
-                VerifyParentOperation(this, _lazyInstanceInterlocked);
-            }
+        }
 
-            return _lazyInstanceInterlocked;
+        protected abstract IOperation CreateInstance();
+        protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
+
+        public override IOperation Instance
+        {
+            get
+            {
+                if (_lazyInstanceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
+                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                }
+
+                return _lazyInstanceInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IArgumentOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IArgumentOperation> Arguments
-    {
-        get
-        {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
-
-            return _lazyArgumentsInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a VB raise event statement.
@@ -3841,49 +3841,49 @@ internal abstract class LazyInvocationOperation : BaseInvocationOperation, IInvo
         public override ImmutableArray<IArgumentOperation> Arguments { get; }
     }
 
-/// <summary>
-/// Represents a VB raise event statement.
-/// </summary>
-internal abstract class LazyRaiseEventOperation : BaseRaiseEventOperation, IRaiseEventOperation
-{
-    private IEventReferenceOperation _lazyEventReferenceInterlocked;
-    private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
-
-    public LazyRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a VB raise event statement.
+    /// </summary>
+    internal abstract class LazyRaiseEventOperation : BaseRaiseEventOperation, IRaiseEventOperation
     {
-    }
+        private IEventReferenceOperation _lazyEventReferenceInterlocked = s_unsetEventReference;
+        private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-    protected abstract IEventReferenceOperation CreateEventReference();
-    protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
-
-    public override IEventReferenceOperation EventReference
-    {
-        get
+        public LazyRaiseEventOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyEventReferenceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, CreateEventReference(), null);
-                VerifyParentOperation(this, _lazyEventReferenceInterlocked);
-            }
+        }
 
-            return _lazyEventReferenceInterlocked;
+        protected abstract IEventReferenceOperation CreateEventReference();
+        protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
+
+        public override IEventReferenceOperation EventReference
+        {
+            get
+            {
+                if (_lazyEventReferenceInterlocked == s_unsetEventReference)
+                {
+                    Interlocked.CompareExchange(ref _lazyEventReferenceInterlocked, CreateEventReference(), s_unsetEventReference);
+                    VerifyParentOperation(this, _lazyEventReferenceInterlocked);
+                }
+
+                return _lazyEventReferenceInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IArgumentOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IArgumentOperation> Arguments
-    {
-        get
-        {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
-
-            return _lazyArgumentsInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
@@ -3944,33 +3944,33 @@ internal abstract class LazyRaiseEventOperation : BaseRaiseEventOperation, IRais
         public override IOperation ValueOperand { get; }
     }
 
-/// <summary>
-/// Represents an expression that tests if a value is of a specific type.
-/// </summary>
-internal abstract class LazyIsTypeOperation : BaseIsTypeOperation, IIsTypeOperation
-{
-    private IOperation _lazyOperandInterlocked;
-
-    public LazyIsTypeOperation(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an expression that tests if a value is of a specific type.
+    /// </summary>
+    internal abstract class LazyIsTypeOperation : BaseIsTypeOperation, IIsTypeOperation
     {
-    }
+        private IOperation _lazyOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateValueOperand();
-
-    public override IOperation ValueOperand
-    {
-        get
+        public LazyIsTypeOperation(ITypeSymbol isType, bool isNotTypeExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(isType, isNotTypeExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateValueOperand(), null);
-                VerifyParentOperation(this, _lazyOperandInterlocked);
-            }
+        }
 
-            return _lazyOperandInterlocked;
+        protected abstract IOperation CreateValueOperand();
+
+        public override IOperation ValueOperand
+        {
+            get
+            {
+                if (_lazyOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateValueOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                }
+
+                return _lazyOperandInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# or VB label statement.
@@ -4024,33 +4024,33 @@ internal abstract class LazyIsTypeOperation : BaseIsTypeOperation, IIsTypeOperat
         public override IOperation Operation { get; }
     }
 
-/// <summary>
-/// Represents a C# or VB label statement.
-/// </summary>
-internal abstract class LazyLabeledOperation : BaseLabeledOperation, ILabeledOperation
-{
-    private IOperation _lazyOperationInterlocked;
-
-    public LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# or VB label statement.
+    /// </summary>
+    internal abstract class LazyLabeledOperation : BaseLabeledOperation, ILabeledOperation
     {
-    }
+        private IOperation _lazyOperationInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperation();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyLabeledOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
+        }
 
-            return _lazyOperationInterlocked;
+        protected abstract IOperation CreateOperation();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
         }
     }
-}
 
     internal abstract partial class BaseAnonymousFunctionOperation : Operation, IAnonymousFunctionOperation
     {
@@ -4092,30 +4092,30 @@ internal abstract class LazyLabeledOperation : BaseLabeledOperation, ILabeledOpe
         public override IBlockOperation Body { get; }
     }
 
-internal abstract class LazyAnonymousFunctionOperation : BaseAnonymousFunctionOperation, IAnonymousFunctionOperation
-{
-    private IBlockOperation _lazyBodyInterlocked;
-
-    public LazyAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyAnonymousFunctionOperation : BaseAnonymousFunctionOperation, IAnonymousFunctionOperation
     {
-    }
+        private IBlockOperation _lazyBodyInterlocked = s_unsetBlock;
 
-    protected abstract IBlockOperation CreateBody();
-
-    public override IBlockOperation Body
-    {
-        get
+        public LazyAnonymousFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
+        }
 
-            return _lazyBodyInterlocked;
+        protected abstract IBlockOperation CreateBody();
+
+        public override IBlockOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-}
 
     internal sealed class FlowAnonymousFunctionOperation : Operation, IFlowAnonymousFunctionOperation
     {
@@ -4187,30 +4187,30 @@ internal abstract class LazyAnonymousFunctionOperation : BaseAnonymousFunctionOp
         public override IOperation Target { get; }
     }
 
-internal abstract class LazyDelegateCreationOperation : BaseDelegateCreationOperation
-{
-    private IOperation _lazyTargetInterlocked;
-
-    public LazyDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyDelegateCreationOperation : BaseDelegateCreationOperation
     {
-    }
+        private IOperation _lazyTargetInterlocked = s_unset;
 
-    protected abstract IOperation CreateTarget();
-
-    public override IOperation Target
-    {
-        get
+        public LazyDelegateCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTargetInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), null);
-                VerifyParentOperation(this, _lazyTargetInterlocked);
-            }
+        }
 
-            return _lazyTargetInterlocked;
+        protected abstract IOperation CreateTarget();
+
+        public override IOperation Target
+        {
+            get
+            {
+                if (_lazyTargetInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
+                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                }
+
+                return _lazyTargetInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a dynamic access to a member of a class, struct, or module.
@@ -4277,33 +4277,33 @@ internal abstract class LazyDelegateCreationOperation : BaseDelegateCreationOper
         public override IOperation Instance { get; }
     }
 
-/// <summary>
-/// Represents a dynamic access to a member of a class, struct, or module.
-/// </summary>
-internal abstract class LazyDynamicMemberReferenceOperation : BaseDynamicMemberReferenceOperation, IDynamicMemberReferenceOperation
-{
-    private IOperation _lazyInstanceInterlocked;
-
-    public LazyDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a dynamic access to a member of a class, struct, or module.
+    /// </summary>
+    internal abstract class LazyDynamicMemberReferenceOperation : BaseDynamicMemberReferenceOperation, IDynamicMemberReferenceOperation
     {
-    }
+        private IOperation _lazyInstanceInterlocked = s_unset;
 
-    protected abstract IOperation CreateInstance();
-
-    public override IOperation Instance
-    {
-        get
+        public LazyDynamicMemberReferenceOperation(string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInstanceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), null);
-                VerifyParentOperation(this, _lazyInstanceInterlocked);
-            }
+        }
 
-            return _lazyInstanceInterlocked;
+        protected abstract IOperation CreateInstance();
+
+        public override IOperation Instance
+        {
+            get
+            {
+                if (_lazyInstanceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
+                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                }
+
+                return _lazyInstanceInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a textual literal numeric, string, etc. expression.
@@ -4424,49 +4424,49 @@ internal abstract class LazyDynamicMemberReferenceOperation : BaseDynamicMemberR
         public override IOperation Body { get; }
     }
 
-/// <summary>
-/// Represents a C# lock or a VB SyncLock statement.
-/// </summary>
-internal abstract class LazyLockOperation : BaseLockOperation, ILockOperation
-{
-    private IOperation _lazyLockedValueInterlocked;
-    private IOperation _lazyBodyInterlocked;
-
-    public LazyLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# lock or a VB SyncLock statement.
+    /// </summary>
+    internal abstract class LazyLockOperation : BaseLockOperation, ILockOperation
     {
-    }
+        private IOperation _lazyLockedValueInterlocked = s_unset;
+        private IOperation _lazyBodyInterlocked = s_unset;
 
-    protected abstract IOperation CreateLockedValue();
-    protected abstract IOperation CreateBody();
-
-    public override IOperation LockedValue
-    {
-        get
+        public LazyLockOperation(ILocalSymbol lockTakenSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(lockTakenSymbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyLockedValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyLockedValueInterlocked, CreateLockedValue(), null);
-                VerifyParentOperation(this, _lazyLockedValueInterlocked);
-            }
+        }
 
-            return _lazyLockedValueInterlocked;
+        protected abstract IOperation CreateLockedValue();
+        protected abstract IOperation CreateBody();
+
+        public override IOperation LockedValue
+        {
+            get
+            {
+                if (_lazyLockedValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyLockedValueInterlocked, CreateLockedValue(), s_unset);
+                    VerifyParentOperation(this, _lazyLockedValueInterlocked);
+                }
+
+                return _lazyLockedValueInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# while, for, foreach, or do statement, or a VB While, For, For Each, or Do statement.
@@ -4575,33 +4575,33 @@ internal abstract class LazyLockOperation : BaseLockOperation, ILockOperation
         public override IOperation Instance { get; }
     }
 
-/// <summary>
-/// Represents a reference to a method other than as the target of an invocation.
-/// </summary>
-internal abstract class LazyMethodReferenceOperation : BaseMethodReferenceOperation, IMethodReferenceOperation
-{
-    private IOperation _lazyInstanceInterlocked;
-
-    public LazyMethodReferenceOperation(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a reference to a method other than as the target of an invocation.
+    /// </summary>
+    internal abstract class LazyMethodReferenceOperation : BaseMethodReferenceOperation, IMethodReferenceOperation
     {
-    }
+        private IOperation _lazyInstanceInterlocked = s_unset;
 
-    protected abstract IOperation CreateInstance();
-
-    public override IOperation Instance
-    {
-        get
+        public LazyMethodReferenceOperation(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInstanceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), null);
-                VerifyParentOperation(this, _lazyInstanceInterlocked);
-            }
+        }
 
-            return _lazyInstanceInterlocked;
+        protected abstract IOperation CreateInstance();
+
+        public override IOperation Instance
+        {
+            get
+            {
+                if (_lazyInstanceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
+                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                }
+
+                return _lazyInstanceInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a null-coalescing expression.
@@ -4666,49 +4666,49 @@ internal abstract class LazyMethodReferenceOperation : BaseMethodReferenceOperat
         public override IOperation WhenNull { get; }
     }
 
-/// <summary>
-/// Represents a null-coalescing expression.
-/// </summary>
-internal abstract class LazyCoalesceOperation : BaseCoalesceOperation, ICoalesceOperation
-{
-    private IOperation _lazyValueInterlocked;
-    private IOperation _lazyWhenNullInterlocked;
-
-    public LazyCoalesceOperation(IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a null-coalescing expression.
+    /// </summary>
+    internal abstract class LazyCoalesceOperation : BaseCoalesceOperation, ICoalesceOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
+        private IOperation _lazyWhenNullInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-    protected abstract IOperation CreateWhenNull();
-
-    public override IOperation Value
-    {
-        get
+        public LazyCoalesceOperation(IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+        protected abstract IOperation CreateWhenNull();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
+        }
+
+        public override IOperation WhenNull
+        {
+            get
+            {
+                if (_lazyWhenNullInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, CreateWhenNull(), s_unset);
+                    VerifyParentOperation(this, _lazyWhenNullInterlocked);
+                }
+
+                return _lazyWhenNullInterlocked;
+            }
         }
     }
-
-    public override IOperation WhenNull
-    {
-        get
-        {
-            if (_lazyWhenNullInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, CreateWhenNull(), null);
-                VerifyParentOperation(this, _lazyWhenNullInterlocked);
-            }
-
-            return _lazyWhenNullInterlocked;
-        }
-    }
-}
 
     internal abstract partial class BaseCoalesceAssignmentOperation : Operation, ICoalesceAssignmentOperation
     {
@@ -4758,46 +4758,46 @@ internal abstract class LazyCoalesceOperation : BaseCoalesceOperation, ICoalesce
         public override IOperation Value { get; }
     }
 
-internal abstract class LazyCoalesceAssignmentOperation : BaseCoalesceAssignmentOperation
-{
-    private IOperation _lazyTargetInterlocked;
-    private IOperation _lazyWhenNullInterlocked;
-
-    public LazyCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyCoalesceAssignmentOperation : BaseCoalesceAssignmentOperation
     {
-    }
+        private IOperation _lazyTargetInterlocked = s_unset;
+        private IOperation _lazyWhenNullInterlocked = s_unset;
 
-    protected abstract IOperation CreateTarget();
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Target
-    {
-        get
+        public LazyCoalesceAssignmentOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyTargetInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), null);
-                VerifyParentOperation(this, _lazyTargetInterlocked);
-            }
+        }
 
-            return _lazyTargetInterlocked;
+        protected abstract IOperation CreateTarget();
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Target
+        {
+            get
+            {
+                if (_lazyTargetInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyTargetInterlocked, CreateTarget(), s_unset);
+                    VerifyParentOperation(this, _lazyTargetInterlocked);
+                }
+
+                return _lazyTargetInterlocked;
+            }
+        }
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyWhenNullInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyWhenNullInterlocked);
+                }
+
+                return _lazyWhenNullInterlocked;
+            }
         }
     }
-
-    public override IOperation Value
-    {
-        get
-        {
-            if (_lazyWhenNullInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyWhenNullInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyWhenNullInterlocked);
-            }
-
-            return _lazyWhenNullInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a new/New expression.
@@ -4868,49 +4868,49 @@ internal abstract class LazyCoalesceAssignmentOperation : BaseCoalesceAssignment
         public override ImmutableArray<IArgumentOperation> Arguments { get; }
     }
 
-/// <summary>
-/// Represents a new/New expression.
-/// </summary>
-internal abstract class LazyObjectCreationOperation : BaseObjectCreationOperation, IObjectCreationOperation
-{
-    private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked;
-    private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
-
-    public LazyObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a new/New expression.
+    /// </summary>
+    internal abstract class LazyObjectCreationOperation : BaseObjectCreationOperation, IObjectCreationOperation
     {
-    }
+        private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
+        private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-    protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-    protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
-
-    public override IObjectOrCollectionInitializerOperation Initializer
-    {
-        get
+        public LazyObjectCreationOperation(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
+        }
 
-            return _lazyInitializerInterlocked;
+        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
+        protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
+
+        public override IObjectOrCollectionInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IArgumentOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IArgumentOperation> Arguments
-    {
-        get
-        {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
-
-            return _lazyArgumentsInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# or VB new/New anonymous object creation expression.
@@ -4963,33 +4963,33 @@ internal abstract class LazyObjectCreationOperation : BaseObjectCreationOperatio
         public override ImmutableArray<IOperation> Initializers { get; }
     }
 
-/// <summary>
-/// Represents a C# or VB new/New anonymous object creation expression.
-/// </summary>
-internal abstract class LazyAnonymousObjectCreationOperation : BaseAnonymousObjectCreationOperation, IAnonymousObjectCreationOperation
-{
-    private ImmutableArray<IOperation> _lazyInitializersInterlocked;
-
-    public LazyAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal abstract class LazyAnonymousObjectCreationOperation : BaseAnonymousObjectCreationOperation, IAnonymousObjectCreationOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyInitializersInterlocked;
 
-    protected abstract ImmutableArray<IOperation> CreateInitializers();
-
-    public override ImmutableArray<IOperation> Initializers
-    {
-        get
+        public LazyAnonymousObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializersInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, CreateInitializers(), default);
-                VerifyParentOperation(this, _lazyInitializersInterlocked);
-            }
+        }
 
-            return _lazyInitializersInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateInitializers();
+
+        public override ImmutableArray<IOperation> Initializers
+        {
+            get
+            {
+                if (_lazyInitializersInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, CreateInitializers(), default);
+                    VerifyParentOperation(this, _lazyInitializersInterlocked);
+                }
+
+                return _lazyInitializersInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents an argument value that has been omitted in an invocation.
@@ -5069,33 +5069,33 @@ internal abstract class LazyAnonymousObjectCreationOperation : BaseAnonymousObje
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents an initialization of a parameter at the point of declaration.
-/// </summary>
-internal abstract class LazyParameterInitializerOperation : BaseParameterInitializerOperation, IParameterInitializerOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyParameterInitializerOperation(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an initialization of a parameter at the point of declaration.
+    /// </summary>
+    internal abstract class LazyParameterInitializerOperation : BaseParameterInitializerOperation, IParameterInitializerOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyParameterInitializerOperation(ImmutableArray<ILocalSymbol> locals, IParameterSymbol parameter, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a reference to a parameter.
@@ -5176,33 +5176,33 @@ internal abstract class LazyParameterInitializerOperation : BaseParameterInitial
         public override IOperation Operand { get; }
     }
 
-/// <summary>
-/// Represents a parenthesized expression.
-/// </summary>
-internal abstract class LazyParenthesizedOperation : BaseParenthesizedOperation, IParenthesizedOperation
-{
-    private IOperation _lazyOperandInterlocked;
-
-    public LazyParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a parenthesized expression.
+    /// </summary>
+    internal abstract class LazyParenthesizedOperation : BaseParenthesizedOperation, IParenthesizedOperation
     {
-    }
+        private IOperation _lazyOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperand();
-
-    public override IOperation Operand
-    {
-        get
+        public LazyParenthesizedOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), null);
-                VerifyParentOperation(this, _lazyOperandInterlocked);
-            }
+        }
 
-            return _lazyOperandInterlocked;
+        protected abstract IOperation CreateOperand();
+
+        public override IOperation Operand
+        {
+            get
+            {
+                if (_lazyOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                }
+
+                return _lazyOperandInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a general placeholder when no more specific kind of placeholder is available.
@@ -5289,33 +5289,33 @@ internal abstract class LazyParenthesizedOperation : BaseParenthesizedOperation,
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents an initialization of a property.
-/// </summary>
-internal abstract class LazyPropertyInitializerOperation : BasePropertyInitializerOperation, IPropertyInitializerOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyPropertyInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an initialization of a property.
+    /// </summary>
+    internal abstract class LazyPropertyInitializerOperation : BasePropertyInitializerOperation, IPropertyInitializerOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyPropertyInitializerOperation(ImmutableArray<ILocalSymbol> locals, ImmutableArray<IPropertySymbol> initializedProperties, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a reference to a property.
@@ -5381,49 +5381,49 @@ internal abstract class LazyPropertyInitializerOperation : BasePropertyInitializ
         public override ImmutableArray<IArgumentOperation> Arguments { get; }
     }
 
-/// <summary>
-/// Represents a reference to a property.
-/// </summary>
-internal abstract class LazyPropertyReferenceOperation : BasePropertyReferenceOperation, IPropertyReferenceOperation
-{
-    private IOperation _lazyInstanceInterlocked;
-    private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
-
-    public LazyPropertyReferenceOperation(IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(property, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a reference to a property.
+    /// </summary>
+    internal abstract class LazyPropertyReferenceOperation : BasePropertyReferenceOperation, IPropertyReferenceOperation
     {
-    }
+        private IOperation _lazyInstanceInterlocked = s_unset;
+        private ImmutableArray<IArgumentOperation> _lazyArgumentsInterlocked;
 
-    protected abstract IOperation CreateInstance();
-    protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
-
-    public override IOperation Instance
-    {
-        get
+        public LazyPropertyReferenceOperation(IPropertySymbol property, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInstanceInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), null);
-                VerifyParentOperation(this, _lazyInstanceInterlocked);
-            }
+        }
 
-            return _lazyInstanceInterlocked;
+        protected abstract IOperation CreateInstance();
+        protected abstract ImmutableArray<IArgumentOperation> CreateArguments();
+
+        public override IOperation Instance
+        {
+            get
+            {
+                if (_lazyInstanceInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInstanceInterlocked, CreateInstance(), s_unset);
+                    VerifyParentOperation(this, _lazyInstanceInterlocked);
+                }
+
+                return _lazyInstanceInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IArgumentOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IArgumentOperation> Arguments
-    {
-        get
-        {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
-
-            return _lazyArgumentsInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents Case x To y in VB.
@@ -5486,49 +5486,49 @@ internal abstract class LazyPropertyReferenceOperation : BasePropertyReferenceOp
         public override IOperation MaximumValue { get; }
     }
 
-/// <summary>
-/// Represents Case x To y in VB.
-/// </summary>
-internal abstract class LazyRangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
-{
-    private IOperation _lazyMinimumValueInterlocked;
-    private IOperation _lazyMaximumValueInterlocked;
-
-    public LazyRangeCaseClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents Case x To y in VB.
+    /// </summary>
+    internal abstract class LazyRangeCaseClauseOperation : BaseRangeCaseClauseOperation, IRangeCaseClauseOperation
     {
-    }
+        private IOperation _lazyMinimumValueInterlocked = s_unset;
+        private IOperation _lazyMaximumValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateMinimumValue();
-    protected abstract IOperation CreateMaximumValue();
-
-    public override IOperation MinimumValue
-    {
-        get
+        public LazyRangeCaseClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyMinimumValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyMinimumValueInterlocked, CreateMinimumValue(), null);
-                VerifyParentOperation(this, _lazyMinimumValueInterlocked);
-            }
+        }
 
-            return _lazyMinimumValueInterlocked;
+        protected abstract IOperation CreateMinimumValue();
+        protected abstract IOperation CreateMaximumValue();
+
+        public override IOperation MinimumValue
+        {
+            get
+            {
+                if (_lazyMinimumValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyMinimumValueInterlocked, CreateMinimumValue(), s_unset);
+                    VerifyParentOperation(this, _lazyMinimumValueInterlocked);
+                }
+
+                return _lazyMinimumValueInterlocked;
+            }
+        }
+
+        public override IOperation MaximumValue
+        {
+            get
+            {
+                if (_lazyMaximumValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyMaximumValueInterlocked, CreateMaximumValue(), s_unset);
+                    VerifyParentOperation(this, _lazyMaximumValueInterlocked);
+                }
+
+                return _lazyMaximumValueInterlocked;
+            }
         }
     }
-
-    public override IOperation MaximumValue
-    {
-        get
-        {
-            if (_lazyMaximumValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyMaximumValueInterlocked, CreateMaximumValue(), null);
-                VerifyParentOperation(this, _lazyMaximumValueInterlocked);
-            }
-
-            return _lazyMaximumValueInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents Case Is op x in VB.
@@ -5586,33 +5586,33 @@ internal abstract class LazyRangeCaseClauseOperation : BaseRangeCaseClauseOperat
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents Case Is op x in VB.
-/// </summary>
-internal abstract class LazyRelationalCaseClauseOperation : BaseRelationalCaseClauseOperation, IRelationalCaseClauseOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyRelationalCaseClauseOperation(BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(relation, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents Case Is op x in VB.
+    /// </summary>
+    internal abstract class LazyRelationalCaseClauseOperation : BaseRelationalCaseClauseOperation, IRelationalCaseClauseOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyRelationalCaseClauseOperation(BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(relation, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# return or a VB Return statement.
@@ -5665,33 +5665,33 @@ internal abstract class LazyRelationalCaseClauseOperation : BaseRelationalCaseCl
         public override IOperation ReturnedValue { get; }
     }
 
-/// <summary>
-/// Represents a C# return or a VB Return statement.
-/// </summary>
-internal abstract class LazyReturnOperation : BaseReturnOperation, IReturnOperation
-{
-    private IOperation _lazyReturnedValueInterlocked;
-
-    public LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# return or a VB Return statement.
+    /// </summary>
+    internal abstract class LazyReturnOperation : BaseReturnOperation, IReturnOperation
     {
-    }
+        private IOperation _lazyReturnedValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateReturnedValue();
-
-    public override IOperation ReturnedValue
-    {
-        get
+        public LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyReturnedValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyReturnedValueInterlocked, CreateReturnedValue(), null);
-                VerifyParentOperation(this, _lazyReturnedValueInterlocked);
-            }
+        }
 
-            return _lazyReturnedValueInterlocked;
+        protected abstract IOperation CreateReturnedValue();
+
+        public override IOperation ReturnedValue
+        {
+            get
+            {
+                if (_lazyReturnedValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyReturnedValueInterlocked, CreateReturnedValue(), s_unset);
+                    VerifyParentOperation(this, _lazyReturnedValueInterlocked);
+                }
+
+                return _lazyReturnedValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents case x in C# or Case x in VB.
@@ -5744,33 +5744,33 @@ internal abstract class LazyReturnOperation : BaseReturnOperation, IReturnOperat
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents case x in C# or Case x in VB.
-/// </summary>
-internal abstract class LazySingleValueCaseClauseOperation : BaseSingleValueCaseClauseOperation, ISingleValueCaseClauseOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazySingleValueCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents case x in C# or Case x in VB.
+    /// </summary>
+    internal abstract class LazySingleValueCaseClauseOperation : BaseSingleValueCaseClauseOperation, ISingleValueCaseClauseOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazySingleValueCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents default case in C# or Case Else in VB.
@@ -5937,65 +5937,65 @@ internal abstract class LazySingleValueCaseClauseOperation : BaseSingleValueCase
         public override ImmutableArray<IOperation> Body { get; }
     }
 
-/// <summary>
-/// Represents a C# case or VB Case statement.
-/// </summary>
-internal abstract class LazySwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
-{
-    private ImmutableArray<ICaseClauseOperation> _lazyClausesInterlocked;
-    private IOperation _lazyConditionInterlocked;
-    private ImmutableArray<IOperation> _lazyBodyInterlocked;
-
-    public LazySwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# case or VB Case statement.
+    /// </summary>
+    internal abstract class LazySwitchCaseOperation : BaseSwitchCaseOperation, ISwitchCaseOperation
     {
-    }
+        private ImmutableArray<ICaseClauseOperation> _lazyClausesInterlocked;
+        private IOperation _lazyConditionInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyBodyInterlocked;
 
-    protected abstract ImmutableArray<ICaseClauseOperation> CreateClauses();
-    protected abstract IOperation CreateCondition();
-    protected abstract ImmutableArray<IOperation> CreateBody();
-
-    public override ImmutableArray<ICaseClauseOperation> Clauses
-    {
-        get
+        public LazySwitchCaseOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyClausesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, CreateClauses(), default);
-                VerifyParentOperation(this, _lazyClausesInterlocked);
-            }
+        }
 
-            return _lazyClausesInterlocked;
+        protected abstract ImmutableArray<ICaseClauseOperation> CreateClauses();
+        protected abstract IOperation CreateCondition();
+        protected abstract ImmutableArray<IOperation> CreateBody();
+
+        public override ImmutableArray<ICaseClauseOperation> Clauses
+        {
+            get
+            {
+                if (_lazyClausesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, CreateClauses(), default);
+                    VerifyParentOperation(this, _lazyClausesInterlocked);
+                }
+
+                return _lazyClausesInterlocked;
+            }
+        }
+
+        public override IOperation Condition
+        {
+            get
+            {
+                if (_lazyConditionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
+                    VerifyParentOperation(null, _lazyConditionInterlocked);
+                }
+
+                return _lazyConditionInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBodyInterlocked, CreateBody(), default);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-
-    public override IOperation Condition
-    {
-        get
-        {
-            if (_lazyConditionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), null);
-                VerifyParentOperation(null, _lazyConditionInterlocked);
-            }
-
-            return _lazyConditionInterlocked;
-        }
-    }
-
-    public override ImmutableArray<IOperation> Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyBodyInterlocked, CreateBody(), default);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# switch or VB Select Case statement.
@@ -6063,49 +6063,49 @@ internal abstract class LazySwitchCaseOperation : BaseSwitchCaseOperation, ISwit
         public override ImmutableArray<ISwitchCaseOperation> Cases { get; }
     }
 
-/// <summary>
-/// Represents a C# switch or VB Select Case statement.
-/// </summary>
-internal abstract class LazySwitchOperation : BaseSwitchOperation, ISwitchOperation
-{
-    private IOperation _lazyValueInterlocked;
-    private ImmutableArray<ISwitchCaseOperation> _lazyCasesInterlocked;
-
-    public LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# switch or VB Select Case statement.
+    /// </summary>
+    internal abstract class LazySwitchOperation : BaseSwitchOperation, ISwitchOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
+        private ImmutableArray<ISwitchCaseOperation> _lazyCasesInterlocked;
 
-    protected abstract IOperation CreateValue();
-    protected abstract ImmutableArray<ISwitchCaseOperation> CreateCases();
-
-    public override IOperation Value
-    {
-        get
+        public LazySwitchOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+        protected abstract ImmutableArray<ISwitchCaseOperation> CreateCases();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
+        }
+
+        public override ImmutableArray<ISwitchCaseOperation> Cases
+        {
+            get
+            {
+                if (_lazyCasesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCasesInterlocked, CreateCases(), default);
+                    VerifyParentOperation(this, _lazyCasesInterlocked);
+                }
+
+                return _lazyCasesInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<ISwitchCaseOperation> Cases
-    {
-        get
-        {
-            if (_lazyCasesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCasesInterlocked, CreateCases(), default);
-                VerifyParentOperation(this, _lazyCasesInterlocked);
-            }
-
-            return _lazyCasesInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an initializer for a field, property, or parameter.
@@ -6192,65 +6192,65 @@ internal abstract class LazySwitchOperation : BaseSwitchOperation, ISwitchOperat
         public override IBlockOperation Finally { get; }
     }
 
-/// <summary>
-/// Represents a C# try or a VB Try statement.
-/// </summary>
-internal abstract class LazyTryOperation : BaseTryOperation, ITryOperation
-{
-    private IBlockOperation _lazyBodyInterlocked;
-    private ImmutableArray<ICatchClauseOperation> _lazyCatchesInterlocked;
-    private IBlockOperation _lazyFinallyHandlerInterlocked;
-
-    public LazyTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# try or a VB Try statement.
+    /// </summary>
+    internal abstract class LazyTryOperation : BaseTryOperation, ITryOperation
     {
-    }
+        private IBlockOperation _lazyBodyInterlocked = s_unsetBlock;
+        private ImmutableArray<ICatchClauseOperation> _lazyCatchesInterlocked;
+        private IBlockOperation _lazyFinallyHandlerInterlocked = s_unsetBlock;
 
-    protected abstract IBlockOperation CreateBody();
-    protected abstract ImmutableArray<ICatchClauseOperation> CreateCatches();
-    protected abstract IBlockOperation CreateFinally();
-
-    public override IBlockOperation Body
-    {
-        get
+        public LazyTryOperation(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
+        }
 
-            return _lazyBodyInterlocked;
+        protected abstract IBlockOperation CreateBody();
+        protected abstract ImmutableArray<ICatchClauseOperation> CreateCatches();
+        protected abstract IBlockOperation CreateFinally();
+
+        public override IBlockOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
+        }
+
+        public override ImmutableArray<ICatchClauseOperation> Catches
+        {
+            get
+            {
+                if (_lazyCatchesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCatchesInterlocked, CreateCatches(), default);
+                    VerifyParentOperation(this, _lazyCatchesInterlocked);
+                }
+
+                return _lazyCatchesInterlocked;
+            }
+        }
+
+        public override IBlockOperation Finally
+        {
+            get
+            {
+                if (_lazyFinallyHandlerInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyFinallyHandlerInterlocked, CreateFinally(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyFinallyHandlerInterlocked);
+                }
+
+                return _lazyFinallyHandlerInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<ICatchClauseOperation> Catches
-    {
-        get
-        {
-            if (_lazyCatchesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCatchesInterlocked, CreateCatches(), default);
-                VerifyParentOperation(this, _lazyCatchesInterlocked);
-            }
-
-            return _lazyCatchesInterlocked;
-        }
-    }
-
-    public override IBlockOperation Finally
-    {
-        get
-        {
-            if (_lazyFinallyHandlerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyFinallyHandlerInterlocked, CreateFinally(), null);
-                VerifyParentOperation(this, _lazyFinallyHandlerInterlocked);
-            }
-
-            return _lazyFinallyHandlerInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a tuple expression.
@@ -6311,33 +6311,33 @@ internal abstract class LazyTryOperation : BaseTryOperation, ITryOperation
         public override ImmutableArray<IOperation> Elements { get; }
     }
 
-/// <summary>
-/// Represents a tuple expression.
-/// </summary>
-internal abstract class LazyTupleOperation : BaseTupleOperation, ITupleOperation
-{
-    private ImmutableArray<IOperation> _lazyElementsInterlocked;
-
-    public LazyTupleOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a tuple expression.
+    /// </summary>
+    internal abstract class LazyTupleOperation : BaseTupleOperation, ITupleOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyElementsInterlocked;
 
-    protected abstract ImmutableArray<IOperation> CreateElements();
-
-    public override ImmutableArray<IOperation> Elements
-    {
-        get
+        public LazyTupleOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         {
-            if (_lazyElementsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementsInterlocked, CreateElements(), default);
-                VerifyParentOperation(this, _lazyElementsInterlocked);
-            }
+        }
 
-            return _lazyElementsInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateElements();
+
+        public override ImmutableArray<IOperation> Elements
+        {
+            get
+            {
+                if (_lazyElementsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyElementsInterlocked, CreateElements(), default);
+                    VerifyParentOperation(this, _lazyElementsInterlocked);
+                }
+
+                return _lazyElementsInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a TypeOf expression.
@@ -6416,33 +6416,33 @@ internal abstract class LazyTupleOperation : BaseTupleOperation, ITupleOperation
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 
-/// <summary>
-/// Represents a type parameter object creation expression, i.e. new T(), where T is a type parameter with new constraint.
-/// </summary>
-internal abstract class LazyTypeParameterObjectCreationOperation : BaseTypeParameterObjectCreationOperation, ITypeParameterObjectCreationOperation
-{
-    private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked;
-
-    public LazyTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a type parameter object creation expression, i.e. new T(), where T is a type parameter with new constraint.
+    /// </summary>
+    internal abstract class LazyTypeParameterObjectCreationOperation : BaseTypeParameterObjectCreationOperation, ITypeParameterObjectCreationOperation
     {
-    }
+        private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-    protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-
-    public override IObjectOrCollectionInitializerOperation Initializer
-    {
-        get
+        public LazyTypeParameterObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
+        }
 
-            return _lazyInitializerInterlocked;
+        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
+
+        public override IObjectOrCollectionInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
         }
     }
-}
 
     /// <remarks>
     /// Represents a dynamically bound expression that can have argument names or refkinds.
@@ -6525,49 +6525,49 @@ internal abstract class LazyTypeParameterObjectCreationOperation : BaseTypeParam
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 
-/// <remarks>
-/// Represents a dynamically bound new/New expression.
-/// </remarks>
-internal abstract class LazyDynamicObjectCreationOperation : BaseDynamicObjectCreationOperation, IDynamicObjectCreationOperation
-{
-    private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
-    private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked;
-
-    public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <remarks>
+    /// Represents a dynamically bound new/New expression.
+    /// </remarks>
+    internal abstract class LazyDynamicObjectCreationOperation : BaseDynamicObjectCreationOperation, IDynamicObjectCreationOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
+        private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-    protected abstract ImmutableArray<IOperation> CreateArguments();
-    protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-
-    public override ImmutableArray<IOperation> Arguments
-    {
-        get
+        public LazyDynamicObjectCreationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
+        }
 
-            return _lazyArgumentsInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateArguments();
+        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
+
+        public override ImmutableArray<IOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
+        }
+
+        public override IObjectOrCollectionInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
         }
     }
-
-    public override IObjectOrCollectionInitializerOperation Initializer
-    {
-        get
-        {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
-
-            return _lazyInitializerInterlocked;
-        }
-    }
-}
 
     /// <remarks>
     /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
@@ -6624,49 +6624,49 @@ internal abstract class LazyDynamicObjectCreationOperation : BaseDynamicObjectCr
         public override ImmutableArray<IOperation> Arguments { get; }
     }
 
-/// <remarks>
-/// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
-/// </remarks>
-internal abstract class LazyDynamicInvocationOperation : BaseDynamicInvocationOperation, IDynamicInvocationOperation
-{
-    private IOperation _lazyOperationInterlocked;
-    private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
-
-    public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <remarks>
+    /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
+    /// </remarks>
+    internal abstract class LazyDynamicInvocationOperation : BaseDynamicInvocationOperation, IDynamicInvocationOperation
     {
-    }
+        private IOperation _lazyOperationInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
-    protected abstract IOperation CreateOperation();
-    protected abstract ImmutableArray<IOperation> CreateArguments();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyDynamicInvocationOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
+        }
 
-            return _lazyOperationInterlocked;
+        protected abstract IOperation CreateOperation();
+        protected abstract ImmutableArray<IOperation> CreateArguments();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IOperation> Arguments
-    {
-        get
-        {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
-
-            return _lazyArgumentsInterlocked;
-        }
-    }
-}
 
     /// <remarks>
     /// Represents a dynamic indexer expression in C#.
@@ -6723,49 +6723,49 @@ internal abstract class LazyDynamicInvocationOperation : BaseDynamicInvocationOp
         public override ImmutableArray<IOperation> Arguments { get; }
     }
 
-/// <remarks>
-/// Represents a dynamic indexer expression in C#.
-/// </remarks>
-internal abstract class LazyDynamicIndexerAccessOperation : BaseDynamicIndexerAccessOperation, IDynamicIndexerAccessOperation
-{
-    private IOperation _lazyOperationInterlocked;
-    private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
-
-    public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <remarks>
+    /// Represents a dynamic indexer expression in C#.
+    /// </remarks>
+    internal abstract class LazyDynamicIndexerAccessOperation : BaseDynamicIndexerAccessOperation, IDynamicIndexerAccessOperation
     {
-    }
+        private IOperation _lazyOperationInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyArgumentsInterlocked;
 
-    protected abstract IOperation CreateOperation();
-    protected abstract ImmutableArray<IOperation> CreateArguments();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyDynamicIndexerAccessOperation(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
+        }
 
-            return _lazyOperationInterlocked;
+        protected abstract IOperation CreateOperation();
+        protected abstract ImmutableArray<IOperation> CreateArguments();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> Arguments
+        {
+            get
+            {
+                if (_lazyArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
+                    VerifyParentOperation(this, _lazyArgumentsInterlocked);
+                }
+
+                return _lazyArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IOperation> Arguments
-    {
-        get
-        {
-            if (_lazyArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyArgumentsInterlocked, CreateArguments(), default);
-                VerifyParentOperation(this, _lazyArgumentsInterlocked);
-            }
-
-            return _lazyArgumentsInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an operation with one operand.
@@ -6837,33 +6837,33 @@ internal abstract class LazyDynamicIndexerAccessOperation : BaseDynamicIndexerAc
         public override IOperation Operand { get; }
     }
 
-/// <summary>
-/// Represents an operation with one operand.
-/// </summary>
-internal abstract class LazyUnaryOperation : BaseUnaryOperation, IUnaryOperation
-{
-    private IOperation _lazyOperandInterlocked;
-
-    public LazyUnaryOperation(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an operation with one operand.
+    /// </summary>
+    internal abstract class LazyUnaryOperation : BaseUnaryOperation, IUnaryOperation
     {
-    }
+        private IOperation _lazyOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperand();
-
-    public override IOperation Operand
-    {
-        get
+        public LazyUnaryOperation(UnaryOperatorKind unaryOperationKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), null);
-                VerifyParentOperation(this, _lazyOperandInterlocked);
-            }
+        }
 
-            return _lazyOperandInterlocked;
+        protected abstract IOperation CreateOperand();
+
+        public override IOperation Operand
+        {
+            get
+            {
+                if (_lazyOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                }
+
+                return _lazyOperandInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# using or VB Using statement.
@@ -6931,49 +6931,49 @@ internal abstract class LazyUnaryOperation : BaseUnaryOperation, IUnaryOperation
         public override IOperation Body { get; }
     }
 
-/// <summary>
-/// Represents a C# using or VB Using statement.
-/// </summary>
-internal abstract class LazyUsingOperation : BaseUsingOperation, IUsingOperation
-{
-    private IOperation _lazyResourcesInterlocked;
-    private IOperation _lazyBodyInterlocked;
-
-    public LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# using or VB Using statement.
+    /// </summary>
+    internal abstract class LazyUsingOperation : BaseUsingOperation, IUsingOperation
     {
-    }
+        private IOperation _lazyResourcesInterlocked = s_unset;
+        private IOperation _lazyBodyInterlocked = s_unset;
 
-    protected abstract IOperation CreateResources();
-    protected abstract IOperation CreateBody();
-
-    public override IOperation Resources
-    {
-        get
+        public LazyUsingOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyResourcesInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyResourcesInterlocked, CreateResources(), null);
-                VerifyParentOperation(this, _lazyResourcesInterlocked);
-            }
+        }
 
-            return _lazyResourcesInterlocked;
+        protected abstract IOperation CreateResources();
+        protected abstract IOperation CreateBody();
+
+        public override IOperation Resources
+        {
+            get
+            {
+                if (_lazyResourcesInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyResourcesInterlocked, CreateResources(), s_unset);
+                    VerifyParentOperation(this, _lazyResourcesInterlocked);
+                }
+
+                return _lazyResourcesInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
         }
     }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-}
 
     internal abstract partial class BaseVariableDeclaratorOperation : Operation, IVariableDeclaratorOperation
     {
@@ -7032,49 +7032,49 @@ internal abstract class LazyUsingOperation : BaseUsingOperation, IUsingOperation
         public override ImmutableArray<IOperation> IgnoredArguments { get; }
     }
 
-/// <summary>
-/// Represents a local variable declaration.
-/// </summary>
-internal abstract class LazyVariableDeclaratorOperation : BaseVariableDeclaratorOperation
-{
-    private IVariableInitializerOperation _lazyInitializerInterlocked;
-    private ImmutableArray<IOperation> _lazyIgnoredArgumentsInterlocked;
-
-    public LazyVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a local variable declaration.
+    /// </summary>
+    internal abstract class LazyVariableDeclaratorOperation : BaseVariableDeclaratorOperation
     {
-    }
+        private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
+        private ImmutableArray<IOperation> _lazyIgnoredArgumentsInterlocked;
 
-    protected abstract IVariableInitializerOperation CreateInitializer();
-    protected abstract ImmutableArray<IOperation> CreateIgnoredArguments();
-
-    public override IVariableInitializerOperation Initializer
-    {
-        get
+        public LazyVariableDeclaratorOperation(ILocalSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
+        }
 
-            return _lazyInitializerInterlocked;
+        protected abstract IVariableInitializerOperation CreateInitializer();
+        protected abstract ImmutableArray<IOperation> CreateIgnoredArguments();
+
+        public override IVariableInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetVariableInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetVariableInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> IgnoredArguments
+        {
+            get
+            {
+                if (_lazyIgnoredArgumentsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredArgumentsInterlocked, CreateIgnoredArguments(), default);
+                    VerifyParentOperation(this, _lazyIgnoredArgumentsInterlocked);
+                }
+
+                return _lazyIgnoredArgumentsInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IOperation> IgnoredArguments
-    {
-        get
-        {
-            if (_lazyIgnoredArgumentsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredArgumentsInterlocked, CreateIgnoredArguments(), default);
-                VerifyParentOperation(this, _lazyIgnoredArgumentsInterlocked);
-            }
-
-            return _lazyIgnoredArgumentsInterlocked;
-        }
-    }
-}
 
     internal abstract partial class BaseVariableDeclarationOperation : Operation, IVariableDeclarationOperation
     {
@@ -7130,46 +7130,46 @@ internal abstract class LazyVariableDeclaratorOperation : BaseVariableDeclarator
         public override IVariableInitializerOperation Initializer { get; }
     }
 
-internal abstract class LazyVariableDeclarationOperation : BaseVariableDeclarationOperation
-{
-    private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclaratorsInterlocked;
-    private IVariableInitializerOperation _lazyInitializerInterlocked;
-
-    public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyVariableDeclarationOperation : BaseVariableDeclarationOperation
     {
-    }
+        private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclaratorsInterlocked;
+        private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
 
-    protected abstract ImmutableArray<IVariableDeclaratorOperation> CreateDeclarators();
-    protected abstract IVariableInitializerOperation CreateInitializer();
-
-    public override ImmutableArray<IVariableDeclaratorOperation> Declarators
-    {
-        get
+        public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyDeclaratorsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaratorsInterlocked, CreateDeclarators(), default);
-                VerifyParentOperation(this, _lazyDeclaratorsInterlocked);
-            }
+        }
 
-            return _lazyDeclaratorsInterlocked;
+        protected abstract ImmutableArray<IVariableDeclaratorOperation> CreateDeclarators();
+        protected abstract IVariableInitializerOperation CreateInitializer();
+
+        public override ImmutableArray<IVariableDeclaratorOperation> Declarators
+        {
+            get
+            {
+                if (_lazyDeclaratorsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaratorsInterlocked, CreateDeclarators(), default);
+                    VerifyParentOperation(this, _lazyDeclaratorsInterlocked);
+                }
+
+                return _lazyDeclaratorsInterlocked;
+            }
+        }
+
+        public override IVariableInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetVariableInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetVariableInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
         }
     }
-
-    public override IVariableInitializerOperation Initializer
-    {
-        get
-        {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
-
-            return _lazyInitializerInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a local variable declaration statement.
@@ -7222,33 +7222,33 @@ internal abstract class LazyVariableDeclarationOperation : BaseVariableDeclarati
         public override ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
     }
 
-/// <summary>
-/// Represents a local variable declaration statement.
-/// </summary>
-internal abstract class LazyVariableDeclarationGroupOperation : BaseVariableDeclarationGroupOperation, IVariableDeclarationGroupOperation
-{
-    private ImmutableArray<IVariableDeclarationOperation> _lazyDeclarationsInterlocked;
-
-    public LazyVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a local variable declaration statement.
+    /// </summary>
+    internal abstract class LazyVariableDeclarationGroupOperation : BaseVariableDeclarationGroupOperation, IVariableDeclarationGroupOperation
     {
-    }
+        private ImmutableArray<IVariableDeclarationOperation> _lazyDeclarationsInterlocked;
 
-    protected abstract ImmutableArray<IVariableDeclarationOperation> CreateDeclarations();
-
-    public override ImmutableArray<IVariableDeclarationOperation> Declarations
-    {
-        get
+        public LazyVariableDeclarationGroupOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyDeclarationsInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclarationsInterlocked, CreateDeclarations(), default);
-                VerifyParentOperation(this, _lazyDeclarationsInterlocked);
-            }
+        }
 
-            return _lazyDeclarationsInterlocked;
+        protected abstract ImmutableArray<IVariableDeclarationOperation> CreateDeclarations();
+
+        public override ImmutableArray<IVariableDeclarationOperation> Declarations
+        {
+            get
+            {
+                if (_lazyDeclarationsInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclarationsInterlocked, CreateDeclarations(), default);
+                    VerifyParentOperation(this, _lazyDeclarationsInterlocked);
+                }
+
+                return _lazyDeclarationsInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a while or do while loop.
@@ -7349,70 +7349,70 @@ internal abstract class LazyVariableDeclarationGroupOperation : BaseVariableDecl
         public override IOperation IgnoredCondition { get; }
     }
 
-/// <summary>
-/// Represents a while or do while loop.
-/// <para>
-/// Current usage:
-///  (1) C# 'while' and 'do while' loop statements.
-///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
-/// </para>
-/// </summary>
-internal abstract class LazyWhileLoopOperation : BaseWhileLoopOperation, IWhileLoopOperation
-{
-    private IOperation _lazyConditionInterlocked;
-    private IOperation _lazyBodyInterlocked;
-    private IOperation _lazyIgnoredConditionInterlocked;
-
-    public LazyWhileLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a while or do while loop.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# 'while' and 'do while' loop statements.
+    ///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
+    /// </para>
+    /// </summary>
+    internal abstract class LazyWhileLoopOperation : BaseWhileLoopOperation, IWhileLoopOperation
     {
-    }
+        private IOperation _lazyConditionInterlocked = s_unset;
+        private IOperation _lazyBodyInterlocked = s_unset;
+        private IOperation _lazyIgnoredConditionInterlocked = s_unset;
 
-    protected abstract IOperation CreateCondition();
-    protected abstract IOperation CreateBody();
-    protected abstract IOperation CreateIgnoredCondition();
-
-    public override IOperation Condition
-    {
-        get
+        public LazyWhileLoopOperation(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(locals, continueLabel, exitLabel, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyConditionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), null);
-                VerifyParentOperation(this, _lazyConditionInterlocked);
-            }
+        }
 
-            return _lazyConditionInterlocked;
+        protected abstract IOperation CreateCondition();
+        protected abstract IOperation CreateBody();
+        protected abstract IOperation CreateIgnoredCondition();
+
+        public override IOperation Condition
+        {
+            get
+            {
+                if (_lazyConditionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyConditionInterlocked, CreateCondition(), s_unset);
+                    VerifyParentOperation(this, _lazyConditionInterlocked);
+                }
+
+                return _lazyConditionInterlocked;
+            }
+        }
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
+        }
+
+        public override IOperation IgnoredCondition
+        {
+            get
+            {
+                if (_lazyIgnoredConditionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyIgnoredConditionInterlocked, CreateIgnoredCondition(), s_unset);
+                    VerifyParentOperation(this, _lazyIgnoredConditionInterlocked);
+                }
+
+                return _lazyIgnoredConditionInterlocked;
+            }
         }
     }
-
-    public override IOperation Body
-    {
-        get
-        {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
-
-            return _lazyBodyInterlocked;
-        }
-    }
-
-    public override IOperation IgnoredCondition
-    {
-        get
-        {
-            if (_lazyIgnoredConditionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyIgnoredConditionInterlocked, CreateIgnoredCondition(), null);
-                VerifyParentOperation(this, _lazyIgnoredConditionInterlocked);
-            }
-
-            return _lazyIgnoredConditionInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a VB With statement.
@@ -7473,49 +7473,49 @@ internal abstract class LazyWhileLoopOperation : BaseWhileLoopOperation, IWhileL
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents a VB With statement.
-/// </summary>
-internal abstract class LazyWithOperation : BaseWithOperation, IWithOperation
-{
-    private IOperation _lazyBodyInterlocked;
-    private IOperation _lazyValueInterlocked;
-
-    public LazyWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a VB With statement.
+    /// </summary>
+    internal abstract class LazyWithOperation : BaseWithOperation, IWithOperation
     {
-    }
+        private IOperation _lazyBodyInterlocked = s_unset;
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateBody();
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Body
-    {
-        get
+        public LazyWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
+        }
 
-            return _lazyBodyInterlocked;
+        protected abstract IOperation CreateBody();
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unset);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
+        }
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-
-    public override IOperation Value
-    {
-        get
-        {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
-
-            return _lazyValueInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a local function statement.
@@ -7578,49 +7578,49 @@ internal abstract class LazyWithOperation : BaseWithOperation, IWithOperation
         public override IBlockOperation IgnoredBody { get; }
     }
 
-/// <summary>
-/// Represents a local function statement.
-/// </summary>
-internal abstract class LazyLocalFunctionOperation : BaseLocalFunctionOperation, ILocalFunctionOperation
-{
-    private IBlockOperation _lazyBodyInterlocked;
-    private IBlockOperation _lazyIgnoredBodyInterlocked;
-
-    public LazyLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal abstract class LazyLocalFunctionOperation : BaseLocalFunctionOperation, ILocalFunctionOperation
     {
-    }
+        private IBlockOperation _lazyBodyInterlocked = s_unsetBlock;
+        private IBlockOperation _lazyIgnoredBodyInterlocked = s_unsetBlock;
 
-    protected abstract IBlockOperation CreateBody();
-    protected abstract IBlockOperation CreateIgnoredBody();
-
-    public override IBlockOperation Body
-    {
-        get
+        public LazyLocalFunctionOperation(IMethodSymbol symbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), null);
-                VerifyParentOperation(this, _lazyBodyInterlocked);
-            }
+        }
 
-            return _lazyBodyInterlocked;
+        protected abstract IBlockOperation CreateBody();
+        protected abstract IBlockOperation CreateIgnoredBody();
+
+        public override IBlockOperation Body
+        {
+            get
+            {
+                if (_lazyBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyBodyInterlocked, CreateBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyBodyInterlocked);
+                }
+
+                return _lazyBodyInterlocked;
+            }
+        }
+
+        public override IBlockOperation IgnoredBody
+        {
+            get
+            {
+                if (_lazyIgnoredBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyIgnoredBodyInterlocked, CreateIgnoredBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyIgnoredBodyInterlocked);
+                }
+
+                return _lazyIgnoredBodyInterlocked;
+            }
         }
     }
-
-    public override IBlockOperation IgnoredBody
-    {
-        get
-        {
-            if (_lazyIgnoredBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyIgnoredBodyInterlocked, CreateIgnoredBody(), null);
-                VerifyParentOperation(this, _lazyIgnoredBodyInterlocked);
-            }
-
-            return _lazyIgnoredBodyInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# constant pattern.
@@ -7670,33 +7670,33 @@ internal abstract class LazyLocalFunctionOperation : BaseLocalFunctionOperation,
         public override IOperation Value { get; }
     }
 
-/// <summary>
-/// Represents a C# constant pattern.
-/// </summary>
-internal abstract class LazyConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
-{
-    private IOperation _lazyValueInterlocked;
-
-    public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal abstract class LazyConstantPatternOperation : BaseConstantPatternOperation, IConstantPatternOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
 
-    protected abstract IOperation CreateValue();
-
-    public override IOperation Value
-    {
-        get
+        public LazyConstantPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# declaration pattern.
@@ -7789,49 +7789,49 @@ internal abstract class LazyConstantPatternOperation : BaseConstantPatternOperat
         public override IOperation Guard { get; }
     }
 
-/// <summary>
-/// Represents a C# pattern case clause.
-/// </summary>
-internal abstract class LazyPatternCaseClauseOperation : BasePatternCaseClauseOperation, IPatternCaseClauseOperation
-{
-    private IPatternOperation _lazyPatternInterlocked;
-    private IOperation _lazyGuardExpressionInterlocked;
-
-    public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal abstract class LazyPatternCaseClauseOperation : BasePatternCaseClauseOperation, IPatternCaseClauseOperation
     {
-    }
+        private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
+        private IOperation _lazyGuardExpressionInterlocked = s_unset;
 
-    protected abstract IPatternOperation CreatePattern();
-    protected abstract IOperation CreateGuard();
-
-    public override IPatternOperation Pattern
-    {
-        get
+        public LazyPatternCaseClauseOperation(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyPatternInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyPatternInterlocked, CreatePattern(), null);
-                VerifyParentOperation(this, _lazyPatternInterlocked);
-            }
+        }
 
-            return _lazyPatternInterlocked;
+        protected abstract IPatternOperation CreatePattern();
+        protected abstract IOperation CreateGuard();
+
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPatternInterlocked == s_unsetPattern)
+                {
+                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, CreatePattern(), s_unsetPattern);
+                    VerifyParentOperation(this, _lazyPatternInterlocked);
+                }
+
+                return _lazyPatternInterlocked;
+            }
+        }
+
+        public override IOperation Guard
+        {
+            get
+            {
+                if (_lazyGuardExpressionInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyGuardExpressionInterlocked, CreateGuard(), s_unset);
+                    VerifyParentOperation(this, _lazyGuardExpressionInterlocked);
+                }
+
+                return _lazyGuardExpressionInterlocked;
+            }
         }
     }
-
-    public override IOperation Guard
-    {
-        get
-        {
-            if (_lazyGuardExpressionInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyGuardExpressionInterlocked, CreateGuard(), null);
-                VerifyParentOperation(this, _lazyGuardExpressionInterlocked);
-            }
-
-            return _lazyGuardExpressionInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# is pattern expression. For example, "x is int i".
@@ -7891,49 +7891,49 @@ internal abstract class LazyPatternCaseClauseOperation : BasePatternCaseClauseOp
         public override IPatternOperation Pattern { get; }
     }
 
-/// <summary>
-/// Represents a C# is pattern expression. For example, "x is int i".
-/// </summary>
-internal abstract class LazyIsPatternOperation : BaseIsPatternOperation, IIsPatternOperation
-{
-    private IOperation _lazyValueInterlocked;
-    private IPatternOperation _lazyPatternInterlocked;
-
-    public LazyIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal abstract class LazyIsPatternOperation : BaseIsPatternOperation, IIsPatternOperation
     {
-    }
+        private IOperation _lazyValueInterlocked = s_unset;
+        private IPatternOperation _lazyPatternInterlocked = s_unsetPattern;
 
-    protected abstract IOperation CreateValue();
-    protected abstract IPatternOperation CreatePattern();
-
-    public override IOperation Value
-    {
-        get
+        public LazyIsPatternOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyValueInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), null);
-                VerifyParentOperation(this, _lazyValueInterlocked);
-            }
+        }
 
-            return _lazyValueInterlocked;
+        protected abstract IOperation CreateValue();
+        protected abstract IPatternOperation CreatePattern();
+
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValueInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyValueInterlocked, CreateValue(), s_unset);
+                    VerifyParentOperation(this, _lazyValueInterlocked);
+                }
+
+                return _lazyValueInterlocked;
+            }
+        }
+
+        public override IPatternOperation Pattern
+        {
+            get
+            {
+                if (_lazyPatternInterlocked == s_unsetPattern)
+                {
+                    Interlocked.CompareExchange(ref _lazyPatternInterlocked, CreatePattern(), s_unsetPattern);
+                    VerifyParentOperation(this, _lazyPatternInterlocked);
+                }
+
+                return _lazyPatternInterlocked;
+            }
         }
     }
-
-    public override IPatternOperation Pattern
-    {
-        get
-        {
-            if (_lazyPatternInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyPatternInterlocked, CreatePattern(), null);
-                VerifyParentOperation(this, _lazyPatternInterlocked);
-            }
-
-            return _lazyPatternInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a C# or VB object or collection initializer expression.
@@ -7986,33 +7986,33 @@ internal abstract class LazyIsPatternOperation : BaseIsPatternOperation, IIsPatt
         public override ImmutableArray<IOperation> Initializers { get; }
     }
 
-/// <summary>
-/// Represents a C# or VB object or collection initializer expression.
-/// </summary>
-internal abstract class LazyObjectOrCollectionInitializerOperation : BaseObjectOrCollectionInitializerOperation, IObjectOrCollectionInitializerOperation
-{
-    private ImmutableArray<IOperation> _lazyInitializersInterlocked;
-
-    public LazyObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# or VB object or collection initializer expression.
+    /// </summary>
+    internal abstract class LazyObjectOrCollectionInitializerOperation : BaseObjectOrCollectionInitializerOperation, IObjectOrCollectionInitializerOperation
     {
-    }
+        private ImmutableArray<IOperation> _lazyInitializersInterlocked;
 
-    protected abstract ImmutableArray<IOperation> CreateInitializers();
-
-    public override ImmutableArray<IOperation> Initializers
-    {
-        get
+        public LazyObjectOrCollectionInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializersInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, CreateInitializers(), default);
-                VerifyParentOperation(this, _lazyInitializersInterlocked);
-            }
+        }
 
-            return _lazyInitializersInterlocked;
+        protected abstract ImmutableArray<IOperation> CreateInitializers();
+
+        public override ImmutableArray<IOperation> Initializers
+        {
+            get
+            {
+                if (_lazyInitializersInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInitializersInterlocked, CreateInitializers(), default);
+                    VerifyParentOperation(this, _lazyInitializersInterlocked);
+                }
+
+                return _lazyInitializersInterlocked;
+            }
         }
     }
-}
 
     /// <summary>
     /// Represents a C# or VB member initializer expression within an object initializer expression.
@@ -8073,49 +8073,49 @@ internal abstract class LazyObjectOrCollectionInitializerOperation : BaseObjectO
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 
-/// <summary>
-/// Represents a C# or VB member initializer expression within an object initializer expression.
-/// </summary>
-internal abstract class LazyMemberInitializerOperation : BaseMemberInitializerOperation, IMemberInitializerOperation
-{
-    private IOperation _lazyInitializedMemberInterlocked;
-    private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked;
-
-    public LazyMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a C# or VB member initializer expression within an object initializer expression.
+    /// </summary>
+    internal abstract class LazyMemberInitializerOperation : BaseMemberInitializerOperation, IMemberInitializerOperation
     {
-    }
+        private IOperation _lazyInitializedMemberInterlocked = s_unset;
+        private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-    protected abstract IOperation CreateInitializedMember();
-    protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-
-    public override IOperation InitializedMember
-    {
-        get
+        public LazyMemberInitializerOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializedMemberInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializedMemberInterlocked, CreateInitializedMember(), null);
-                VerifyParentOperation(this, _lazyInitializedMemberInterlocked);
-            }
+        }
 
-            return _lazyInitializedMemberInterlocked;
+        protected abstract IOperation CreateInitializedMember();
+        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
+
+        public override IOperation InitializedMember
+        {
+            get
+            {
+                if (_lazyInitializedMemberInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializedMemberInterlocked, CreateInitializedMember(), s_unset);
+                    VerifyParentOperation(this, _lazyInitializedMemberInterlocked);
+                }
+
+                return _lazyInitializedMemberInterlocked;
+            }
+        }
+
+        public override IObjectOrCollectionInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
         }
     }
-
-    public override IObjectOrCollectionInitializerOperation Initializer
-    {
-        get
-        {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
-
-            return _lazyInitializerInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents an unrolled/lowered query expression in C# and VB.
@@ -8173,38 +8173,38 @@ internal abstract class LazyMemberInitializerOperation : BaseMemberInitializerOp
         public override IOperation Operation { get; }
     }
 
-/// <summary>
-/// Represents an unrolled/lowered query expression in C# and VB.
-/// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
-///   ITranslatedQueryExpression
-///     IInvocationExpression ('Select' invocation for "select x.Name")
-///       IInvocationExpression ('Where' invocation for "where x.Name != null")
-///         IInvocationExpression ('From' invocation for "from x in set")
-/// </summary>
-internal abstract class LazyTranslatedQueryOperation : BaseTranslatedQueryOperation, ITranslatedQueryOperation
-{
-    private IOperation _lazyOperationInterlocked;
-
-    public LazyTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents an unrolled/lowered query expression in C# and VB.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
+    /// </summary>
+    internal abstract class LazyTranslatedQueryOperation : BaseTranslatedQueryOperation, ITranslatedQueryOperation
     {
-    }
+        private IOperation _lazyOperationInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperation();
-
-    public override IOperation Operation
-    {
-        get
+        public LazyTranslatedQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), null);
-                VerifyParentOperation(this, _lazyOperationInterlocked);
-            }
+        }
 
-            return _lazyOperationInterlocked;
+        protected abstract IOperation CreateOperation();
+
+        public override IOperation Operation
+        {
+            get
+            {
+                if (_lazyOperationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperationInterlocked, CreateOperation(), s_unset);
+                    VerifyParentOperation(this, _lazyOperationInterlocked);
+                }
+
+                return _lazyOperationInterlocked;
+            }
         }
     }
-}
 
     internal sealed partial class FlowCaptureReferenceOperation : Operation, IFlowCaptureReferenceOperation
     {
@@ -8413,46 +8413,46 @@ internal abstract class LazyTranslatedQueryOperation : BaseTranslatedQueryOperat
         public override IBlockOperation ExpressionBody { get; }
     }
 
-internal abstract class LazyMethodBodyOperation : BaseMethodBodyOperation
-{
-    private IBlockOperation _lazyBlockBodyInterlocked;
-    private IBlockOperation _lazyExpressionBodyInterlocked;
-
-    public LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) : base(semanticModel, syntax)
+    internal abstract class LazyMethodBodyOperation : BaseMethodBodyOperation
     {
-    }
+        private IBlockOperation _lazyBlockBodyInterlocked = s_unsetBlock;
+        private IBlockOperation _lazyExpressionBodyInterlocked = s_unsetBlock;
 
-    protected abstract IBlockOperation CreateBlockBody();
-    protected abstract IBlockOperation CreateExpressionBody();
-
-    public override IBlockOperation BlockBody
-    {
-        get
+        public LazyMethodBodyOperation(SemanticModel semanticModel, SyntaxNode syntax) : base(semanticModel, syntax)
         {
-            if (_lazyBlockBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, CreateBlockBody(), null);
-                VerifyParentOperation(this, _lazyBlockBodyInterlocked);
-            }
+        }
 
-            return _lazyBlockBodyInterlocked;
+        protected abstract IBlockOperation CreateBlockBody();
+        protected abstract IBlockOperation CreateExpressionBody();
+
+        public override IBlockOperation BlockBody
+        {
+            get
+            {
+                if (_lazyBlockBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, CreateBlockBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyBlockBodyInterlocked);
+                }
+
+                return _lazyBlockBodyInterlocked;
+            }
+        }
+
+        public override IBlockOperation ExpressionBody
+        {
+            get
+            {
+                if (_lazyExpressionBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, CreateExpressionBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyExpressionBodyInterlocked);
+                }
+
+                return _lazyExpressionBodyInterlocked;
+            }
         }
     }
-
-    public override IBlockOperation ExpressionBody
-    {
-        get
-        {
-            if (_lazyExpressionBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, CreateExpressionBody(), null);
-                VerifyParentOperation(this, _lazyExpressionBodyInterlocked);
-            }
-
-            return _lazyExpressionBodyInterlocked;
-        }
-    }
-}
 
     internal abstract class BaseConstructorBodyOperation : BaseMethodBodyBaseOperation, IConstructorBodyOperation
     {
@@ -8516,62 +8516,62 @@ internal abstract class LazyMethodBodyOperation : BaseMethodBodyOperation
         public override IBlockOperation ExpressionBody { get; }
     }
 
-internal abstract class LazyConstructorBodyOperation : BaseConstructorBodyOperation
-{
-    private IOperation _lazyInitializerInterlocked;
-    private IBlockOperation _lazyBlockBodyInterlocked;
-    private IBlockOperation _lazyExpressionBodyInterlocked;
-
-    public LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) : base(locals, semanticModel, syntax)
+    internal abstract class LazyConstructorBodyOperation : BaseConstructorBodyOperation
     {
-    }
+        private IOperation _lazyInitializerInterlocked = s_unset;
+        private IBlockOperation _lazyBlockBodyInterlocked = s_unsetBlock;
+        private IBlockOperation _lazyExpressionBodyInterlocked = s_unsetBlock;
 
-    protected abstract IOperation CreateInitializer();
-    protected abstract IBlockOperation CreateBlockBody();
-    protected abstract IBlockOperation CreateExpressionBody();
-
-    public override IOperation Initializer
-    {
-        get
+        public LazyConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax) : base(locals, semanticModel, syntax)
         {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
+        }
 
-            return _lazyInitializerInterlocked;
+        protected abstract IOperation CreateInitializer();
+        protected abstract IBlockOperation CreateBlockBody();
+        protected abstract IBlockOperation CreateExpressionBody();
+
+        public override IOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unset);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
+        }
+
+        public override IBlockOperation BlockBody
+        {
+            get
+            {
+                if (_lazyBlockBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, CreateBlockBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyBlockBodyInterlocked);
+                }
+
+                return _lazyBlockBodyInterlocked;
+            }
+        }
+
+        public override IBlockOperation ExpressionBody
+        {
+            get
+            {
+                if (_lazyExpressionBodyInterlocked == s_unsetBlock)
+                {
+                    Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, CreateExpressionBody(), s_unsetBlock);
+                    VerifyParentOperation(this, _lazyExpressionBodyInterlocked);
+                }
+
+                return _lazyExpressionBodyInterlocked;
+            }
         }
     }
-
-    public override IBlockOperation BlockBody
-    {
-        get
-        {
-            if (_lazyBlockBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyBlockBodyInterlocked, CreateBlockBody(), null);
-                VerifyParentOperation(this, _lazyBlockBodyInterlocked);
-            }
-
-            return _lazyBlockBodyInterlocked;
-        }
-    }
-
-    public override IBlockOperation ExpressionBody
-    {
-        get
-        {
-            if (_lazyExpressionBodyInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyExpressionBodyInterlocked, CreateExpressionBody(), null);
-                VerifyParentOperation(this, _lazyExpressionBodyInterlocked);
-            }
-
-            return _lazyExpressionBodyInterlocked;
-        }
-    }
-}
 
     internal sealed class DiscardOperation : Operation, IDiscardOperation
     {
@@ -8657,49 +8657,49 @@ internal abstract class LazyConstructorBodyOperation : BaseConstructorBodyOperat
         public override IOperation Aggregation { get; }
     }
 
-/// <summary>
-/// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
-/// </summary>
-internal abstract class LazyAggregateQueryOperation : BaseAggregateQueryOperation
-{
-    private IOperation _lazyGroupInterlocked;
-    private IOperation _lazyAggregationInterlocked;
-
-    public LazyAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
+    /// </summary>
+    internal abstract class LazyAggregateQueryOperation : BaseAggregateQueryOperation
     {
-    }
+        private IOperation _lazyGroupInterlocked = s_unset;
+        private IOperation _lazyAggregationInterlocked = s_unset;
 
-    protected abstract IOperation CreateGroup();
-    protected abstract IOperation CreateAggregation();
-
-    public override IOperation Group
-    {
-        get
+        public LazyAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyGroupInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyGroupInterlocked, CreateGroup(), null);
-                VerifyParentOperation(this, _lazyGroupInterlocked);
-            }
+        }
 
-            return _lazyGroupInterlocked;
+        protected abstract IOperation CreateGroup();
+        protected abstract IOperation CreateAggregation();
+
+        public override IOperation Group
+        {
+            get
+            {
+                if (_lazyGroupInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyGroupInterlocked, CreateGroup(), s_unset);
+                    VerifyParentOperation(this, _lazyGroupInterlocked);
+                }
+
+                return _lazyGroupInterlocked;
+            }
+        }
+
+        public override IOperation Aggregation
+        {
+            get
+            {
+                if (_lazyAggregationInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyAggregationInterlocked, CreateAggregation(), s_unset);
+                    VerifyParentOperation(this, _lazyAggregationInterlocked);
+                }
+
+                return _lazyAggregationInterlocked;
+            }
         }
     }
-
-    public override IOperation Aggregation
-    {
-        get
-        {
-            if (_lazyAggregationInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyAggregationInterlocked, CreateAggregation(), null);
-                VerifyParentOperation(this, _lazyAggregationInterlocked);
-            }
-
-            return _lazyAggregationInterlocked;
-        }
-    }
-}
 
     /// <summary>
     /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
@@ -8748,33 +8748,33 @@ internal abstract class LazyAggregateQueryOperation : BaseAggregateQueryOperatio
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
 
-/// <summary>
-/// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
-/// </summary>
-internal abstract class LazyNoPiaObjectCreationOperation : BaseNoPiaObjectCreationOperation
-{
-    private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked;
-
-    public LazyNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    /// <summary>
+    /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
+    /// </summary>
+    internal abstract class LazyNoPiaObjectCreationOperation : BaseNoPiaObjectCreationOperation
     {
-    }
+        private IObjectOrCollectionInitializerOperation _lazyInitializerInterlocked = s_unsetObjectOrCollectionInitializer;
 
-    protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
-
-    public override IObjectOrCollectionInitializerOperation Initializer
-    {
-        get
+        public LazyNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyInitializerInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), null);
-                VerifyParentOperation(this, _lazyInitializerInterlocked);
-            }
+        }
 
-            return _lazyInitializerInterlocked;
+        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
+
+        public override IObjectOrCollectionInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializerInterlocked == s_unsetObjectOrCollectionInitializer)
+                {
+                    Interlocked.CompareExchange(ref _lazyInitializerInterlocked, CreateInitializer(), s_unsetObjectOrCollectionInitializer);
+                    VerifyParentOperation(this, _lazyInitializerInterlocked);
+                }
+
+                return _lazyInitializerInterlocked;
+            }
         }
     }
-}
 
     internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
     {
@@ -8823,30 +8823,30 @@ internal abstract class LazyNoPiaObjectCreationOperation : BaseNoPiaObjectCreati
         public override IOperation Operand { get; }
     }
 
-internal abstract class LazyFromEndIndexOperation : BaseFromEndIndexOperation
-{
-    private IOperation _operandInterlocked;
-
-    public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) : base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+    internal abstract class LazyFromEndIndexOperation : BaseFromEndIndexOperation
     {
-    }
+        private IOperation _operandInterlocked = s_unset;
 
-    protected abstract IOperation CreateOperand();
-
-    public override IOperation Operand
-    {
-        get
+        public LazyFromEndIndexOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) : base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
-            if (_operandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _operandInterlocked, CreateOperand(), null);
-                VerifyParentOperation(this, _operandInterlocked);
-            }
+        }
 
-            return _operandInterlocked;
+        protected abstract IOperation CreateOperand();
+
+        public override IOperation Operand
+        {
+            get
+            {
+                if (_operandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _operandInterlocked, CreateOperand(), s_unset);
+                    VerifyParentOperation(this, _operandInterlocked);
+                }
+
+                return _operandInterlocked;
+            }
         }
     }
-}
 
     internal abstract class BaseRangeOperation : Operation, IRangeOperation
     {
@@ -8904,46 +8904,46 @@ internal abstract class LazyFromEndIndexOperation : BaseFromEndIndexOperation
         public override IOperation RightOperand { get; }
     }
 
-internal abstract class LazyRangeOperation : BaseRangeOperation
-{
-    private IOperation _leftOperandInterlocked;
-    private IOperation _rightOperandInterlocked;
-
-    public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) : base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
+    internal abstract class LazyRangeOperation : BaseRangeOperation
     {
-    }
+        private IOperation _leftOperandInterlocked = s_unset;
+        private IOperation _rightOperandInterlocked = s_unset;
 
-    protected abstract IOperation CreateLeftOperand();
-    protected abstract IOperation CreateRightOperand();
-
-    public override IOperation LeftOperand
-    {
-        get
+        public LazyRangeOperation(bool isLifted, bool isImplicit, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol) : base(isLifted, isImplicit, semanticModel, syntax, type, symbol)
         {
-            if (_leftOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _leftOperandInterlocked, CreateLeftOperand(), null);
-                VerifyParentOperation(this, _leftOperandInterlocked);
-            }
+        }
 
-            return _leftOperandInterlocked;
+        protected abstract IOperation CreateLeftOperand();
+        protected abstract IOperation CreateRightOperand();
+
+        public override IOperation LeftOperand
+        {
+            get
+            {
+                if (_leftOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _leftOperandInterlocked, CreateLeftOperand(), s_unset);
+                    VerifyParentOperation(this, _leftOperandInterlocked);
+                }
+
+                return _leftOperandInterlocked;
+            }
+        }
+
+        public override IOperation RightOperand
+        {
+            get
+            {
+                if (_rightOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _rightOperandInterlocked, CreateRightOperand(), s_unset);
+                    VerifyParentOperation(this, _rightOperandInterlocked);
+                }
+
+                return _rightOperandInterlocked;
+            }
         }
     }
-
-    public override IOperation RightOperand
-    {
-        get
-        {
-            if (_rightOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _rightOperandInterlocked, CreateRightOperand(), null);
-                VerifyParentOperation(this, _rightOperandInterlocked);
-            }
-
-            return _rightOperandInterlocked;
-        }
-    }
-}
 
     internal abstract class BaseReDimOperation : Operation, IReDimOperation
     {
@@ -8989,30 +8989,30 @@ internal abstract class LazyRangeOperation : BaseRangeOperation
         public override ImmutableArray<IReDimClauseOperation> Clauses { get; }
     }
 
-internal abstract class LazyReDimOperation : BaseReDimOperation
-{
-    private ImmutableArray<IReDimClauseOperation> _lazyClausesInterlocked;
-
-    public LazyReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyReDimOperation : BaseReDimOperation
     {
-    }
+        private ImmutableArray<IReDimClauseOperation> _lazyClausesInterlocked;
 
-    protected abstract ImmutableArray<IReDimClauseOperation> CreateClauses();
-
-    public override ImmutableArray<IReDimClauseOperation> Clauses
-    {
-        get
+        public LazyReDimOperation(bool preserve, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(preserve, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyClausesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, CreateClauses(), default);
-                VerifyParentOperation(this, _lazyClausesInterlocked);
-            }
+        }
 
-            return _lazyClausesInterlocked;
+        protected abstract ImmutableArray<IReDimClauseOperation> CreateClauses();
+
+        public override ImmutableArray<IReDimClauseOperation> Clauses
+        {
+            get
+            {
+                if (_lazyClausesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyClausesInterlocked, CreateClauses(), default);
+                    VerifyParentOperation(this, _lazyClausesInterlocked);
+                }
+
+                return _lazyClausesInterlocked;
+            }
         }
     }
-}
 
     internal abstract class BaseReDimClauseOperation : Operation, IReDimClauseOperation
     {
@@ -9063,44 +9063,44 @@ internal abstract class LazyReDimOperation : BaseReDimOperation
         public override ImmutableArray<IOperation> DimensionSizes { get; }
     }
 
-internal abstract class LazyReDimClauseOperation : BaseReDimClauseOperation
-{
-    private IOperation _lazyOperandInterlocked;
-    private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
-
-    public LazyReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+    internal abstract class LazyReDimClauseOperation : BaseReDimClauseOperation
     {
-    }
+        private IOperation _lazyOperandInterlocked = s_unset;
+        private ImmutableArray<IOperation> _lazyDimensionSizesInterlocked;
 
-    protected abstract IOperation CreateOperand();
-    protected abstract ImmutableArray<IOperation> CreateDimensionSizes();
-
-    public override IOperation Operand
-    {
-        get
+        public LazyReDimClauseOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            if (_lazyOperandInterlocked is null)
-            {
-                Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), null);
-                VerifyParentOperation(this, _lazyOperandInterlocked);
-            }
+        }
 
-            return _lazyOperandInterlocked;
+        protected abstract IOperation CreateOperand();
+        protected abstract ImmutableArray<IOperation> CreateDimensionSizes();
+
+        public override IOperation Operand
+        {
+            get
+            {
+                if (_lazyOperandInterlocked == s_unset)
+                {
+                    Interlocked.CompareExchange(ref _lazyOperandInterlocked, CreateOperand(), s_unset);
+                    VerifyParentOperation(this, _lazyOperandInterlocked);
+                }
+
+                return _lazyOperandInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> DimensionSizes
+        {
+            get
+            {
+                if (_lazyDimensionSizesInterlocked.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, CreateDimensionSizes(), default);
+                    VerifyParentOperation(this, _lazyDimensionSizesInterlocked);
+                }
+
+                return _lazyDimensionSizesInterlocked;
+            }
         }
     }
-
-    public override ImmutableArray<IOperation> DimensionSizes
-    {
-        get
-        {
-            if (_lazyDimensionSizesInterlocked.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDimensionSizesInterlocked, CreateDimensionSizes(), default);
-                VerifyParentOperation(this, _lazyDimensionSizesInterlocked);
-            }
-
-            return _lazyDimensionSizesInterlocked;
-        }
-    }
-}
 }
