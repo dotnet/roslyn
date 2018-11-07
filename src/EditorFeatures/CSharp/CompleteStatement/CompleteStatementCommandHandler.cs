@@ -395,6 +395,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // If "end" is at the end of a line, the token has trailing end of line trivia.
             // We want to put our cursor before that trivia, so use previous token for placement.
             var token = root.FindToken(end);
+
+            if (token.SpanStart >= end)
+            {
+                // We found a token following the end position, which means 'end' is not the end of the line
+                return end;
+            }
+
             if (token.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
             {
                 return token.TrailingTrivia.Span.Start;

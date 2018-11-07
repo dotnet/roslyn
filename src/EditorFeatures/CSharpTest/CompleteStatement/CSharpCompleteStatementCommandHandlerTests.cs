@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x$$, y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);;$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$;");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -264,7 +264,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString($$));");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());;$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$;");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -324,7 +324,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);;$$");
+            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString(), y);$$;");
 
             VerifyTypingSemicolon(code, expected);
         }
