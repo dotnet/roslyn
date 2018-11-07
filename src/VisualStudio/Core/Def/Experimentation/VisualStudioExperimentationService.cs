@@ -27,11 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
             threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
                 try
                 {
-                    experimentationServiceOpt = serviceProvider.GetService(typeof(SVsExperimentationService));
+                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService));
                     if (experimentationServiceOpt != null)
                     {
                         isCachedFlightEnabledInfo = experimentationServiceOpt.GetType().GetMethod(
