@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -2567,12 +2566,9 @@ class ContinueTest
 
         #endregion
 
-        internal override VSCommanding.ICommandHandler CreateCommandHandler(
-            IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+        internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
-            return new CompleteStatementCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);
+            return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)
