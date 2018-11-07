@@ -1336,5 +1336,63 @@ public class C : System.Attribute {
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2)
                 );
         }
+
+        [Fact]
+        public void BuilderTypeIsReportedAsDiagnosticIfObsolete()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type t) { }
+    }
+}
+public interface IMyAwaiter { }
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+public sealed class MyTask
+{
+    public Awaiter GetAwaiter() => new Awaiter();
+    public class Awaiter : ICriticalNotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        public void UnsafeOnCompleted(Action a) { }
+        public bool IsCompleted => true;
+        public void GetResult() { }
+    }
+}
+
+[System.Obsolete]
+public sealed class MyTaskMethodBuilder
+{
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder();
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine)
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : INotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        where TAwaiter : IMyAwaiter, ICriticalNotifyCompletion
+        where TStateMachine : IAsyncStateMachine
+    {
+    }
+    public MyTask Task => new MyTask();
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                // (11,28): warning CS0612: 'MyTaskMethodBuilder' is obsolete
+                // [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "MyTaskMethodBuilder").WithArguments("MyTaskMethodBuilder").WithLocation(11, 28)
+                );
+        }
     }
 }
