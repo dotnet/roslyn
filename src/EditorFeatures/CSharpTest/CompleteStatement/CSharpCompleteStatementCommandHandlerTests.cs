@@ -1330,7 +1330,7 @@ public class Person
       lastName = last;
    }
 
-   public string Name => {firstName} {lastName}$$   
+   public string Name => $""{firstName} {lastName}""$$   
 }";
 
             var expected = code.Replace("$$", ";$$");
