@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y)$$");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y);$$");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -104,26 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y$$");
 
-            var expected =
-                @"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x, y;$$
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -262,7 +243,7 @@ var test = ClassC.MethodM(
 
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString())$$");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString());$$");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -387,25 +368,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y");
 
-            var expected = @"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x.ToString(;$$, y
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -415,25 +378,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y)");
 
-            var expected = @"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x.ToString(;$$, y)
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -443,25 +388,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y");
 
-            var expected = @"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x.ToString(;$$), y
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -585,26 +512,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$");
 
-            var expected =
-@"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x[0], x[1;$$
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -615,26 +523,7 @@ var test = ClassC.MethodM(
 
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]$$");
 
-            var expected =
-@"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x[0], x[1];$$
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -645,26 +534,7 @@ var test = ClassC.MethodM(
 
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1)$$");
 
-            var expected =
-@"class C
-    {
-        static void Main(string[] args)
-        {
-            int x = 1;
-            int y = 2;
-            int[] a = { 1,2 }
-            var test = ClassC.MethodM(x[0], x[1);$$
-
-            int z = 4;
-        }
-    }
-
-    static class ClassC
-    {
-        internal static int MethodM(int a, int b)
-            => a * b;
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -684,13 +554,7 @@ class C
     int j = 5;
 ";
 
-            var expected =
-@"
-class C
-{
-    int i = 4;$$
-    int j = 5;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -728,13 +592,7 @@ class C
     int j = 5;
 ";
 
-            var expected =
-@"
-class C
-{
-    int i = Min(2;$$,3
-    int j = 5;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -772,13 +630,7 @@ class C
     int j = 5;
 ";
 
-            var expected =
-@"
-class C
-{
-    int i = Min(Max(4,5;$$,3)
-    int j = 5;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -800,15 +652,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for (int i = 0;$$ )
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -826,15 +670,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for (int i = 0;$$ i < 5; i++)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -857,20 +693,7 @@ class C
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for (int i = 0;$$; i < 3; i = i + 1)
-       {
-            x = x * 3;
-        }
-        System.Console.Write(""{0}"", x);
-    }
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -888,15 +711,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for (int i = 0;$$
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -914,15 +729,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for (;$$
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -940,15 +747,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( ;$$
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -966,15 +765,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( ; ;$$
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -992,15 +783,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( ; ;;$$
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1018,15 +801,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( ;$$ ;)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1044,15 +819,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( ;$$int i = 0, int j = 0)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1070,15 +837,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( int;$$ i = 0, int j = 0)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1096,15 +855,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( int i;$$ = 0, int j = 0)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1122,15 +873,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( int i = 0, ;$$int j = 0)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1148,15 +891,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( int i = 0, int j =;$$ 0)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1174,15 +909,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( int i = 0, int j = 0;$$)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1200,15 +927,7 @@ class C
         int j;
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main()
-    {
-        for ( int i = 0, int j = 0;$$)
-        int j;
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1235,24 +954,7 @@ public class C1
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (C1 i = new C1(;$$))
-        int j;
-    }
-}
-public class C1
-{
-    public static C1 operator ++(C1 obj)
-    {
-        return obj;
-    }
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1279,24 +981,7 @@ public class C1
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (C1 i = new C1();$$
-        int j;
-    }
-}
-public class C1
-{
-    public static C1 operator ++(C1 obj)
-    {
-        return obj;
-    }
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1324,24 +1009,7 @@ public class C1
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (C1 i = new C1(;$$
-        int j;
-    }
-}
-public class C1
-{
-    public static C1 operator ++(C1 obj)
-    {
-        return obj;
-    }
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1359,15 +1027,7 @@ class C
         for (int i = s.IndexOf(""bcd""$$) i < 10; i++)
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        string s = ""abcdefghij"";
-        for (int i = s.IndexOf(""bcd"";$$) i < 10; i++)
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1391,21 +1051,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (Goo f = new Goo { i = 0, s = ""abc"";$$ }
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1429,21 +1075,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (Goo f = new Goo { i = 0, s = ""abc"";$$ } )
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1467,21 +1099,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        for (Goo f = new Goo { i = 0, s = ""abc"";$$
-    }
-}
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1503,17 +1121,7 @@ class SampleCollection<T>
     }
 }";
 
-            var expected =
-@"
-class SampleCollection<T>
-{
-    private T[] arr = new T[100];
-    public T this[int i]
-    {
-        get { return arr[i];$$ }
-        set { arr[i] = value; }
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1538,22 +1146,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i = 0, s = ""abc"" };$$
-    }
-}
-
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1578,22 +1171,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i = 0, s = ""abc"";$$ }
-    }
-}
-
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1618,22 +1196,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i = 0;$$, s = ""abc"" }
-    }
-}
-
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1658,22 +1221,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i =;$$ 0, s = ""abc"" }
-    }
-}
-
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1698,22 +1246,7 @@ public class Goo
 }
 ";
 
-            var expected =
-@"
-class C
-{
-    static void Main(string[] args)
-    {
-        Goo f = new Goo { i = 0, s = ""abc"";$$
-    }
-}
-
-public class Goo
-{
-    public int i;
-    public string s;
-}
-";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1800,20 +1333,7 @@ public class Person
    public string Name => {firstName} {lastName}$$   
 }";
 
-            var expected = @"
-public class Person
-{
-   private string firstName;
-   private string lastName;
-   
-   public Person(string first, string last)
-   {
-      firstName = first;
-      lastName = last;
-   }
-
-   public string Name => {firstName} {lastName};$$   
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1832,16 +1352,7 @@ public class SaleItem
    }
 }";
 
-            var expected = @"
-public class SaleItem
-{
-   string name;
-   public string Name 
-   {
-      get => name;
-      set => name = value;$$
-   }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1860,16 +1371,7 @@ public class SaleItem
    }
 }";
 
-            var expected = @"
-public class SaleItem
-{
-   string name;
-   public string Name 
-   {
-      get => name;$$
-      set => name = value;
-   }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1888,16 +1390,7 @@ public class SaleItem
    }
 }";
 
-            var expected = @"
-public class SaleItem
-{
-   string name;
-   public string Name 
-   {
-      get => name.ToUpper(;$$)
-      set => name = value;
-   }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1912,12 +1405,7 @@ public class SaleItem
    { get$$ set; }
 }";
 
-            var expected = @"
-public class SaleItem
-{
-   public string Name 
-   { get;$$ set; }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1936,16 +1424,7 @@ public class Class1
     }
 }";
 
-            var expected = @"
-public class Class1
-{
-    void M()
-    {
-        string s = ""Test"";
-        throw new Exception(s.ToUpper(;$$
-
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -1989,11 +1468,7 @@ class C
 {
 }";
 
-            var expected =
-@";$$
-class C
-{
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2008,12 +1483,7 @@ class C
 {
 }";
 
-            var expected =
-@"
-/// Testing ;$$
-class C
-{
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2031,15 +1501,7 @@ class C
     }
 }";
 
-            var expected =
-@"
-class C
-{
-    void Main()
-    {
-        Console.WriteLine(String.Format(""{0:##;(##);$$**Zero**}"", 0));
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2057,15 +1519,7 @@ class C
     }
 }";
 
-            var expected =
-@"
-class C
-{
-    void Main()
-    {
-        ;;$$
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2083,15 +1537,7 @@ class C
     }
 }";
 
-            var expected =
-@"
-class C
-{
-    void Main()
-    {
-        ; ;$$
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2114,20 +1560,7 @@ public class C
     }
 }";
 
-            var expected =
-@"
-public class C
-{
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-        } while (n;$$ < 5)
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2150,20 +1583,7 @@ public class C
     }
 }";
 
-            var expected =
-@"
-public class C
-{
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-        } while (n < 5);$$
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2186,20 +1606,7 @@ public class C
     }
 }";
 
-            var expected =
-@"
-public class C
-{
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-        } while ;$$(n < 5)
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2259,21 +1666,7 @@ public class C
     }
 }";
 
-            var expected =
-@"
-public class C
-{
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-            break;$$
-        } while (n < 5);
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2297,21 +1690,7 @@ public class C
     }
 }";
 
-            var expected =
-@"
-public class C
-{
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-            bre;$$ak
-        } while (n < 5);
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2335,21 +1714,7 @@ public class C
     }
 }";
 
-            var expected =
-@"
-public class C
-{
-    void M()
-    {
-        int n = 0;
-        do
-        {
-            Console.WriteLine(n);
-            n++;
-            ;$$break
-        } while (n < 5);
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2374,22 +1739,7 @@ class ContinueTest
     }
 }";
 
-            var expected =
-@"
-class ContinueTest
-{
-    static void Main()
-    {
-        for (int i = 1; i <= 10; i++)
-        {
-            if (i < 9)
-            {
-                continue;$$
-            }
-            Console.WriteLine(i);
-        }
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2414,22 +1764,7 @@ class ContinueTest
     }
 }";
 
-            var expected =
-@"
-class ContinueTest
-{
-    static void Main()
-    {
-        for (int i = 1; i <= 10; i++)
-        {
-            if (i < 9)
-            {
-                cont;$$inue
-            }
-            Console.WriteLine(i);
-        }
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2454,22 +1789,7 @@ class ContinueTest
     }
 }";
 
-            var expected =
-@"
-class ContinueTest
-{
-    static void Main()
-    {
-        for (int i = 1; i <= 10; i++)
-        {
-            if (i < 9)
-            {
-                ;$$continue
-            }
-            Console.WriteLine(i);
-        }
-    }
-}";
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2479,7 +1799,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ;$$ClassC.MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2489,7 +1809,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = C$$lassC.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = C;$$lassC.MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2499,7 +1819,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = Class$$C.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = Class;$$C.MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2509,7 +1829,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC$$.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC;$$.MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2519,7 +1839,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.Meth$$odM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.Meth;$$odM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2529,7 +1849,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.$$MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.;$$MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2539,7 +1859,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM$$(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test = ClassC.MethodM;$$(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2549,7 +1869,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test $$= ClassC.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test ;$$= ClassC.MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
@@ -2559,7 +1879,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y);");
 
-            var expected = CreateTestWithMethodCall(@"var test =;$$ ClassC.MethodM(x,y);");
+            var expected = code.Replace("$$", ";$$");
 
             VerifyTypingSemicolon(code, expected);
         }
