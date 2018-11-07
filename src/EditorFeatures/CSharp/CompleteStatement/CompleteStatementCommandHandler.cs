@@ -272,15 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 case SyntaxKind.DoStatement:
                     var dostatement = (DoStatementSyntax)currentNode;
-                    if (dostatement.CloseParenToken.IsMissing)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        lastDelimiterSpan = dostatement.CloseParenToken.Span;
-                        return true;
-                    }
+                    lastDelimiterSpan = dostatement.CloseParenToken.Span;
+                    return !dostatement.CloseParenToken.IsMissing;
 
                 default:
                     // Statement I'm not handling yet so shouldn't proceed with statement completion
@@ -294,52 +287,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             {
                 case SyntaxKind.ArgumentList:
                     var argumentList = (ArgumentListSyntax)currentNode;
-                    if (argumentList.CloseParenToken.IsMissing)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        lastDelimiterSpan = argumentList.CloseParenToken.Span;
-                    }
+                    lastDelimiterSpan = argumentList.CloseParenToken.Span;
+                    return !argumentList.CloseParenToken.IsMissing;
 
-                    return true;
                 case SyntaxKind.ParenthesizedExpression:
                     var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
-                    if (parenthesizedExpression.CloseParenToken.IsMissing)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        lastDelimiterSpan = parenthesizedExpression.CloseParenToken.Span;
-                    }
+                    lastDelimiterSpan = parenthesizedExpression.CloseParenToken.Span;
+                    return !parenthesizedExpression.CloseParenToken.IsMissing;
 
-                    return true;
                 case SyntaxKind.BracketedArgumentList:
                     var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
-                    if (bracketedArgumentList.CloseBracketToken.IsMissing)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        lastDelimiterSpan = bracketedArgumentList.CloseBracketToken.Span;
-                    }
+                    lastDelimiterSpan = bracketedArgumentList.CloseBracketToken.Span;
+                    return !bracketedArgumentList.CloseBracketToken.IsMissing;
 
-                    return true;
                 case SyntaxKind.ObjectInitializerExpression:
                     var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
-                    if (initializerExpressionSyntax.CloseBraceToken.IsMissing)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        lastDelimiterSpan = initializerExpressionSyntax.CloseBraceToken.Span;
-                    }
+                    lastDelimiterSpan = initializerExpressionSyntax.CloseBraceToken.Span;
+                    return !initializerExpressionSyntax.CloseBraceToken.IsMissing;
 
-                    return true;
                 default:
                     // Type of node does not require a closing delimiter
                     return true;
