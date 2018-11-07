@@ -67,6 +67,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_fatalHandler = value;
         }
 
+        // Same as setting the NonFatalHandler property except that it avoids the assert.  This is useful in 
+        // test code which needs to verify the handler is called in specific cases and will continually
+        // overwrite this value.
+        public static void OverwriteNonFatalHandler(Action<Exception> value)
+        {
+            s_nonFatalHandler = value;
+        }
+
         /// <summary>
         /// Use in an exception filter to report a fatal error. 
         /// Unless the exception is <see cref="OperationCanceledException"/> 
