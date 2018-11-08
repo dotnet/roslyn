@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
         {
-            return TypeSymbolWithAnnotations.Create((ErrorTypeSymbol)typeMap.SubstituteNamedType(this));
+            return TypeSymbolWithAnnotations.Create(typeMap.SubstituteNamedType(this));
         }
 
         /// <summary>

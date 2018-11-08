@@ -1389,6 +1389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasIdentityConversionInternal(type1, type2, IncludeNullability);
         }
 
+        /// <summary>
+        /// Returns true if:
+        /// - Either type has no nullability information (oblivious).
+        /// - Both types cannot have different nullability at the same time.
+        /// </summary>
         internal bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
             if (!IncludeNullability)
@@ -1415,6 +1420,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return source.NullableAnnotation.IsAnyNullable() == destination.NullableAnnotation.IsAnyNullable();
         }
 
+        /// <summary>
+        /// Returns false if source type can be nullable at the same time when destination type can be not nullable. 
+        /// When either type has no nullability information (oblivious), this method returns true.
+        /// </summary>
         internal bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
             if (!IncludeNullability)

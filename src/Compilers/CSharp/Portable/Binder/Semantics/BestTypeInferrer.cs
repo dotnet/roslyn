@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(TypeSymbol bestType, ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            NullableAnnotation result = NullableAnnotation.NotNullableBasedOnAnalysis;
+            bool bestTypeIsPossiblyNullableReferenceTypeTypeParameter = bestType.IsPossiblyNullableReferenceTypeTypeParameter();
+            NullableAnnotation? result = null;
             foreach (var type in types)
             {
                 if (type.IsNull)
@@ -28,18 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return NullableAnnotation.Unknown;
                 }
 
-                NullableAnnotation nullableAnnotation = type.GetValueNullableAnnotation();
+                NullableAnnotation nullableAnnotation;
+
+                if (type.IsPossiblyNullableReferenceTypeTypeParameter() && !bestTypeIsPossiblyNullableReferenceTypeTypeParameter)
+                {
+                    nullableAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                }
+                else
+                {
+                    nullableAnnotation = type.NullableAnnotation;
+                }
 
                 if (nullableAnnotation == NullableAnnotation.Unknown)
                 {
-                    if (result.IsAnyNotNullable())
+                    if (result?.IsAnyNotNullable() != false)
                     {
                         result = NullableAnnotation.Unknown;
                     }
                 }
                 else if (nullableAnnotation.IsAnyNullable())
                 {
-                    if (!result.IsAnyNullable())
+                    if (result?.IsAnyNullable() != true)
                     {
                         result = nullableAnnotation;
                     }
@@ -48,9 +58,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = NullableAnnotation.Nullable;
                     }
                 }
+                else if (result == null)
+                {
+                    result = nullableAnnotation;
+                }
+                else if (result.GetValueOrDefault() == NullableAnnotation.NotNullableBasedOnAnalysis && nullableAnnotation == NullableAnnotation.NotNullable)
+                {
+                    result = NullableAnnotation.NotNullable;
+                }
             }
 
-            return result;
+            return result ?? NullableAnnotation.NotNullable;
         }
 
         /// <remarks>

@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // to the caller, and up through MethodTypeInferrer.Infer.
                     bestResultType = hadNullabilityMismatch ?
                         default :
-                        TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+                        TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultTypes));
                     typesOnly.Free();
                     break;
             }

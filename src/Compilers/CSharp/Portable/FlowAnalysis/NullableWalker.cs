@@ -946,8 +946,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, pattern.Syntax);
             }
 
-            if (slot > 0 && whenTrue != NullableAnnotation.Unknown)
+            if (slot > 0)
             {
+                Debug.Assert(whenTrue != NullableAnnotation.Unknown);
                 this.StateWhenTrue[slot] = whenTrue;
                 this.StateWhenFalse[slot] = whenFalse;
             }
@@ -1325,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(resultBuilder));
+                    elementType = TypeSymbolWithAnnotations.Create(bestType, BestTypeInferrer.GetNullableAnnotation(bestType, resultBuilder));
                 }
                 arrayType = arrayType.WithElementType(elementType);
             }
@@ -1692,9 +1693,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
-            NullableAnnotation resultNullableAnnotation = getNullableAnnotation(leftOperand, leftResult);
-            
-            if (!resultNullableAnnotation.IsAnyNotNullable())
+            NullableAnnotation resultNullableAnnotation;
+
+            if (getValueNullableAnnotation(leftOperand, leftResult).IsAnyNotNullable())
+            {
+                resultNullableAnnotation = getNullableAnnotation(leftOperand, leftResult);
+            }
+            else
             {
                 resultNullableAnnotation = getNullableAnnotation(rightOperand, rightResult);
             }
@@ -1703,6 +1708,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
 
             NullableAnnotation getNullableAnnotation(BoundExpression e, TypeSymbolWithAnnotations t)
+            {
+                if (t.IsNull)
+                {
+                    return GetNullableAnnotation(e);
+                }
+
+                return t.NullableAnnotation;
+            }
+
+            NullableAnnotation getValueNullableAnnotation(BoundExpression e, TypeSymbolWithAnnotations t)
             {
                 if (t.IsNull)
                 {
@@ -2426,12 +2441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultType = parameterType;
                         }
 
-                        if (parameterType.IsPossiblyNullableReferenceTypeTypeParameter() && !resultType.IsPossiblyNullableReferenceTypeTypeParameter())
+                        TypeSymbolWithAnnotations adjustedParameterType = parameterType;
+
+                        if (adjustedParameterType.IsPossiblyNullableReferenceTypeTypeParameter() && !resultType.IsPossiblyNullableReferenceTypeTypeParameter())
                         {
-                            parameterType = TypeSymbolWithAnnotations.Create(parameterType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
+                            adjustedParameterType = TypeSymbolWithAnnotations.Create(adjustedParameterType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
                         }
 
-                        if (!ReportNullableAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
+                        if (!ReportNullableAssignmentIfNecessary(argument, resultType, adjustedParameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
                         {
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, argumentType, ref useSiteDiagnostics))
@@ -2458,16 +2475,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             reportedWarning = ReportNullableAssignmentIfNecessary(argument, parameterType, adjustedResultType, useLegacyWarnings: false, assignmentKind: AssignmentKind.Argument, target: parameter);
-                        }
 
-                        if (parameterType.IsPossiblyNullableReferenceTypeTypeParameter() && !resultType.IsPossiblyNullableReferenceTypeTypeParameter())
-                        {
-                            parameterType = TypeSymbolWithAnnotations.Create(parameterType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
-                        }
+                            if (!reportedWarning)
+                            {
+                                TypeSymbolWithAnnotations adjustedParameterType = parameterType;
 
-                        if (!reportedWarning && argument.Kind != BoundKind.SuppressNullableWarningExpression)
-                        {
-                            reportedWarning = ReportNullableAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
+                                if (adjustedParameterType.IsPossiblyNullableReferenceTypeTypeParameter() && !resultType.IsPossiblyNullableReferenceTypeTypeParameter())
+                                {
+                                    adjustedParameterType = TypeSymbolWithAnnotations.Create(adjustedParameterType.TypeSymbol, NullableAnnotation.NullableBasedOnAnalysis);
+                                }
+
+                                reportedWarning = ReportNullableAssignmentIfNecessary(argument, resultType, adjustedParameterType, useLegacyWarnings: UseLegacyWarnings(argument));
+                            }
                         }
 
                         if (!reportedWarning)
@@ -3115,6 +3134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!targetTypeWithNullability.IsNull);
 
             NullableAnnotation resultAnnotation = NullableAnnotation.Unknown;
+            bool forceOperandAnnotationForResult = false;
             bool canConvertNestedNullability = true;
 
             TypeSymbol targetType = targetTypeWithNullability.TypeSymbol;
@@ -3224,6 +3244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
                         {
                             resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                            forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
                         }
                         else
                         {
@@ -3269,6 +3290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (operandType.IsPossiblyNullableReferenceTypeTypeParameter() && !targetTypeWithNullability.IsPossiblyNullableReferenceTypeTypeParameter())
                         {
                             resultAnnotation = NullableAnnotation.NullableBasedOnAnalysis;
+                            forceOperandAnnotationForResult = targetType.IsPossiblyNullableReferenceTypeTypeParameter();
                         }
                         else
                         {
@@ -3323,6 +3345,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, GetTypeAsDiagnosticArgument(operandType.TypeSymbol), targetType);
                 }
+            }
+
+            if (forceOperandAnnotationForResult)
+            {
+                resultType = TypeSymbolWithAnnotations.Create(targetType, operandType.NullableAnnotation);
             }
 
             return resultType;
@@ -4583,9 +4610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(otherAnnotation == NullableAnnotation.NotNullable);
-                            Symbol symbol = variableBySlot[slot].Symbol;
-
-                            if ((object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true)
+                            if (isPossiblyNullableReferenceTypeTypeParameter(slot))
                             {
                                 intersection = otherAnnotation;
                             }
@@ -4604,9 +4629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(selfAnnotation == NullableAnnotation.NotNullable);
-                            Symbol symbol = variableBySlot[slot].Symbol;
-
-                            if ((object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true)
+                            if (isPossiblyNullableReferenceTypeTypeParameter(slot))
                             {
                                 intersection = selfAnnotation;
                             }
@@ -4641,6 +4664,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!other.Reachable);
                 return false;
             }
+
+            bool isPossiblyNullableReferenceTypeTypeParameter(int slot)
+            {
+                Symbol symbol = variableBySlot[slot].Symbol;
+                return (object)symbol != null && VariableType(symbol).TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true;
+            }
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -4651,7 +4680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         {
             private ArrayBuilder<NullableAnnotation> _state;
-            public bool Reachable { get; set; }
+            public bool Reachable { get; }
 
             internal LocalState(bool reachable, ArrayBuilder<NullableAnnotation> state)
             {

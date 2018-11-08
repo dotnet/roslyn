@@ -19,7 +19,14 @@ namespace Microsoft.CodeAnalysis
         IgnoreNullableModifiersForReferenceTypes = 8,
         UnknownNullableModifierMatchesAny = 16,
 
-        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny,
+        /// <summary>
+        /// Different flavors of Nullable are equivalent,
+        /// different flavors of Not-Nullable are equivalent unless the type is possibly nullable refernce type parameter.
+        /// This option can cause cycles in binding if used too early!
+        /// </summary>
+        IgnoreInsignificantNullableModifiersDifference = 32,
+
+        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | UnknownNullableModifierMatchesAny | IgnoreInsignificantNullableModifiersDifference,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames
     }

@@ -323,6 +323,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case VarianceKind.In:
 
+                    // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+                    // If either candidate is not nullable - result is not nullable
+                    // Otherwise - result is "oblivious". 
+
                     if (a == NullableAnnotation.NotNullableBasedOnAnalysis || b == NullableAnnotation.NotNullableBasedOnAnalysis)
                     {
                         return NullableAnnotation.NotNullableBasedOnAnalysis;
@@ -337,6 +341,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return NullableAnnotation.Unknown;
 
                 case VarianceKind.Out:
+
+                    // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+                    // If either candidate is nullable - result is nullable
+                    // Otherwise - result is "oblivious". 
+
                     if (a.IsAnyNullable())
                     {
                         Debug.Assert(!b.IsAnyNullable());
@@ -355,9 +364,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     Debug.Assert((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
                         (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis));
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotNullable; // It is reasonable to settle on this value because the difference in annotations is either
+                                                           // not significant for the type, or candidate corresponding to this value is possibly a 
+                                                           // nullable reference type type parameter and nullable should win. 
 
                 default:
+
+                    // If nullability on both sides matches - result is that nullability (trivial cases like these are handled before the switch)
+                    // If either candidate is "oblivious" - result is the nullability of the other candidate
+                    // Otherwise - we declare a mismatch and result is "oblivious". 
+
                     if (a == NullableAnnotation.Unknown)
                     {
                         return b;
@@ -367,13 +383,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return a;
                     }
 
+                    // At this point we know that either nullability of both sides is significantly different NotNullable vs. Nullable,
+                    // or we are dealing with different flavors of not nullable for both candidates
                     if ((a == NullableAnnotation.NotNullable && b == NullableAnnotation.NotNullableBasedOnAnalysis) ||
                         (b == NullableAnnotation.NotNullable && a == NullableAnnotation.NotNullableBasedOnAnalysis))
                     {
                         if (!type.IsPossiblyNullableReferenceTypeTypeParameter())
                         {
+                            // For this type both not nullable annotations are equivalent and therefore match.
                             return NullableAnnotation.NotNullable;
                         }
+
+                        // We are dealing with different flavors of not nullable for a possibly nullable reference type parameter,
+                        // we don't have a reliable way to merge them since one of them can actually represent a nullable type.
                     }
                     else
                     {
@@ -532,8 +554,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var otherAnnotation = other.NullableAnnotation;
                 if (otherAnnotation != thisAnnotation)
                 {
-                    if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 ||
-                        (thisAnnotation != NullableAnnotation.Unknown && otherAnnotation != NullableAnnotation.Unknown))
+                    if (thisAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
+                    {
+                        if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0)
+                        {
+                            return false;
+                        }
+                    }
+                    else if ((comparison & TypeCompareKind.IgnoreInsignificantNullableModifiersDifference) == 0)
+                    {
+                        return false;
+                    }
+                    else if (thisAnnotation.IsAnyNullable())
+                    {
+                        if (!otherAnnotation.IsAnyNullable())
+                        {
+                            return false;
+                        }
+                    }
+                    else if (!otherAnnotation.IsAnyNullable())
+                    {
+                        Debug.Assert(thisAnnotation.IsAnyNotNullable());
+                        Debug.Assert(otherAnnotation.IsAnyNotNullable());
+                        if (TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter())
+                        {
+                            return false;
+                        }
+                    }
+                    else
                     {
                         return false;
                     }
