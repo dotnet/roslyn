@@ -6,9 +6,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -54,15 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
             var documentWithTypeNode = solutionWithFormattedInterfaceDocument.GetDocument(documentIdWithTypeNode);
             var root = documentWithTypeNode.GetSyntaxRootSynchronously(cancellationToken);
             var typeDeclaration = root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
-
             var docId = solutionWithFormattedInterfaceDocument.GetDocument(typeDeclaration.SyntaxTree).Id;
 
-            var implementedInterfaceTypeSyntax = extractedInterfaceSymbol.TypeParameters.Any()
-                ? SyntaxFactory.GenericName(
-                    SyntaxFactory.Identifier(extractedInterfaceSymbol.Name),
-                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(p => SyntaxFactory.ParseTypeName(p.Name)))))
-                : SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name);
+            var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
+            var updatedRoot = root.ReplaceNode(root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single(), updatedDeclaration);
+            var solutionWithOriginalTypeUpdated = solutionWithFormattedInterfaceDocument.WithDocumentSyntaxRoot(docId, updatedRoot, PreservationMode.PreserveIdentity);
+            return solutionWithOriginalTypeUpdated;
+        }
 
+        private SyntaxNode UpdateTypeWithInterface(
+            INamedTypeSymbol extractedInterfaceSymbol,
+            SyntaxAnnotation typeNodeAnnotation,
+            TypeDeclarationSyntax typeDeclaration)
+        {
+            var implementedInterfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
             var baseList = typeDeclaration.BaseList ?? SyntaxFactory.BaseList();
             var updatedBaseList = baseList.WithTypes(SyntaxFactory.SeparatedList(baseList.Types.Union(new[] { SyntaxFactory.SimpleBaseType(implementedInterfaceTypeSyntax) })));
 
@@ -85,10 +93,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
                 }
             }
 
-            var updatedTypeDeclaration = typeDeclaration.WithBaseList(updatedBaseList.WithAdditionalAnnotations(Formatter.Annotation));
-            var updatedRoot = root.ReplaceNode(root.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single(), updatedTypeDeclaration);
-            var solutionWithOriginalTypeUpdated = solutionWithFormattedInterfaceDocument.WithDocumentSyntaxRoot(docId, updatedRoot, PreservationMode.PreserveIdentity);
-            return solutionWithOriginalTypeUpdated;
+            return typeDeclaration.WithBaseList(updatedBaseList.WithAdditionalAnnotations(Formatter.Annotation));
+        }
+
+        private TypeSyntax GetTypeSyntaxFromNamedSymbol(INamedTypeSymbol extractedInterfaceSymbol)
+        {
+            return extractedInterfaceSymbol.TypeParameters.Any()
+                ? SyntaxFactory.GenericName(
+                    SyntaxFactory.Identifier(extractedInterfaceSymbol.Name),
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(extractedInterfaceSymbol.TypeParameters.Select(p => SyntaxFactory.ParseTypeName(p.Name)))))
+                : SyntaxFactory.ParseTypeName(extractedInterfaceSymbol.Name);
         }
 
         internal override string GetGeneratedNameTypeParameterSuffix(IList<ITypeParameterSymbol> typeParameters, Workspace workspace)
@@ -118,6 +132,43 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
         {
             var typeDeclaration = typeNode as TypeDeclarationSyntax;
             return typeDeclaration.Modifiers.Any(m => SyntaxFacts.IsAccessibilityModifier(m.Kind()));
+        }
+
+        internal override Solution GetSolutionWithSameFileUpdated(
+            Solution solution, 
+            INamedTypeSymbol extractedInterfaceSymbol, 
+            SyntaxAnnotation typeNodeAnnotation,
+            DocumentId documentId, 
+            CancellationToken cancellationToken)
+        {
+            var document = solution.GetDocument(documentId);
+            var originalRoot = document.GetSyntaxRootSynchronously(cancellationToken);
+            var typeDeclaration = originalRoot.GetAnnotatedNodes<TypeDeclarationSyntax>(typeNodeAnnotation).Single();
+
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(typeDeclaration));
+
+            var currentRoot = document.GetSyntaxRootSynchronously(cancellationToken);
+            var editor = new SyntaxEditor(currentRoot, CSharpSyntaxGenerator.Instance);
+
+            typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
+
+
+            var interfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
+
+            var codeGenService = solution.Workspace.Services.GetLanguageServices("C#").GetService<ICodeGenerationService>();
+            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol);
+
+            editor.InsertBefore(typeDeclaration, interfaceNode);
+
+            //currentRoot = editor.GetChangedRoot();
+            //typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
+
+            var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
+            editor.ReplaceNode(typeDeclaration, updatedDeclaration);
+
+
+            var newRoot = Formatter.Format(editor.GetChangedRoot(), solution.Workspace);
+            return solution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
         }
     }
 }

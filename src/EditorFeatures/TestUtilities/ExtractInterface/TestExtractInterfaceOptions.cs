@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public string ChosenInterfaceName { get; set; }
         public string ChosenFileName { get; set; }
         public IEnumerable<ISymbol> ChosenMembers { get; set; }
+        public bool SameFile { get; set; }
 
         public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
             ISyntaxFactsService syntaxFactsService,
@@ -41,11 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
             return IsCancelled
                 ? ExtractInterfaceOptionsResult.Cancelled
-                : new ExtractInterfaceNewFileOptionsResult(
+                : new ExtractInterfaceOptionsResult(
                     isCancelled: false,
                     includedMembers: ChosenMembers ?? AllExtractableMembers,
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
-                    fileName: ChosenFileName ?? defaultInterfaceName);
+                    fileName: ChosenFileName ?? defaultInterfaceName,
+                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
         }
     }
 }

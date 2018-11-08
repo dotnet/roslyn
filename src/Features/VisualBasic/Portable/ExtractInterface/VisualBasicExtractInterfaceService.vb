@@ -2,6 +2,8 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -197,6 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
         Friend Overrides Function ShouldIncludeAccessibilityModifier(typeNode As SyntaxNode) As Boolean
             Dim typeDeclaration = DirectCast(typeNode, TypeBlockSyntax)
             Return typeDeclaration.GetModifiers().Any(Function(m) SyntaxFacts.IsAccessibilityModifier(m.Kind()))
+        End Function
+
+        Friend Overrides Function GetSolutionWithSameFileUpdated(solution As Solution, extractedInterfaceSymbol As INamedTypeSymbol, typeNodeAnnotation As SyntaxAnnotation, documentId As DocumentId, cancellationToken As CancellationToken) As Solution
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

@@ -76,5 +76,109 @@ End Class");
 
             ExtractInterfaceDialog.ClickCancel();
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFile()
+        {
+            SetUpEditor(@"Class C2$$
+    Public Sub M()
+    End Sub
+End Class");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+
+            ExtractInterfaceDialog.SelectSameFile();
+
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.Editor.Verify.TextContains(@"Interface IC
+    Sub M()
+End Interface
+
+Class C
+    Implements IC
+    Public Sub M() Implements IC.M
+    End Sub
+End Class");
+
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+        public void CheckSameFileOnlySelectedItems()
+        {
+            SetUpEditor(@"Class C2$$
+    Public Sub M1()
+    Public Sub M2()
+    End Sub
+End Class");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            ExtractInterfaceDialog.VerifyOpen();
+            ExtractInterfaceDialog.ClickDeselectAll();
+            ExtractInterfaceDialog.ToggleItem("M2()");
+            ExtractInterfaceDialog.SelectSameFile();
+            ExtractInterfaceDialog.ClickOK();
+            ExtractInterfaceDialog.VerifyClosed();
+
+            VisualStudio.Editor.Verify.TextContains(@"Interface IC
+    Sub M2()
+End Interface
+
+Class C
+    Implements IC
+    Public Sub M1()
+    Public Sub M2() Implements IC.M2
+    End Sub
+End Class");
+        }
+
+//        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractInterface)]
+//        public void CheckSameFileNamespace()
+//        {
+//            SetUpEditor(@"namespace A 
+//{
+//    class C$$
+//    {
+//        public void M() { }
+//    }
+//}
+//");
+//            VisualStudio.Editor.InvokeCodeActionList();
+//            VisualStudio.Editor.Verify.CodeAction("Extract Interface...",
+//                applyFix: true,
+//                blockUntilComplete: false);
+
+//            ExtractInterfaceDialog.VerifyOpen();
+
+//            ExtractInterfaceDialog.SelectSameFile();
+
+//            ExtractInterfaceDialog.ClickOK();
+//            ExtractInterfaceDialog.VerifyClosed();
+
+//            var project = new ProjectUtils.Project(ProjectName);
+//            VisualStudio.Editor.Verify.TextContains(@"namespace A
+//{
+//    interface IC
+//    {
+//        void M();
+//    }
+
+//    class C : IC
+//    {
+//        public void M() { }
+//    }
+//}
+//");
+        }
     }
 }

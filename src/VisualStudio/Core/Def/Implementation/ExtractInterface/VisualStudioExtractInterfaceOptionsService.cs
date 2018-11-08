@@ -53,29 +53,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             if (result.HasValue && result.Value)
             {
                 var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol);
-                var interfaceName = viewModel.InterfaceName.Trim();
 
-                switch (viewModel.Destination)
-                {
-                    case ExtractInterfaceDialogViewModel.InterfaceDestination.CurrentFile:
-                        return new ExtractInterfaceSameFileOptionsResult(
-                            isCancelled: false,
-                            includedMembers: includedMembers,
-                            interfaceName: interfaceName);
-
-                    case ExtractInterfaceDialogViewModel.InterfaceDestination.NewFile:
-                        return new ExtractInterfaceNewFileOptionsResult(
-                            isCancelled: false,
-                            includedMembers: includedMembers,
-                            interfaceName: interfaceName,
-                            fileName: viewModel.FileName.Trim());
-
-                    default: throw new InvalidOperationException($"Unable to send file to {viewModel.Destination}");
-                }
+                return new ExtractInterfaceOptionsResult(
+                    isCancelled: false,
+                    includedMembers: includedMembers,
+                    interfaceName: viewModel.InterfaceName.Trim(),
+                    fileName: viewModel.FileName.Trim(),
+                    location: GetLocation(viewModel.Destination));
             }
             else
             {
                 return ExtractInterfaceOptionsResult.Cancelled;
+            }
+        }
+
+        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(ExtractInterface.ExtractInterfaceDialogViewModel.InterfaceDestination destination)
+        {
+            switch (destination)
+            {
+                case ExtractInterfaceDialogViewModel.InterfaceDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
+                case ExtractInterfaceDialogViewModel.InterfaceDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
+                default: throw new InvalidOperationException();
             }
         }
     }

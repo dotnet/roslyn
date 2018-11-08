@@ -4,19 +4,29 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
-    internal abstract class ExtractInterfaceOptionsResult
+    internal class ExtractInterfaceOptionsResult
     {
+        public enum ExtractLocation
+        {
+            SameFile,
+            NewFile
+        }
+
         public static readonly ExtractInterfaceOptionsResult Cancelled = new CanceledExtractInterfaceOptionsResult();
 
         public bool IsCancelled { get; }
         public IEnumerable<ISymbol> IncludedMembers { get; }
         public string InterfaceName { get; }
+        public string FileName { get; }
+        public ExtractLocation Location { get; }
 
-        public ExtractInterfaceOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName)
+        public ExtractInterfaceOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName, string fileName, ExtractLocation location)
         {
-            this.IsCancelled = isCancelled;
-            this.IncludedMembers = includedMembers;
-            this.InterfaceName = interfaceName;
+            IsCancelled = isCancelled;
+            IncludedMembers = includedMembers;
+            InterfaceName = interfaceName;
+            Location = location;
+            FileName = fileName;
         }
 
         private ExtractInterfaceOptionsResult(bool isCancelled)
@@ -29,23 +39,5 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             public CanceledExtractInterfaceOptionsResult() : base(isCancelled: true)
             { }
         }
-    }
-
-    internal class ExtractInterfaceNewFileOptionsResult : ExtractInterfaceOptionsResult
-    {
-        public string FileName { get; }
-
-        public ExtractInterfaceNewFileOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName, string fileName)
-            : base(isCancelled, includedMembers, interfaceName)
-        {
-            this.FileName = fileName;
-        }
-    }
-
-    internal class ExtractInterfaceSameFileOptionsResult : ExtractInterfaceOptionsResult
-    {
-        public ExtractInterfaceSameFileOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName)
-            : base(isCancelled, includedMembers, interfaceName)
-        { }
     }
 }
