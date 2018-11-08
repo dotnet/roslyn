@@ -1778,16 +1778,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberType = GetMemberType(memberSymbol, out _);
 
-                if (memberType is INamedTypeSymbol namedType)
-                {
-                    if (memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
-                        memberType.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T)
-                    {
-                        return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]));
-                    }
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private static ITypeSymbol GetMemberType(ISymbol memberSymbol, out bool isAsync)
