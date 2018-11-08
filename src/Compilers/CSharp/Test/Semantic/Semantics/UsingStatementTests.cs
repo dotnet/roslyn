@@ -1402,6 +1402,57 @@ class C2
         }
 
         [Fact]
+        public void UsingPatternGenericMethodTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose<T>() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): error CS0411: The type arguments for method 'C1.Dispose<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "C1 c = new C1()").WithArguments("C1.Dispose<T>()").WithLocation(12, 16),
+                // (12,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or have a public void-returning Dispose() instance method.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternDynamicArgument()
+        {
+            var source = @"
+class C1
+{
+    public void Dispose(dynamic x = null) { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c1 = new C1())
+        {
+        }
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Lambda()
         {
             var source = @"
