@@ -255,7 +255,9 @@ function Build-Artifacts() {
 
     if ($build -and $pack -and (-not $buildCoreClr)) {
         Build-Installer
-        Build-OptProfData
+        if ($official){
+            Build-OptProfData
+        }
     }
 }
 
