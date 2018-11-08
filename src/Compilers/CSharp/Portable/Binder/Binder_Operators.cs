@@ -660,20 +660,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            bool leftDefaultOrNew = left.IsLiteralDefault() || left.IsTypelessNew();
-            bool rightDefaultOrNew = right.IsLiteralDefault() || right.IsTypelessNew();
-            if (operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken)
+            bool leftDefault = left.IsLiteralDefault();
+            bool rightDefault = right.IsLiteralDefault();
+            if (operatorToken.Kind() != SyntaxKind.EqualsEqualsToken && operatorToken.Kind() != SyntaxKind.ExclamationEqualsToken)
             {
-                if (leftDefaultOrNew && rightDefaultOrNew)
+                if (leftDefault || rightDefault)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, node, operatorToken.Text, left.Display, right.Display);
+                    // other than == and !=, binary operators are disallowed on `default` literal
+                    Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, leftDefault || left.IsTypelessNew() ? left.Display : right.Display);
                     return;
                 }
             }
-            else if (leftDefaultOrNew || rightDefaultOrNew)
+
+            if ((leftDefault || left.IsTypelessNew()) &&
+                (rightDefault || right.IsTypelessNew()))
             {
-                // other than == and !=, binary operators are disallowed on `default` literal or new()
-                Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, leftDefaultOrNew ? left.Display : right.Display);
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, node, operatorToken.Text, left.Display, right.Display);
                 return;
             }
 

@@ -2685,60 +2685,60 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'new(...)'
+                // (6,17): error CS8315: Operator '+' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var a = new() + new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() + new()").WithArguments("+", "new(...)").WithLocation(6, 17),
-                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() + new()").WithArguments("+", "new(...)", "new(...)").WithLocation(6, 17),
+                // (7,17): error CS8315: Operator '-' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var b = new() - new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() - new()").WithArguments("-", "new(...)").WithLocation(7, 17),
-                // (8,17): error CS8310: Operator '&' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() - new()").WithArguments("-", "new(...)", "new(...)").WithLocation(7, 17),
+                // (8,17): error CS8315: Operator '&' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var c = new() & new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() & new()").WithArguments("&", "new(...)").WithLocation(8, 17),
-                // (9,17): error CS8310: Operator '|' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() & new()").WithArguments("&", "new(...)", "new(...)").WithLocation(8, 17),
+                // (9,17): error CS8315: Operator '|' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var d = new() | new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() | new()").WithArguments("|", "new(...)").WithLocation(9, 17),
-                // (10,17): error CS8310: Operator '^' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() | new()").WithArguments("|", "new(...)", "new(...)").WithLocation(9, 17),
+                // (10,17): error CS8315: Operator '^' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var e = new() ^ new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ^ new()").WithArguments("^", "new(...)").WithLocation(10, 17),
-                // (11,17): error CS8310: Operator '*' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() ^ new()").WithArguments("^", "new(...)", "new(...)").WithLocation(10, 17),
+                // (11,17): error CS8315: Operator '*' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var f = new() * new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() * new()").WithArguments("*", "new(...)").WithLocation(11, 17),
-                // (12,17): error CS8310: Operator '/' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() * new()").WithArguments("*", "new(...)", "new(...)").WithLocation(11, 17),
+                // (12,17): error CS8315: Operator '/' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var g = new() / new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() / new()").WithArguments("/", "new(...)").WithLocation(12, 17),
-                // (13,17): error CS8310: Operator '%' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() / new()").WithArguments("/", "new(...)", "new(...)").WithLocation(12, 17),
+                // (13,17): error CS8315: Operator '%' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var h = new() % new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() % new()").WithArguments("%", "new(...)").WithLocation(13, 17),
-                // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() % new()").WithArguments("%", "new(...)", "new(...)").WithLocation(13, 17),
+                // (14,17): error CS8315: Operator '>>' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var i = new() >> new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() >> new()").WithArguments(">>", "new(...)").WithLocation(14, 17),
-                // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() >> new()").WithArguments(">>", "new(...)", "new(...)").WithLocation(14, 17),
+                // (15,17): error CS8315: Operator '<<' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var j = new() << new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() << new()").WithArguments("<<", "new(...)").WithLocation(15, 17),
-                // (16,17): error CS8310: Operator '>' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() << new()").WithArguments("<<", "new(...)", "new(...)").WithLocation(15, 17),
+                // (16,17): error CS8315: Operator '>' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var k = new() > new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() > new()").WithArguments(">", "new(...)").WithLocation(16, 17),
-                // (17,17): error CS8310: Operator '<' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() > new()").WithArguments(">", "new(...)", "new(...)").WithLocation(16, 17),
+                // (17,17): error CS8315: Operator '<' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var l = new() < new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() < new()").WithArguments("<", "new(...)").WithLocation(17, 17),
-                // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() < new()").WithArguments("<", "new(...)", "new(...)").WithLocation(17, 17),
+                // (18,17): error CS8315: Operator '>=' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var m = new() >= new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() >= new()").WithArguments(">=", "new(...)").WithLocation(18, 17),
-                // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() >= new()").WithArguments(">=", "new(...)", "new(...)").WithLocation(18, 17),
+                // (19,17): error CS8315: Operator '<=' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var n = new() <= new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() <= new()").WithArguments("<=", "new(...)").WithLocation(19, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() <= new()").WithArguments("<=", "new(...)", "new(...)").WithLocation(19, 17),
                 // (20,17): error CS8315: Operator '==' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var o = new() == new(); // ambigous
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() == new()").WithArguments("==", "new(...)", "new(...)").WithLocation(20, 17),
                 // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var p = new() != new(); // ambigous
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() != new()").WithArguments("!=", "new(...)", "new(...)").WithLocation(21, 17),
-                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'new(...)'
+                // (22,17): error CS8315: Operator '&&' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var q = new() && new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() && new()").WithArguments("&&", "new(...)").WithLocation(22, 17),
-                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() && new()").WithArguments("&&", "new(...)", "new(...)").WithLocation(22, 17),
+                // (23,17): error CS8315: Operator '||' is ambiguous on operands 'new(...)' and 'new(...)'
                 //         var r = new() || new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() || new()").WithArguments("||", "new(...)").WithLocation(23, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnTypelessExpression, "new() || new()").WithArguments("||", "new(...)", "new(...)").WithLocation(23, 17),
                 // (24,17): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
                 //         var s = new() ?? new();
                 Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ?? new()").WithArguments("??", "new(...)").WithLocation(24, 17)
@@ -2779,12 +2779,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (22,13): error CS8310: Operator '&&' cannot be applied to operand 'new(...)'
+                // (22,13): error CS0019: Operator '&&' cannot be applied to operands of type 'new(...)' and 'int'
                 //         _ = new() && 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() && 1").WithArguments("&&", "new(...)").WithLocation(22, 13),
-                // (23,13): error CS8310: Operator '||' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() && 1").WithArguments("&&", "new(...)", "int").WithLocation(22, 13),
+                // (23,13): error CS0019: Operator '||' cannot be applied to operands of type 'new(...)' and 'int'
                 //         _ = new() || 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() || 1").WithArguments("||", "new(...)").WithLocation(23, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new() || 1").WithArguments("||", "new(...)", "int").WithLocation(23, 13),
                 // (24,13): error CS8310: Operator '??' cannot be applied to operand 'new(...)'
                 //         _ = new() ?? 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "new() ?? 1").WithArguments("??", "new(...)").WithLocation(24, 13),
@@ -2834,12 +2834,12 @@ class C
                 // (13,13): error CS0020: Division by constant zero
                 //         _ = 1 % new();
                 Diagnostic(ErrorCode.ERR_IntDivByZero, "1 % new()").WithLocation(13, 13),
-                // (22,13): error CS8310: Operator '&&' cannot be applied to operand 'new(...)'
+                // (22,13): error CS0019: Operator '&&' cannot be applied to operands of type 'int' and 'new(...)'
                 //         _ = 1 && new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 && new()").WithArguments("&&", "new(...)").WithLocation(22, 13),
-                // (23,13): error CS8310: Operator '||' cannot be applied to operand 'new(...)'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 && new()").WithArguments("&&", "int", "new(...)").WithLocation(22, 13),
+                // (23,13): error CS0019: Operator '||' cannot be applied to operands of type 'int' and 'new(...)'
                 //         _ = 1 || new();
-                Diagnostic(ErrorCode.ERR_BadOpOnTypelessExpression, "1 || new()").WithArguments("||", "new(...)").WithLocation(23, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 || new()").WithArguments("||", "int", "new(...)").WithLocation(23, 13),
                 // (25,13): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'new(...)'
                 //         _ = 1 ?? new();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? new()").WithArguments("??", "int", "new(...)").WithLocation(25, 13)
