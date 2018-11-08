@@ -1390,6 +1390,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
+        /// <summary>
+        /// Finds all projects that had a project reference to <paramref name="projectId"/> and convert it back to a metadata reference.
+        /// </summary>
+        /// <param name="projectId">The <see cref="ProjectId"/> of the project being referenced.</param>
+        /// <param name="outputPath">The output path of the given project to remove the link to.</param>
         private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
         {
             var modifiedSolution = this.CurrentSolution;
