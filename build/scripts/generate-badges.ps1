@@ -45,25 +45,6 @@ function Get-JenkinsLine($branchName, $jobNames) {
     return $line + [Environment]::NewLine
 }
 
-function Get-Badges($kind, $branchName) {
-
-    if ($kind -eq "desktop") {
-        return Get-AzureLine $branchName $jobNames
-    }
-
-    if ($kind -eq "coreclr") {
-
-        return Get-AzureLine $branchName $jobNames
-    }
-
-    if ($kind -eq "misc") {
-        return Get-AzureLine $branchName $jobNames
-    }
-
-
-    throw "$kind not supported!"
-}
-
 function Get-DesktopTable() {
     $jobNames = @(
         'Windows_Desktop_Unit_Tests#debug_32'
