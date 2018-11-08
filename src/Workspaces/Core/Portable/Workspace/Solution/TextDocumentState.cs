@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
     internal partial class TextDocumentState
     {
         protected readonly SolutionServices solutionServices;
-        private readonly DocumentInfo.DocumentAttributes attributes;
 
         /// <summary>
         /// A direct reference to our source text.  This is only kept around in specialized scenarios.
@@ -46,38 +45,36 @@ namespace Microsoft.CodeAnalysis
             ValueSource<DocumentStateChecksums> lazyChecksums)
         {
             this.solutionServices = solutionServices;
-            this.attributes = attributes;
             this.sourceTextOpt = sourceTextOpt;
             this.textAndVersionSource = textAndVersionSource;
+
+            Attributes = attributes;
 
             // for now, let it re-calculate if anything changed.
             // TODO: optimize this so that we only re-calcuate checksums that are actually changed
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
+        public DocumentInfo.DocumentAttributes Attributes { get; }
+
         public DocumentId Id
         {
-            get { return this.attributes.Id; }
+            get { return Attributes.Id; }
         }
 
         public string FilePath
         {
-            get { return this.attributes.FilePath; }
-        }
-
-        public DocumentInfo.DocumentAttributes Attributes
-        {
-            get { return this.attributes; }
+            get { return Attributes.FilePath; }
         }
 
         public IReadOnlyList<string> Folders
         {
-            get { return this.attributes.Folders; }
+            get { return Attributes.Folders; }
         }
 
         public string Name
         {
-            get { return this.attributes.Name; }
+            get { return this.Attributes.Name; }
         }
 
         public static TextDocumentState Create(DocumentInfo info, SolutionServices services)
@@ -323,7 +320,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
-                this.attributes,
+                this.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);
@@ -357,7 +354,7 @@ namespace Microsoft.CodeAnalysis
 
             return new TextDocumentState(
                 this.solutionServices,
-                this.attributes,
+                this.Attributes,
                 sourceTextOpt: null,
                 textAndVersionSource: newTextSource,
                 lazyChecksums: null);

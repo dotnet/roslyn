@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project = null;
 
             return
-                this.TryGetHierarchy(projectId, out hierarchy) && 
+                this.TryGetHierarchy(projectId, out hierarchy) &&
                 hierarchy.TryGetProject(out project);
         }
 
@@ -1040,7 +1040,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal override void SetDocumentContext(DocumentId documentId)
         {
             _foregroundObject.AssertIsForeground();
-            
+
             // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
             // IVsHierarchies will raise the appropriate events which we are subscribed to.
 
@@ -1404,7 +1404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                         convertedReference.projectReference.ProjectId == projectId)
                     {
-                        var metadataReference = 
+                        var metadataReference =
                             CreateMetadataReference(
                                 convertedReference.path,
                                 new MetadataReferenceProperties(

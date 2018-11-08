@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// you'll need a file watched (eventually) but it's not worth blocking yet.
             /// </summary>
             IFileWatchingToken EnqueueWatchingFile(string filePath);
+
             void StopWatchingFile(IFileWatchingToken token);
         }
 
