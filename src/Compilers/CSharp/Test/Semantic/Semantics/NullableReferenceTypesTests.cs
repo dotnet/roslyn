@@ -14,6 +14,7 @@ using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public class NullableReferenceTypesTests : CSharpTestBase
     {
         [Fact]
@@ -10231,6 +10232,26 @@ class CL1<T>
                 // (15,16): warning CS8619: Nullability of reference types in value of type 'CL1<string?>' doesn't match target type 'CL1<string>'.
                 //         return x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("CL1<string?>", "CL1<string>").WithLocation(15, 16)
+                );
+        }
+
+        [Fact]
+        public void ReturningValues_BadValue()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+class C
+{
+    string M()
+    {
+        return bad;
+    }
+}
+" }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (6,16): error CS0103: The name 'bad' does not exist in the current context
+                //         return bad;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 16)
                 );
         }
 
@@ -22568,6 +22589,8 @@ static class E
     static void F(object? x)
     {
         var z = y => y ?? x.ToString();
+        System.Func<object?, object> z2 = y => y ?? x.ToString();
+        System.Func<object?, object> z3 = y => null;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -22575,9 +22598,12 @@ static class E
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var z = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = y => y ?? x.ToString()").WithArguments("lambda expression").WithLocation(5, 13),
-                // (5,27): warning CS8602: Possible dereference of a null reference.
-                //         var z = y => y ?? x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27));
+                // (6,53): warning CS8602: Possible dereference of a null reference.
+                //         System.Func<object?, object> z2 = y => y ?? x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 53),
+                // (7,48): warning CS8603: Possible null reference return.
+                //         System.Func<object?, object> z3 = y => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 48));
         }
 
         /// <summary>
@@ -28180,6 +28206,375 @@ class CL1 {}
                  // (40,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                  //         CL1 y7 = x7 as CL1;
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x7 as CL1").WithLocation(40, 18)
+                );
+        }
+
+        [Fact]
+        public void ReturningValues_IEnumerableT()
+        {
+            var source = @"
+public class C
+{
+    System.Collections.Generic.IEnumerable<string> M()
+    {
+        return null; // 1
+    }
+    public System.Collections.Generic.IEnumerable<string>? M2()
+    {
+        return null;
+    }
+    System.Collections.Generic.IEnumerable<string> M3() => null; // 2
+    System.Collections.Generic.IEnumerable<string>? M4() => null;
+}";
+
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,16): warning CS8603: Possible null reference return.
+                //         return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 16),
+                // (12,60): warning CS8603: Possible null reference return.
+                //     System.Collections.Generic.IEnumerable<string> M3() => null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(12, 60)
+                );
+
+            var source2 = @"
+class D
+{
+    void M(C c)
+    {
+        c.M2() /*T:System.Collections.Generic.IEnumerable<string!>?*/ ;
+    }
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyTypes();
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT()
+        {
+            var source = @"
+public class C
+{
+    public System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return null; // 1
+        yield return """";
+        yield return null; // 2
+    }
+    public System.Collections.Generic.IEnumerable<string?> M2()
+    {
+        yield return null;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 22),
+                // (8,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22)
+                );
+
+            var source2 = @"
+class D
+{
+    void M(C c)
+    {
+        c.M() /*T:System.Collections.Generic.IEnumerable<string>!*/ ;
+        c.M2() /*T:System.Collections.Generic.IEnumerable<string?>!*/ ;
+    }
+}
+";
+            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyTypes();
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_LocalFunction()
+        {
+            var source = @"
+class C
+{
+    void Method()
+    {
+        _ = M();
+        _ = M2();
+
+        System.Collections.Generic.IEnumerable<string> M()
+        {
+            yield return null; // 1
+            yield return """";
+            yield return null; // 2
+        }
+        System.Collections.Generic.IEnumerable<string?> M2()
+        {
+            yield return null;
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(11, 26),
+                // (13,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(13, 26)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_GenericT()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerable<T> M<T>()
+    {
+        yield return default; // 1
+    }
+    System.Collections.Generic.IEnumerable<T> M1<T>() where T : class
+    {
+        yield return default; // 2
+    }
+    System.Collections.Generic.IEnumerable<T> M2<T>() where T : class?
+    {
+        yield return default; // 3
+    }
+    System.Collections.Generic.IEnumerable<T?> M3<T>() where T : class
+    {
+        yield return default;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         yield return default; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(6, 22),
+                // (10,22): warning CS8603: Possible null reference return.
+                //         yield return default; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(10, 22),
+                // (14,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         yield return default; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_ErrorValue()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return bad;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): error CS0103: The name 'bad' does not exist in the current context
+                //         yield return bad;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerableT_NoValue()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerable<string> M()
+    {
+        yield return;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,15): error CS1627: Expression expected after yield return
+                //         yield return;
+                Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumeratorT()
+        {
+            var source = @"
+class C
+{
+    System.Collections.Generic.IEnumerator<string> M()
+    {
+        yield return null; // 1
+        yield return """";
+    }
+    System.Collections.Generic.IEnumerator<string?> M2()
+    {
+        yield return null;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (6,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 22)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumeratorT_LocalFunction()
+        {
+            var source = @"
+class C
+{
+    void Method()
+    {
+        _ = M();
+        _ = M2();
+
+        System.Collections.Generic.IEnumerator<string> M()
+        {
+            yield return null; // 1
+            yield return """";
+        }
+        System.Collections.Generic.IEnumerator<string?> M2()
+        {
+            yield return null;
+        }
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (11,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void Yield_IEnumerable()
+        {
+            var source = @"
+class C
+{
+    System.Collections.IEnumerable M()
+    {
+        yield return null;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Yield_IEnumerator()
+        {
+            var source = @"
+class C
+{
+    System.Collections.IEnumerator M()
+    {
+        yield return null;
+        yield return null;
+    }
+}";
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.AsyncStreams)]
+        public void Yield_IAsyncEnumerable()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<string> M()
+    {
+        yield return null; // 1
+        yield return null; // 2
+        await Task.Delay(1);
+    }
+    public static async IAsyncEnumerable<string?> M2()
+    {
+        yield return null;
+        yield return null;
+        await Task.Delay(1);
+    }
+    void Method()
+    {
+        _ = local();
+        _ = local2();
+
+        async IAsyncEnumerable<string> local()
+        {
+            yield return null; // 3
+            await Task.Delay(1);
+        }
+        async IAsyncEnumerable<string?> local2()
+        {
+            yield return null;
+            await Task.Delay(1);
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22),
+                // (9,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 22),
+                // (25,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(25, 26)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/31057"), CompilerTrait(CompilerFeature.AsyncStreams)]
+        public void Yield_IAsyncEnumerator()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    async IAsyncEnumerator<string> M()
+    {
+        yield return null; // 1
+        yield return null; // 2
+        await Task.Delay(1);
+    }
+    async IAsyncEnumerator<string?> M2()
+    {
+        yield return null;
+        yield return null;
+        await Task.Delay(1);
+    }
+    void Method()
+    {
+        _ = local();
+        _ = local2();
+
+        async IAsyncEnumerator<string> local()
+        {
+            yield return null; // 3
+            await Task.Delay(1);
+        }
+        async IAsyncEnumerator<string?> local2()
+        {
+            yield return null;
+            await Task.Delay(1);
+        }
+    }
+}";
+            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 22),
+                // (9,22): warning CS8603: Possible null reference return.
+                //         yield return null; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 22),
+                // (25,26): warning CS8603: Possible null reference return.
+                //             yield return null; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(25, 26)
                 );
         }
 
@@ -37945,12 +38340,6 @@ class C<T> where T : class
                 // (3,35): error CS0716: Cannot convert to static type 'C'
                 //     static object F(object? x) => (C)x;
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)x").WithArguments("C").WithLocation(3, 35),
-                // (3,35): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //     static object F(object? x) => (C)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)x").WithLocation(3, 35),
-                // (3,35): warning CS8603: Possible null reference return.
-                //     static object F(object? x) => (C)x;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(C)x").WithLocation(3, 35),
                 // (4,36): error CS0716: Cannot convert to static type 'C'
                 //     static object? G(object? y) => (C?)y;
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C?)y").WithArguments("C").WithLocation(4, 36));

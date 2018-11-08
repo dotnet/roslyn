@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             BoundExpression expr = node.ExpressionOpt;
-            if (expr == null)
+            if (expr == null || expr.HasErrors)
             {
                 return null;
             }
@@ -4590,6 +4590,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitThrowExpression(node);
             SetUnknownResultNullability();
             return result;
+        }
+
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
+        {
+            BoundExpression expr = node.Expression;
+            if (expr == null || expr.HasErrors)
+            {
+                return null;
+            }
+            var method = (MethodSymbol)_member;
+            Debug.Assert(method.IsIterator);
+            VisitOptionalImplicitConversion(expr, method.IteratorElementType, useLegacyWarnings: false, AssignmentKind.Return);
+            return null;
         }
 
 #endregion Visitors

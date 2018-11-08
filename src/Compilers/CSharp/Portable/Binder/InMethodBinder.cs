@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class IteratorInfo
         {
-            public static readonly IteratorInfo Empty = new IteratorInfo(null, default(ImmutableArray<Diagnostic>));
+            public static readonly IteratorInfo Empty = new IteratorInfo(default, default);
 
-            public readonly TypeSymbol ElementType;
+            public readonly TypeSymbolWithAnnotations ElementType;
             public readonly ImmutableArray<Diagnostic> ElementTypeDiagnostics;
 
-            public IteratorInfo(TypeSymbol elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
+            public IteratorInfo(TypeSymbolWithAnnotations elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
             {
                 this.ElementType = elementType;
                 this.ElementTypeDiagnostics = elementTypeDiagnostics;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeSymbolWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType.TypeSymbol;
@@ -137,17 +137,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics) ?? CreateErrorType();
+                var elementType = GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics);
+                if (elementType.IsNull)
+                {
+                    elementType = TypeSymbolWithAnnotations.Create(CreateErrorType());
+                }
+                return elementType;
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
             {
-                TypeSymbol elementType = null;
+                TypeSymbolWithAnnotations elementType = default;
                 DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
 
                 elementType = GetIteratorElementTypeFromReturnType(refKind, returnType, node, elementTypeDiagnostics);
 
-                if ((object)elementType == null)
+                if (elementType.IsNull)
                 {
                     if (refKind != RefKind.None)
                     {
@@ -155,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (!returnType.IsErrorType())
                     {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
+                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     }
-                    elementType = CreateErrorType();
+                    elementType = TypeSymbolWithAnnotations.Create(CreateErrorType());
                 }
 
                 var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
@@ -175,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _iteratorInfo.ElementType;
         }
 
-        private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        private TypeSymbolWithAnnotations GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -183,20 +188,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
-                        return GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode);
+                        return TypeSymbolWithAnnotations.Create(GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode));
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
 
                 if (returnType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T))
                 {
-                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
                 }
             }
 
-            return null;
+            return default;
         }
 
         internal override void LookupSymbolsInSingleBinder(

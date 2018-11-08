@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeSymbol _iteratorElementType;
+        private TypeSymbolWithAnnotations.Builder _iteratorElementType;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
@@ -714,16 +714,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol IteratorElementType
+        internal override TypeSymbolWithAnnotations IteratorElementType
         {
             get
             {
-                return _iteratorElementType;
+                return _iteratorElementType.ToType();
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
-                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
+                Debug.Assert(_iteratorElementType.IsNull || _iteratorElementType.ToType().Equals(value, TypeCompareKind.ConsiderEverything));
+                _iteratorElementType.InterlockedInitialize(value);
             }
         }
 

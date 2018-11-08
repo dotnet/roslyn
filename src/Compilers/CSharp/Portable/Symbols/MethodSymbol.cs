@@ -900,17 +900,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object)IteratorElementType != null;
+                return !IteratorElementType.IsNull;
             }
         }
 
         /// <summary>
         /// If the method was written as an iterator method (i.e. with yield statements in its body) returns the
-        /// element type of the iterator.  Otherwise returns null.
+        /// element type of the iterator.  Otherwise returns default.
         /// </summary>
-        internal virtual TypeSymbol IteratorElementType
+        internal virtual TypeSymbolWithAnnotations IteratorElementType
         {
-            get { return null; }
+            get { return default; }
             set { throw ExceptionUtilities.Unreachable; }
         }
 

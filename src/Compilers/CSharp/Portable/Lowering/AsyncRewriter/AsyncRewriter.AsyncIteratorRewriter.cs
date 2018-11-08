@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
-                Debug.Assert(method.IteratorElementType != null);
+                Debug.Assert(!method.IteratorElementType.IsNull);
             }
 
             protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
-        private TypeSymbol _iteratorElementType;
+        private TypeSymbolWithAnnotations _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
@@ -159,19 +159,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override TypeSymbol IteratorElementType
+        internal override TypeSymbolWithAnnotations IteratorElementType
         {
             get
             {
-                if (_iteratorElementType == null)
+                if (_iteratorElementType.IsNull)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).TypeSymbol;
+                    if (BaseMethod.IteratorElementType.IsNull)
+                    {
+                        return default;
+                    }
+                    _iteratorElementType = BaseMethod.IteratorElementType.SubstituteType(TypeMap);
                 }
                 return _iteratorElementType;
             }
             set
             {
-                Debug.Assert(value != null);
+                Debug.Assert(!value.IsNull);
                 _iteratorElementType = value;
             }
         }
