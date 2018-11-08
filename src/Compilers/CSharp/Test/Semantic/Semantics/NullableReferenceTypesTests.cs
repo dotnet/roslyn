@@ -478,6 +478,14 @@ class Program
         _ = y as object[]?? y;
         _ = y as object[] ? ?? y;
     }
+    static void F3<T>(object z)
+    {
+        _ = z is T[][]? 1 : 2;
+        _ = z is T[]?[] ? 1 : 2;
+        _ = z is T[] ? [] ? 1 : 2;
+        _ = z as T[][]?? z;
+        _ = z as T[] ? [] ?? z;
+    }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
@@ -499,7 +507,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 27),
                 // (17,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         _ = y as object[] ? ?? y;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 27),
+                // (22,21): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = z is T[]?[] ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(22, 21),
+                // (23,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = z is T[] ? [] ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(23, 22),
+                // (25,22): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = z as T[] ? [] ?? z;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(25, 22));
 
             comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
