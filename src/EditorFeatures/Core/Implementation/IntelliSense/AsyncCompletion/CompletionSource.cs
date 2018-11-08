@@ -75,11 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             triggerLocation.Snapshot.TextBuffer.Properties.RemoveProperty(PotentialCommitCharacters);
             triggerLocation.Snapshot.TextBuffer.Properties.AddProperty(PotentialCommitCharacters, service.GetRules().DefaultCommitCharacters);
 
-            if (!Helpers.TryGetRoslynTrigger(trigger, triggerLocation, out var roslynTrigger))
-            {
-                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
-            }
-            
+            var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
+
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
             if (trigger.Reason != AsyncCompletionData.CompletionTriggerReason.Invoke &&
@@ -144,10 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
             var completionService = document.GetLanguageService<CompletionService>();
 
-            if (!Helpers.TryGetRoslynTrigger(trigger, triggerLocation, out var roslynTrigger))
-            {
-                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
-            }
+            var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             var completionList = await completionService.GetCompletionsAsync(
                 document,
@@ -204,7 +198,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
-            AssertIsBackground();
+            // The method is async but is called in the UI thread.
+            AssertIsForeground();
 
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
                 !item.Properties.TryGetProperty<ITextSnapshot>(TriggerSnapshot, out var triggerSnapshot))

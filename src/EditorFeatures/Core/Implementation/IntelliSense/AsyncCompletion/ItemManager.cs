@@ -73,10 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var reason = data.Trigger.Reason;
 
             // We do not care about the character in the case. We care about the reason only.
-            if (!Helpers.TryGetRoslynTrigger(data.Trigger, data.Trigger.Character, out var roslynTrigger))
-            {
-                return null;
-            }
+            var roslynTrigger = Helpers.GetRoslynTrigger(data.Trigger, data.Trigger.Character);
 
             if (!session.Properties.TryGetProperty<CompletionTriggerKind>(CompletionSource.InitialTriggerKind, out var initialRoslynTriggerKind))
             {
@@ -151,28 +148,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             // However, we prefer using the original snapshot in some projection scenarios.
             var snapshotForDocument = data.InitialSortedList
                                           .FirstOrDefault(i => i.Properties.ContainsProperty(CompletionSource.TriggerSnapshot))?
-                                          .Properties.GetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot) 
+                                          .Properties.GetProperty<ITextSnapshot>(CompletionSource.TriggerSnapshot)
                                           ?? data.Snapshot;
 
             var document = snapshotForDocument.GetOpenDocumentInCurrentContextWithChanges();
-
-            if (document == null)
-            {
-                return null;
-            }
-
-            var completionService = document.GetLanguageService<CompletionService>();
-            if (completionService == null)
-            {
-                return null;
-            }
-
-            var completionRules = completionService.GetRules();
+            var completionService = document?.GetLanguageService<CompletionService>();
+            var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
 
             if (data.Trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Backspace &&
                 completionRules.DismissIfLastCharacterDeleted &&
                 session.ApplicableToSpan.GetText(data.Snapshot).Length == 0)
             {
+                // Dismiss the session
                 return null;
             }
 
@@ -181,9 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return HandleAllItemsFilteredOut(reason, data.SelectedFilters, selectedFilters.Any(), completionRules);
             }
 
-            var options = document.Project.Solution.Options;
-            var highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language);
-            var showCompletionItemFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language);
+            var options = document?.Project?.Solution?.Options;
+            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? true;
+            var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
 
             var updatedFilters = showCompletionItemFilters
                 ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
@@ -197,9 +184,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 return HandleDeletionTrigger(initialListOfItemsToBeIncluded, filterText, updatedFilters, highlightedList);
             }
 
+            Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
+            if (completionService == null)
+            {
+                filterMethod = (items, text) => CompletionService.FilterItems(_completionHelper, items, text);
+            }
+            else
+            {
+                filterMethod = (items, text) => completionService.FilterItems(document, items, text);
+            }
+
             return HandleNormalFiltering(
-                document,
-                completionService,
+                filterMethod,
                 filterText,
                 updatedFilters,
                 initialRoslynTriggerKind,
@@ -217,8 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         }
 
         private AsyncCompletionData.FilteredCompletionModel HandleNormalFiltering(
-            Document document,
-            CompletionService completionService,
+            Func<ImmutableArray<RoslynCompletionItem>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
             ImmutableArray<AsyncCompletionData.CompletionFilterWithState> filters,
             CompletionTriggerKind initialRoslynTriggerKind,
@@ -236,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                                            .Select(t => t.FilterResult.CompletionItem)
                                            .AsImmutable();
 
-            var chosenItems = completionService.FilterItems(document, matchingItems, filterText);
+            var chosenItems = filterMethod(matchingItems, filterText);
 
             var recentItems = _recentItems;
 
@@ -265,9 +260,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
 
             // Check that it is a filter symbol. We can be called for a non-filter symbol.
-            if (filterReason == CompletionFilterReason.Insertion && 
-                !Controller.IsPotentialFilterCharacter(typeChar) && 
-                !string.IsNullOrEmpty(filterText) && 
+            if (filterReason == CompletionFilterReason.Insertion &&
+                !Controller.IsPotentialFilterCharacter(typeChar) &&
+                !string.IsNullOrEmpty(filterText) &&
                 !Controller.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
             {
                 return null;
@@ -375,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         }
 
         private IEnumerable<AsyncCompletionData.CompletionItemWithHighlight> GetHighlightedList(
-            IEnumerable<ExtendedFilterResult> filterResults, 
+            IEnumerable<ExtendedFilterResult> filterResults,
             string filterText,
             bool highlightMatchingPortions)
         {

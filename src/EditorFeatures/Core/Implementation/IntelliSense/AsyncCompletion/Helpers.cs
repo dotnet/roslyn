@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 {
     internal static class Helpers
     {
-        internal static bool TryGetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation, out RoslynTrigger roslynTrigger)
+        internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
             var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
             char characterRemoved;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 characterRemoved = (char)0;
             }
 
-            return TryGetRoslynTrigger(trigger, characterRemoved, out roslynTrigger);
+            return GetRoslynTrigger(trigger, characterRemoved);
         }
 
         /// <summary>
@@ -34,33 +34,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
         /// VS provides Backspace and Delete characters inside the trigger while Roslyn needs the char deleted by the trigger.
         /// Therefore, we provide this character separately and use it for Delete and Backspace cases only.
         /// </param>
-        /// <param name="roslynTrigger">Roslyn completion trigger</param>
-        /// <returns>true if converted, false is failed to convert</returns>
-        internal static bool TryGetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, char c, out RoslynTrigger roslynTrigger)
+        /// <returns>Roslyn completion trigger</returns>
+        internal static RoslynTrigger GetRoslynTrigger(AsyncCompletionData.CompletionTrigger trigger, char c)
         {
             switch (trigger.Reason)
             {
-                case AsyncCompletionData.CompletionTriggerReason.Invoke:
-                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                case AsyncCompletionData.CompletionTriggerReason.FilterChange:
-                    roslynTrigger = RoslynTrigger.Invoke;
-                    return true;
                 case AsyncCompletionData.CompletionTriggerReason.Insertion:
-                    roslynTrigger = RoslynTrigger.CreateInsertionTrigger(trigger.Character);
-                    return true;
+                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
                 case AsyncCompletionData.CompletionTriggerReason.Deletion:
-                    roslynTrigger = RoslynTrigger.CreateDeletionTrigger(c);
-                    return true;
+                    return RoslynTrigger.CreateDeletionTrigger(c);
                 case AsyncCompletionData.CompletionTriggerReason.Backspace:
-                    roslynTrigger = RoslynTrigger.CreateDeletionTrigger(c);
-                    return true;
+                    return RoslynTrigger.CreateDeletionTrigger(c);
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
-                    roslynTrigger = new RoslynTrigger(CompletionTriggerKind.Snippets);
-                    return true;
+                    return  new RoslynTrigger(CompletionTriggerKind.Snippets);
+                default: return RoslynTrigger.Invoke;
             }
-
-            roslynTrigger = default;
-            return false;
         }
 
         internal static CompletionFilterReason GetFilterReason(RoslynTrigger trigger)
