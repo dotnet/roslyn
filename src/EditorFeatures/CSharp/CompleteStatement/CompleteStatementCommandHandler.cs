@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -73,7 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var token = GetToken(root, caretPosition, caret.Value);
 
             var currentNode = token.Parent;
-            // if cursor is right before an opening delimiter, make sure you start with node outside of delimiters
+
+            // If cursor is right before an opening delimiter, make sure you start with node outside of delimiters. This
+            // covers cases like `obj.ToString$()`, where `token` references `(` but the caret isn't actually inside the
+            // argument list.
             if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken)
                 && token.Span.Start >= caretPosition)
             {
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (GetEnclosingArgumentList(currentNode, syntaxFacts) == null)
+            if (!LooksLikeNodeInArgumentListForStatementCompletion(currentNode, syntaxFacts))
             {
                 return;
             }
@@ -131,40 +135,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
         }
 
-        private static SyntaxNode GetEnclosingArgumentList(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
+        /// <summary>
+        /// Examines the enclosing statement-like syntax for an expression which is eligible for statement completion.
+        /// </summary>
+        /// <remarks>
+        /// <para>This method tries to identify <paramref name="currentNode"/> as a node located within an argument
+        /// list, where the immediately-containing statement resembles an "expression statement". This method returns
+        /// <see langword="true"/> if the node matches a recognizable pattern of this form.</para>
+        /// </remarks>
+        private static bool LooksLikeNodeInArgumentListForStatementCompletion(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
         {
             while (!currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
-                if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression))
+                if (currentNode == null)
                 {
-                    return null;
+                    // We reached the root without detecting a node of interest.
+                    return false;
                 }
 
-                if (currentNode == null
-                    || syntaxFacts.IsStatement(currentNode)
+                if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression))
+                {
+                    // No special action is performed at this time if `;` is typed inside a string, including
+                    // interpolated strings.
+                    return false;
+                }
+
+                if (syntaxFacts.IsStatement(currentNode)
                     || currentNode.IsKind(SyntaxKind.VariableDeclaration))
                 {
-                    return null;
+                    // We reached an enclosing statement-like syntax without finding an intermediate argument-list-like
+                    // syntax. Do not treat this statement as a candidate for statement completion because inserting a
+                    // semicolon at the current location is likely to create a valid statement.
+                    //
+                    // IsStatement: The syntax is a known statement syntax
+                    // VariableDelaration: The expression is part of a field initializer, which is not part of a
+                    //      statement syntax but behaves like an expression statement for the purposes of statement
+                    //      completion.
+                    return false;
                 }
 
                 currentNode = currentNode.Parent;
-                if (currentNode == null)
-                {
-                    return null;
-                }
             }
 
-            // now we're in an argument list, so return the enclosing statement
+            // now we're in an argument list (or similar), so return the enclosing statement-like syntax
             while (!syntaxFacts.IsStatement(currentNode) && !currentNode.IsKind(SyntaxKind.VariableDeclaration))
             {
                 currentNode = currentNode.Parent;
                 if (currentNode == null)
                 {
-                    return null;
+                    return false;
                 }
             }
 
-            return currentNode;
+            Debug.Assert(currentNode != null);
+            return true;
         }
 
         private static bool IsCaretAtEndOfLine(SnapshotPoint caret)
@@ -262,6 +286,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
         }
 
+        /// <summary>
+        /// Determines if a statement ends with a closing delimiter, and that closing delimiter exists.
+        /// </summary>
+        /// <remarks>
+        /// <para>Statements such as <c>do { } while (expression);</c> contain embedded enclosing delimiters immediately
+        /// preceding the semicolon. These delimiters are not part of the expression, but they behave like an argument
+        /// list for the purposes of identifying relevant places for statement completion:</para>
+        /// <list type="bullet">
+        /// <item><description>The closing delimiter is typically inserted by the Automatic Brace Compeltion feature.</description></item>
+        /// <item><description>It is not syntactically valid to place a semicolon <em>directly</em> within the delimiters.</description></item>
+        /// </list>
+        /// </remarks>
+        /// <param name="currentNode"></param>
+        /// <param name="lastDelimiterSpan"></param>
+        /// <returns><see langword="true"/> if <paramref name="currentNode"/> is a statement that ends with a closing
+        /// delimiter, and that closing delimiter exists in the source code; otherwise, <see langword="false"/>.
+        /// </returns>
         private static bool StatementClosingDelimiterExists(SyntaxNode currentNode, ref TextSpan lastDelimiterSpan)
         {
             switch (currentNode.Kind())
