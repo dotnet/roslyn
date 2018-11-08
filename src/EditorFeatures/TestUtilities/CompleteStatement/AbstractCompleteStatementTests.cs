@@ -24,12 +24,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
+        /// <summary>
+        /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> marked with <c>$$</c>
+        /// does not perform any special "complete statement" operations, e.g. inserting missing delimiters or moving
+        /// the caret prior to the semicolon character insertion. In other words, statement completion does not impact
+        /// typing behavior for the case.
+        /// </summary>
         protected void VerifyNoSpecialSemicolonHandling(string initialMarkup, string newLine = "\r\n")
         {
             var expected = initialMarkup.Replace("$$", ";$$");
             VerifyTypingSemicolon(initialMarkup, expected, newLine);
         }
 
+        /// <summary>
+        /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> marked with <c>$$</c>
+        /// produces the result in <paramref name="expectedMarkup"/>. The final caret location in
+        /// <paramref name="expectedMarkup"/> is marked with <c>$$</c>.
+        /// </summary>
         protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup, string newLine = "\r\n")
         {
             Verify(initialMarkup, expectedMarkup, newLine: newLine,
