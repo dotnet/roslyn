@@ -23,7 +23,7 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
     /// <summary>
-    /// When user types <c>;</c> in a statement, closing delimiters and semi-colon are added and caret is placed after the semicolon
+    /// When user types <c>;</c> in a statement, closing delimiters and semicolon are added and caret is placed after the semicolon
     /// </summary>
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
         }
 
-        private static bool SemiColonIsMissing(SyntaxNode currentNode)
+        private static bool SemicolonIsMissing(SyntaxNode currentNode)
         {
             switch (currentNode.Kind())
             {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ReturnStatement:
                     return ((ReturnStatementSyntax)currentNode).SemicolonToken.IsMissing;
                 case SyntaxKind.VariableDeclaration:
-                    return SemiColonIsMissing(currentNode.Parent);
+                    return SemicolonIsMissing(currentNode.Parent);
                 case SyntaxKind.ThrowStatement:
                     return ((ThrowStatementSyntax)currentNode).SemicolonToken.IsMissing;
                 case SyntaxKind.DoStatement:
