@@ -405,6 +405,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
+            /// <summary>
+            /// Returns true if the given symbol meets the following criteria to be
+            /// a candidate for dead code analysis:
+            ///     1. It is marked as "private".
+            ///     2. It is not an implicitly declared symbol.
+            ///     3. It is either a method, field, property or an event.
+            ///     4. If method, then one of the following must be true:
+            ///         a. It is a constructor with non-zero parameters OR
+            ///         b. It is a method with <see cref="MethodKind.Ordinary"/>,
+            ///            such that it is not an accessor, not an entry point method,
+            ///            not an extern method and is not an explicit interface method implementation.
+            ///     5. If field, then it must not be a backing field for an auto property.
+            ///        Backing fields have a non-null <see cref="IFieldSymbol.AssociatedSymbol"/>.
+            ///     6. If property, then it must not be an explicit interface property implementation.
+            ///     7. If event, then it must not be an explicit interface event implementation.
+            /// </summary>
             private bool IsCandidateSymbol(ISymbol memberSymbol)
             {
                 Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
@@ -412,36 +428,28 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&
                     !memberSymbol.IsImplicitlyDeclared)
                 {
-                    // Do not track accessors, as we will track the associated symbol.
                     switch (memberSymbol.Kind)
                     {
                         case SymbolKind.Method:
-                            // Skip following methods:
-                            //   1. Entry point (Main) method
-                            //   2. Abstract/Virtual/Override methods
-                            //   3. Extern methods
-                            //   4. Interface implementation methods
-                            //   5. Constructors with no parameters.
-                            //   6. Static constructors.
-                            //   7. Destructors.
                             var methodSymbol = (IMethodSymbol)memberSymbol;
                             switch (methodSymbol.MethodKind)
                             {
                                 case MethodKind.Constructor:
+                                    // It is fine to have an unused private constructor
+                                    // without parameters.
+                                    // This is commonly used for static holder types
+                                    // that want to block instantiation of the type.
                                     return methodSymbol.Parameters.Length > 0;
 
-                                case MethodKind.StaticConstructor:
-                                case MethodKind.Destructor:
-                                    return false;
-
-                                default:
+                                case MethodKind.Ordinary:
+                                    // Do not flag accessors, as we will track the associated symbol.
                                     return methodSymbol.AssociatedSymbol == null &&
                                            !IsEntryPoint(methodSymbol) &&
-                                           !methodSymbol.IsAbstract &&
-                                           !methodSymbol.IsVirtual &&
-                                           !methodSymbol.IsOverride &&
                                            !methodSymbol.IsExtern &&
                                            methodSymbol.ExplicitInterfaceImplementations.IsEmpty;
+
+                                default:
+                                    return false;
                             }
 
                         case SymbolKind.Field:
@@ -450,8 +458,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         case SymbolKind.Property:
                             return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
-                        default:
-                            return true;
+                        case SymbolKind.Event:
+                            return ((IEventSymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
                     }
                 }
 
