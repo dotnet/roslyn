@@ -317,6 +317,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                 ? s_removeUnusedMembersRule
                                 : s_removeUnreadMembersRule;
 
+                            // Do not flag write-only properties that are not read.
+                            // Write-only properties are assumed to have side effects
+                            // visible through other means than a property getter.
+                            if (rule == s_removeUnreadMembersRule &&
+                                member is IPropertySymbol property &&
+                                property.IsWriteOnly)
+                            {
+                                continue;
+                            }
+
                             // Most of the members should have a single location, except for partial methods.
                             // We report the diagnostic on the first location of the member.
                             var diagnostic = Diagnostic.Create(
