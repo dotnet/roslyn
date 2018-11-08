@@ -456,6 +456,55 @@ class Program
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 26));
         }
 
+        [Fact]
+        public void NullableAndConditionalOperators()
+        {
+            var source =
+@"class Program
+{
+    static void F1(object x)
+    {
+        _ = x is string? 1 : 2;
+        _ = x is string? ? 1 : 2;
+        _ = x is string ? ? 1 : 2;
+        _ = x as string?? x;
+        _ = x as string ? ?? x;
+    }
+    static void F2(object y)
+    {
+        _ = y is object[]? 1 : 2;
+        _ = y is object[]? ? 1 : 2;
+        _ = y is object[] ? ? 1 : 2;
+        _ = y as object[]?? y;
+        _ = y as object[] ? ?? y;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (6,24): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = x is string? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(6, 24),
+                // (7,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = x is string ? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 25),
+                // (9,25): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = x as string ? ?? x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(9, 25),
+                // (14,26): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = y is object[]? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(14, 26),
+                // (15,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = y is object[] ? ? 1 : 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(15, 27),
+                // (17,27): error CS8107: Feature 'nullable reference types' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         _ = y as object[] ? ?? y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "?").WithArguments("nullable reference types", "8.0").WithLocation(17, 27));
+
+            comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(29318, "https://github.com/dotnet/roslyn/issues/29318")]
         public void IsOperatorOnNonNullExpression()
         {
