@@ -169,7 +169,7 @@ $@"<Project>
                 { "DOTNET_MSBUILD_SDK_RESOLVER_SDKS_DIR", sdksDir }
             };
 
-            var restoreResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:restore /bl:{Path.Combine(ProjectDir.Path, "restore.binlog")}",
+            var restoreResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:restore /bl:""{Path.Combine(ProjectDir.Path, "restore.binlog")}""",
                 additionalEnvironmentVars: EnvironmentVariables);
             Assert.True(restoreResult.ExitCode == 0, $"Failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
 

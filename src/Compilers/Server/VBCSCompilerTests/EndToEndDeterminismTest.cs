@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class EndToEndDeterminismTest : TestBase
     {
-        private string _flags = "/deterministic+ /nologo /t:library /pdb:none";
+        private string[] _flags = new string[] { "/deterministic+", "/nologo", "/t:library", "/pdb:none" };
 
         /// <summary>
         /// Compiles some source code and returns the bytes that were contained in the compiled DLL file.
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// </summary>
         /// <param name="source"> The source code for the program that will be compiled </param>
         /// <returns> An array of bytes that were read from the compiled DLL</returns>
-        private async Task<(byte[] assemblyBytes, string finalFlags)> CompileAndGetBytes(string source)
+        private async Task<(byte[] assemblyBytes, string[] finalFlags)> CompileAndGetBytes(string source)
         {
             // Setup
             var tempDir = Temp.CreateDirectory();
@@ -30,10 +31,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             try
             {
-                string finalFlags = null;
+                var flags = new List<string>(_flags);
+                string[] finalFlags;
                 using (var serverData = ServerUtil.CreateServer())
                 {
-                    finalFlags = $"{ _flags } /shared:{ serverData.PipeName } /pathmap:{tempDir.Path}=/ /out:{ outFile } { srcFile }";
+                    flags.AddRange(new string[] { $"/shared:{ serverData.PipeName }", $"/pathmap:{tempDir.Path}=/", $"/out:{ outFile }", srcFile });
+                    finalFlags = flags.ToArray();
                     var result = CompilerServerUnitTests.RunCommandLineCompiler(
                         CompilerServerUnitTests.CSharpCompilerClientExecutable,
                         finalFlags,
@@ -62,13 +65,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <param name="source"> The source of the program that will be compiled </param>
         private async Task RunDeterministicTest(string source)
         {
-            var (first, finalFlags1) = await CompileAndGetBytes(source);
-            var (second, finalFlags2) = await CompileAndGetBytes(source);
+            var (first, finalFlagsArray1) = await CompileAndGetBytes(source);
+            var (second, finalFlagsArray2) = await CompileAndGetBytes(source);
             Assert.Equal(first.Length, second.Length);
             for (int i = 0; i < first.Length; i++)
             {
                 if (first[i] != second[i])
                 {
+                    string finalFlags1 = string.Join(" ", finalFlagsArray1);
+                    string finalFlags2 = string.Join(" ", finalFlagsArray2);
                     AssertEx.Fail($"Bytes were different at position { i } ({ first[i] } vs { second[i] }).  Flags used were (\"{ finalFlags1 }\" vs \"{ finalFlags2 }\")");
                 }
             }

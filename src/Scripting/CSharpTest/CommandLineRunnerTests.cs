@@ -397,7 +397,7 @@ $@"""@arg1""
 
             var rsp = Temp.CreateFile(extension: ".rsp").WriteAllText($@"
 /u:System
-{script.Path}
+""{script.Path}""
 --
 @arg1
 /arg2

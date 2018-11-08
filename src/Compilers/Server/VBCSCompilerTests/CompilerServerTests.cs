@@ -186,7 +186,21 @@ End Module")
             Encoding redirectEncoding = null,
             bool shouldRunOnServer = true)
         {
-            var arguments = new List<string>(argumentsSingle.Split(' '));
+            var arguments = argumentsSingle.Split(' ');
+            return RunCommandLineCompiler(language, arguments, currentDirectory, filesInDirectory,
+                additionalEnvironmentVars, redirectEncoding, shouldRunOnServer);
+        }
+
+        internal static (int ExitCode, string Output) RunCommandLineCompiler(
+            RequestLanguage language,
+            string[] argumentsArray,
+            TempDirectory currentDirectory,
+            IEnumerable<KeyValuePair<string, string>> filesInDirectory = null,
+            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null,
+            Encoding redirectEncoding = null,
+            bool shouldRunOnServer = true)
+        {
+            var arguments = new List<string>(argumentsArray);
 
             // This is validating that localization to a specific locale works no matter what the locale of the 
             // machine running the tests are. 
@@ -307,7 +321,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /utf8output /nologo /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/utf8output", "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding,
                     shouldRunOnServer: false);
@@ -351,7 +365,7 @@ End Module")
             {
                 var result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /vbruntime* /utf8output /nologo /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/vbruntime*", "/utf8output", "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding,
                     shouldRunOnServer: false);
@@ -927,7 +941,7 @@ class Hello
     public static void Main()
     {{ Console.WriteLine(""{prefix} Hello number {i}""); }}
 }}";
-                additionalArgument = "";
+                additionalArgument = null;
             }
             else
             {
@@ -944,7 +958,9 @@ End Module";
                 additionalArgument = " /vbruntime*";
             }
 
-            var arguments = $"/shared:{pipeName} /nologo {sourceFile} /out:{exeFileName}{additionalArgument}";
+            var arguments = new List<string>() { $"/shared:{pipeName}", "/nologo", sourceFile, $"/out:{exeFileName}" };
+            if (additionalArgument != null)
+                arguments.Add(additionalArgument);
             var filesInDirectory = new Dictionary<string, string>()
             {
                 { sourceFile, sourceText }
@@ -952,7 +968,7 @@ End Module";
 
             return Task.Run(() =>
             {
-                var result = RunCommandLineCompiler(language, string.Join(" ", arguments), compilationDir, filesInDirectory: filesInDirectory);
+                var result = RunCommandLineCompiler(language, arguments.ToArray(), compilationDir, filesInDirectory: filesInDirectory);
 
                 Assert.Equal(0, result.ExitCode);
 
@@ -1013,7 +1029,7 @@ public class Library
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                    $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:" + Path.Combine(libDirectory.Path, "lib.dll"),
+                                                    new string[] { "src1.cs", $"/shared:{serverData.PipeName}", "/nologo", "/t:library", "/out:" + Path.Combine(libDirectory.Path, "lib.dll") },
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1063,7 +1079,7 @@ End Class
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
-                                                    $"src1.vb /shared:{serverData.PipeName} /vbruntime* /nologo /t:library /out:" + Path.Combine(libDirectory.Path, "lib.dll"),
+                                                    new string[] { "src1.vb", $"/shared:{serverData.PipeName}", "/vbruntime*", "/nologo", "/t:library", "/out:" + Path.Combine(libDirectory.Path, "lib.dll") },
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1103,7 +1119,7 @@ End Module
             {
                 var result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /nologo /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     redirectEncoding: Encoding.ASCII);
 
@@ -1126,7 +1142,7 @@ End Module
             {
                 var result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /nologo /vbruntime* /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/nologo", "/vbruntime*", "/t:library", srcFile },
                     _tempDirectory,
                     redirectEncoding: Encoding.ASCII);
 
@@ -1152,7 +1168,7 @@ End Module
             {
                 var result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /utf8output /nologo /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/utf8output", "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
@@ -1174,7 +1190,7 @@ End Module
             {
                 var result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /utf8output /nologo /vbruntime* /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/utf8output", "/nologo", "/vbruntime*", "/t:library", srcFile },
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
@@ -1257,7 +1273,7 @@ class Program
 
                 var result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /noconfig @{rspFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/noconfig", $"@{rspFile}" },
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
@@ -1280,7 +1296,7 @@ class Program
 
                 var result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /noconfig @{rspFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/noconfig", $"@{rspFile}" },
                     _tempDirectory,
                     redirectEncoding: UTF8Encoding);
 
@@ -1346,7 +1362,7 @@ class Program
 
                 var result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /nologo /t:library {srcFile}",
+                    new[] { $"/shared:{serverData.PipeName}", "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     additionalEnvironmentVars: new Dictionary<string, string> { { "TMP", tmp } });
 
@@ -1356,7 +1372,7 @@ class Program
 
                 result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/nologo /t:library {srcFile}",
+                    new[] { "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     shouldRunOnServer: false);
 
@@ -1379,7 +1395,7 @@ class Program
 
                 var result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /vbruntime* /nologo /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/vbruntime*", "/nologo", "/t:library", srcFile },
                     _tempDirectory,
                     additionalEnvironmentVars: new Dictionary<string, string> { { "TMP", tmp } });
 
@@ -1390,7 +1406,7 @@ class Program
 
                 result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /nologo /t:library {srcFile}",
+                    new string[] { $"/shared:{serverData.PipeName}", "/nologo", "/t:library", srcFile },
                     _tempDirectory);
 
                 Assert.Equal("", result.Output.Trim());
