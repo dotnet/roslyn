@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Can_t_find_where_to_insert_member">
         <source>Can't find where to insert member</source>
-        <target state="translated">Position zum Einfügen des Elements nicht gefunden.</target>
+        <target state="translated">Position zum Einfügen des Members nicht gefunden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_rename_other_elements">
@@ -626,7 +626,7 @@ Verwenden Sie die Dropdownliste, um weitere zu dieser Datei gehörige Projekte a
       </trans-unit>
       <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
         <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'"{0}" hat einen Fehler festgestellt und wurde deaktiviert.</target>
+        <target state="translated">"{0}" hat einen Fehler festgestellt und wurde deaktiviert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
