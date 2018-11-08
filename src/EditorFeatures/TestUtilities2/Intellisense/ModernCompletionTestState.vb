@@ -241,10 +241,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Async Function AssertSelectedCompletionItem(
                                                     Optional displayText As String = Nothing,
+                                                    Optional displayTextSuffix As String = Nothing,
                                                     Optional description As String = Nothing,
                                                     Optional isSoftSelected As Boolean? = Nothing,
                                                     Optional isHardSelected As Boolean? = Nothing,
-                                                    Optional displayTextSuffix As String? = Nothing,
                                                     Optional shouldFormatOnCommit As Boolean? = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
             Dim view = If(projectionsView, TextView)

@@ -187,6 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,
+                               Optional displayTextSuffix As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,

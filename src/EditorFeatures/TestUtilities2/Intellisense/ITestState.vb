@@ -146,10 +146,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,
+                               Optional displayTextSuffix As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
-                               Optional displayTextSuffix As String = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 #End Region

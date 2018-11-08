@@ -19,7 +19,6 @@ using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using FilterResult = Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Controller.Session.FilterResult;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
-using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 using Session = Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Controller.Session;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
@@ -117,7 +116,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
 
                 if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionSource.RoslynItem, out var roslynItem))
                 {
-                    roslynItem = RoslynCompletionItem.Create(item.DisplayText, item.FilterText, item.SortText);
+                    roslynItem = RoslynCompletionItem.Create(
+                        displayText: item.DisplayText, 
+                        filterText: item.FilterText, 
+                        sortText: item.SortText,
+                        displayTextSuffix: item.Suffix);
                 }
 
                 if (Session.MatchesFilterText(_completionHelper, roslynItem, filterText, initialRoslynTriggerKind, filterReason, _recentItems))

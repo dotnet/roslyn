@@ -1934,7 +1934,10 @@ End Class
 
                 state.SendTypeChars("GetType")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("GetType", VBFeaturesResources.GetType_function + vbCrLf +
+                Await state.AssertSelectedCompletionItem(
+                    displayText:="GetType",
+                    displayTextSuffix:=String.Empty,
+                    description:=VBFeaturesResources.GetType_function + vbCrLf +
                     VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name + vbCrLf +
                     $"GetType({VBWorkspaceResources.typeName}) As Type")
             End Using

@@ -3395,7 +3395,8 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys.")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3414,7 +3415,8 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -3434,7 +3436,8 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()
@@ -3461,7 +3464,8 @@ class C
                                   using $$
                               </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
                 state.SendTypeChars("Sys")
                 state.SendCommitUniqueCompletionListItem()

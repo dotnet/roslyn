@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.A
                 source: this,
                 icon: new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
                 filters: filters,
-                suffix: string.Empty,
+                suffix: roslynItem.DisplayTextSuffix,
                 insertText: insertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
