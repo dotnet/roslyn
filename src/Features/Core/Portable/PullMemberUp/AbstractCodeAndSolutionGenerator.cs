@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
     {
         private Dictionary<DocumentId, DocumentEditor> EditorMap { get; set; }
 
-        private Dictionary<ISymbol, List<SyntaxNode>> SyntaxMap { get; set; }
+        private Dictionary<ISymbol, IEnumerable<SyntaxNode>> SyntaxMap { get; set; }
 
         private ICodeGenerationService CodeGenerationService { get; set; }
 
@@ -164,19 +164,6 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             editor.ReplaceNode(targetNodeSyntax, membersAddedNode);
         }
 
-        private void ChangeTargetToAbstract(
-            IEnumerable<SyntaxNode> targetAllSyntaxes,
-            INamedTypeSymbol targetSymbol,
-            Solution solution)
-        {
-            var declaration = DeclarationModifiers.From(targetSymbol).WithIsAbstract(true);
-            foreach (var syntax in targetAllSyntaxes)
-            {
-                var editor = EditorMap[solution.GetDocumentId(syntax.SyntaxTree)];
-                editor.SetModifiers(syntax, declaration);
-            }
-        }
-
         private void RemoveOriginalMembers(AnalysisResult result, Solution solution)
         {
             // If member is marked as make abstract, then don't remove it, just add an abstract declaration to target
@@ -196,8 +183,12 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
             Solution solution,
             CancellationToken cancellationToken)
         {
+            // Members and target may come from different documents, and some of them may also share the same document.
+            // So EditorMap is used to save and group all the editors will be used.
             EditorMap = new Dictionary<DocumentId, DocumentEditor>();
-            SyntaxMap = new Dictionary<ISymbol, List<SyntaxNode>>();
+            // One member may have multiple syntaxNodes (e.g partial method).
+            // SyntaxMap is used to find the syntaxNodes need to be changed more easily.
+            SyntaxMap = new Dictionary<ISymbol, IEnumerable<SyntaxNode>>();
             var membersNeedToBeChanged = result.MembersAnalysisResults;
             if (result.Target.TypeKind == TypeKind.Interface)
             {
@@ -205,20 +196,19 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
                 Where(analysisResult => analysisResult.ChangeOriginToNonStatic || analysisResult.ChangeOriginToPublic);
             }
 
-            foreach (var analysisResult in membersNeedToBeChanged)
+            foreach (var memberAnalysisResult in membersNeedToBeChanged)
             {
-                var tasks = analysisResult.Member.DeclaringSyntaxReferences.Select(async @ref => await @ref.GetSyntaxAsync(cancellationToken));
+                var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.Select(async @ref => await @ref.GetSyntaxAsync(cancellationToken));
                 var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
                 await AddEditorsToDict(allSyntaxes, solutionEditor, solution);
-                SyntaxMap.Add(analysisResult.Member, allSyntaxes.ToList());
+                SyntaxMap.Add(memberAnalysisResult.Member, allSyntaxes.ToList());
             }
 
             if (result.ChangeTargetAbstract)
             {
-                var tasks = result.Target.DeclaringSyntaxReferences.Select(async @ref => await @ref.GetSyntaxAsync(cancellationToken));
-                var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-                await AddEditorsToDict(allSyntaxes, solutionEditor, solution);
-                SyntaxMap.Add(result.Target, allSyntaxes.ToList());
+                // When the target is needed to change to abstract, we need the syntax.
+                SyntaxMap.Add(result.Target, new SyntaxNode[] { targetSyntaxNode });
+                await AddEditorsToDict(new SyntaxNode[] { targetSyntaxNode }, solutionEditor, solution);
             }
             else
             {
@@ -236,7 +226,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
                 if (!EditorMap.ContainsKey(solution.GetDocumentId(syntax.SyntaxTree)))
                 {
                     var id = solution.GetDocumentId(syntax.SyntaxTree);
-                    var editor = await solutionEditor.GetDocumentEditorAsync(id);
+                    var editor = await solutionEditor.GetDocumentEditorAsync(id).ConfigureAwait(false);
                     EditorMap.Add(solution.GetDocumentId(syntax.SyntaxTree), editor);
                 }
             }
