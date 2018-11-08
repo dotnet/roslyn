@@ -126,9 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                iDisposableConversion = fromExpression ?
-                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, disposableInterface, ref useSiteDiagnostics) :
-                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, disposableInterface, ref useSiteDiagnostics);
+                iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
 
                 diagnostics.Add(fromExpression ? (CSharpSyntaxNode)expressionSyntax : declarationSyntax, useSiteDiagnostics);
 
@@ -143,9 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Retry with a different assumption about whether the `using` is async
                     TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
                     HashSet<DiagnosticInfo> ignored = null;
-                    Conversion alternateConversion = fromExpression ?
-                        originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, alternateInterface, ref ignored) :
-                        originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, alternateInterface, ref ignored);
+                    Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref ignored);
 
                     bool wrongAsync = alternateConversion.IsImplicit;
                     ErrorCode errorCode = wrongAsync
@@ -156,6 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return false;
+            }
+
+            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref HashSet<DiagnosticInfo> diag)
+            {
+                return fromExpression?
+                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref diag) :
+                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref diag);
             }
 
             TypeSymbol getDisposableInterface(bool isAsync)

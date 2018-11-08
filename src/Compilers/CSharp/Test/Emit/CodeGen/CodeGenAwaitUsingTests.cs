@@ -780,7 +780,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces });
             comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using'?
+                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 16)
                 );

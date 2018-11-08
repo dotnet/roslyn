@@ -2636,7 +2636,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</value>
   </data>
   <data name="ERR_ForEachMissingMemberWrongAsync" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach'?</value>
+    <value>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</value>
   </data>
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
@@ -2960,7 +2960,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using'?</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
     <value>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</value>
