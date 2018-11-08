@@ -282,6 +282,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.AddAccessorDeclaration:
                     return ((AccessorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
                 default:
+                    // At this point, the node should be empty or its children should not end with a semicolon.
+                    Debug.Assert(!currentNode.ChildNodesAndTokens().Any()
+                        || !currentNode.ChildNodesAndTokens().Last().IsKind(SyntaxKind.SemicolonToken));
                     return false;
             }
         }
