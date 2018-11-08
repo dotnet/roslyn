@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp.QuickAction;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
@@ -21,11 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            // Currently support to pull field, method, event, property and indexer up,
+            // constructor, operator and finalizer are excluded.
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var userSelectedNode = root.FindNode(context.Span);
 
-            if(!IsUserSelectIdentifer(userSelectedNode, context))
+            if(!IsSelectionValid(context.Span, userSelectedNode))
             {
                 return;
             }
@@ -39,80 +42,57 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var allTargetClasses = FindAllTargetBaseClasses(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
             var allTargetInterfaces = FindAllTargetInterfaces(userSelectNodeSymbol.ContainingType, context.Document.Project.Solution, context.CancellationToken);
 
-            if (allTargetInterfaces.Count == 0 && allTargetClasses.Count == 0)
+            if (allTargetInterfaces.Count() == 0 && allTargetClasses.Count() == 0)
             {
                 return;
             }
 
-            if (userSelectNodeSymbol.Kind == SymbolKind.Method ||
+            if ((userSelectNodeSymbol is IMethodSymbol methodSymbol && methodSymbol.IsOrdinaryMethod()) ||
                 userSelectNodeSymbol.Kind == SymbolKind.Property ||
-                userSelectNodeSymbol.Kind == SymbolKind.Event)
+                userSelectNodeSymbol.Kind == SymbolKind.Event ||
+                userSelectNodeSymbol.Kind == SymbolKind.Field)
             {
-                await AddPullUpMemberToClassRefactoringViaQuickAction(allTargetClasses, userSelectedNode, userSelectNodeSymbol, context);
-                await AddPullUpMemberToInterfaceRefactoringViaQuickAction(allTargetInterfaces, userSelectedNode, userSelectNodeSymbol, context);
-                AddPullUpMemberRefactoringViaDialogBox(userSelectNodeSymbol, context, root, semanticModel);
-            }
-            else if (userSelectNodeSymbol.Kind == SymbolKind.Field)
-            {
-                await AddPullUpMemberToClassRefactoringViaQuickAction(allTargetClasses, userSelectedNode, userSelectNodeSymbol, context);
-                AddPullUpMemberRefactoringViaDialogBox(userSelectNodeSymbol, context, root, semanticModel);
+                PullMemberUpViaQuickAction(allTargetClasses.Concat(allTargetInterfaces), userSelectNodeSymbol, context);
+                AddPullUpMemberRefactoringViaDialogBox(userSelectNodeSymbol, context, semanticModel);
             }
         }
 
-        private List<INamedTypeSymbol> FindAllTargetInterfaces(INamedTypeSymbol selectedNodeOwnerSymbol, Solution solution, CancellationToken cancellationToken)
+        private IEnumerable<INamedTypeSymbol> FindAllTargetInterfaces(INamedTypeSymbol selectedNodeOwnerSymbol, Solution solution, CancellationToken cancellationToken)
         {
             return selectedNodeOwnerSymbol.AllInterfaces.
-                Where(@interface => IsSymbolValid(@interface, solution, cancellationToken)).ToList();
+                Where(@interface => @interface.DeclaringSyntaxReferences.Length > 0 && IsSymbolValid(solution, @interface, cancellationToken));
         }
 
-        private List<INamedTypeSymbol> FindAllTargetBaseClasses(INamedTypeSymbol selectedNodeOwnerSymbol, Solution solution, CancellationToken cancellationToken)
+        private IEnumerable<INamedTypeSymbol> FindAllTargetBaseClasses(INamedTypeSymbol selectedNodeOwnerSymbol, Solution solution, CancellationToken cancellationToken)
         {
-            var allBasesClasses = new List<INamedTypeSymbol>();
-            for (var @class = selectedNodeOwnerSymbol.BaseType; @class != null; @class = @class.BaseType)
-            {
-                if (IsSymbolValid(@class, solution, cancellationToken))
-                {
-                    allBasesClasses.Add(@class);
-                }
-            }
-            return allBasesClasses;
+            return selectedNodeOwnerSymbol.GetBaseTypes().Where(@class => @class.DeclaringSyntaxReferences.Length > 0 && IsSymbolValid(solution, @class, cancellationToken));
         }
 
-        private bool IsSymbolValid(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
+        private bool IsSymbolValid(Solution solution, INamedTypeSymbol symbol, CancellationToken cancellationToken)
         {
             return symbol.Locations.Any(location => location.IsInSource &&
-            !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken)) &&
-            symbol.DeclaringSyntaxReferences.Length > 0;
+                   !solution.GetDocument(location.SourceTree).IsGeneratedCode(cancellationToken));
         }
 
-        protected async Task AddPullUpMemberToClassRefactoringViaQuickAction(
-            List<INamedTypeSymbol> targetClasses,
-            SyntaxNode userSelectedNode,
+        protected void PullMemberUpViaQuickAction(
+            IEnumerable<INamedTypeSymbol> targets,
             ISymbol userSelectNodeSymbol,
             CodeRefactoringContext context)
         {
-            var puller = context.Document.Project.LanguageServices.GetService<AbstractClassPullerWithQuickAction>();
-            foreach (var eachClass in targetClasses)
+            foreach (var target in targets)
             {
-                var action = await puller.ComputeRefactoring(eachClass, context, userSelectedNode, userSelectNodeSymbol);
-                if (action != null)
+                AbstractMemberPullerWithQuickAction puller = default;
+                if (target.TypeKind == TypeKind.Interface &&
+                    userSelectNodeSymbol.Kind != SymbolKind.Field)
                 {
-                    context.RegisterRefactoring(action);
+                    puller = new InterfacePullerWithQuickAction();
                 }
-            }
-        }
+                else
+                {
+                    puller = new ClassPullerWithQuickAction();
+                }
 
-        protected async virtual Task AddPullUpMemberToInterfaceRefactoringViaQuickAction(
-            List<INamedTypeSymbol> targetInterfaces,
-            SyntaxNode userSelectedNode,
-            ISymbol userSelectNodeSymbol,
-            CodeRefactoringContext context)
-        {
-            var puller = new InterfacePullerWithQuickAction();
-            foreach (var eachInterface in targetInterfaces)
-            {
-                var action = await puller.ComputeRefactoring(eachInterface, context, userSelectedNode, userSelectNodeSymbol);
-
+                var action = puller.ComputeRefactoring(target, context.Document, userSelectNodeSymbol);
                 if (action != null)
                 {
                     context.RegisterRefactoring(action);
@@ -123,13 +103,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         protected void AddPullUpMemberRefactoringViaDialogBox(
             ISymbol userSelectedNodeSymbol,
             CodeRefactoringContext context,
-            SyntaxNode root,
             SemanticModel semanticModel)
         {
             var dialogAction = new PullMemberUpWithDialogCodeAction(semanticModel, context, userSelectedNodeSymbol, this);
             context.RegisterRefactoring(dialogAction);
         }
 
-        internal abstract bool IsUserSelectIdentifer(SyntaxNode userSelectedNode, CodeRefactoringContext context);
+        protected abstract bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax);
     }
 }

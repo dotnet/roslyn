@@ -1445,7 +1445,7 @@ This version used in: {2}</value>
   <data name="Replace_0_with_1" xml:space="preserve">
     <value>Replace '{0}' with '{1}' </value>
   </data>
-  <data name="Add_To" xml:space="preserve">
-    <value>Add to </value>
+  <data name="Add_to" xml:space="preserve">
+    <value>Add to</value>
   </data>
 </root>

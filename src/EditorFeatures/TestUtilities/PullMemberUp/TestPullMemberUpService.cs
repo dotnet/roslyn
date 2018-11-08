@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             TargetBaseTypeName = targetBaseTypeName;
         }
 
-        public bool CreateWarningDialog(AnalysisResult result)
-        {
-            return true;
-        }
-
         public PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
         {
             IEnumerable<(ISymbol member, bool makeAbstract)> selectedMember = default;
@@ -54,14 +49,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
                 {
                    targetSymbol = allInterfaces.SingleOrDefault(@interface => @interface.Name == TargetBaseTypeName);
                 }
-
+                
                 if (baseClass != null && targetSymbol == null)
                 {
                     for (var i = baseClass; i != null; i = i.BaseType)
                     {
                         if (i.Name == TargetBaseTypeName)
                         {
-                            return new PullMemberDialogResult(selectedMember, i);
+                            return new PullMemberDialogResult(PullMembersUpAnalysisBuilder.BuildAnalysisResult(i, selectedMember));
                         }
                     }
                 }
@@ -73,13 +68,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             }
             else
             {
-                return new PullMemberDialogResult(selectedMember, targetSymbol as INamedTypeSymbol);
+                return new PullMemberDialogResult(PullMembersUpAnalysisBuilder.BuildAnalysisResult(targetSymbol as INamedTypeSymbol, selectedMember));
             }
-        }
-
-
-        public void ResetSession()
-        {
         }
     }
 }

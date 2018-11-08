@@ -19,47 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         private PullMemberUpViewModel ViewModel { get; set; }
 
+        private AnalysisResult MembersInfo { get; set; }
+
         [ImportingConstructor]
         public VisualStudioPullMemberUpService(IGlyphService glyphService)
         {
             _glyphService = glyphService;
-        }
-
-        private List<string> GenerateMessage(AnalysisResult analysisResult)
-        {
-            var warningMessages = new List<string>();
-            foreach (var result in analysisResult.MembersAnalysisResults)
-            {
-                if (result.ChangeOriginToPublic)
-                {
-                    warningMessages.Add(string.Format(ServicesVSResources.Change_Member_To_Public, result.Member.Name, analysisResult.Target));
-                }
-
-                if (result.ChangeOriginToNonStatic)
-                {
-                    warningMessages.Add(string.Format(ServicesVSResources.Change_Member_To_NonStatic, result.Member.Name, analysisResult.Target));
-                }
-            }
-            if (analysisResult.ChangeTargetAbstract)
-            {
-                warningMessages.Add(string.Format(ServicesVSResources.Change_Target_To_Abstract, analysisResult.Target.Name));
-            }
-            return warningMessages;
-        }
-
-        public bool CreateWarningDialog(AnalysisResult analysisResult)
-        {
-            var viewModel = new PullMemberUpWarningViewModel(GenerateMessage(analysisResult));
-            var dialog = new PullMemberUpDialogWarning(viewModel);
-            var result = dialog.ShowModal();
-            if (result.GetValueOrDefault())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
         public PullMemberDialogResult GetPullTargetAndMembers(
@@ -67,39 +32,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             IEnumerable<ISymbol> members,
             Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
         {
-            if (ViewModel != null)
+            var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedOwnerSymbol.ContainingType, _glyphService);
+            ViewModel = new PullMemberUpViewModel(members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, lazyDependentsMap, this);
+            var dialog = new PullMemberUpDialog(ViewModel);
+            if (dialog.ShowModal().GetValueOrDefault())
             {
-                var restoredDialog = new PullMemberUpDialog(ViewModel);
-                return CreateResult(ViewModel, restoredDialog.ShowModal());
-            }
-            else
-            {
-                var baseTypeTree = MemberSymbolViewModelGraphNode.CreateInheritanceGraph(selectedOwnerSymbol.ContainingType, _glyphService);
-                ViewModel = new PullMemberUpViewModel(members.ToList(), baseTypeTree.Neighbours, selectedOwnerSymbol, _glyphService, lazyDependentsMap);
-                var dialog = new PullMemberUpDialog(ViewModel);
-                return CreateResult(ViewModel, dialog.ShowModal());
-            }
-        }
-
-        public void ResetSession()
-        {
-            ViewModel = null;
-        }
-
-        private PullMemberDialogResult CreateResult(PullMemberUpViewModel viewModel, bool? showModal)
-        {
-            if (showModal.GetValueOrDefault())
-            {
-                return new PullMemberDialogResult(
-                    ViewModel.SelectedMembersContainer.
-                    Where(memberSymbolView => memberSymbolView.IsChecked).
-                    Select(memberSymbolView => (memberSymbolView.MemberSymbol, memberSymbolView.IsAbstract)),
-                    ViewModel.SelectedTarget.MemberSymbolViewModel.MemberSymbol as INamedTypeSymbol);
+                return new PullMemberDialogResult(MembersInfo);
             }
             else
             {
                 return PullMemberDialogResult.CanceledResult;
             }
+        }
+
+        internal AnalysisResult CreateAnaysisResult(PullMemberUpViewModel viewModel)
+        {
+            var membersInfo = viewModel.SelectedMembersContainer.
+                Where(memberSymbolView => memberSymbolView.IsChecked).
+                Select(memberSymbolView => (memberSymbolView.MemberSymbol, memberSymbolView.IsAbstract));
+            MembersInfo = PullMembersUpAnalysisBuilder.BuildAnalysisResult(
+                viewModel.SelectedTarget.MemberSymbolViewModel.MemberSymbol as INamedTypeSymbol,
+                membersInfo);
+            return MembersInfo;
         }
     }
 }

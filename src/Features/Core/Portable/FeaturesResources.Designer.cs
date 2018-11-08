@@ -324,11 +324,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add to .
+        ///   Looks up a localized string similar to Add to.
         /// </summary>
-        internal static string Add_To {
+        internal static string Add_to {
             get {
-                return ResourceManager.GetString("Add_To", resourceCulture);
+                return ResourceManager.GetString("Add_to", resourceCulture);
             }
         }
         

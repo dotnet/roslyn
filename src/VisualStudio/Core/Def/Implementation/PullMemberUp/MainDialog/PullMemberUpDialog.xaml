@@ -13,10 +13,10 @@
              mc:Ignorable="d" 
              SizeToContent="Width"
              WindowStartupLocation="CenterOwner"
-             Height="533"
-             Width="520"
-             MinHeight="533"
-             MinWidth="520"
+             Height="498"
+             Width="500"
+             MinHeight="498"
+             MinWidth="500"
              HasDialogFrame="True"
              ShowInTaskbar="False"
              HasHelpButton="True"
@@ -48,6 +48,13 @@
         <Style x:Key="GridViewLeftAlignGridStyle"
                TargetType="{x:Type DataGridCell}">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+        <Style x:Key="CenterCheckbox"
+            TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
     <Grid Margin="12">
@@ -110,10 +117,19 @@
                     Margin="2"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                     SelectionMode="Single"
+                    HorizontalContentAlignment="Stretch"
                     ItemsSource="{Binding SelectedMembersContainer}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Width="217" x:Name="membersColumn" HeaderContainerStyle="{StaticResource GridViewLeftAlignContainerStyle}">
+                            <GridViewColumn
+                                Width="200"
+                                x:Name="membersColumn"
+                                HeaderContainerStyle="{StaticResource GridViewLeftAlignContainerStyle}">
                                 <GridViewColumn.Header>
                                     <CheckBox
                                         x:Name="SelectAllAndDeselectCheckBox"
@@ -146,14 +162,18 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="{Binding ElementName=dialog, Path=MakeAbstract}" Width="Auto" x:Name="makeAbstractColumn">
+                            <GridViewColumn
+                                Header="{Binding ElementName=dialog, Path=MakeAbstract}"
+                                Width="100"
+                                x:Name="makeAbstractColumn">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <CheckBox x:Name="MakeAbstract"
-                                                  HorizontalContentAlignment="Stretch"
-                                                  HorizontalAlignment="Center"
+                                        <DockPanel HorizontalAlignment="Center">
+                                            <CheckBox x:Name="MakeAbstract"
+                                                  Style="{StaticResource CenterCheckbox}"
                                                   IsEnabled="{Binding IsAbstractSelectable, UpdateSourceTrigger=PropertyChanged}"
                                                   IsChecked="{Binding IsAbstract, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DockPanel>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

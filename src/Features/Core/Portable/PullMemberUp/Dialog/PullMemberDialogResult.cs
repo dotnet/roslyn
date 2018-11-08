@@ -1,25 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
 {
     internal class PullMemberDialogResult
     {
-        public IEnumerable<(ISymbol member, bool makeAbstract)> SelectedMembers { get; }
-
         public static PullMemberDialogResult CanceledResult { get; } = new PullMemberDialogResult(true);
 
         public bool IsCanceled { get; }
 
-        public INamedTypeSymbol Target { get; }
+        public AnalysisResult PullMembersAnalysisResult { get; }
 
-        internal PullMemberDialogResult(IEnumerable<(ISymbol member, bool makeAbstract)> selectMembers, INamedTypeSymbol target)
+        internal PullMemberDialogResult(AnalysisResult result)
         {
-            SelectedMembers = selectMembers;
-            Target = target;
+            PullMembersAnalysisResult = result;
             IsCanceled = false;
         }
 

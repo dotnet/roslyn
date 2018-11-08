@@ -12,26 +12,6 @@
         <target state="translated">'{0}' 키 매핑 구성표 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Back">
-        <source>Back</source>
-        <target state="new">Back</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Member_To_NonStatic">
-        <source>{0} will be changed to non-static since {1} is an interface.</source>
-        <target state="new">{0} will be changed to non-static since {1} is an interface.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Member_To_Public">
-        <source>{0} will be changed to public since {1} is an interface.</source>
-        <target state="new">{0} will be changed to public since {1} is an interface.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Target_To_Abstract">
-        <source>{0} will be changed to abstract.</source>
-        <target state="new">{0} will be changed to abstract.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="new">Colorize regular expressions</target>
@@ -40,11 +20,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finish">
-        <source>Finish</source>
-        <target state="new">Finish</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_Problems">
@@ -67,9 +42,9 @@
         <target state="translated">모든 괄호 유지:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_Abs">
-        <source>Make Abstract</source>
-        <target state="new">Make Abstract</target>
+      <trans-unit id="Make_abstract">
+        <source>Make abstract</source>
+        <target state="new">Make abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="Members">
@@ -270,6 +245,21 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">값이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>{0} will be changed to abstract.</source>
+        <target state="new">{0} will be changed to abstract.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static_since_1_is_an_interface">
+        <source>{0} will be changed to non-static since {1} is an interface.</source>
+        <target state="new">{0} will be changed to non-static since {1} is an interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public_since_1_is_an_interface">
+        <source>{0} will be changed to public since {1} is an interface.</source>
+        <target state="new">{0} will be changed to public since {1} is an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">

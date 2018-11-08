@@ -588,7 +588,7 @@ namespace PushUpTest
     {
         public int th[||]is[int i]
         {
-           get => j = value;
+            get => j = value;
         }
 
         private void BarBar()
@@ -624,9 +624,9 @@ namespace PushUpTest
 
     public class TestClass : IInterface
     {
-        public int th[||]is[int i]
+        public int this[int i]
         {
-           get => j = value;
+            get => j = value;
         }
 
         public void BarBar()

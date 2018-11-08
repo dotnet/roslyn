@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 }
                 else
                 {
-                    return new MemberAnalysisResult(selection.member);
+                    return new MemberAnalysisResult(selection.member, makeAbstract: selection.makeAbstract);
                 }
             });
 
@@ -60,11 +60,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         public bool ChangeOriginToNonStatic { get; }
 
-        internal MemberAnalysisResult(ISymbol member, bool changeOriginToPublic = false, bool changeOriginToNonStatic = false)
+        public bool MakeAbstract { get; }
+
+        internal MemberAnalysisResult(ISymbol member, bool changeOriginToPublic = false, bool changeOriginToNonStatic = false, bool makeAbstract = false)
         {
             Member = member;
             ChangeOriginToPublic = changeOriginToPublic;
             ChangeOriginToNonStatic = changeOriginToNonStatic;
+            MakeAbstract = makeAbstract;
         }
     }
 
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             MembersAnalysisResults = membersAnalysisResults;
             IsValid = !MembersAnalysisResults.Aggregate(
                 ChangeTargetAbstract,
-                (acc, result) => acc || result.ChangeOriginToPublic || result.ChangeOriginToNonStatic);
+                (acc, result) => acc || result.ChangeOriginToPublic || result.ChangeOriginToNonStatic || result.MakeAbstract);
         }
     }
 }

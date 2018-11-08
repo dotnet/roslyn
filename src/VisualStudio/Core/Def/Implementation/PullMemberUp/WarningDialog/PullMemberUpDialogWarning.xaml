@@ -14,19 +14,19 @@
              SizeToContent="WidthAndHeight"
              WindowStartupLocation="CenterOwner"
              Height="290"
-             Width="490"
+             Width="533"
              MinHeight="290"
-             MinWidth="490"
+             MinWidth="533"
              HasDialogFrame="True"
              ShowInTaskbar="False"
              HasHelpButton="True"
              Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
     <Window.Resources>
         <Thickness x:Key="okAndCancelButtonPadding">5, 3, 8, 4</Thickness>
-        <sys:Double x:Key="okAndCancelButtonWidth">73</sys:Double>
-        <sys:Double x:Key="okAndCancelButtonHeight">21</sys:Double>
+        <sys:Double x:Key="ButtonWidth">75</sys:Double>
+        <sys:Double x:Key="ButtonHeight">23</sys:Double>
     </Window.Resources>
-    <Grid Margin="10,8,10,8">
+    <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
@@ -35,11 +35,12 @@
             <Label
                 x:Uid="Description"
                 x:Name="Description"
-                Content="{Binding ElementName=dialog, Path=TextTitle}"/>
-            <Separator/>
+                Content="{Binding ElementName=dialog, Path=TextTitle}"
+                Margin="0, 0, 0, 24"/>
         <GroupBox
             x:Name="WarnningMessageGroupBox"
-            Header="{Binding ElementName=dialog, Path=FoundProblem}">
+            Header="{Binding ElementName=dialog, Path=FoundProblem}"
+            BorderThickness="0">
             <u:AutomationDelegatingListView
                 x:Name="WarningMessageList"
                 ItemsSource="{Binding WarningMessageContainer}"
@@ -62,23 +63,25 @@
                Grid.Row="1"
                Orientation="Horizontal"
                HorizontalAlignment="Right"
-               Margin="0,11,0,0">
+               Margin="0,18,0,0">
                 <vs:DialogButton x:Uid="BackButton"
                     Grid.Column="1"
                     IsCancel="True"
                     Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
-                    Content="{Binding Back, ElementName=dialog}"
+                    Content="{Binding Cancel, ElementName=dialog}"
                     Click="BackButton_Click"
-                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
-                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                    Margin="0, 0, 3, 0"
+                    Width= "{StaticResource ResourceKey=ButtonWidth}"
+                    Height="{StaticResource ResourceKey=ButtonHeight}"/>
                 <vs:DialogButton x:Uid="FinishButton"
                     Click="FinishButton_Click"
                     Grid.Column="2"
                     IsDefault="True"
+                    Margin="3, 0, 0, 0"
                     Padding= "{StaticResource ResourceKey=okAndCancelButtonPadding}"
-                    Content="{Binding Finish, ElementName=dialog}"
-                    Width= "{StaticResource ResourceKey=okAndCancelButtonWidth}"
-                    Height="{StaticResource ResourceKey=okAndCancelButtonHeight}"/>
+                    Content="{Binding OK, ElementName=dialog}"
+                    Width= "{StaticResource ResourceKey=ButtonWidth}"
+                    Height="{StaticResource ResourceKey=ButtonHeight}"/>
         </StackPanel>
         </Grid>
 </vs:DialogWindow>

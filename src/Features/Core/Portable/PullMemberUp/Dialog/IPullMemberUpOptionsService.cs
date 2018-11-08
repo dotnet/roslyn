@@ -9,9 +9,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
     internal interface IPullMemberUpOptionsService : IWorkspaceService
     {
         PullMemberDialogResult GetPullTargetAndMembers(ISymbol selectedNodeSymbol, IEnumerable<ISymbol> members, Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap);
-
-        bool CreateWarningDialog(AnalysisResult result);
-
-        void ResetSession();
     }
 }

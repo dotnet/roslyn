@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public MemberSymbolViewModelGraphNode SelectedTarget { get; set; }
 
+        public VisualStudioPullMemberUpService Service { get; }
+
         private bool _selectAllAndDeselectAllChecked;
 
         public bool SelectAllAndDeselectAllChecked
@@ -40,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             ObservableCollection<MemberSymbolViewModelGraphNode> targetMembersContainer,
             ISymbol userSelectNodeSymbol,
             IGlyphService glyphService,
-            Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap)
+            Dictionary<ISymbol, Lazy<List<ISymbol>>> lazyDependentsMap,
+            VisualStudioPullMemberUpService service)
         {
             SelectedMembersContainer = allMembers.
                 Select(member => new PullUpMemberSymbolView(member, glyphService)
@@ -56,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
             TargetMembersContainer = targetMembersContainer;
             LazyDependentsMap = lazyDependentsMap;
+            Service = service;
             SelectAllAndDeselectAllChecked = true;
         }
     }

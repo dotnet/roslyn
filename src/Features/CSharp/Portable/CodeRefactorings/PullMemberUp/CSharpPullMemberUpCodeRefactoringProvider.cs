@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
 {
@@ -22,10 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
         {
         }
 
-        internal override bool IsUserSelectIdentifer(SyntaxNode userSelectedSyntax, CodeRefactoringContext context)
+        protected override bool IsSelectionValid(TextSpan span, SyntaxNode userSelectedSyntax)
         {
             var identifier = GetIdentifier(userSelectedSyntax);
-            return identifier.Span.Contains(context.Span);
+            return identifier == default ? false : (identifier.FullSpan.Contains(span) && span.Contains(identifier.Span)) ||
+                    (identifier.Span.Contains(span) && span.Length == 0);
         }
 
         private SyntaxToken GetIdentifier(SyntaxNode userSelectedSyntax)
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
             switch (userSelectedSyntax)
             {
                 case VariableDeclaratorSyntax variableSyntax:
+                    // It handles multiple fields or events declared in one line
                     return variableSyntax.Identifier;
                 case MethodDeclarationSyntax methodSyntax:
                     return methodSyntax.Identifier;
@@ -41,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
                 case IndexerDeclarationSyntax indexerSyntax:
                     return indexerSyntax.ThisKeyword;
                 case EventDeclarationSyntax eventDeclartionSyntax:
+                    // It handles the case taht event has add and remove body
                     return eventDeclartionSyntax.Identifier;
                 default:
                     return default;

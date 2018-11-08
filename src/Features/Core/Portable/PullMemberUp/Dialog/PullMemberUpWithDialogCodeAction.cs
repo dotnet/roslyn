@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
+using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                            }
 
                        }, false));
+
                 SelectedNodeSymbol = selectedNodeSymbol;
                 ContextDocument = context.Document;
                 _service = provider._pullMemberUpOptionsService;
@@ -78,62 +80,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var pullMemberUpService = _service ?? ContextDocument.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-                var result = PullMemberDialogResult.CanceledResult;
-                do
-                {
-                    result = pullMemberUpService.GetPullTargetAndMembers(SelectedNodeSymbol, Members, LazyDependentsMap);
-                    if (result.IsCanceled)
-                    {
-                        pullMemberUpService.ResetSession();
-                        return result;
-                    }
-                    else
-                    {
-                        var analysisResult = PullMembersUpAnalysisBuilder.BuildAnalysisResult(result.Target, result.SelectedMembers);
-                        if (analysisResult.IsValid)
-                        {
-                            pullMemberUpService.ResetSession();
-                            return result;
-                        }
-                        else
-                        {
-                            var proceedToRefactoring = pullMemberUpService.CreateWarningDialog(analysisResult);
-                            if (proceedToRefactoring)
-                            {
-                                pullMemberUpService.ResetSession();
-                                return result;
-                            }
-                        }
-                    }
-                } while (!cancellationToken.IsCancellationRequested &&
-                         !result.IsCanceled);
-
-                pullMemberUpService.ResetSession();
-                return result;
+                return pullMemberUpService.GetPullTargetAndMembers(SelectedNodeSymbol, Members, LazyDependentsMap);
             }
             
             protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 if (options is PullMemberDialogResult result && !result.IsCanceled)
                 {
-                    if (result.Target.TypeKind == TypeKind.Interface)
-                    {
-                        var puller = ContextDocument.Project.LanguageServices.GetService<AbstractInterfacePullerWithDialog>();
-                        var operation = new ApplyChangesOperation(
-                            await puller.ComputeChangedSolution(result, ContextDocument, cancellationToken));
-                        return new CodeActionOperation[] { operation };
-                    }
-                    else if (result.Target.TypeKind == TypeKind.Class)
-                    {
-                        var puller = ContextDocument.Project.LanguageServices.GetService<AbstractClassPullerWithDialog>();
-                        var operation = new ApplyChangesOperation(
-                            await puller.ComputeChangedSolution(result, ContextDocument, cancellationToken));
-                        return new CodeActionOperation[] { operation };
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"{nameof(result.Target)} should be interface or class");
-                    }
+                    var generator = ContextDocument.Project.LanguageServices.GetService<IPullMemberUpActionAndSolutionGenerator>();
+                    var changedSolution = await generator.GetSolutionAsync(result.PullMembersAnalysisResult, ContextDocument, cancellationToken).ConfigureAwait(false);
+                    var operation = new ApplyChangesOperation(changedSolution);
+                    return new CodeActionOperation[] { operation };
                 }
                 else
                 {

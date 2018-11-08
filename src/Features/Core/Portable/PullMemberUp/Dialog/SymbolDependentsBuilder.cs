@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
             {
                 builder.Visit(selectedSyntax);
             }
+
             return builder.SymbolDependentsList;
         }
 
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog
                     SymbolDependentsList.Add(symbol);
                 }
             }
+
             base.Visit(node);
         }
     }

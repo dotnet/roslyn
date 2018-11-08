@@ -1,16 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.  
 
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
     /// <summary>
-    /// Interaction logic for PullhMemberUpDialogxaml.xaml
+    /// Interaction logic for PullhMemberUpDialog.xaml
     /// </summary>
     internal partial class PullMemberUpDialog : DialogWindow
     {
@@ -36,17 +40,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 
         public string Members => ServicesVSResources.Members;
 
-        public string MakeAbstract => ServicesVSResources.Make_Abs;
+        public string MakeAbstract => ServicesVSResources.Make_abstract;
 
         private PullMemberUpViewModel ViewModel { get; }
 
-        private bool ProceedToSelectAll { get; set; } = true;
+        private bool ProceedToSelectAll { get; set; } = false;
 
         internal PullMemberUpDialog(PullMemberUpViewModel pullMemberUpViewModel)
         {
             ViewModel = pullMemberUpViewModel;
             DataContext = ViewModel;
             InitializeComponent();
+            MemberSelection.SizeChanged += (s, e) =>
+            {
+                ((GridView)MemberSelection.View).Columns[0].Width = e.NewSize.Width * 0.6;
+                ((GridView)MemberSelection.View).Columns[1].Width = e.NewSize.Width * 0.3;
+            };
         }
 
         private void TargetMembersContainer_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -118,8 +127,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 Select(memberSymbolView => memberSymbolView.MemberSymbol);
             if (ViewModel.SelectedTarget != null && selectedMembers.Count() != 0)
             {
-                DialogResult = true;
+                var result = ViewModel.Service.CreateAnaysisResult(ViewModel);
+                if (result.IsValid)
+                {
+                    DialogResult = true;
+                }
+                else
+                {
+                    if (ShowWarningDialog(result))
+                    {
+                        DialogResult = true;
+                    }
+                }
             }
+        }
+
+        private bool ShowWarningDialog(AnalysisResult result)
+        {
+            var warningViewModel = new PullMemberUpWarningViewModel(result);
+            var warningDialog = new PullMemberUpDialogWarning(warningViewModel);
+            return warningDialog.ShowModal().GetValueOrDefault();
         }
 
         private void Cancel_Button_Click(object sender, RoutedEventArgs e) => DialogResult = false;
@@ -128,8 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
         {
             var checkedMembers = ViewModel.SelectedMembersContainer.
                 Where(member => member.IsChecked &&
-                      member.MemberSymbol.Kind != SymbolKind.Field &&
-                      member.MemberSymbol.Kind != SymbolKind.Event);
+                      member.MemberSymbol.Kind != SymbolKind.Field);
             
             foreach (var member in checkedMembers)
             {
@@ -185,13 +211,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
             }
         }
 
-
         private void SelectAllAndDeselectedAllCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             if (ProceedToSelectAll)
             {
                 SelectAllButton_Click();
             }
+
             ProceedToSelectAll = true;
         }
 

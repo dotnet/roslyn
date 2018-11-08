@@ -1069,12 +1069,6 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_compound_assignments" xml:space="preserve">
     <value>Prefer compound assignments</value>
   </data>
-  <data name="Back" xml:space="preserve">
-    <value>Back</value>
-  </data>
-  <data name="Finish" xml:space="preserve">
-    <value>Finish</value>
-  </data>
   <data name="Found_Problems" xml:space="preserve">
     <value>Found Problems:</value>
   </data>
@@ -1099,19 +1093,19 @@ I agree to all of the foregoing:</value>
   <data name="Select_Public" xml:space="preserve">
     <value>Select Public</value>
   </data>
-  <data name="Make_Abs" xml:space="preserve">
-    <value>Make Abstract</value>
+  <data name="Make_abstract" xml:space="preserve">
+    <value>Make abstract</value>
   </data>
   <data name="Members" xml:space="preserve">
     <value>Members</value>
   </data>
-  <data name="Change_Member_To_NonStatic" xml:space="preserve">
+  <data name="_0_will_be_changed_to_non_static_since_1_is_an_interface" xml:space="preserve">
     <value>{0} will be changed to non-static since {1} is an interface.</value>
   </data>
-  <data name="Change_Member_To_Public" xml:space="preserve">
+  <data name="_0_will_be_changed_to_public_since_1_is_an_interface" xml:space="preserve">
     <value>{0} will be changed to public since {1} is an interface.</value>
   </data>
-  <data name="Change_Target_To_Abstract" xml:space="preserve">
+  <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
     <value>{0} will be changed to abstract.</value>
   </data>
 </root>

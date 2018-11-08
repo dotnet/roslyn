@@ -6,13 +6,13 @@ using Microsoft.VisualStudio.PlatformUI;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 {
     /// <summary>
-    /// Interaction logic for PushMemberUpDialogxaml.xaml
+    /// Interaction logic for PushMemberUpDialog.xaml
     /// </summary>
     internal partial class PullMemberUpDialogWarning : DialogWindow
     {
-        public string Back => ServicesVSResources.Back;
+        public string Cancel => ServicesVSResources.Cancel;
 
-        public string Finish => ServicesVSResources.Finish;
+        public string OK => ServicesVSResources.OK;
 
         public string PullMembersUpTitle => ServicesVSResources.Pull_Up_Members;
 
