@@ -2,16 +2,15 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.MoveDeclarationNearReference
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.MoveDeclarationNearReference), [Shared]>
-    <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InlineTemporary)>
-    Friend Class VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider
-        Inherits AbstractMoveDeclarationNearReferenceCodeRefactoringProvider(Of
-            VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider,
+    <ExportLanguageService(GetType(IMoveDeclarationNearReferenceService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicMoveDeclarationNearReferenceService
+        Inherits AbstractMoveDeclarationNearReferenceService(Of
+            VisualBasicMoveDeclarationNearReferenceService,
             StatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax)
