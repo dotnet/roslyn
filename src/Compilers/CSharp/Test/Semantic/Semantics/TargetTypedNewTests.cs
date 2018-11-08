@@ -251,7 +251,6 @@ using System;
 
 struct S
 {
-    public S(int i) {}
 }
 
 class C 
@@ -259,14 +258,30 @@ class C
     public static void Main()
     {
         Console.Write(new() as C);
-        Console.Write(new(42) as S?);
+        Console.Write(new() as S?);
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-
             CompileAndVerify(comp, expectedOutput: "CS");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            validate(0, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", ConversionKind.Identity);
+            validate(1, "new()", type: "S", convertedType: "S?", symbol: "S..ctor()", ConversionKind.ImplicitNullable);
+
+            void validate(int index, string expression, string type, string convertedType, string symbol, ConversionKind conversionKind)
+            {
+                var @new = nodes.OfType<ObjectCreationExpressionSyntax>().ElementAt(index);
+                Assert.Equal(expression, @new.ToString());
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+            }
         }
 
         [Fact]
