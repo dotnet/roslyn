@@ -433,7 +433,7 @@ class C
             await TestDiagnosticMissingAsync(
 @"class C
 {
-    private abstract void [|M|]();
+    protected abstract void [|M|]();
 }");
         }
 
@@ -474,6 +474,52 @@ class C : I
 class C : I
 {
     int I.[|P|] { get { return 0; } set { } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30965, "https://github.com/dotnet/roslyn/issues/30965")]
+        public async Task EventIsUnused_ExplicitInterfaceImplementation()
+        {
+            await TestDiagnosticMissingAsync(
+@"interface I
+{
+    event System.Action E;
+}
+
+class C : I
+{
+    event System.Action [|I.E|]
+    {
+        add { }
+        remove { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        public async Task WriteOnlyProperty_NotWritten()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [|P|] { set { } }
+}",
+@"class C
+{
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30894, "https://github.com/dotnet/roslyn/issues/30894")]
+        public async Task WriteOnlyProperty_Written()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    int [|P|] { set { } }
+    void M(int i) => P = i;
 }");
         }
 
