@@ -4147,7 +4147,7 @@ class Program
     {
         Main$$
     }
-}]]></Document>)
+}]]></Document>, includeFormatCommandHandler:=True)
 
                 state.SendTypeChars("(ar")
                 Await state.AssertSelectedCompletionItem(displayText:="args", isHardSelected:=True)
@@ -4155,6 +4155,30 @@ class Program
                 state.SendTypeChars(")")
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("Main(args)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")>
+        Public Async Function TestStatementCompletionTriggersFormattingOnSemicolon(completionImplementation As CompletionImplementation) As Task
+            ' This test uses the formatting and complete statement command handlers, but not automatic brace completion.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main( $$)
+    }
+}]]></Document>, includeFormatCommandHandler:=True)
+
+                state.SendTypeChars("ar")
+                Await state.AssertSelectedCompletionItem(displayText:="args", isHardSelected:=True)
+
+                state.SendTypeChars(";")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("Main(args);", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
