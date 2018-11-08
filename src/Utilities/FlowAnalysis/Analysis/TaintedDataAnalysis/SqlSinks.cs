@@ -12,19 +12,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     internal static class SqlSinks
     {
-        public static ImmutableDictionary<string, SinkInfo> InterfaceSinks { get; }
-        public static ImmutableDictionary<string, SinkInfo> ConcreteSinks { get; }
+        /// <summary>
+        /// <see cref="SinkInfo"/>s for tainted data SQL sinks.
+        /// </summary>
+        public static ImmutableList<SinkInfo> SinkInfos { get; }
 
         static SqlSinks()
         {
-            ImmutableDictionary<string, SinkInfo>.Builder interfaceSinksBuilder = 
-                ImmutableDictionary.CreateBuilder<string, SinkInfo>(StringComparer.Ordinal);
-            ImmutableDictionary<string, SinkInfo>.Builder concreteSinksBuilder = 
-                ImmutableDictionary.CreateBuilder<string, SinkInfo>(StringComparer.Ordinal);
+            ImmutableList<SinkInfo>.Builder sinkInfosBuilder = ImmutableList.CreateBuilder<SinkInfo>();
 
             AddSink(
-                interfaceSinksBuilder,
+                sinkInfosBuilder,
                 WellKnownTypes.SystemDataIDbCommand,
+                isInterface: true,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: new string[] {
                     "CommandText",
@@ -32,15 +32,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: null);
 
             AddSink(
-                interfaceSinksBuilder,
+                sinkInfosBuilder,
                 WellKnownTypes.SystemDataIDataAdapter,
+                isInterface: true,
                 isAnyStringParameterInConstructorASink: true,
                 sinkProperties: null,
                 sinkMethodParameters: null);
 
             AddSink(
-                concreteSinksBuilder,
+                sinkInfosBuilder,
                 WellKnownTypes.SystemWebUIWebControlsSqlDataSource,
+                isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
                 sinkProperties: new string[] {
                     "ConnectionString",
@@ -51,21 +53,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
-            InterfaceSinks = interfaceSinksBuilder.ToImmutable();
-            ConcreteSinks = concreteSinksBuilder.ToImmutable();
+            SinkInfos = sinkInfosBuilder.ToImmutable();
         }
 
         private static void AddSink(
-            ImmutableDictionary<string, SinkInfo>.Builder builder,
+            ImmutableList<SinkInfo>.Builder builder,
             string fullTypeName,
+            bool isInterface,
             bool isAnyStringParameterInConstructorASink,
             IEnumerable<string> sinkProperties,
             IDictionary<string, IEnumerable<string>> sinkMethodParameters)
         {
             SinkInfo sinkInfo = new SinkInfo(
                 fullTypeName,
-                isInterface: true,
-                isAnyStringParameterInConstructorASink: isAnyStringParameterInConstructorASink,
+                isInterface,
+                isAnyStringParameterInConstructorASink,
                 sinkProperties:
                     sinkProperties != null
                         ? sinkProperties.ToImmutableHashSet()
@@ -76,45 +78,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                              .Select(kvp => new KeyValuePair<string, ImmutableHashSet<string>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
                              .ToImmutableDictionary()
                         : ImmutableDictionary<string, ImmutableHashSet<string>>.Empty);
-            builder.Add(fullTypeName, sinkInfo);
-        }
-
-        public static ImmutableDictionary<ITypeSymbol, SinkInfo> BuildInterfaceSinksBySymbolMap(
-            WellKnownTypeProvider wellKnownTypeProvider)
-        {
-            return InterfaceSinks.Values.ToBySymbolMap<SinkInfo>(wellKnownTypeProvider, (SinkInfo info) => info.FullTypeName);
-        }
-
-        public static ImmutableDictionary<ITypeSymbol, SinkInfo> BuildConcreteSinksBySymbolMap(
-            WellKnownTypeProvider wellKnownTypeProvider)
-        {
-            return ConcreteSinks.Values.ToBySymbolMap<SinkInfo>(wellKnownTypeProvider, (SinkInfo info) => info.FullTypeName);
-        }
-
-        /// <summary>
-        /// Determines if a compilation (via its <see cref="WellKnownTypeProvider"/>) references a tainted data sink type.
-        /// </summary>
-        /// <param name="wellKnownTypeProvider">Well known type provider for the compilation to check.</param>
-        /// <returns>True if the compilation references a tainted data sink type, false otherwise.</returns>
-        public static bool DoesCompilationIncludeSinks(WellKnownTypeProvider wellKnownTypeProvider)
-        {
-            foreach (string interfaceTypeName in InterfaceSinks.Keys)
-            {
-                if (wellKnownTypeProvider.TryGetTypeByMetadataName(interfaceTypeName, out INamedTypeSymbol unused))
-                {
-                    return true;
-                }
-            }
-            
-            foreach (string concreteTypeName in ConcreteSinks.Keys)
-            {
-                if (wellKnownTypeProvider.TryGetTypeByMetadataName(concreteTypeName, out INamedTypeSymbol unused))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            builder.Add(sinkInfo);
         }
     }
 }

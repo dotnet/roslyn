@@ -12,18 +12,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal static class WebInputSources
     {
         /// <summary>
-        /// Metadata for tainted data sources.
+        /// <see cref="SourceInfo"/>s for web input tainted data sources.
         /// </summary>
-        /// <remarks>Keys are full type names (namespace + type name), values are the metadatas.</remarks>
-        public static ImmutableDictionary<string, SourceInfo> SourceInfos { get; }
+        public static ImmutableList<SourceInfo> SourceInfos { get; }
 
         /// <summary>
         /// Statically constructs.
         /// </summary>
         static WebInputSources()
         {
-            ImmutableDictionary<string, SourceInfo>.Builder sourceInfosBuilder =
-                ImmutableDictionary.CreateBuilder<string, SourceInfo>(StringComparer.Ordinal);
+            ImmutableList<SourceInfo>.Builder sourceInfosBuilder = ImmutableList.CreateBuilder<SourceInfo>();
 
             AddConcreteSource(
                 sourceInfosBuilder,
@@ -134,14 +132,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sourceInfosBuilder,
                 WellKnownTypes.SystemWebUIAdaptersPageAdapter,
                 taintedProperties: new string[] {
-                    "QueryString",    // TODO paulming: This doesn't exist in .NET Framework 4.7.2, what do we actually care about?
+                    "QueryString",
                 },
                 taintedMethods: null);
             AddConcreteSource(
                 sourceInfosBuilder,
                 WellKnownTypes.SystemWebUIDataBoundLiteralControl,
                 taintedProperties: new string[] {
-                    "Text",   // TODO paulming: Test this works for both the interface and type method.
+                    "Text",
                 },
                 taintedMethods: null);
             AddConcreteSource(
@@ -155,7 +153,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sourceInfosBuilder,
                 WellKnownTypes.SystemWebUIHtmlControlsHtmlInputControl,
                 taintedProperties: new string[] {
-                    "Value",   // TODO paulming: Test that this covers HtmlInputButton.Value and other derived classes.
+                    "Value",
                 },
                 taintedMethods: null);
             AddConcreteSource(
@@ -695,93 +693,40 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         private static void AddConcreteSource(
-            ImmutableDictionary<string, SourceInfo>.Builder builder, 
+            ImmutableList<SourceInfo>.Builder builder, 
             string fullTypeName, 
             string[] taintedProperties,
             string[] taintedMethods)
         {
-            SourceInfo metadata = new SourceInfo(
-                fullTypeName,
-                isInterface: false,
-                taintedProperties: taintedProperties != null 
-                    ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties)
-                    : ImmutableHashSet<string>.Empty,
-                taintedMethods: taintedMethods != null 
-                    ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods)
-                    : ImmutableHashSet<string>.Empty);
-            builder.Add(metadata.FullTypeName, metadata);
+            AddSource(builder, fullTypeName, false, taintedProperties, taintedMethods);
         }
 
         private static void AddInterfaceSource(
-            ImmutableDictionary<string, SourceInfo>.Builder builder,
+            ImmutableList<SourceInfo>.Builder builder,
             string fullTypeName,
+            string[] taintedProperties,
+            string[] taintedMethods)
+        {
+            AddSource(builder, fullTypeName, true, taintedProperties, taintedMethods);
+        }
+
+        private static void AddSource(
+            ImmutableList<SourceInfo>.Builder builder,
+            string fullTypeName,
+            bool isInterface,
             string[] taintedProperties,
             string[] taintedMethods)
         {
             SourceInfo metadata = new SourceInfo(
                 fullTypeName,
-                isInterface: true,
+                isInterface: isInterface,
                 taintedProperties: taintedProperties != null
                     ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedProperties)
                     : ImmutableHashSet<string>.Empty,
                 taintedMethods: taintedMethods != null
                     ? ImmutableHashSet.Create<string>(StringComparer.Ordinal, taintedMethods)
                     : ImmutableHashSet<string>.Empty);
-            builder.Add(metadata.FullTypeName, metadata);
-        }
-
-        /// <summary>
-        /// Determines if the instance property reference generates tainted data.
-        /// </summary>
-        /// <param name="wellKnownTypeProvider">Well known types cache.</param>
-        /// <param name="propertyReferenceOperation">IOperation representing the property reference.</param>
-        /// <returns>True if the property returns tainted data, false otherwise.</returns>
-        public static bool IsTaintedProperty(ImmutableDictionary<ITypeSymbol, SourceInfo> sourcesBySymbol, IPropertyReferenceOperation propertyReferenceOperation)
-        {
-            return propertyReferenceOperation != null
-                && propertyReferenceOperation.Instance != null
-                && propertyReferenceOperation.Member != null
-                && sourcesBySymbol.TryGetValue(propertyReferenceOperation.Instance.Type, out SourceInfo sourceInfo)
-                && sourceInfo.TaintedProperties.Contains(propertyReferenceOperation.Member.MetadataName);
-        }
-
-        /// <summary>
-        /// Determines if the instance method call returns tainted data.
-        /// </summary>
-        /// <param name="wellKnownTypeProvider">Well known types cache.</param>
-        /// <param name="instance">IOperation representing the instance.</param>
-        /// <param name="method">Instance method being called.</param>
-        /// <returns>True if the method returns tainted data, false otherwise.</returns>
-        public static bool IsTaintedMethod(ImmutableDictionary<ITypeSymbol, SourceInfo> sourcesBySymbol, IOperation instance, IMethodSymbol method)
-        {
-            return instance != null
-                && instance.Type != null
-                && method != null
-                && sourcesBySymbol.TryGetValue(instance.Type, out SourceInfo sourceInfo)
-                && sourceInfo.TaintedMethods.Contains(method.MetadataName);
-        }
-
-        public static ImmutableDictionary<ITypeSymbol, SourceInfo> BuildBySymbolMap(WellKnownTypeProvider wellKnownTypeProvider)
-        {
-            return SourceInfos.Values.ToBySymbolMap<SourceInfo>(wellKnownTypeProvider, (SourceInfo info) => info.FullTypeName);
-        }
-
-        /// <summary>
-        /// Determines if the compilation (via its <see cref="WellKnownTypeProvider"/>) references a tainted data source type.
-        /// </summary>
-        /// <param name="wellKnownTypeProvider">Well known type provider to check.</param>
-        /// <returns>True if the compilation references at least one tainted data source type.</returns>
-        public static bool DoesCompilationIncludeSources(WellKnownTypeProvider wellKnownTypeProvider)
-        {
-            foreach (string metadataTypeName in SourceInfos.Keys)
-            {
-                if (wellKnownTypeProvider.TryGetTypeByMetadataName(metadataTypeName, out INamedTypeSymbol unused))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            builder.Add(metadata);
         }
     }
 }
