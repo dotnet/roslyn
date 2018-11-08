@@ -155,13 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractInterface
 
             var interfaceTypeSyntax = GetTypeSyntaxFromNamedSymbol(extractedInterfaceSymbol);
 
-            var codeGenService = solution.Workspace.Services.GetLanguageServices("C#").GetService<ICodeGenerationService>();
+            var codeGenService = solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ICodeGenerationService>();
             var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol);
 
             editor.InsertBefore(typeDeclaration, interfaceNode);
-
-            //currentRoot = editor.GetChangedRoot();
-            //typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
 
             var updatedDeclaration = UpdateTypeWithInterface(extractedInterfaceSymbol, typeNodeAnnotation, typeDeclaration);
             editor.ReplaceNode(typeDeclaration, updatedDeclaration);
