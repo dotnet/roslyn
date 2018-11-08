@@ -1204,14 +1204,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 BoundExpression patternMethodCall = BindMethodGroupInvocation(
-                    initializer.Syntax, 
-                    initializer.Syntax, 
-                    methodName, 
-                    (BoundMethodGroup)boundAccess, 
-                    analyzedArguments, 
-                    bindingDiagnostics, 
-                    queryClause: null, 
-                    allowUnexpandedForm: false);
+                    initializer.Syntax,
+                    initializer.Syntax,
+                    methodName,
+                    (BoundMethodGroup)boundAccess,
+                    analyzedArguments,
+                    bindingDiagnostics,
+                    queryClause: null,
+                    allowUnexpandedForm: false,
+                    anyApplicableCandidates: out _);
 
                 analyzedArguments.Free();
 
