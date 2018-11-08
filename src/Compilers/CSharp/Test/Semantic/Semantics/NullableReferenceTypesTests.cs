@@ -36613,6 +36613,22 @@ class C
         }
 
         [Fact]
+        public void Tuple_Method()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x, object? y)
+    {
+        if (x == null) return;
+        (x, y).ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Tuple_OtherMembers_01()
         {
             var source =

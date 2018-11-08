@@ -2820,9 +2820,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-#if DEBUG
-            bool wasInterface = containingType.IsInterface;
-#endif
             if (symbol.Kind == SymbolKind.Method)
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
@@ -2854,10 +2851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
             }
-#if DEBUG
-            // https://github.com/dotnet/roslyn/issues/29967 Handle interfaces.
-            Debug.Assert(wasInterface);
-#endif
+            // https://github.com/dotnet/roslyn/issues/29967 Handle other cases such as interfaces.
             return symbol;
         }
 
@@ -2882,6 +2876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TuplePropertySymbol)symbol).UnderlyingProperty);
                 case SymbolKind.Event:
                     return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleEventSymbol)symbol).UnderlyingEvent);
+                case SymbolKind.Method:
+                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleMethodSymbol)symbol).UnderlyingMethod);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
