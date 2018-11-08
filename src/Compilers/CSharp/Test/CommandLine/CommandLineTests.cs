@@ -250,18 +250,8 @@ d.cs
             AssertEx.Equal(ImmutableArray.Create<string>(), parser.KeyFileSearchPaths);
         }
 
-        [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
-        public void SdkPathNoArg()
-        {
-            var parentDir = Temp.CreateDirectory();
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "-sdkPath" }, parentDir.Path, null);
-            parser.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch, arguments: new[] { "-sdkPath" }).WithLocation(1, 1));
-        }
-
-        [Fact]
-        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
-        public void SdkPathNull()
+        [Fact, WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void NoSdkPath()
         {
             var parentDir = Temp.CreateDirectory();
             var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/noSdkPath" }, parentDir.Path, null);
