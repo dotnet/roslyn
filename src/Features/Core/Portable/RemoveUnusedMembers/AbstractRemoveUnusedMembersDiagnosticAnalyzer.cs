@@ -611,6 +611,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             {
                 // ShouldSerializeXXX and ResetXXX are ok if there is a matching
                 // property XXX as they are used by the windows designer property grid
+                // Note that we do a case sensitive compare for compatibility with legacy FxCop
+                // implementation of this rule.
 
                 return methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean  &&
                     methodSymbol.Parameters.IsEmpty &&
