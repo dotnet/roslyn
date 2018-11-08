@@ -62,6 +62,11 @@
         <target state="translated">競合が検出されました。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_Using_statement">
+        <source>Introduce 'Using' statement</source>
+        <target state="new">Introduce 'Using' statement</target>
+        <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">{0}' ステートメントを行 {1} に移動します。</target>
@@ -1513,7 +1518,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
         <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: 上の Dispose(disposing As Boolean) にアンマネージ リソースを解放するコードが含まれる場合にのみ Finalize() をオーバーライドします。</target>
+        <target state="translated">TODO: 上の Dispose(disposing As Boolean) にアンマネージド リソースを解放するコードが含まれる場合にのみ Finalize() をオーバーライドします。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">

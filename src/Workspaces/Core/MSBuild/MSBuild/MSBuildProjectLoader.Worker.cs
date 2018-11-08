@@ -384,7 +384,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         analyzerReferences: analyzerReferences,
                         additionalDocuments: additionalDocuments,
                         isSubmission: false,
-                        hostObjectType: null);
+                        hostObjectType: null)
+                        .WithDefaultNamespace(projectFileInfo.DefaultNamespace);
                 });
             }
 

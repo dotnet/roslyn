@@ -1106,5 +1106,16 @@ class MyClass
     }
 }");
         }
+
+        [WorkItem(26364, "https://github.com/dotnet/roslyn/issues/26364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldIsFixed()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"unsafe struct S
+{
+    [|private fixed byte b[8];|]
+}");
+        }
     }
 }

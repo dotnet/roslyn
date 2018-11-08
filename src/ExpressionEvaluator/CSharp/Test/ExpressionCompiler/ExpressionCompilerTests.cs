@@ -3116,6 +3116,94 @@ class B : A
             });
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30767")]
+        [WorkItem(30767, "https://github.com/dotnet/roslyn/issues/30767")]
+        public void EvaluateCapturedLocalsOutsideLambda_PlusNullable()
+        {
+            var source =
+@"class A
+{
+    internal virtual object F(object o)
+    {
+        return 1;
+    }
+}
+class B : A
+{
+    internal override object F(object o)
+    {
+        return 2;
+    }
+    static void F(System.Func<object> f)
+    {
+        f();
+    }
+    void M<T>(object x) where T : A, new()
+    {
+        F(() => this.F(x));
+        if (x != null)
+        {
+#line 999
+            var y = new T();
+            var z = 1;
+            F(() => base.F(y));
+        }
+        else
+        {
+            var w = 2;
+            F(() => w);
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugDll));
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, methodName: "B.M", atLineNumber: 999);
+
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("this.F(y)", out error, testData);
+
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(@"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (B.<>c__DisplayClass2_0<T> V_0, //CS$<>8__locals0
+                bool V_1,
+                B.<>c__DisplayClass2_1<T> V_2, //CS$<>8__locals1
+                int V_3, //z
+                B.<>c__DisplayClass2_2<T> V_4)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""B B.<>c__DisplayClass2_0<T>.<>4__this""
+  IL_0006:  ldloc.2
+  IL_0007:  ldfld      ""T B.<>c__DisplayClass2_1<T>.y""
+  IL_000c:  box        ""T""
+  IL_0011:  callvirt   ""object B.F(object)""
+  IL_0016:  ret
+}");
+                testData = new CompilationTestData();
+                context.CompileExpression("base.F(x)", out error, testData);
+
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (B.<>c__DisplayClass2_0<T> V_0, //CS$<>8__locals0
+                bool V_1,
+                B.<>c__DisplayClass2_1<T> V_2, //CS$<>8__locals1
+                int V_3, //z
+                B.<>c__DisplayClass2_2<T> V_4)
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""B B.<>c__DisplayClass2_0<T>.<>4__this""
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""object B.<>c__DisplayClass2_0<T>.x""
+  IL_000c:  call       ""object A.F(object)""
+  IL_0011:  ret
+}");
+            });
+        }
+
         [Fact]
         public void EvaluateCapturedLocalsInsideLambda()
         {
