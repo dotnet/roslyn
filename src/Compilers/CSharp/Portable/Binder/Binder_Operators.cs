@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (leftDefault || rightDefault)
                 {
                     // other than == and !=, binary operators are disallowed on `default` literal
-                    Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, leftDefault || left.IsTypelessNew() ? left.Display : right.Display);
+                    Error(diagnostics, ErrorCode.ERR_BadOpOnTypelessExpression, node, operatorToken.Text, "default");
                     return;
                 }
             }
