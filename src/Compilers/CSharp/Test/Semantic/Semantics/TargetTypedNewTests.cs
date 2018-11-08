@@ -141,7 +141,9 @@ class C
     void M(
         C p1 = new(),
         S p2 = new(), // ok
-        S? p3 = new()
+        S? p3 = new(),
+        int p4 = new(), // ok
+        bool? p5 = new() // ok
         )
     {
     }
@@ -157,6 +159,27 @@ class C
                 //         S? p3 = new()
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("p3").WithLocation(11, 17)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            validate(0, "new()", type: "C", convertedType: "C", symbol: "C..ctor()", constant: null, ConversionKind.Identity);
+            validate(1, "new()", type: "S", convertedType: "S", symbol: "S..ctor()", constant: null, ConversionKind.Identity);
+            validate(2, "new()", type: "S", convertedType: "S?", symbol: "S..ctor()", constant: null, ConversionKind.ImplicitNullable);
+            validate(3, "new()", type: "System.Int32", convertedType: "System.Int32", symbol: "System.Int32..ctor()", constant: "0", ConversionKind.Identity);
+            validate(4, "new()", type: "System.Boolean", convertedType: "System.Boolean?", symbol: "System.Boolean..ctor()", constant: "False", ConversionKind.ImplicitNullable);
+
+            void validate(int index, string expression, string type, string convertedType, string symbol, string constant, ConversionKind conversionKind)
+            {
+                var @new = nodes.OfType<ObjectCreationExpressionSyntax>().ElementAt(index);
+                Assert.Equal(expression, @new.ToString());
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(constant, model.GetConstantValue(@new).Value?.ToString());
+            }
         }
 
         [Fact]
