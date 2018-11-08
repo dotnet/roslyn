@@ -1895,6 +1895,106 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        public async Task SerializableConstructor_TypeImplementsISerializable()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.Serialization;
+
+class C : ISerializable
+{
+    public C()
+    {
+    }
+
+    private [|C|](SerializationInfo info, StreamingContext context)
+    {
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30886, "https://github.com/dotnet/roslyn/issues/30886")]
+        public async Task SerializableConstructor_BaseTypeImplementsISerializable()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+using System.Runtime.Serialization;
+
+class C : Exception 
+{
+    public C()
+    {
+    }
+
+    private [|C|](SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData(@"[System.Runtime.Serialization.OnDeserializingAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnDeserializedAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnSerializingAttribute]")]
+        [InlineData(@"[System.Runtime.Serialization.OnSerializedAttribute]")]
+        [InlineData(@"[System.Runtime.InteropServices.ComRegisterFunctionAttribute]")]
+        [InlineData(@"[System.Runtime.InteropServices.ComUnregisterFunctionAttribute]")]
+        public async Task MethodsWithSpecialAttributes(string attribute)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class C
+{{
+    {attribute}
+    private void [|M|]()
+    {{
+    }}
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [InlineData("ShouldSerialize")]
+        [InlineData("Reset")]
+        [WorkItem(30887, "https://github.com/dotnet/roslyn/issues/30887")]
+        public async Task ShouldSerializeOrResetPropertyMethod(string prefix)
+        {
+            await TestDiagnosticMissingAsync(
+$@"class C
+{{
+    private bool [|{prefix}Data|]()
+    {{
+        return true;
+    }}
+
+    public int Data {{ get; private set; }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(30377, "https://github.com/dotnet/roslyn/issues/30377")]
+        public async Task EventHandlerMethod()
+        {
+            await TestDiagnosticMissingAsync(
+$@"using System;
+
+class C
+{{
+    private void [|M|](object o, EventArgs args)
+    {{
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllFields_Document()
         {
             await TestInRegularAndScriptAsync(
