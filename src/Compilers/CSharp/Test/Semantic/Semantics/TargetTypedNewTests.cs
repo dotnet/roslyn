@@ -76,7 +76,7 @@ class C
                 Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
             }
         }
 
@@ -124,7 +124,7 @@ class C
                 Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
             }
         }
 
@@ -177,7 +177,7 @@ class C
                 Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
                 Assert.Equal(constant, model.GetConstantValue(@new).Value?.ToString());
             }
         }
@@ -267,7 +267,7 @@ class C
         }
 
         [Fact]
-        public void TestInAsOperator()
+        public void TestInAsOperator1()
         {
             var source = @"
 using System;
@@ -303,12 +303,12 @@ class C
                 Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
             }
         }
 
         [Fact]
-        public void TestInAsOperator_ErrorCases()
+        public void TestInAsOperator2()
         {
             var source = @"
 using System;
@@ -753,7 +753,7 @@ class C
         [Fact]
         public void TestDeconstruction()
         {
-            var soruce = @"
+            var source = @"
 class C
 {
     public static void Main()
@@ -764,7 +764,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(soruce, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,22): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         var (_, _) = new();
@@ -1272,7 +1272,7 @@ class C
                 Assert.Equal(type, model.GetTypeInfo(invocation).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(invocation).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(invocation).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(invocation).Kind);
             }
         }
 
@@ -2260,7 +2260,7 @@ class C
     static void Main()
     {
         int i = checked(new(a));
-        int j = checked(new());
+        int j = checked(new()); // ok
         C k = unchecked(new()); // ok
     }
 }
@@ -3095,7 +3095,7 @@ True");
                 Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
                 Assert.Equal(operatorSymbol, model.GetSymbolInfo(@new.Parent).Symbol.ToTestDisplayString());
             }
         }
@@ -3165,7 +3165,7 @@ True");
                 Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
                 Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
                 Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
-                Assert.Equal(model.GetConversion(@new).Kind, conversionKind);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
                 Assert.Equal(operatorSymbol, model.GetSymbolInfo(@new.Parent).Symbol.ToTestDisplayString());
             }
         }
@@ -3374,6 +3374,7 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
         }
 
         [Fact]
