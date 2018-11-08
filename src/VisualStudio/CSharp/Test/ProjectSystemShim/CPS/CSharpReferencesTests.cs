@@ -85,6 +85,29 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             }
         }
 
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RemoveProjectConvertsProjectReferencesBack()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
+                var project2 = CreateCSharpCPSProject(environment, "project2");
+
+                // Add project reference as metadata reference: since this is known to be the output path of project1, the metadata reference is converted to a project reference
+                project2.AddMetadataReference(@"c:\project1.dll", new MetadataReferenceProperties());
+                Assert.Single(environment.Workspace.CurrentSolution.GetProject(project2.Id).AllProjectReferences);
+
+                // Remove project1. project2's reference should have been converted back
+                project1.Dispose();
+                Assert.Empty(environment.Workspace.CurrentSolution.GetProject(project2.Id).AllProjectReferences);
+                Assert.Single(environment.Workspace.CurrentSolution.GetProject(project2.Id).MetadataReferences);
+
+                project2.Dispose();
+            }
+        }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddRemoveAnalyzerReference_CPS()

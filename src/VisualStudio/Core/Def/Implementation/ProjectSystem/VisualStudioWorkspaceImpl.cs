@@ -1288,18 +1288,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfo = new Dictionary<ProjectId, ProjectReferenceInformation>();
+        private Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
         {
-            return _projectReferenceInfo.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
+            return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
         }
 
         protected internal override void OnProjectRemoved(ProjectId projectId)
         {
             lock (_gate)
             {
-                _projectReferenceInfo.Remove(projectId);
+                if (_projectReferenceInfoMap.TryGetValue(projectId, out var projectReferenceInfo))
+                {
+                    // If we still had any output paths, we'll want to remove them to cause conversion back to metadata references.
+                    // The call below implicitly is modifying the collection we've fetched, so we'll make a copy.
+                    foreach (var outputPath in projectReferenceInfo.OutputPaths.ToList())
+                    {
+                        RemoveProjectOutputPath(projectId, outputPath);
+                    }
+
+                    _projectReferenceInfoMap.Remove(projectId);
+                }
+
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
 
