@@ -321,6 +321,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
         }
 
+        /// <summary>
+        /// Determines if a syntax node includes all required closing delimiters.
+        /// </summary>
+        /// <remarks>
+        /// <para>Some syntax nodes, such as parenthesized expressions, require a matching closing delimiter to end the
+        /// syntax node. If this node is omitted from the source code, the parser will automatically insert a zero-width
+        /// "missing" closing delimiter token to produce a valid syntax tree. This method determines if required closing
+        /// delimiters are present in the original source.</para>
+        /// </remarks>
+        /// <param name="currentNode"></param>
+        /// <param name="lastDelimiterSpan"></param>
+        /// <returns>
+        /// <list type="bullet">
+        /// <item><description><see langword="true"/> if <paramref name="currentNode"/> requires a closing delimiter and the closing delimiter is present in the source (i.e. not missing)</description></item>
+        /// <item><description><see langword="true"/> if <paramref name="currentNode"/> does not require a closing delimiter</description></item>
+        /// <item><description>otherwise, <see langword="false"/>.</description></item>
+        /// </list>
+        /// </returns>
         private static bool ClosingDelimiterExistsIfNeeded(SyntaxNode currentNode, ref TextSpan lastDelimiterSpan)
         {
             switch (currentNode.Kind())
