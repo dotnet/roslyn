@@ -193,12 +193,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                HashUtilities.Combine(Type.GetHashCode(),
                HashUtilities.Combine(ParentOpt?.GetHashCode() ?? 0, IsThisOrMeInstance.GetHashCode()))))));
 
-        public bool HasAncestorOrSelf(AnalysisEntity ancestor)
+        public bool HasAncestor(AnalysisEntity ancestor)
         {
             Debug.Assert(ancestor != null);
 
-            AnalysisEntity current = this;
-            do
+            AnalysisEntity current = this.ParentOpt;
+            while (current != null)
             {
                 if (current == ancestor)
                 {
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 current = current.ParentOpt;
-            } while (current != null);
+            }
 
             return false;
         }
