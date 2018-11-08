@@ -133,17 +133,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static SyntaxNode GetEnclosingArgumentList(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
         {
-            while (currentNode.Kind() != SyntaxKind.ArgumentList
-                && currentNode.Kind() != SyntaxKind.ArrayRankSpecifier)
+            while (!currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
-                if (currentNode.Kind() == SyntaxKind.InterpolatedStringExpression || currentNode.Kind() == SyntaxKind.StringLiteralExpression)
+                if (currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression))
                 {
                     return null;
                 }
 
                 if (currentNode == null
                     || syntaxFacts.IsStatement(currentNode)
-                    || currentNode.Kind() == SyntaxKind.VariableDeclaration)
+                    || currentNode.IsKind(SyntaxKind.VariableDeclaration))
                 {
                     return null;
                 }
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
 
             // now we're in an argument list, so return the enclosing statement
-            while (!syntaxFacts.IsStatement(currentNode) && !(currentNode.Kind() == SyntaxKind.VariableDeclaration))
+            while (!syntaxFacts.IsStatement(currentNode) && !currentNode.IsKind(SyntaxKind.VariableDeclaration))
             {
                 currentNode = currentNode.Parent;
                 if (currentNode == null)
@@ -377,9 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                             return false;
                         }
 
-                        var previousKind = token.GetPreviousToken().Kind();
-                        if (previousKind == SyntaxKind.IdentifierToken
-                            || previousKind == SyntaxKind.EqualsExpression)
+                        if (token.GetPreviousToken().IsKind(SyntaxKind.IdentifierToken, SyntaxKind.EqualsExpression))
                         {
                             return false;
                         }
@@ -401,12 +398,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
                 case SyntaxKind.IdentifierToken:
                     {
-                        if (caretPosition == token.Span.End && token.GetNextToken().Kind() != SyntaxKind.DotToken)
+                        if (caretPosition == token.Span.End && !token.GetNextToken().IsKind(SyntaxKind.DotToken))
                         {
                             return true;
                         }
 
-                        if (caretPosition == token.SpanStart && token.GetPreviousToken().Kind() != SyntaxKind.DotToken)
+                        if (caretPosition == token.SpanStart && !token.GetPreviousToken().IsKind(SyntaxKind.DotToken))
                         {
                             return true;
                         }
@@ -436,9 +433,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         {
             if (caretPosition == token.SpanStart)
             {
-                if ((token.Kind() != SyntaxKind.CloseParenToken && token.GetPreviousToken().Kind() == SyntaxKind.OpenParenToken)
-                    || (token.Kind() != SyntaxKind.CloseBraceToken && token.GetPreviousToken().Kind() == SyntaxKind.OpenBraceToken)
-                    || (token.Kind() != SyntaxKind.CloseBracketToken && token.GetPreviousToken().Kind() == SyntaxKind.OpenBracketToken))
+                if ((!token.IsKind(SyntaxKind.CloseParenToken) && token.GetPreviousToken().IsKind(SyntaxKind.OpenParenToken))
+                    || (!token.IsKind(SyntaxKind.CloseBraceToken) && token.GetPreviousToken().IsKind(SyntaxKind.OpenBraceToken))
+                    || (!token.IsKind(SyntaxKind.CloseBracketToken) && token.GetPreviousToken().IsKind(SyntaxKind.OpenBracketToken)))
                 {
                     return true;
                 }
