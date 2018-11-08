@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
-    using System.Diagnostics;
-    using Microsoft.CodeAnalysis.Shared.Extensions;
     using static Helpers;
 
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer
