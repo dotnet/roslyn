@@ -1630,6 +1630,23 @@ class C
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_IllegalTargetType, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            validate(0, type: null, convertedType: null);
+            validate(1, type: null, convertedType: null);
+            validate(2, type: "System.IDisposable", convertedType: "System.IDisposable");
+
+            void validate(int index, string type, string convertedType)
+            {
+                var @new = nodes.OfType<ObjectCreationExpressionSyntax>().ElementAt(index);
+                Assert.Equal("new()", @new.ToString());
+                Assert.Equal(type, model.GetTypeInfo(@new).Type?.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType?.ToTestDisplayString());
+                Assert.False(model.GetConstantValue(@new).HasValue);
+            }
         }
 
         [Fact]
