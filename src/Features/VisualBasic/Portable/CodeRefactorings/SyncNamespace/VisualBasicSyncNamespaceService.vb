@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
         End Function
 
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
-        Protected Overrides Function ChangeNamespaceDeclaration(root As SyntaxNode, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String)) As SyntaxNode
+        Protected Overrides Function ChangeNamespaceDeclaration(root As CompilationUnitSyntax, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String)) As CompilationUnitSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 

@@ -182,17 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         ///     - if target namespace is "", then we try to move all members in declared 
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
         /// </summary>
-        protected override SyntaxNode ChangeNamespaceDeclaration(
-            SyntaxNode root, 
+        protected override CompilationUnitSyntax ChangeNamespaceDeclaration(
+            CompilationUnitSyntax compilationUnit, 
             ImmutableArray<string> declaredNamespaceParts, 
             ImmutableArray<string> targetNamespaceParts)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
-
-            if (!(root is CompilationUnitSyntax compilationUnit))
-            {
-                return root;
-            }
 
             // Move everything from global namespace to a namespace declaration
             if (declaredNamespaceParts.Length == 1 && declaredNamespaceParts[0].Length == 0)
@@ -208,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             }
 
             // We should have a single member which is a namespace declaration in this compilation unit.
-            var namespaceDeclaration = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+            var namespaceDeclaration = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
 
             // Move everything to global namespace
             if (targetNamespaceParts.Length == 1 && targetNamespaceParts[0].Length == 0)
@@ -258,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             }
 
             // Change namespace name
-            return root.ReplaceNode(namespaceDeclaration, 
+            return compilationUnit.ReplaceNode(namespaceDeclaration, 
                 namespaceDeclaration.WithName(
                     CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                     .WithTriviaFrom(namespaceDeclaration.Name)

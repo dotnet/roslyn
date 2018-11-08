@@ -36,16 +36,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, out SyntaxNode old, out SyntaxNode @new);
 
         protected abstract string EscapeIdentifier(string identifier);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="root"></param>
-        /// <param name="declaredNamespaceParts"></param>
-        /// <param name="targetNamespaceParts"></param>
-        /// <returns></returns>
-        protected abstract SyntaxNode ChangeNamespaceDeclaration(
-            SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
+        
+        protected abstract TCompilationUnitSyntax ChangeNamespaceDeclaration(
+            TCompilationUnitSyntax root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
 
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 

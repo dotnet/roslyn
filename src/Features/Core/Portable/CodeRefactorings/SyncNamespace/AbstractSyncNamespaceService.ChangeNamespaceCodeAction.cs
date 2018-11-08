@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         cancellationToken).ConfigureAwait(false);
 
                 var root = await documentWithAddedImports.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = _service.ChangeNamespaceDeclaration(root, _oldNamespaceParts, _newNamespaceParts);
+                root = _service.ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, _oldNamespaceParts, _newNamespaceParts);
 
                 // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
                 root = await Formatter.FormatAsync(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken)
