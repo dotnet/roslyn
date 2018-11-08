@@ -44,23 +44,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            BeforeExecuteCommand(args, executionContext);
+            nextCommandHandler();
+        }
+
+        private void BeforeExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
+        {
             if (args.TypedChar != ';')
             {
-                nextCommandHandler();
                 return;
             }
 
             var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caret.HasValue)
             {
-                nextCommandHandler();
                 return;
             }
 
             var document = caret.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                nextCommandHandler();
                 return;
             }
 
@@ -79,14 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             if (currentNode == null)
             {
-                nextCommandHandler();
                 return;
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (GetEnclosingArgumentList(currentNode, syntaxFacts) == null)
             {
-                nextCommandHandler();
                 return;
             }
 
@@ -99,13 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 if (!ClosingDelimiterExistsIfNeeded(currentNode, ref lastDelimiterSpan))
                 {
                     // A required delimiter is missing; do not treat semicolon as statement completion
-                    nextCommandHandler();
                     return;
                 }
 
                 if (currentNode.Parent == null)
                 {
-                    nextCommandHandler();
                     return;
                 }
 
@@ -118,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 if (!StatementClosingDelimiterExists(currentNode, ref lastDelimiterSpan))
                 {
                     // Example: missing final `)` in `do { } while (x$$`
-                    nextCommandHandler();
                     return;
                 }
             }
@@ -131,7 +129,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             // Move to space after the last delimiter
             args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(GetEndPosition(root, lastDelimiterSpan.End, currentNode.Kind())));
-            nextCommandHandler();
         }
 
         private static SyntaxNode GetEnclosingArgumentList(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
