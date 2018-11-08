@@ -1422,7 +1422,7 @@ Imports A.B.C
 Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -1463,7 +1463,7 @@ End Class</Document>
 @"Public Class VBClass
     Public ReadOnly Property C1 As A.B.C.Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -1504,7 +1504,7 @@ Imports A.B.C
 Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -1545,7 +1545,7 @@ End Class</Document>
 @"Public Class VBClass
     Public ReadOnly Property C1 As Class1
 End Class";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -1594,7 +1594,7 @@ End Namespace</Document>
     Public Class MyClass
     End Class
 End Namespace";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference, hasTwoProjects: true);
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
     }
 }

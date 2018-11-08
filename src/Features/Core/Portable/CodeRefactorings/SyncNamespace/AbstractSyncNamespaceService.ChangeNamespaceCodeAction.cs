@@ -15,15 +15,15 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
-        where TCompilationUnitSyntax : SyntaxNode 
+        where TCompilationUnitSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         /// <summary>
         /// This code action tries to change the name of the namespace declaration to 
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         internal sealed class ChangeNamespaceCodeAction : CodeAction
         {
             private readonly State _state;
-            private readonly AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> _service;
+            private readonly AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> _service;
 
             public override string Title => _state.TargetNamespace.Length == 0 
                 ? FeaturesResources.Change_to_global_namespace
                 : string.Format(FeaturesResources.Change_namespace_to_0, _state.TargetNamespace);
 
             public ChangeNamespaceCodeAction(
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service,
                 State state)
             {
                 Debug.Assert(state.TargetNamespace != null);

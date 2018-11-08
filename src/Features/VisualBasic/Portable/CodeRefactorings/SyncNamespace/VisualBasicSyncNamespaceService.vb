@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
     <ExportLanguageService(GetType(ISyncNamespaceService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyncNamespaceService
-        Inherits AbstractSyncNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax)
+        Inherits AbstractSyncNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
         End Function
 
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
-        Protected Overrides Function GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+        Protected Overrides Function GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl As SyntaxNode) As SyntaxList(Of StatementSyntax)
             Throw ExceptionUtilities.Unreachable
         End Function
 

@@ -14,10 +14,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
-       ISyncNamespaceService
-       where TNamespaceDeclarationSyntax : SyntaxNode
-       where TCompilationUnitSyntax : SyntaxNode
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> :
+        ISyncNamespaceService
+        where TNamespaceDeclarationSyntax : SyntaxNode
+        where TCompilationUnitSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         public async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         protected abstract SyntaxNode ChangeNamespaceDeclaration(
             SyntaxNode root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts);
 
-        protected abstract IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 
         /// <summary>
         /// Determine if this refactoring should be triggered based on current cursor position and if there's any partial 
@@ -115,17 +116,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             var containingText = relativeTo + ".";
-            var startsWithRelative = syntaxFacts.IsCaseSensitive
-                ? @namespace.StartsWith(containingText, StringComparison.Ordinal)       // For C#
-                : CaseInsensitiveComparison.StartsWith(@namespace, containingText);     // for VB
+            var namespacePrefix = @namespace.Substring(0, containingText.Length);
 
-            return startsWithRelative
+            return syntaxFacts.StringComparer.Equals(containingText, namespacePrefix)
                 ? @namespace.Substring(relativeTo.Length + 1)
                 : null;
         }
 
         private static ImmutableArray<CodeAction> CreateCodeActions(
-            AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, State state)
+            AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, State state)
         {
             var builder = ArrayBuilder<CodeAction>.GetInstance();
 

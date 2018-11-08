@@ -14,9 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
-        where TCompilationUnitSyntax : SyntaxNode 
+        where TCompilationUnitSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         internal sealed class MoveFileCodeAction : CodeAction
         {

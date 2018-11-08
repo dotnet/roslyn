@@ -15,9 +15,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 {
-    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         internal sealed class State
         {                                                                        
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             private static async Task<(bool shouldTrigger, string declaredNamespace)> TryGetNamespaceDeclarationAsync(
                 TextSpan textSpan,
                 ImmutableArray<Document> documents,
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service,
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service,
                 CancellationToken cancellationToken)
             {
                 // If the cursor location doesn't meet the requirement to trigger the refactoring in any of the documents 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             }
 
             public static async Task<State> CreateAsync(
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, 
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, 
                 Document document, 
                 TextSpan textSpan, 
                 CancellationToken cancellationToken)
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
             /// </summary>
             private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax> service, 
+                AbstractSyncNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service, 
                 IEnumerable<string> folders, 
                 ISyntaxFactsService syntaxFacts)
             {

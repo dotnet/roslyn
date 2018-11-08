@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -21,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
 {
     [ExportLanguageService(typeof(ISyncNamespaceService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpSyncNamespaceService :
-        AbstractSyncNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax>
+        AbstractSyncNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
-        protected override IReadOnlyList<SyntaxNode> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl)
+        protected override SyntaxList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl)
         {
             if (compilationUnitOrNamespaceDecl is NamespaceDeclarationSyntax namespaceDecl)
             {
