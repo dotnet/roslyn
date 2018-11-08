@@ -5,7 +5,7 @@
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
+        <target state="translated">'{0}' 분석기에서 다음 예외를 throw했습니다.
 '{1}'</target>
         <note />
       </trans-unit>
@@ -196,7 +196,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
+        <target state="translated">값이 너무 커서 30비트 부호 없는 정수로 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
@@ -231,12 +231,12 @@
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
         <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
-        <target state="translated">반환 형식에는 값 형식, 포인터, by-ref 또는 공개 제네릭 형식을 사용할 수 없습니다.</target>
+        <target state="translated">반환 형식에는 값 형식, 포인터, by-ref 또는 개방형 제네릭 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
         <source>Return type can't be void, by-ref or open generic type</source>
-        <target state="translated">반환 형식에는 void, by-ref 또는 공개 제네릭 형식을 사용할 수 없습니다.</target>
+        <target state="translated">반환 형식에는 void, by-ref 또는 개방형 제네릭 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
@@ -366,7 +366,7 @@
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyName">
         <source>Invalid characters in assembly name</source>
-        <target state="translated">어셈블리 이름에 잘못된 문자가 있음</target>
+        <target state="translated">어셈블리 이름에 잘못된 문자가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
@@ -538,7 +538,7 @@
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">DiagnosticDescriptor에 null, 빈 문자열 및 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
+        <target state="translated">DiagnosticDescriptor에 null 또는 빈 문자열이 아니거나 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
@@ -688,7 +688,7 @@
       </trans-unit>
       <trans-unit id="MissingKeepAlive">
         <source>Missing argument for '/keepalive' option.</source>
-        <target state="translated">/keepalive' 옵션에 인수가 없습니다.</target>
+        <target state="translated">'/keepalive' 옵션에 인수가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
@@ -738,7 +738,7 @@
       </trans-unit>
       <trans-unit id="SharedArgumentMissing">
         <source>Value for argument '/shared:' must not be empty</source>
-        <target state="translated">/shared:' 인수의 값은 비워 둘 수 없습니다.</target>
+        <target state="translated">'/shared:' 인수의 값은 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExceptionContext">
