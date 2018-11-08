@@ -211,11 +211,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendPlusOrMinusSwitch("/nullable", _store, nameof(NullableReferenceTypes));
-
-            if (_store.GetOrDefault(nameof(DisableSdkPath), @default: false))
-            {
-                commandLine.AppendSwitch("/sdkpath-");
-            }
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;

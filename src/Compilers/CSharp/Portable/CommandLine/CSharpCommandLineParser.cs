@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             continue;
 
-                        case "sdkpath-":
+                        case "nosdkpath":
                             sdkDirectory = null;
 
                             continue;

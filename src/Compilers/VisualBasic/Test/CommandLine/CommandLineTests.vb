@@ -3221,7 +3221,7 @@ print Goodbye, World"
         <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
         Public Sub SdkPathArgFollowedByNull()
             Dim parentDir = Temp.CreateDirectory()
-            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/sdkPath-"}, parentDir.Path, Nothing)
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "-sdkPath:path/to/sdk", "/noSdkPath"}, parentDir.Path, Nothing)
             AssertEx.Equal(ImmutableArray(Of String).Empty, parser.ReferencePaths)
         End Sub
 
@@ -3230,7 +3230,7 @@ print Goodbye, World"
         Public Sub SdkPathNullFollowedByArg()
             Dim parentDir = Temp.CreateDirectory()
             Dim sdkDir = parentDir.CreateDirectory("sdk")
-            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "/sdkPath-", $"-sdkPath:{sdkDir.Path}"}, parentDir.Path, Nothing)
+            Dim parser = VisualBasicCommandLineParser.Default.Parse({"file.vb", $"-out:{parentDir.Path}", "/noSdkPath", $"-sdkPath:{sdkDir.Path}"}, parentDir.Path, Nothing)
             AssertEx.Equal(ImmutableArray.Create(sdkDir.Path), parser.ReferencePaths)
         End Sub
 

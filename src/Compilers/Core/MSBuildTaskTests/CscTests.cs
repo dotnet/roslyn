@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csc = new Csc();
             csc.DisableSdkPath = true;
-            Assert.Equal(@"/sdkpath-", csc.GenerateResponseFileContents());
+            Assert.Equal(@"/nosdkpath", csc.GenerateResponseFileContents());
         }
 
         [Fact]

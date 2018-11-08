@@ -264,7 +264,7 @@ d.cs
         public void SdkPathNull()
         {
             var parentDir = Temp.CreateDirectory();
-            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/sdkPath-" }, parentDir.Path, null);
+            var parser = CSharpCommandLineParser.Default.Parse(new[] { "file.cs", $"-out:{parentDir.Path}", "/noSdkPath" }, parentDir.Path, null);
             AssertEx.Equal(ImmutableArray<string>.Empty, parser.ReferencePaths);
         }
 

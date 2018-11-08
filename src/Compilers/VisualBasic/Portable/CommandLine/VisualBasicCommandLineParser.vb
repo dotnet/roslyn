@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
-                        Case "sdkpath-"
+                        Case "nosdkpath"
                             sdkDirectory = Nothing
                             sdkPaths.Clear()
                             Continue For
