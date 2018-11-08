@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 return workspace.CanRenameFilesDuringCodeActions(workspace.CurrentSolution.GetDocument(_state.OriginalDocumentId).Project);
             }
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-                => MoveFileToMatchNamespaceAsync(cancellationToken);
-
-            private async Task<IEnumerable<CodeActionOperation>> MoveFileToMatchNamespaceAsync(CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var id = _state.OriginalDocumentId;
                 var solution = _state.Solution;
@@ -64,13 +61,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             
             public static ImmutableArray<MoveFileCodeAction> Create(State state)
             {
+                Debug.Assert(state.RelativeDeclaredNamespace != null);
+
                 // Since all documents have identical folder structure, we can do the computation on any of them.
-                var document = state.Solution.GetDocument(state.DocumentIds.First());
-                var parts = state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
+                var document = state.Solution.GetDocument(state.OriginalDocumentId);
+                // In case the relative namespace is "", the file should be moved to project root,
+                // set `parts` to empty to indicate that.
+                var parts = state.RelativeDeclaredNamespace.Length == 0
+                    ? ImmutableArray<string>.Empty
+                    : state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
 
                 // Invalid char can only appear in namespace name when there's error,
                 // which we have checked before creating any code actions.
-                Debug.Assert(parts.Any(s => s.IndexOfAny(Path.GetInvalidPathChars()) < 0));
+                Debug.Assert(parts.IsEmpty || parts.Any(s => s.IndexOfAny(Path.GetInvalidPathChars()) < 0));
 
                 var projectRootFolder = FolderInfo.CreateFolderHierarchyForProject(document.Project);
                 var candidateFolders = FindCandidateFolders(projectRootFolder, parts, ImmutableArray<string>.Empty);
@@ -87,25 +90,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 ImmutableArray<string> parts, 
                 ImmutableArray<string> currentFolder)
             {
-                if (parts.Length == 0 || parts.Length == 1 && parts[0].Length == 0)
+                if (parts.IsEmpty)
                 {
                     return ImmutableArray.Create(currentFolder);
                 }
-
-                var partsArray = parts.ToArray();
 
                 // Try to figure out all possible folder names that can match the target namespace.
                 // For example, if the target is "A.B.C", then the matching folder names include
                 // "A", "A.B" and "A.B.C". The item "index" in the result tuple is the number 
                 // of items in namespace parts used to construct iten "foldername".
                 var candidates = Enumerable.Range(1, parts.Length)
-                    .Select(i => (foldername: string.Join(".", partsArray, 0, i), index: i)) 
+                    .Select(i => (foldername: string.Join(".", parts.Take(i)), index: i)) 
                     .ToImmutableDictionary(t => t.foldername, t => t.index, PathUtilities.Comparer);
 
                 var subFolders = currentFolderInfo.ChildFolders;
 
                 var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
-                foreach ((var folderName, var index) in candidates)
+                foreach (var (folderName, index) in candidates)
                 {
                     if (subFolders.TryGetValue(folderName, out var matchingFolderInfo))
                     {

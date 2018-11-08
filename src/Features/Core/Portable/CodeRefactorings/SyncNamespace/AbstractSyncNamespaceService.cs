@@ -55,15 +55,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         ///     (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
         /// </summary>
         /// <returns>
-        /// A tuple with two items:
-        ///     1. a boolean value indicates if the refactoring should be triggered.
-        ///     2. the only namespace declaration node in the document, null if none or more than one.
+        /// If the refactoring should be triggered, then returns the only namespace declaration node in the document (or type 
+        /// <typeparamref name="TNamespaceDeclarationSyntax"/>) or the compilation unit node (of type <typeparamref name="TCompilationUnitSyntax"/>)
+        /// if no namespace declaration in the document. Otherwise, return null.
         /// </returns>
-        protected abstract Task<(bool shouldTrigger, TNamespaceDeclarationSyntax singleNamespaceDecl)> ShouldPositionTriggerRefactoringAsync(
-            Document document, int position, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken);
 
-        protected SyntaxAnnotation WarningAnnotation
-            => CodeActions.WarningAnnotation.Create(
+        protected static SyntaxAnnotation WarningAnnotation { get; }
+            = CodeActions.WarningAnnotation.Create(
                 FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
 
         protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(
@@ -110,16 +109,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             {
                 return @namespace;
             }
-
-            var containingText = relativeTo + ".";
-            if (syntaxFacts.IsCaseSensitive
-                ? @namespace.StartsWith(containingText, StringComparison.Ordinal)       // For C#
-                : CaseInsensitiveComparison.StartsWith(@namespace, containingText))     // for VB
+            else if (relativeTo.Length >= @namespace.Length)
             {
-                return @namespace.Substring(relativeTo.Length + 1);
+                return null;
             }
 
-            return null;
+            var containingText = relativeTo + ".";
+            var startsWithRelative = syntaxFacts.IsCaseSensitive
+                ? @namespace.StartsWith(containingText, StringComparison.Ordinal)       // For C#
+                : CaseInsensitiveComparison.StartsWith(@namespace, containingText);     // for VB
+
+            return startsWithRelative
+                ? @namespace.Substring(relativeTo.Length + 1)
+                : null;
         }
 
         private static ImmutableArray<CodeAction> CreateCodeActions(

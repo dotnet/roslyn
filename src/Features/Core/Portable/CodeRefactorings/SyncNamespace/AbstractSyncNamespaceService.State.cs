@@ -27,8 +27,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             public Solution Solution { get; }
 
+            /// <summary>
+            /// The document in which the refactoring is triggered.
+            /// </summary>
             public DocumentId OriginalDocumentId { get; }
 
+            /// <summary>
+            /// The refactoring is also enabled for document in a multi-targeting project, 
+            /// which is the only form of linked document allowed. This property returns IDs
+            /// of the original document that triggered the refactoring plus every such linked 
+            /// documents.
+            /// </summary>
             public ImmutableArray<DocumentId> DocumentIds { get;  }
 
             /// <summary>
@@ -43,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                                                                                                        
             /// <summary>
             /// This is the new name we want to change the namespace to.
-            /// Empty string means global namespace, whereas null means renaming action is not available.
+            /// Empty string means global namespace, whereas null means change namespace action is not available.
             /// </summary>
             public string TargetNamespace { get; }
 
@@ -85,14 +94,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var solution = document.Project.Solution;
                 var linkedDocumentids = document.GetLinkedDocumentIds();
 
-                // TODO: figure out how to properly determine if a document is linked using project system.
+                // TODO: figure out how to properly determine if and how a document is linked using project system.
 
                 // If we found a linked document which is part of a project with differenct project file,
-                // then it's an actual linked file (i.e. not a MTFM project). We don't support that, because 
+                // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that, because 
                 // we don't know which default namespace and folder path we should use to construct target
                 // namespace.
                 if (linkedDocumentids.Any(id => 
-                !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
+                        !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
                 {
                     allDocumentIds = default;
                     return false;
@@ -152,19 +161,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var spansForNamespaceDeclaration = new Dictionary<TextSpan, TNamespaceDeclarationSyntax>();
                 foreach (var document in documents)
                 {
-                    var (shouldTrigger, namespaceDeclaration) = 
-                        await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
+                    var compilationUnitOrNamespaceDeclOpt = await service.ShouldPositionTriggerRefactoringAsync(document, textSpan.Start, cancellationToken)
                         .ConfigureAwait(false);
 
-                    if (!shouldTrigger)
+                    if (compilationUnitOrNamespaceDeclOpt is TNamespaceDeclarationSyntax namespaceDeclaration)
+                    {
+                        spansForNamespaceDeclaration[namespaceDeclaration.Span] = namespaceDeclaration;
+                    }
+                    else if (compilationUnitOrNamespaceDeclOpt is TCompilationUnitSyntax)
+                    {
+                        // In case there's no namespace declaration in the document, we used an empty span as key, 
+                        // since a valid namespace declaration node can't have zero length.
+                        spansForNamespaceDeclaration[default] = null;
+                    }
+                    else
                     {
                         return default;
                     }
-
-                    // In case there's no namespace declaration in the document, we used an empty span as key, 
-                    // since a valid namespace declaration node can't have zero length.
-                    var span = namespaceDeclaration?.Span ?? new TextSpan(0, 0);
-                    spansForNamespaceDeclaration[span] = namespaceDeclaration;
                 }
 
                 if (spansForNamespaceDeclaration.Count != 1)
@@ -213,15 +226,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
 
                 var (shouldTrigger, declaredNamespace) = 
-                    await TryGetNamespaceDeclarationAsync(textSpan, documents, service, cancellationToken)
-                    .ConfigureAwait(false);
+                    await TryGetNamespaceDeclarationAsync(textSpan, documents, service, cancellationToken).ConfigureAwait(false);
 
                 if (!shouldTrigger)
                 {
                     return null;
                 }
 
-                // Namespace can't be renamed if we can't construct a valid qualified identifier from folder names.
+                // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
                 var namespaceFromFolders = TryBuildNamespaceFromFolders(service, document.Folders, syntaxFacts);
                 var targetNamespace = namespaceFromFolders == null 
@@ -234,9 +246,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     return null;
                 }
 
-                // Only provide "move file" action if root namespace contains declared namespace.
-                // It makes no sense to match folder hierarchy with namespace if it's not rooted 
-                // at the root namespace of the project. 
+                // Only provide "move file" action if default namespace contains declared namespace.
+                // For example, if the default namespace is `Microsoft.CodeAnalysis`, and declared
+                // namespace is `System.Diagnostics`, it's very likely this document is an outlier  
+                // in the project and user probably has some special rule for it.
                 var relativeNamespace = GetRelativeNamespace(defaultNamespace, declaredNamespace, syntaxFacts);                                                                           
                                                                                                                           
                 return new State(

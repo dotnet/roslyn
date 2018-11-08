@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
         End Function
 
         Protected Overrides Function EscapeIdentifier(identifier As String) As String
-            Return identifier?.EscapeIdentifier()
+            Return identifier.EscapeIdentifier()
         End Function
 
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.SyncNamespace
         End Function
 
         ' This is only reachable when called from a VB refacoring provider, which is not implemented yet.
-        Protected Overrides Function ShouldPositionTriggerRefactoringAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of (Boolean, NamespaceStatementSyntax))
+        Protected Overrides Function ShouldPositionTriggerRefactoringAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Throw ExceptionUtilities.Unreachable
         End Function
 

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             {
                 return compilationUnit.Members;
             }
+
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -101,19 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 // We might lose some trivia associated with children of `outerMostNode`.  
                 @new = @new.WithTriviaFrom(old);
             }
+
             return true;
         }
 
         protected override string EscapeIdentifier(string identifier)
-            => identifier?.EscapeIdentifier();
+            => identifier.EscapeIdentifier();
 
-        protected override async Task<(bool, NamespaceDeclarationSyntax)> ShouldPositionTriggerRefactoringAsync(
-            Document document, 
-            int position, 
-            CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> ShouldPositionTriggerRefactoringAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var compilationUnit = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;            
-            var namespaceDecls = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
+            var compilationUnit = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) as CompilationUnitSyntax;  
 
             // Here's conditions that trigger the refactoring (all have to be true in each scenario):
             // 
@@ -129,36 +128,49 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             //    2. No partial type declared in the document. Otherwise its multiple declaration will
             //       end up in different namespace.
 
-            if (namespaceDecls.Length == 1 && compilationUnit.Members.Count == 1)
+            var triggeringNode = GetTriggeringNode(compilationUnit, position);
+            if (triggeringNode != null)
             {
-                var namespaceDeclaration = namespaceDecls.Single();
-                Debug.Assert((object)namespaceDeclaration == (object)compilationUnit.Members.Single());
+                var containsPartial = await ContainsPartialTypeWithMultipleDeclarationsAsync(document, triggeringNode, cancellationToken)
+                    .ConfigureAwait(false);
 
-                var shouldTrigger = namespaceDeclaration.Name.Span.IntersectsWith(position) 
-                    && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error);
-
-                shouldTrigger = shouldTrigger && 
-                    !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, namespaceDeclaration, cancellationToken)
-                    .ConfigureAwait(false));
-
-                return (shouldTrigger, shouldTrigger ? namespaceDeclaration : null);
-            }
-
-            if (namespaceDecls.Length == 0)
-            {
-                var firstMemberDeclaration = compilationUnit.Members.FirstOrDefault();
-
-                var shouldTrigger = firstMemberDeclaration != null
-                    && firstMemberDeclaration.GetNameToken().Span.IntersectsWith(position);
-
-                shouldTrigger = shouldTrigger &&
-                    !(await ContainsPartialTypeWithMultipleDeclarationsAsync(document, compilationUnit, cancellationToken)
-                    .ConfigureAwait(false));
-
-                return (shouldTrigger, null);
+                if (!containsPartial)
+                {
+                    return triggeringNode;
+                }
             }
 
             return default;
+
+
+            SyntaxNode GetTriggeringNode(CompilationUnitSyntax compUnit, int pos)
+            {
+                var namespaceDecls = compilationUnit.DescendantNodes().OfType<NamespaceDeclarationSyntax>().ToImmutableArray();
+
+                if (namespaceDecls.Length == 1 && compilationUnit.Members.Count == 1)
+                {
+                    var namespaceDeclaration = namespaceDecls.Single();
+                    Debug.Assert(namespaceDeclaration == compilationUnit.Members.Single());
+
+                    if (namespaceDeclaration.Name.Span.IntersectsWith(position)
+                        && namespaceDeclaration.Name.GetDiagnostics().All(diag => diag.DefaultSeverity != DiagnosticSeverity.Error))
+                    {
+                        return namespaceDeclaration;
+                    }
+                }
+                else if (namespaceDecls.Length == 0)
+                {
+                    var firstMemberDeclarationName = compilationUnit.Members.FirstOrDefault().GetNameToken();
+
+                    if (firstMemberDeclarationName != default 
+                        && firstMemberDeclarationName.Span.IntersectsWith(position))
+                    {
+                        return compilationUnit;
+                    }
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -176,7 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             ImmutableArray<string> declaredNamespaceParts, 
             ImmutableArray<string> targetNamespaceParts)
         {
-            if (declaredNamespaceParts.IsDefault || targetNamespaceParts.IsDefault || !(root is CompilationUnitSyntax compilationUnit))
+            Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
+
+            if (!(root is CompilationUnitSyntax compilationUnit))
             {
                 return root;
             }
@@ -186,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             {
                 var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                     name: CreateNameSyntax(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                    .WithAdditionalAnnotations(WarningAnnotation),
+                            .WithAdditionalAnnotations(WarningAnnotation),
                     externs: default, 
                     usings: default,
                     members: compilationUnit.Members);
@@ -200,8 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             // Move everything to global namespace
             if (targetNamespaceParts.Length == 1 && targetNamespaceParts[0].Length == 0)
             {
-                var triviaFromNamespaceDecl = GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDeclaration);
-
+                var (namespaceOpeningTrivia, namespaceClosingTrivia) = 
+                    GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDeclaration);
                 var members = namespaceDeclaration.Members;
                 var eofToken = compilationUnit.EndOfFileToken
                     .WithAdditionalAnnotations(WarningAnnotation);
@@ -212,18 +226,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
                 if (members.Count > 0)
                 {
                     var first = members.First();
-                    var firstWithTrivia = first.WithPrependedLeadingTrivia(triviaFromNamespaceDecl.openingTrivia);
+                    var firstWithTrivia = first.WithPrependedLeadingTrivia(namespaceOpeningTrivia);
                     members = members.Replace(first, firstWithTrivia);
 
                     var last = members.Last();
-                    var lastWithTrivia = last.WithAppendedTrailingTrivia(triviaFromNamespaceDecl.closingTrivia);
+                    var lastWithTrivia = last.WithAppendedTrailingTrivia(namespaceClosingTrivia);
                     members = members.Replace(last, lastWithTrivia);
                 }
                 else
                 {
                     eofToken = eofToken.WithPrependedLeadingTrivia(
-                        triviaFromNamespaceDecl.openingTrivia.Concat(triviaFromNamespaceDecl.closingTrivia));
+                        namespaceOpeningTrivia.Concat(namespaceClosingTrivia));
                 }
+
+                // Moving inner imports out of the namespace declaration can lead to a break in semantics.
+                // For example:
+                //
+                //  namespace A.B.C
+                //  {
+                //    using D.E.F;
+                //  }
+                //
+                //  The using of D.E.F is looked up iwith in the context of A.B.C first. If it's moved outside,
+                //  it may fail to resolve.
 
                 return compilationUnit.Update(
                     compilationUnit.Externs.AddRange(namespaceDeclaration.Externs), 
@@ -278,17 +303,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
         /// Leading trivia of the node and trivia around opening brace, as well as
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
-        private static (List<SyntaxTrivia> openingTrivia, List<SyntaxTrivia> closingTrivia) 
+        private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia) 
             GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
         {
-            var openingTrivia = namespaceDeclaration.GetLeadingTrivia().ToList();
-            openingTrivia.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
-            openingTrivia.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+            var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            openingBuilder.AddRange(namespaceDeclaration.GetLeadingTrivia());
+            openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+            openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
 
-            var closingTrivia = namespaceDeclaration.CloseBraceToken.LeadingTrivia.ToList();
-            closingTrivia.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
+            var closingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
+            closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
 
-            return (openingTrivia, closingTrivia);
+            return (openingBuilder.ToImmutableAndFree(), closingBuilder.ToImmutableAndFree());
         }
     }
 }

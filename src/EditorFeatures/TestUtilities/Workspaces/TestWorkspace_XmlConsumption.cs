@@ -448,6 +448,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static string GetDefaultNamespace(TestWorkspace workspace, XElement projectElement)
         {
+            // Default namespace is a C# only concept, for all other language, the value is set to null.
+            // The empty string returned in case no such property is define means global namespace.
             var language = GetLanguage(workspace, projectElement);
             if (language != LanguageNames.CSharp)
             {

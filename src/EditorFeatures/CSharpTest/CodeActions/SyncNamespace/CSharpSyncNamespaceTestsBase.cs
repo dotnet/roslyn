@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
                         expectedChangedDocumentId: null));
                 }
+
                 return results;
             }
         }
