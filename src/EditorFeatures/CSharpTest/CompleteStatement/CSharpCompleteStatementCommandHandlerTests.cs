@@ -94,9 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y)$$");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -104,9 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y$$");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -243,9 +239,7 @@ var test = ClassC.MethodM(
 
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x, y.ToString())$$");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -368,9 +362,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -378,9 +370,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$, y)");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -388,9 +378,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x.ToString($$), y");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion
@@ -512,9 +500,7 @@ var test = ClassC.MethodM(
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1$$");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -523,9 +509,7 @@ var test = ClassC.MethodM(
 
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1]$$");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -534,9 +518,7 @@ var test = ClassC.MethodM(
 
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM(x[0], x[1)$$");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion
@@ -554,9 +536,7 @@ class C
     int j = 5;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -592,9 +572,7 @@ class C
     int j = 5;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -630,9 +608,7 @@ class C
     int j = 5;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion
@@ -652,9 +628,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -670,9 +644,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -693,9 +665,7 @@ class C
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -711,9 +681,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -729,9 +697,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -747,9 +713,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -765,9 +729,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -783,9 +745,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -801,9 +761,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -819,9 +777,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -837,9 +793,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -855,9 +809,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -873,9 +825,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -891,9 +841,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -909,9 +857,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -927,9 +873,7 @@ class C
         int j;
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -998,9 +942,7 @@ public class C1
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1026,9 +968,7 @@ public class C1
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1186,9 +1126,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1210,9 +1148,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1234,9 +1170,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion
@@ -1256,9 +1190,7 @@ class SampleCollection<T>
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1281,9 +1213,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1306,9 +1236,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1331,9 +1259,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1356,9 +1282,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1381,9 +1305,7 @@ public class Goo
 }
 ";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1468,9 +1390,7 @@ public class Person
    public string Name => $""{firstName} {lastName}""$$   
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1487,9 +1407,7 @@ public class SaleItem
    }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1506,9 +1424,7 @@ public class SaleItem
    }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1525,9 +1441,7 @@ public class SaleItem
    }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1540,9 +1454,7 @@ public class SaleItem
    { get$$ set; }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1559,9 +1471,7 @@ public class Class1
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1603,9 +1513,7 @@ class C
 {
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1618,9 +1526,7 @@ class C
 {
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1636,9 +1542,7 @@ class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1654,9 +1558,7 @@ class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1672,9 +1574,7 @@ class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1695,9 +1595,7 @@ public class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1718,9 +1616,7 @@ public class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1741,9 +1637,7 @@ public class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1837,9 +1731,7 @@ public class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1861,9 +1753,7 @@ public class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1885,9 +1775,7 @@ public class C
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1910,9 +1798,7 @@ class ContinueTest
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1935,9 +1821,7 @@ class ContinueTest
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1960,9 +1844,7 @@ class ContinueTest
     }
 }";
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1970,9 +1852,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = $$ClassC.MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1980,9 +1860,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = C$$lassC.MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -1990,9 +1868,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = Class$$C.MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2000,9 +1876,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC$$.MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2010,9 +1884,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.Meth$$odM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2020,9 +1892,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.$$MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2030,9 +1900,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM$$(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2040,9 +1908,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test $$= ClassC.MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -2050,9 +1916,7 @@ class ContinueTest
         {
             var code = CreateTestWithMethodCall(@"var test =$$ ClassC.MethodM(x,y);");
 
-            var expected = code.Replace("$$", ";$$");
-
-            VerifyTypingSemicolon(code, expected);
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion

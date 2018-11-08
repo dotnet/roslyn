@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
+        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup, string newLine = "\r\n")
+        {
+            var expected = initialMarkup.Replace("$$", ";$$");
+            VerifyTypingSemicolon(initialMarkup, expected, newLine);
+        }
+
         protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup, string newLine = "\r\n")
         {
             Verify(initialMarkup, expectedMarkup, newLine: newLine,
