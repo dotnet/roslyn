@@ -30,18 +30,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
         private readonly ImmutableArray<DiagnosticData> _others;
 
-        public DiagnosticAnalysisResult(ProjectId projectId, VersionStamp version) : this(
-                projectId, version,
-                documentIds: ImmutableHashSet<DocumentId>.Empty,
-                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                others: ImmutableArray<DiagnosticData>.Empty,
-                fromBuild: false)
-        {
-        }
-
-        public DiagnosticAnalysisResult(
+        private DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
         {
             ProjectId = projectId;
@@ -56,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             _others = default;
         }
 
-        public DiagnosticAnalysisResult(
+        private DiagnosticAnalysisResult(
             ProjectId projectId, VersionStamp version,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
@@ -82,11 +71,81 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
         }
 
-        public DiagnosticAnalysisResult(DiagnosticAnalysisResultBuilder builder) :
-            this(builder.Project.Id, builder.Version,
-                builder.SyntaxLocals, builder.SemanticLocals, builder.NonLocals, builder.Others,
-                builder.DocumentIds, fromBuild: false)
+        public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
         {
+            return new DiagnosticAnalysisResult(
+                projectId,
+                version,
+                documentIds: ImmutableHashSet<DocumentId>.Empty,
+                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                others: ImmutableArray<DiagnosticData>.Empty,
+                fromBuild: false);
+        }
+
+        public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
+        {
+            return new DiagnosticAnalysisResult(
+                projectId,
+                version: VersionStamp.Default,
+                documentIds: null,
+                isEmpty: true,
+                fromBuild: false);
+        }
+
+        public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
+            // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
+            var version = VersionStamp.Default;
+
+            // filter out any document that doesn't support diagnostics
+            var group = diagnostics.GroupBy(d => d.DocumentId);
+
+            var result = new DiagnosticAnalysisResult(
+                project.Id,
+                version,
+                documentIds: group.Where(g => g.Key != null).Select(g => g.Key).ToImmutableHashSet(),
+                syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                semanticLocals: group.Where(g => g.Key != null).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray()),
+                nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                others: group.Where(g => g.Key == null).SelectMany(g => g).ToImmutableArrayOrEmpty(),
+                fromBuild: true);
+
+            return result;
+        }
+
+        public static DiagnosticAnalysisResult CreateFromSerialization(
+            ProjectId projectId,
+            VersionStamp version,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
+            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
+            ImmutableArray<DiagnosticData> others,
+            ImmutableHashSet<DocumentId> documentIds = null)
+        {
+            return new DiagnosticAnalysisResult(
+                projectId,
+                version,
+                syntaxLocalMap,
+                semanticLocalMap,
+                nonLocalMap,
+                others,
+                documentIds,
+                fromBuild: false);
+        }
+
+        public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
+        {
+            return CreateFromSerialization(
+                builder.Project.Id,
+                builder.Version,
+                builder.SyntaxLocals,
+                builder.SemanticLocals,
+                builder.NonLocals,
+                builder.Others,
+                builder.DocumentIds);
         }
 
         // aggregated form means it has aggregated information but no actual data.
@@ -119,6 +178,29 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public DiagnosticAnalysisResult ToAggregatedForm()
         {
             return new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
+        }
+
+        public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId, bool fromBuild)
+        {
+            return new DiagnosticAnalysisResult(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
+        }
+
+        public DiagnosticAnalysisResult Reset()
+        {
+            return new DiagnosticAnalysisResult(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
+        }
+
+        public DiagnosticAnalysisResult DropExceptSyntax()
+        {
+            return new DiagnosticAnalysisResult(
+               ProjectId,
+               Version,
+               SyntaxLocals,
+               semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+               nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+               others: ImmutableArray<DiagnosticData>.Empty,
+               documentIds: null,
+               fromBuild: false);
         }
 
         private T ReturnIfNotDefault<T>(T value)
