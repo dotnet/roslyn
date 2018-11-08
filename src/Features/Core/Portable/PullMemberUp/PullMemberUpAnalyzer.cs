@@ -71,6 +71,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         }
     }
 
+    /// <summary>
+    /// This is class contains all the operations to be done on members and target in order to pull members up to target
+    /// </summary>
     internal class AnalysisResult
     {
         public bool ChangeTargetAbstract { get; }
