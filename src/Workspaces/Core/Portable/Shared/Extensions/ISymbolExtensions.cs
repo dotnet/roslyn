@@ -1010,9 +1010,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
                 .WhereAsArray(s => !s.IsUnsafe());
         }
-
-        public static bool ContainsAnyAttributeFrom(this ISymbol symbol, ImmutableHashSet<INamedTypeSymbol> attributes)
-            => !attributes.IsEmpty &&
-               symbol.GetAttributes().Any(a => a.AttributeClass != null && attributes.Contains(a.AttributeClass));
     }
 }

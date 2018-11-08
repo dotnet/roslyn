@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     methodSymbol.ReturnType.OriginalDefinition == _genericTaskType);
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
-                => methodSymbol.ContainsAnyAttributeFrom(_attributeSetForMethodsToIgnore);
+                => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
 
             private bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
@@ -608,10 +608,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsISerializableConstructor(IMethodSymbol methodSymbol)
-                => methodSymbol.Parameters.Length == 2 &&
-                   methodSymbol.Parameters[0].Type == _serializationInfoType &&
-                   methodSymbol.Parameters[1].Type == _streamingContextType &&
-                   _iSerializableType != null &&
+                => _iSerializableType != null &&
+                   methodSymbol.Parameters.Length == 2 &&
+                   methodSymbol.Parameters[0].Type.Equals(_serializationInfoType) &&
+                   methodSymbol.Parameters[1].Type.Equals(_streamingContextType) &&
                    methodSymbol.ContainingType.AllInterfaces.Contains(_iSerializableType);
         }
     }
