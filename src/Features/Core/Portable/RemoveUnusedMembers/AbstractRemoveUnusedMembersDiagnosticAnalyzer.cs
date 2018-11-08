@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -49,17 +50,28 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(compilationStartContext
-                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext));
+                => CompilationAnalyzer.CreateAndRegisterActions(compilationStartContext, this));
+
+        /// <summary>
+        /// Override this method to register custom language specific actions to find symbol usages.
+        /// </summary>
+        protected virtual void HandleNamedTypeSymbolStart(SymbolStartAnalysisContext context, Action<ISymbol, ValueUsageInfo> onSymbolUsageFound)
+        {
+        }
 
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap;
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+            private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
 
-            private CompilationAnalyzer(Compilation compilation)
+            private CompilationAnalyzer(
+                Compilation compilation,
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
             {
                 _gate = new object();
+                _analyzer = analyzer;
 
                 // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
                 _symbolValueUsageStateMap = new Dictionary<ISymbol, ValueUsageInfo>();
@@ -70,9 +82,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
             }
 
-            public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
+            public static void CreateAndRegisterActions(
+                CompilationStartAnalysisContext compilationStartContext,
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
             {
-                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation);
+                var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, analyzer);
                 compilationAnalyzer.RegisterActions(compilationStartContext);
             }
 
@@ -89,6 +103,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 compilationStartContext.RegisterSymbolAction(AnalyzeSymbolDeclaration, SymbolKind.Method, SymbolKind.Field, SymbolKind.Property, SymbolKind.Event);
 
+                Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     if (symbolStartContext.Symbol.GetAttributes().Any(a => a.AttributeClass == _structLayoutAttributeType))
@@ -105,6 +120,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
                     symbolStartContext.RegisterOperationAction(_ => hasInvalidOperation = true, OperationKind.Invalid);
                     symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasInvalidOperation));
+
+                    // Register custom language-specific actions, if any.
+                    _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
                 }, SymbolKind.NamedType);
             }
 
@@ -141,17 +159,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     foreach (var field in initializer.InitializedFields)
                     {
-                        if (IsCandidateSymbol(field))
-                        {
-                            OnSymbolUsage(field, ValueUsageInfo.Write);
-                        }
+                        OnSymbolUsage(field, ValueUsageInfo.Write);
                     }
                 }
             }
 
             private void OnSymbolUsage(ISymbol memberSymbol, ValueUsageInfo usageInfo)
             {
-                Debug.Assert(IsCandidateSymbol(memberSymbol));
+                if (!IsCandidateSymbol(memberSymbol))
+                {
+                    return;
+                }
 
                 lock (_gate)
                 {
@@ -222,23 +240,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
             {
                 var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
-                if (IsCandidateSymbol(targetMethod))
-                {
-                    // A method invocation is considered as a read reference to the symbol
-                    // to ensure that we consider the method as "used".
-                    OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
-                }
+                
+                // A method invocation is considered as a read reference to the symbol
+                // to ensure that we consider the method as "used".
+                OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
             }
 
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
                 var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
-                if (IsCandidateSymbol(constructor))
-                {
-                    // An object creation is considered as a read reference to the constructor
-                    // to ensure that we consider the constructor as "used".
-                    OnSymbolUsage(constructor, ValueUsageInfo.Read);
-                }
+                
+                // An object creation is considered as a read reference to the constructor
+                // to ensure that we consider the constructor as "used".
+                OnSymbolUsage(constructor, ValueUsageInfo.Read);
             }
 
             private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasInvalidOperation)
