@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item,
             Dictionary<string, List<CompletionItem>> displayNameToItemsMap)
         {
-            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.DisplayText, s_createList);
+            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.GetEntireDisplayText(), s_createList);
 
             // If two items have the same display text choose which one to keep.
             // If they don't actually match keep both.
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 var existingItem = sameNamedItems[i];
 
-                Debug.Assert(item.DisplayText == existingItem.DisplayText);
+                Debug.Assert(item.GetEntireDisplayText() == existingItem.GetEntireDisplayText());
 
                 if (ItemsMatch(item, existingItem))
                 {

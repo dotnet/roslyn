@@ -5,18 +5,17 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <TargetFramework>net472</TargetFramework>
+    <RoslynProjectType>Vsix</RoslynProjectType>
+    <IsShipping>false</IsShipping>
+
+    <!-- VSIX -->
+    <CreateVsixContainer>true</CreateVsixContainer>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <DeployExtension>false</DeployExtension>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <CreateVsixContainer>True</CreateVsixContainer>
-    <DeployExtension>False</DeployExtension>
-    <RoslynProjectType>Vsix</RoslynProjectType>
-    <IsShipping>false</IsShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

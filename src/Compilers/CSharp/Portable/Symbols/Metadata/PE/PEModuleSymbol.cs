@@ -696,5 +696,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
+
+        public override bool? NonNullTypes
+        {
+            get
+            {
+                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out bool nonNullTypes) ? (bool?)nonNullTypes : null;
+            }
+        }
     }
 }

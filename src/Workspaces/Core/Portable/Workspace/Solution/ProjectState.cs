@@ -269,6 +269,9 @@ namespace Microsoft.CodeAnalysis
         public string OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string DefaultNamespace => this.ProjectInfo.DefaultNamespace;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -424,6 +427,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
+        public ProjectState UpdateDefaultNamespace(string defaultNamespace)
+        {
+            if (defaultNamespace == this.DefaultNamespace)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithDefaultNamespace(defaultNamespace).WithVersion(this.Version.GetNewerVersion()));
+        }
+
         public ProjectState UpdateCompilationOptions(CompilationOptions options)
         {
             if (options == this.CompilationOptions)
@@ -469,14 +482,6 @@ namespace Microsoft.CodeAnalysis
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
         {
             return project1.LanguageServices == project2.LanguageServices;
-        }
-
-        public ProjectState AddProjectReference(ProjectReference projectReference)
-        {
-            Debug.Assert(!this.ProjectReferences.Contains(projectReference));
-
-            return this.With(
-                projectInfo: this.ProjectInfo.WithProjectReferences(this.ProjectReferences.ToImmutableArray().Add(projectReference)).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState RemoveProjectReference(ProjectReference projectReference)
@@ -576,14 +581,14 @@ namespace Microsoft.CodeAnalysis
                 projectInfo: this.ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState AddDocument(DocumentState document)
+        public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
         {
-            Debug.Assert(!this.DocumentStates.ContainsKey(document.Id));
+            Debug.Assert(!documents.Any(d => this.DocumentStates.ContainsKey(d.Id)));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: _documentIds.Add(document.Id),
-                documentStates: _documentStates.Add(document.Id, document));
+                documentIds: _documentIds.AddRange(documents.Select(d => d.Id)),
+                documentStates: _documentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
         }
 
         public ProjectState AddAdditionalDocument(TextDocumentState document)

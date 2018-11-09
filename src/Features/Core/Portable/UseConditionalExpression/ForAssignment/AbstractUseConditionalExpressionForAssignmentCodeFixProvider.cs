@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            if (localDeclaration.IsImplicit)
+            {
+                return false;
+            }
+
             if (localDeclaration.Declarations.Length != 1)
             {
                 return false;

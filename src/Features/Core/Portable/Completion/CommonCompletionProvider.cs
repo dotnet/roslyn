@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
+                displayTextSuffix: "",
                 description: description != null ? description.ToSymbolDisplayParts() : default,
                 rules: s_suggestionItemRules);
         }

@@ -288,4 +288,7 @@
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</value>
   </data>
+  <data name="VB_Coding_Conventions" xml:space="preserve">
+    <value>VB Coding Conventions</value>
+  </data>
 </root>

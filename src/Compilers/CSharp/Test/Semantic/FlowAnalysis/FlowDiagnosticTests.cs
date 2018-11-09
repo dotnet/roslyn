@@ -2531,5 +2531,24 @@ class Derived2 : Base
             comp.VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void RangeDefiniteAssignmentOrder()
+        {
+            CreateCompilationWithIndexAndRange(@"
+class C
+{
+    void M()
+    {
+        int x;
+        var r = (x=0)..(x+1);
+        int y;
+        r = (y+1)..(y=0);
+    }
+}").VerifyDiagnostics(
+                // (9,14): error CS0165: Use of unassigned local variable 'y'
+                //         r = (y+1)..(y=0);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(9, 14));
+        }
     }
 }

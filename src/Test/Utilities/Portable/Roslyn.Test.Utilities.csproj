@@ -2,22 +2,28 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>netstandard1.3;$(RoslynPortableTargetFrameworks);net46</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);DNX</DefineConstants>
-    <NoStdLib>true</NoStdLib>
-    <RootNamespace></RootNamespace>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+
+    <!-- 
+      Reference ILAsm deploy project to make sure it's built since we need its outputs, but not reference the outputs themselves.
+      Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
+      GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
+    -->
+    <ProjectReference Include="..\..\..\Tools\ILAsm\IlAsmDeploy.csproj" 
+       ReferenceOutputAssembly="false"
+       SkipGetTargetFrameworkProperties="true"
+       GlobalPropertiesToRemove="TargetFramework" 
+       Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -28,6 +34,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.PerformanceTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
@@ -66,6 +73,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\CoreClrAnalyzerAssemblyLoader.cs" Link="CoreClrAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -80,6 +88,7 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
+      <LogicalName>TestResource.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -92,18 +101,6 @@
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="$(SystemDiagnosticsTraceSourceVersion)" />
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
   </ItemGroup>
 </Project>

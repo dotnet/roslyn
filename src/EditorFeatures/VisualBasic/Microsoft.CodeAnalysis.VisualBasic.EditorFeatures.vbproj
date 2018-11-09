@@ -5,8 +5,14 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RootNamespace></RootNamespace>
+    
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for VisualBasic editor features inside the Visual Studio editor.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

@@ -7,11 +7,18 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <ServiceablePackage>true</ServiceablePackage>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Common</PackageId>
+    <PackageDescription>
+      A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -19,10 +26,12 @@
     <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
+      <Pack>false</Pack>
     </Content>
     <Content Include="$(NuGetPackageRoot)\microsoft.diasymreader.native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
+      <Pack>false</Pack>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -37,15 +46,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" />
-    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="$(SystemDiagnosticsFileVersionInfoVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
-    <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
+    <!--
+      Analyzers that will be used to analyze projects that references 
+      Microsoft.CodeAnalysis project or Microsoft.CodeAnalysis.Common package.
+      
+      Note: PrivateAssets="ContentFiles" ensures that projects referencing Microsoft.CodeAnalysis.Common package 
+      will import everything but content files from Microsoft.CodeAnalysis.Analyzers, specifically, analyzers.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="ContentFiles" />
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
@@ -68,6 +82,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
@@ -103,6 +118,7 @@
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeAnalysisResources.resx">

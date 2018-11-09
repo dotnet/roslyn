@@ -5,18 +5,17 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <ServiceablePackage>true</ServiceablePackage>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <NoWarn>$(NoWarn);42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
-    <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
-         reference Microsoft.NETCore.App to target the shared framework (bug
-         https://github.com/dotnet/sdk/issues/1159) and NETCore.App
-         contains a reference to C# + VB CodeAnalysis. This ensures that the project
-         reference is a higher version than the NuGet reference. -->
-    <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
     <RootNamespace></RootNamespace>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for Visual Basic, $(AssemblyName).dll.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -52,8 +51,8 @@
     </BoundTreeDefinition>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-    <Content Include="Symbols\SymbolsAndNoPia.docx" />
-    <Content Include="Syntax\Syntax.xml" />
+    <None Include="Symbols\SymbolsAndNoPia.docx" />
+    <None Include="Syntax\Syntax.xml" />
     <None Include="Errors\Errors.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -98,9 +97,6 @@
     <None Include="..\BasicCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
   </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
 </Project>

@@ -2,19 +2,24 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <target state="translated">Agregar un parámetro a “{0}” (y reemplazos/implementaciones)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
-        <target state="translated">Agregue referencia de proyecto a '{0}'.</target>
+        <target state="translated">Agregue referencia de proyecto a "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_reference_to_0">
         <source>Add reference to '{0}'.</source>
-        <target state="translated">Agregue referencia a '{0}'.</target>
+        <target state="translated">Agregue referencia a "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Actions_can_not_be_empty">
@@ -22,19 +27,34 @@
         <target state="translated">Las acciones no pueden estar vacías.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_query">
-        <source>Convert to query</source>
-        <target state="new">Convert to query</target>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Quality">
+        <source>Code Quality</source>
+        <target state="new">Code Quality</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="new">Convert to LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="new">Add to '{0}'</target>
+        <target state="translated">Agregar a “{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
         <target state="new">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="new">Convert to LINQ (call form)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -47,19 +67,129 @@
         <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
-        <target state="new">Fix typo '{0}'</target>
+        <target state="translated">Corregir error de escritura "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
-        <target state="new">Formatting document</target>
+        <target state="translated">Aplicando formato al documento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="new">Indexing can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="new">Introduce constant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="new">Introduce field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="new">Introduce local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="new">Introduce query variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="new">Private member '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
+        <target state="translated">La modificación del archivo de origen {0} impedirá que continúe la sesión de depuración debido a un error interno: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <target state="translated">Las signaturas de método relacionadas encontradas en los metadatos no se actualizarán.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_1">
+        <source>Replace '{0}' with '{1}' </source>
+        <target state="new">Replace '{0}' with '{1}' </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="new">Use index operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="new">{0} can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -89,12 +219,12 @@
       </trans-unit>
       <trans-unit id="Encapsulate_field_colon_0_and_use_property">
         <source>Encapsulate field: '{0}' (and use property)</source>
-        <target state="translated">Encapsular campo: '{0}' (y usar propiedad)</target>
+        <target state="translated">Encapsular campo: "{0}" (y usar propiedad)</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_field_colon_0_but_still_use_field">
         <source>Encapsulate field: '{0}' (but still use field)</source>
-        <target state="translated">Encapsular campo: '{0}' (pero seguir usándolo)</target>
+        <target state="translated">Encapsular campo: "{0}" (pero seguir usándolo)</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_fields_and_use_property">
@@ -139,7 +269,7 @@
       </trans-unit>
       <trans-unit id="Type_parameter_0_is_hidden_by_another_type_parameter_1">
         <source>Type parameter '{0}' is hidden by another type parameter '{1}'.</source>
-        <target state="translated">El parámetro de tipo '{0}' está oculto por otro parámetro de tipo '{1}'.</target>
+        <target state="translated">El parámetro de tipo "{0}" está oculto por otro parámetro de tipo "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="The_address_of_a_variable_is_used_inside_the_selected_code">
@@ -169,17 +299,17 @@
       </trans-unit>
       <trans-unit id="Generate_delegating_constructor_0_1">
         <source>Generate delegating constructor '{0}({1})'</source>
-        <target state="translated">Generar el constructor delegado '{0}({1})'</target>
+        <target state="translated">Generar el constructor delegado "{0}({1})"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_0_1">
         <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Generar el constructor '{0}({1})'</target>
+        <target state="translated">Generar el constructor "{0}({1})"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_assigning_constructor_0_1">
         <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Generar campo asignando constructor '{0}({1})'</target>
+        <target state="translated">Generar campo asignando constructor "{0}({1})"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
@@ -199,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0">
         <source>Generate constructor in '{0}'</source>
-        <target state="translated">Generar constructor en '{0}'</target>
+        <target state="translated">Generar constructor en "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_all">
@@ -219,17 +349,17 @@
       </trans-unit>
       <trans-unit id="Generate_read_only_property_1_0">
         <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">Generar la propiedad de solo lectura '{1}.{0}'</target>
+        <target state="translated">Generar la propiedad de solo lectura "{1}.{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_property_1_0">
         <source>Generate property '{1}.{0}'</source>
-        <target state="translated">Generar la propiedad '{1}.{0}'</target>
+        <target state="translated">Generar la propiedad "{1}.{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_1_0">
         <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">Generar el campo de solo lectura '{1}.{0}'</target>
+        <target state="translated">Generar el campo de solo lectura "{1}.{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_1_0">
@@ -239,17 +369,17 @@
       </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
-        <target state="translated">Generar la variable local '{0}'</target>
+        <target state="translated">Generar la variable local "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
-        <target state="translated">Generar {0} '{1}' en archivo nuevo</target>
+        <target state="translated">Generar {0} "{1}" en archivo nuevo</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
-        <target state="translated">Generar {0} anidado '{1}'</target>
+        <target state="translated">Generar {0} anidado "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Global_Namespace">
@@ -269,7 +399,7 @@
       </trans-unit>
       <trans-unit id="Implement_interface_through_0">
         <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementar interfaz a través de '{0}'</target>
+        <target state="translated">Implementar interfaz a través de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface">
@@ -279,7 +409,7 @@
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
         <source>Loading context from '{0}'.</source>
-        <target state="translated">Cargando contexto de '{0}'.</target>
+        <target state="translated">Cargando contexto de "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Sharphelp_for_more_information">
@@ -309,52 +439,52 @@
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
-        <target state="translated">Introducir el campo de '{0}'</target>
+        <target state="translated">Introducir el campo de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_0">
         <source>Introduce local for '{0}'</source>
-        <target state="translated">Introducir la variable local de '{0}'</target>
+        <target state="translated">Introducir la variable local de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_0">
         <source>Introduce constant for '{0}'</source>
-        <target state="translated">Introducir la constante de '{0}'</target>
+        <target state="translated">Introducir la constante de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_0">
         <source>Introduce local constant for '{0}'</source>
-        <target state="translated">Introducir la constante local de '{0}'</target>
+        <target state="translated">Introducir la constante local de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_all_occurrences_of_0">
         <source>Introduce field for all occurrences of '{0}'</source>
-        <target state="translated">Introducir el campo para todas las repeticiones de '{0}'</target>
+        <target state="translated">Introducir el campo para todas las repeticiones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0">
         <source>Introduce local for all occurrences of '{0}'</source>
-        <target state="translated">Introducir la variable local para todas las repeticiones de '{0}'</target>
+        <target state="translated">Introducir la variable local para todas las repeticiones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_all_occurrences_of_0">
         <source>Introduce constant for all occurrences of '{0}'</source>
-        <target state="translated">Introducir la constante para todas las repeticiones de '{0}'</target>
+        <target state="translated">Introducir la constante para todas las repeticiones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_all_occurrences_of_0">
         <source>Introduce local constant for all occurrences of '{0}'</source>
-        <target state="translated">Introducir la constante local para todas las repeticiones de '{0}'</target>
+        <target state="translated">Introducir la constante local para todas las repeticiones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_all_occurrences_of_0">
         <source>Introduce query variable for all occurrences of '{0}'</source>
-        <target state="translated">Introducir la variable de consulta para todas las repeticiones de '{0}'</target>
+        <target state="translated">Introducir la variable de consulta para todas las repeticiones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
-        <target state="translated">Introducir la variable de consulta de '{0}'</target>
+        <target state="translated">Introducir la variable de consulta de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Anonymous_Types_colon">
@@ -464,7 +594,7 @@
       </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
@@ -479,127 +609,127 @@
       </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
-        <target state="translated">La captura de una variable '{0}' que no se había capturado antes evitará que continúe la sesión de depuración.</target>
+        <target state="translated">La captura de una variable "{0}" que no se había capturado antes evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
         <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">El dejar de capturar la variable '{0}' evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El dejar de capturar la variable "{0}" evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">La eliminación de la variable capturada '{0}' evitará que continúe la sesión de depuración.</target>
+        <target state="translated">La eliminación de la variable capturada "{0}" evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
         <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">El cambio del tipo de una variable capturada '{0}', previamente del tipo '{1}', evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El cambio del tipo de una variable capturada "{0}", previamente del tipo "{1}", evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">El cambio de los parámetros de '{0}' evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El cambio de los parámetros de "{0}" evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">El cambio del tipo de retorno de '{0}' evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El cambio del tipo de retorno de "{0}" evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">El cambio del tipo de '{0}' evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El cambio del tipo de "{0}" evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">El cambio del ámbito de declaración de una variable capturada '{0}' evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El cambio del ámbito de declaración de una variable capturada "{0}" evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
         <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">El acceso a una variable capturada '{0}' a la que no se había obtenido acceso antes en {1} evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El acceso a una variable capturada "{0}" a la que no se había obtenido acceso antes en {1} evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
         <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">El dejar de obtener acceso a la variable capturada '{0}' de {1} evitará que continúe la sesión de depuración.</target>
+        <target state="translated">El dejar de obtener acceso a la variable capturada "{0}" de {1} evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">La adición de '{0}', que obtiene acceso a las variables capturadas '{1}' y '{2}' declaradas en distintos ámbitos, evitará que continúe la sesión de depuración.</target>
+        <target state="translated">La adición de "{0}", que obtiene acceso a las variables capturadas "{1}" y "{2}" declaradas en distintos ámbitos, evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
         <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">La eliminación del elemento '{0}', que obtuvo acceso a las variables capturadas '{1}' y '{2}' declaradas en distintos ámbitos, evitará que continúe la sesión de depuración.</target>
+        <target state="translated">La eliminación del elemento "{0}", que obtuvo acceso a las variables capturadas "{1}" y "{2}" declaradas en distintos ámbitos, evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar '{0}' en un '{1}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar "{0}" en un "{1}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar '{0}' en una clase con un diseño explícito o secuencial impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar "{0}" en una clase con un diseño explícito o secuencial impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar los modificadores de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar los modificadores de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar la cláusula Handles de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar la cláusula Handles de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar '{0}' con la cláusula Handles impedirá que la sesión de depuración continúe.</target>
+        <target state="translated">Agregar "{0}" con la cláusula Handles impedirá que la sesión de depuración continúe.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar la cláusula Implements de un '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar la cláusula Implements de un "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
         <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Cambiar la restricción de '{0}' a '{1}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Cambiar la restricción de "{0}" a "{1}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar la varianza de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar la varianza de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar el tipo de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar el tipo de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar el inicializador de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar el inicializador de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar el tamaño de un '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar el tamaño de un "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar el tipo subyacente de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar el tipo subyacente de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar la clase base y/o la(s) interfaz (interfaces) de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar la clase base y/o la(s) interfaz (interfaces) de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
@@ -634,27 +764,27 @@
       </trans-unit>
       <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
         <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Cambiar el nombre de '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Cambiar el nombre de "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Si se agrega un '{0}' abstracto o se invalida un '{0}' heredado, la sesión de depuración no podrá continuar.</target>
+        <target state="translated">Si se agrega un "{0}" abstracto o se invalida un "{0}" heredado, la sesión de depuración no podrá continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Si se agrega un '{0}' MustOverride o se invalida un '{0}' heredado, la sesión de depuración no podrá continuar.</target>
+        <target state="translated">Si se agrega un "{0}" MustOverride o se invalida un "{0}" heredado, la sesión de depuración no podrá continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar un '{0}' externo impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar un "{0}" externo impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
@@ -664,32 +794,32 @@
       </trans-unit>
       <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar un '{0}' definido por el usuario impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar un "{0}" definido por el usuario impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar un '{0}' genérico impedirá que continúe la sesión de depuración,</target>
+        <target state="translated">Agregar un "{0}" genérico impedirá que continúe la sesión de depuración,</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Agregar '{0}' en una instrucción activa impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Agregar "{0}" en una instrucción activa impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
         <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Mover '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Mover "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Eliminar '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Eliminar "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Eliminar '{0}' en una instrucción activa impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Eliminar "{0}" en una instrucción activa impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
@@ -709,7 +839,7 @@
       </trans-unit>
       <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Actualizar una instrucción '{0}' en una instrucción activa impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Actualizar una instrucción "{0}" en una instrucción activa impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -724,7 +854,7 @@
       </trans-unit>
       <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
         <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Modificar espacios en blanco o comentarios en un '{0}' genérico impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Modificar espacios en blanco o comentarios en un "{0}" genérico impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
@@ -734,17 +864,17 @@
       </trans-unit>
       <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">Modificar espacios en blanco o comentarios en '{0}' dentro del contexto de un tipo genérico impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Modificar espacios en blanco o comentarios en "{0}" dentro del contexto de un tipo genérico impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">Modificar el inicializador de '{0}' en un tipo genérico impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Modificar el inicializador de "{0}" en un tipo genérico impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">Modificar el inicializador de '{0}' en un tipo parcial impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Modificar el inicializador de "{0}" en un tipo parcial impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
@@ -774,17 +904,17 @@
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
-        <target state="translated">Modificar '{0}' que contenga el operador 'stackalloc' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Modificar "{0}" que contenga el operador "stackalloc" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
         <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
-        <target state="translated">Modificar una '{0}' activa que contenga las instrucciones 'On Error' o 'Resume' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Modificar una "{0}" activa que contenga las instrucciones "On Error" o "Resume" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
-        <target state="translated">La modificación de '{0}', que contiene las cláusulas de consulta Aggregate, Group By o Join, evitará que continúe la sesión de depuración.</target>
+        <target state="translated">La modificación de "{0}", que contiene las cláusulas de consulta Aggregate, Group By o Join, evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
@@ -799,7 +929,7 @@
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Quitar '{0}' que contiene una instrucción activa impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Quitar "{0}" que contiene una instrucción activa impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -809,7 +939,7 @@
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
         <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">Falta el atributo '{0}'. Si se actualiza un método asincrónico o un iterador, no podrá continuar la sesión de depuración.</target>
+        <target state="translated">Falta el atributo "{0}". Si se actualiza un método asincrónico o un iterador, no podrá continuar la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
@@ -834,7 +964,7 @@
       </trans-unit>
       <trans-unit id="Generate_method_1_0">
         <source>Generate method '{1}.{0}'</source>
-        <target state="translated">Generar el método '{1}.{0}'</target>
+        <target state="translated">Generar el método "{1}.{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
@@ -854,7 +984,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
         <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">Error al iniciar el proceso '{0}' (código de salida: {1}) con la salida: </target>
+        <target state="translated">Error al iniciar el proceso "{0}" (código de salida: {1}) con la salida: </target>
         <note />
       </trans-unit>
       <trans-unit id="Hosting_process_exited_with_exit_code_0">
@@ -869,12 +999,12 @@
       </trans-unit>
       <trans-unit id="Cannot_resolve_reference_0">
         <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">No se puede resolver la referencia '{0}'.</target>
+        <target state="translated">No se puede resolver la referencia "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">El ensamblado solicitado ya se ha cargado desde '{0}'.</target>
+        <target state="translated">El ensamblado solicitado ya se ha cargado desde "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="plus_additional_0_1">
@@ -948,14 +1078,14 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Analyzer_0_threw_an_exception_of_type_1_with_message_2">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">El analizador '{0}' produjo una excepción de tipo '{1}' con el mensaje '{2}'.</target>
+        <target state="translated">El analizador "{0}" produjo una excepción de tipo "{1}" con el mensaje "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_0_threw_the_following_exception_colon_1">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">El analizador '{0}' inició la siguiente excepción:
-'{1}'.</target>
+        <target state="translated">El analizador "{0}" inició la siguiente excepción:
+"{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Cast">
@@ -1050,7 +1180,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
-        <target state="translated">Nota: Presione dos veces la tecla Tab para insertar el fragmento de código '{0}'.</target>
+        <target state="translated">Nota: Presione dos veces la tecla Tab para insertar el fragmento de código "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
@@ -1085,7 +1215,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
         <source>Re-triage {0}(currently '{1}')</source>
-        <target state="translated">Volver a evaluar prioridades de {0}(valor actual: '{1}')</target>
+        <target state="translated">Volver a evaluar prioridades de {0}(valor actual: "{1}")</target>
         <note />
       </trans-unit>
       <trans-unit id="Argument_cannot_have_a_null_element">
@@ -1100,7 +1230,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">El analizador no admite el diagnóstico notificado con identificador '{0}'.</target>
+        <target state="translated">El analizador no admite el diagnóstico notificado con identificador "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -1145,7 +1275,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
-        <target state="translated">La modificación de '{0}', que contiene una variable estática, evitará que continúe la sesión de depuración.</target>
+        <target state="translated">La modificación de "{0}", que contiene una variable estática, evitará que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -1225,12 +1355,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
-        <target state="translated">Reemplazar '{0}' y '{1}' por la propiedad</target>
+        <target state="translated">Reemplazar "{0}" y "{1}" por la propiedad</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_property">
         <source>Replace '{0}' with property</source>
-        <target state="translated">Reemplazar '{0}' por la propiedad</target>
+        <target state="translated">Reemplazar "{0}" por la propiedad</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_referenced_implicitly">
@@ -1240,17 +1370,17 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Generate_type_0">
         <source>Generate type '{0}'</source>
-        <target state="translated">Generar tipo '{0}'</target>
+        <target state="translated">Generar tipo "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_0_1">
         <source>Generate {0} '{1}'</source>
-        <target state="translated">Generar {0} '{1}'</target>
+        <target state="translated">Generar {0} "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_0_to_1">
         <source>Change '{0}' to '{1}'.</source>
-        <target state="translated">Cambie '{0}' a '{1}'.</target>
+        <target state="translated">Cambie "{0}" a "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_invoked_method_cannot_be_replaced_with_property">
@@ -1290,7 +1420,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
         <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Agregar cualificación 'this' o 'Me'.</target>
+        <target state="translated">Agregar cualificación "this" o "Me".</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
@@ -1320,19 +1450,19 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Use_local_version_0">
         <source>Use local version '{0}'</source>
-        <target state="translated">Usar la versión local '{0}'</target>
+        <target state="translated">Usar la versión local "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_locally_installed_0_version_1_This_version_used_in_colon_2">
         <source>Use locally installed '{0}' version '{1}'
 This version used in: {2}</source>
-        <target state="translated">Usar la versión '{0}' instalada localmente '{1}'
+        <target state="translated">Usar la versión "{0}" instalada localmente "{1}"
 Esta versión se utiliza en: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_and_install_latest_version_of_0">
         <source>Find and install latest version of '{0}'</source>
-        <target state="translated">Buscar e instalar la última versión de '{0}'</target>
+        <target state="translated">Buscar e instalar la última versión de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_with_package_manager">
@@ -1342,17 +1472,17 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Install_0_1">
         <source>Install '{0} {1}'</source>
-        <target state="translated">Instalar '{0} {1}'</target>
+        <target state="translated">Instalar "{0} {1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
-        <target state="translated">Instalar la versión '{0}'</target>
+        <target state="translated">Instalar la versión "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_variable_0">
         <source>Generate variable '{0}'</source>
-        <target state="translated">Generar variable '{0}'</target>
+        <target state="translated">Generar variable "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">
@@ -1457,12 +1587,12 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
-        <target state="translated">Reemplazar '{0}' por un método</target>
+        <target state="translated">Reemplazar "{0}" por un método</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_methods">
         <source>Replace '{0}' with methods</source>
-        <target state="translated">Reemplazar '{0}' por métodos</target>
+        <target state="translated">Reemplazar "{0}" por métodos</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_referenced_implicitly">
@@ -1532,7 +1662,7 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Install_package_0">
         <source>Install package '{0}'</source>
-        <target state="translated">Instalar paquete '{0}'</target>
+        <target state="translated">Instalar paquete "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Object_initialization_can_be_simplified">
@@ -1622,12 +1752,12 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
-        <target state="translated">{0}' completo</target>
+        <target state="translated">{0}" completo</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_reference_to_0">
         <source>Remove reference to '{0}'.</source>
-        <target state="translated">Quitar referencia a '{0}'.</target>
+        <target state="translated">Quitar referencia a "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Keywords">
@@ -1872,7 +2002,7 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'La expresión "predeterminada" se puede simplificar</target>
+        <target state="translated">"La expresión "predeterminada" se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -2027,22 +2157,22 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">
         <source>Parentheses can be removed</source>
-        <target state="new">Parentheses can be removed</target>
+        <target state="translated">Los paréntesis se pueden quitar</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
-        <target state="new">Remove unnecessary parentheses</target>
+        <target state="translated">Quitar los paréntesis innecesarios</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
-        <target state="new">Add parentheses for clarity</target>
+        <target state="translated">Agregar paréntesis para claridad</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_should_be_added_for_clarity">
         <source>Parentheses should be added for clarity</source>
-        <target state="new">Parentheses should be added for clarity</target>
+        <target state="translated">Los paréntesis deben agregarse para mejorar la claridad</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2077,7 +2207,7 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Convertir a expresión condicional</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

@@ -19,13 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 return false;
             }
 
-            var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
+            var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;
             }
 
-            var bufferCoordinator = containedDocument.ContainedLanguage.BufferCoordinator;
+            var bufferCoordinator = containedDocument.BufferCoordinator;
 
             var primary = new VsTextSpan[1];
             var hresult = bufferCoordinator.MapSecondaryToPrimarySpan(spanInSecondaryBuffer, primary);

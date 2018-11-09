@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_Dlls>$(ArtifactsConfigurationDir)Dlls\</_Dlls>
+    <_Exes>$(ArtifactsConfigurationDir)Exes\</_Exes>
+  </PropertyGroup>
+
+  <!--
+    The CompilerArtifact list is used to generate Microsoft.Net.Compilers package, VS.Toolset.Roslyn CoreXT package and Microsoft.CodeAnalysis.Compilers Willow VSIX.
+    Keeping the list in central location allows us to make sure that these packages include the same files.
+
+    Ngen* attributes indicate how VS should NGEN the assemblies that are distributed by VS Setup.
+    NgenApplication is relative to the Roslyn install directory within MSBuild (i.e. MSBuild\15.0\Bin\Roslyn).
+
+    Set OverwriteOptimizationData to true to replace optimization data already embedded in the assembly with data retrieved from VS training scenarios.
+    We only need to specify this for assemblies built outside or Roslyn repo since the projects in Roslyn repo are responsible for embedding 
+    VS training data to the assemblies they produce.
+  -->
+
+  <Target Name="InitializeCompilerArtifacts">
+    <ItemGroup>
+      <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis\Microsoft.DiaSymReader.Native.amd64.dll"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis\Microsoft.DiaSymReader.Native.x86.dll"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp\Microsoft.CodeAnalysis.CSharp.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.Scripting\Microsoft.CodeAnalysis.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.CSharp.Scripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.CodeAnalysis.VisualBasic\Microsoft.CodeAnalysis.VisualBasic.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
+      <CompilerArtifact Include="$(_Exes)csc\net472\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)csc\net472\csc.exe.config"/>
+      <CompilerArtifact Include="$(_Exes)csc\net472\csc.rsp"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\csi.exe" NgenArchitecture="all" NgenApplication="csi.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\csi.exe.config"/>
+      <CompilerArtifact Include="$(_Exes)csi\net472\csi.rsp"/>
+      <CompilerArtifact Include="$(_Exes)vbc\net472\vbc.exe" NgenArchitecture="all" NgenApplication="vbc.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)vbc\net472\vbc.exe.config"/>
+      <CompilerArtifact Include="$(_Exes)vbc\net472\vbc.rsp"/>
+      <CompilerArtifact Include="$(_Exes)VBCSCompiler\net472\VBCSCompiler.exe" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
+      <CompilerArtifact Include="$(_Exes)VBCSCompiler\net472\VBCSCompiler.exe.config"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NgenArchitecture="all" />
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.Managed.Core.targets"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.CSharp.Core.targets"/>
+      <CompilerArtifact Include="$(_Dlls)Microsoft.Build.Tasks.CodeAnalysis\net472\Microsoft.VisualBasic.Core.targets"/>
+
+      <!--
+        Do not overwrite optimization data of System.Threading.Tasks.Extensions.dll
+        This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
+        Arcade SignTool doesn't support signing directly at this point either.
+        https://github.com/dotnet/arcade/issues/1204
+      -->
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.*.dll" Exclude="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all"  NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="true"/>
+
+      <CompilerArtifact Include="$(_Exes)csi\net472\System.Threading.Tasks.Extensions.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteOptimizationData="false"/>
+    </ItemGroup>
+  </Target>
+</Project>

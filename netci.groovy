@@ -10,7 +10,7 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-def windowsUnitTestMachine = 'win2016-base'
+def windowsUnitTestMachine = 'Windows.10.Amd64.ClientRS3.DevEx.Open'
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
@@ -59,104 +59,13 @@ if (branchName.startsWith("features/")) {
   commitPullList = [true]
 }
 
-// Windows Desktop CLR
-commitPullList.each { isPr ->
-  ['debug', 'release'].each { configuration ->
-        ['unit32', 'unit64'].each { buildTarget ->
-        def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
-        def myJob = job(jobName) {
-            description("Windows ${configuration} tests on ${buildTarget}")
-                  steps {
-                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -procdump -testDesktop""")
-                  }
-        }
-
-        def triggerPhraseOnly = false
-        def triggerPhraseExtra = ""
-        Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-        Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-        addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-    }
-  }
-}
-
-// Windows Spanish image
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "windows_debug_spanish_unit32", isPr)
-  def myJob = job(jobName) {
-    description("Windows debug unit tests on unit32 using Spanish language")
-          steps {
-            batchFile(""".\\build\\scripts\\cibuild.cmd -debug -test32 -testDesktop""")
-          }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.ES.Open')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Windows CoreCLR
-commitPullList.each { isPr ->
-  ['debug', 'release'].each { configuration ->
-    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_${configuration}", isPr)
-    def myJob = job(jobName) {
-      description("Windows CoreCLR unit tests")
-            steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
-            }
-    }
-
-    def triggerPhraseOnly = false
-    def triggerPhraseExtra = ""
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-    Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-    addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-  }
-}
-
-// Ubuntu 16.04
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
-  def myJob = job(jobName) {
-    description("Ubuntu 16.04 tests")
-                  steps {
-                    shell("./build/scripts/cibuild.sh --debug")
-                  }
-                }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "linux"
-  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Ubuntu 16.04 mono
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_mono_debug", isPr)
-  def myJob = job(jobName) {
-    description("Ubuntu 16.04 mono tests")
-                  steps {
-                    shell("./build/scripts/cibuild.sh --debug --docker --mono")
-                  }
-                }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "linux"
-  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
 // Mac
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
     steps {
-      shell("./build/scripts/cibuild.sh --debug")
+      shell("./build/scripts/cibuild.sh --configuration Debug")
     }
   }
 
@@ -164,54 +73,6 @@ commitPullList.each { isPr ->
   def triggerPhraseExtra = "mac"
   Utilities.setMachineAffinity(myJob, 'OSX10.12', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-  }
-
-// Determinism
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "windows_determinism", isPr)
-  def myJob = job(jobName) {
-    description('Determinism tests')
-    steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd -testDeterminism""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Build correctness tests
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
-  def myJob = job(jobName) {
-    description('Build correctness tests')
-    steps {
-      batchFile(""".\\build\\scripts\\test-build-correctness.cmd -cibuild -release""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// Microbuild
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
-  def myJob = job(jobName) {
-    description('MicroBuild test')
-    steps {
-      batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -223,13 +84,13 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -procdump -testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd -configuration ${configuration} -testVsi""")
         }
       }
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.15.8.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -253,7 +114,7 @@ commitPullList.each { isPr ->
     // Run it automatically on CI builds but only when requested on PR builds.
     def triggerPhraseOnly = isPr
     def triggerPhraseExtra = "loc"
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
@@ -275,7 +136,7 @@ commitPullList.each { isPr ->
 
     def triggerPhraseOnly = false
     def triggerPhraseExtra = "loc changes"
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+    Utilities.setMachineAffinity(myJob, windowsUnitTestMachine)
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }

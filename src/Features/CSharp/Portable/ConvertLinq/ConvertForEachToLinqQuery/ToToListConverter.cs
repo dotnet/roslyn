@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         ///  
         ///  Output:
         ///  list.AddRange(queryGenerated);
-        protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
+        protected override StatementSyntax CreateDefaultStatement(ExpressionSyntax queryOrLinqInvocationExpression, ExpressionSyntax expression)
             => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         expression,
                         SyntaxFactory.IdentifierName(nameof(List<object>.AddRange))),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(queryExpression)))));
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(queryOrLinqInvocationExpression)))));
     }
 }

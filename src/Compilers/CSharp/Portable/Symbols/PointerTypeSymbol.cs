@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -13,40 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
     {
-        private readonly TypeSymbol _pointedAtType;
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly TypeSymbolWithAnnotations _pointedAtType;
 
         /// <summary>
         /// Create a new PointerTypeSymbol.
         /// </summary>
         /// <param name="pointedAtType">The type being pointed at.</param>
-        internal PointerTypeSymbol(TypeSymbol pointedAtType)
-            : this(pointedAtType, ImmutableArray<CustomModifier>.Empty)
+        internal PointerTypeSymbol(TypeSymbolWithAnnotations pointedAtType)
         {
-        }
-
-        /// <summary>
-        /// Create a new PointerTypeSymbol.
-        /// </summary>
-        /// <param name="pointedAtType">The type being pointed at.</param>
-        /// <param name="customModifiers">Custom modifiers for the element type of this array type.</param>
-        internal PointerTypeSymbol(TypeSymbol pointedAtType, ImmutableArray<CustomModifier> customModifiers)
-        {
-            Debug.Assert((object)pointedAtType != null);
+            Debug.Assert(!pointedAtType.IsNull);
 
             _pointedAtType = pointedAtType;
-            _customModifiers = customModifiers.NullToEmpty();
-        }
-
-        /// <summary>
-        /// The list of custom modifiers, if any, associated with the pointer type.
-        /// </summary>
-        public ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return _customModifiers;
-            }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -81,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of the storage location that an instance of the pointer type points to.
         /// </summary>
-        public TypeSymbol PointedAtType
+        public TypeSymbolWithAnnotations PointedAtType
         {
             get
             {
@@ -239,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (current.TypeKind == TypeKind.Pointer)
             {
                 indirections += 1;
-                current = ((PointerTypeSymbol)current).PointedAtType;
+                current = ((PointerTypeSymbol)current).PointedAtType.TypeSymbol;
             }
 
             return Hash.Combine(current, indirections);
@@ -267,29 +246,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0)
+            return true;
+        }
+
+        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        {
+            PointedAtType.AddNullableTransforms(transforms);
+        }
+
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        {
+            TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
+            TypeSymbolWithAnnotations newPointedAtType;
+
+            if (!oldPointedAtType.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newPointedAtType))
             {
-                // Make sure custom modifiers are the same.
-                var mod = this.CustomModifiers;
-                var otherMod = other.CustomModifiers;
-
-                int count = mod.Length;
-
-                if (count != otherMod.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (!mod[i].Equals(otherMod[i]))
-                    {
-                        return false;
-                    }
-                }
+                result = this;
+                return false;
             }
 
+            result = WithPointedAtType(newPointedAtType);
             return true;
+        }
+
+        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        {
+            return WithPointedAtType(PointedAtType.SetUnknownNullabilityForReferenceTypes());
+        }
+
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        {
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            TypeSymbolWithAnnotations pointedAtType = PointedAtType.MergeNullability(((PointerTypeSymbol)other).PointedAtType, VarianceKind.None, out hadNullabilityMismatch);
+            return WithPointedAtType(pointedAtType);
+        }
+
+        private PointerTypeSymbol WithPointedAtType(TypeSymbolWithAnnotations newPointedAtType)
+        {
+            return PointedAtType.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
@@ -297,30 +291,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticInfo result = null;
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtType) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.CustomModifiers))
-            {
-            }
-
+            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtType);
             return result;
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return this.PointedAtType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                   GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
+            return this.PointedAtType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
         }
 
         #region IPointerTypeSymbol Members
 
         ITypeSymbol IPointerTypeSymbol.PointedAtType
         {
-            get { return this.PointedAtType; }
+            get { return this.PointedAtType.TypeSymbol; }
         }
 
         ImmutableArray<CustomModifier> IPointerTypeSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers; }
+            get { return this.PointedAtType.CustomModifiers; }
         }
 
         #endregion

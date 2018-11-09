@@ -3,7 +3,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
@@ -16,7 +15,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Implementation</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -32,7 +31,11 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.7" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.8" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.7" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.8" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
   </ItemGroup>
@@ -55,16 +58,15 @@
     <Reference Include="WindowsFormsIntegration" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
-    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Options\GridOptionPreviewControl.xaml.cs">

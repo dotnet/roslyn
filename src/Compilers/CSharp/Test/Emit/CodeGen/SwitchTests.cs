@@ -8395,10 +8395,10 @@ class Program
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,21): error CS8413: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -8567,10 +8567,10 @@ class Program
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,21): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is int t ? t : default(int);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
                 //             case int t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -8781,10 +8781,10 @@ class B : A
 class X : B { }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (14,21): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
-                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (20,18): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
@@ -8836,10 +8836,10 @@ class B : A
 class X : B { }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (14,21): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t ? t : default(T);
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
-                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (20,18): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
@@ -8889,10 +8889,10 @@ struct B : I1
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,21): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t;
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -8941,10 +8941,10 @@ struct B
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (13,21): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         return o is T t;
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
-                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                // (19,18): error CS8413: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
@@ -9171,7 +9171,8 @@ class C
             );
         }
 
-        [Fact, WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        [WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ShareLikeKindedTemps_01()
         {
             var source = @"using System;

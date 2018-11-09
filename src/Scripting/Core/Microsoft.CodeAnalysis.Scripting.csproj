@@ -7,8 +7,16 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Scripting.Common</PackageId>
+    <PackageDescription>
+      Microsoft .NET Compiler Platform ("Roslyn") shared scripting package.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -23,8 +31,7 @@
       so that it can be referenced in libraries targeting netstandard1.3 once they check that the executing runtime 
       is .NET Core.
     -->
-    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" />
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="$(SystemDiagnosticsStackTraceVersion)" />
+    <PackageReference Include="RoslynTools.LightUp.System.Runtime.Loader" Version="$(RoslynToolsLightUpSystemRuntimeLoaderFixedVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">

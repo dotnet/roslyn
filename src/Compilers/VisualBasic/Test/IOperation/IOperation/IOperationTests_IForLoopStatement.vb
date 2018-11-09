@@ -8850,7 +8850,7 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll)
 
             Dim expectedDiagnostics = String.Empty
 
@@ -8924,7 +8924,7 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
 
             Dim expectedDiagnostics = String.Empty

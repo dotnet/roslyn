@@ -10,4 +10,23 @@
     <VsixVersion Condition="'$(VersionSuffixDateStamp)' != ''">$(VersionPrefix).$(VersionSuffixDateStamp)$(VersionSuffixBuildOfTheDayPadded)</VsixVersion>
     <VsixVersion Condition="'$(VersionSuffixDateStamp)' == ''">42.42.42.4242424</VsixVersion>
   </PropertyGroup>
+
+  <!-- VSIX settings -->
+  <PropertyGroup>
+    <VsixSourceManifestPath>$(MSBuildProjectDirectory)\source.extension.vsixmanifest</VsixSourceManifestPath>
+    <IsVsixProject>false</IsVsixProject>
+    <IsVsixProject Condition="Exists('$(VsixSourceManifestPath)')">true</IsVsixProject>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsVsixProject)' == 'true'">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" PrivateAssets="all" IsImplicitlyDefined="true" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(IsVsixProject)' == 'true'">
+    <BuildForLiveUnitTesting>false</BuildForLiveUnitTesting>
+
+    <StartAction>Program</StartAction>
+    <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
+  </PropertyGroup>
 </Project>

@@ -1384,7 +1384,7 @@ namespace N
         }
 
         [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void PermissionSetAttribute_Fixup()
         {
             var tempDir = Temp.CreateDirectory();

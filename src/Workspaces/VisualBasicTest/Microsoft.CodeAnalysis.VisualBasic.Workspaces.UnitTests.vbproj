@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
@@ -23,7 +23,6 @@
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
-    <ProjectReference Include="..\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
@@ -38,9 +37,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Threading;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
+            : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
         {
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider;

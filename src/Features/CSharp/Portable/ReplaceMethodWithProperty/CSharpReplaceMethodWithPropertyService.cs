@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                                                   .WithAccessorList(null);
                     }
                     else if (getAccessor.Body != null &&
-                             getAccessor.Body.TryConvertToExpressionBody(
+                             getAccessor.Body.TryConvertToArrowExpressionBody(
                                  propertyDeclaration.Kind(), parseOptions, expressionBodyPreference,
                                  out var arrowExpression, out var semicolonToken))
                     {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
-                if (accessorDeclaration.Body.TryConvertToExpressionBody(
+                if (accessorDeclaration.Body.TryConvertToArrowExpressionBody(
                         accessorDeclaration.Kind(), parseOptions, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {

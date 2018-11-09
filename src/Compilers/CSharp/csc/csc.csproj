@@ -13,6 +13,7 @@
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -22,7 +23,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)"/>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\BuildClient.cs">
@@ -53,7 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="csc.rsp" Condition="'$(TargetFramework)' == 'net46'">
+    <None Include="csc.rsp" Condition="'$(TargetFramework)' == 'net472'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Inherits BasicTestBase
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SimpleAsyncMethod()
             Dim source =
 <compilation>
@@ -169,7 +169,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestAsync()
             Dim source =
 <compilation>
@@ -395,7 +396,8 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -476,7 +478,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -546,7 +548,8 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -625,7 +628,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -697,7 +700,7 @@ End Class
         End Sub
 
         <WorkItem(1085911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085911")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AsyncReturnVariable()
             Dim source =
 <compilation>
@@ -754,7 +757,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AsyncAndClosure()
             Dim source =
 <compilation>
@@ -897,7 +900,7 @@ End Module
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C
@@ -960,7 +963,7 @@ MethodDebugInformation (index: 0x31, size: 20):
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CatchInAsyncStateMachine()
             Dim src = "
 Imports System

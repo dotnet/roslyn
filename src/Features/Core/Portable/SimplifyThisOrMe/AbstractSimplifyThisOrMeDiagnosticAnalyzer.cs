@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         TExpressionSyntax,
         TThisExpressionSyntax,
         TMemberAccessExpressionSyntax> : 
-        AbstractCodeStyleDiagnosticAnalyzer 
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer 
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TThisExpressionSyntax : TExpressionSyntax

@@ -305,6 +305,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        internal Solution WithProjectDefaultNamespace(ProjectId projectId, string defaultNamespace)
+        {
+            var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public Solution WithProjectName(ProjectId projectId, string name)
@@ -401,7 +415,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
-            var newState = _state.AddProjectReference(projectId, projectReference);
+            var newState = _state.AddProjectReferences(projectId, SpecializedCollections.SingletonEnumerable(projectReference));
             if (newState == _state)
             {
                 return this;
@@ -675,7 +689,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddDocument(documentInfo);
+            return AddDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        /// <summary>
+        /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
+        /// the documents specified by <paramref name="documentInfos"/>.
+        /// </summary>
+        /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
+        public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;

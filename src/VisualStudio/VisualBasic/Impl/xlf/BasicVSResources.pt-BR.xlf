@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="new">In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Inserir Trecho</target>
+        <target state="translated">Inserir Snippet</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="new">Prefer 'Is Nothing' for reference equality checks</target>
+        <target state="translated">Prefira 'Is Nothing' para as verificações de igualdade de referência</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -229,22 +229,22 @@
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="translated">Sempre incluir trechos</target>
+        <target state="translated">Sempre incluir snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Incluir trechos quando ?-Tab for digitado após um identificador</target>
+        <target state="translated">Incluir snippets quando ?-Tab for digitado após um identificador</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="translated">Nunca incluir trechos</target>
+        <target state="translated">Nunca incluir snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="translated">Comportamento de trechos</target>
+        <target state="translated">Comportamento de snippets</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
@@ -255,6 +255,11 @@
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
         <target state="translated">_Mostrar lista de conclusão depois que um caractere é digitado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="new">VB Coding Conventions</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
@@ -279,12 +284,12 @@
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <target state="translated">Em operadores aritméticos:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="new">In other binary operators:  And   AndAlso   Or   OrElse</target>
+        <target state="translated">Em outros operadores binários:  And   AndAlso   Or   OrElse</target>
         <note />
       </trans-unit>
     </body>

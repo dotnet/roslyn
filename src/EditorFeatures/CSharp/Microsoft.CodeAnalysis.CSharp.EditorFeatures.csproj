@@ -6,8 +6,14 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for C# editor features inside the Visual Studio editor.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -42,6 +48,7 @@
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpEditorResources.resx">

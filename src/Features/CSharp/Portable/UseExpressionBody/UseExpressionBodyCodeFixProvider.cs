@@ -52,13 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var accessorLists = new HashSet<AccessorListSyntax>();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, options, accessorLists, cancellationToken);
+                AddEdits(semanticModel, editor, diagnostic, options, accessorLists, cancellationToken);
             }
 
             // Ensure that if we changed any accessors that the accessor lists they're contained
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         private void AddEdits(
-            SyntaxEditor editor, Diagnostic diagnostic,
+            SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
             OptionSet options, HashSet<AccessorListSyntax> accessorLists,
             CancellationToken cancellationToken)
         {
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var useExpressionBody = diagnostic.Properties.ContainsKey(nameof(UseExpressionBody));
             var parseOptions = declaration.SyntaxTree.Options;
 
-            var updatedDeclaration = helper.Update(declaration, options, parseOptions, useExpressionBody)
+            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody)
                                            .WithAdditionalAnnotations(Formatter.Annotation);
 
             editor.ReplaceNode(declaration, updatedDeclaration);

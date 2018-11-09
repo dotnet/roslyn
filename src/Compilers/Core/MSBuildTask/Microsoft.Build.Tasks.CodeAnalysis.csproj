@@ -11,20 +11,27 @@
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
+
+    <PackageDescription>
+      The build task and targets used by MSBuild to run the C# and VB compilers.
+      Supports using VBCSCompiler on Windows.
+    </PackageDescription>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <None Include="Microsoft.Managed.Core.targets">
+    <Content Include="*.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Microsoft.CSharp.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Microsoft.VisualBasic.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <!-- A reference to the entire .NET Framework is automatically included -->
+      <Pack>true</Pack>
+      <BuildAction>None</BuildAction>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackagePath>contentFiles\any\any</PackagePath>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\BuildServerConnection.cs">
@@ -33,6 +40,7 @@
     <Compile Include="..\..\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
+    <Compile Include="..\Portable\CommitHashAttribute.cs" Link="CommitHashAttribute.cs" />
     <Compile Include="..\Portable\CorLightup.cs">
       <Link>CorLightup.cs</Link>
     </Compile>
@@ -69,8 +77,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildFixedVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreFixedVersion)" />
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
-    <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />

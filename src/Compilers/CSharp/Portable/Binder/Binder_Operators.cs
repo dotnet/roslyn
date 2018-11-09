@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
-            // make cascading errors.  
+            // make cascading errors.
 
             if (left.Kind == BoundKind.EventAccess)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // A compound operator, say, x |= y, is bound as x = (X)( ((T)x) | ((T)y) ). We must determine
             // the binary operator kind, the type conversions from each side to the types expected by
             // the operator, and the type conversion from the return type of the operand to the left hand side.
-            // 
+            //
             // We can get away with binding the right-hand-side of the operand into its converted form early.
             // This is convenient because first, it is never rewritten into an access to a temporary before
             // the conversion, and second, because that is more convenient for the "d += lambda" case.
@@ -119,23 +119,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The correct rules are spelled out in the spec:
             //
             // Spec §7.17.2:
-            // An operation of the form x op= y is processed by applying binary operator overload 
-            // resolution (§7.3.4) as if the operation was written x op y. 
+            // An operation of the form x op= y is processed by applying binary operator overload
+            // resolution (§7.3.4) as if the operation was written x op y.
             // Let R be the return type of the selected operator, and T the type of x. Then,
             //
-            // * If an implicit conversion from an expression of type R to the type T exists, 
-            //   the operation is evaluated as x = (T)(x op y), except that x is evaluated only once. 
+            // * If an implicit conversion from an expression of type R to the type T exists,
+            //   the operation is evaluated as x = (T)(x op y), except that x is evaluated only once.
             //   [no cast is inserted, unless the conversion is implicit dynamic]
-            // * Otherwise, if 
-            //   (1) the selected operator is a predefined operator, 
-            //   (2) if R is explicitly convertible to T, and 
-            //   (3.1) if y is implicitly convertible to T or 
+            // * Otherwise, if
+            //   (1) the selected operator is a predefined operator,
+            //   (2) if R is explicitly convertible to T, and
+            //   (3.1) if y is implicitly convertible to T or
             //   (3.2) the operator is a shift operator... [then cast the result to T]
             // * Otherwise ... a binding-time error occurs.
 
             // So let's tease that out. There are two possible errors: the conversion from the
             // operator result type to the left hand type could be bad, and the conversion
-            // from the right hand side to the left hand type could be bad. 
+            // from the right hand side to the left hand type could be bad.
             //
             // We report the first error under the following circumstances:
             //
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = true;
             }
 
-            // Any events that weren't handled above (by BindEventAssignment) are bad - we just followed this 
+            // Any events that weren't handled above (by BindEventAssignment) are bad - we just followed this
             // code path for the diagnostics.  Make sure we don't report success.
             Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                type = method.ReturnType;
+                type = method.ReturnType.TypeSymbol;
                 if (!this.IsAccessible(method, ref useSiteDiagnostics, this.GetAccessThroughType(receiverOpt)))
                 {
                     // CONSIDER: depending on the accessibility (e.g. if it's private), dev10 might just report the whole event bogus.
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Literal null is a legal operand to a dynamic operation. The other typeless expressions --
             // method groups, lambdas, anonymous methods -- are not.
 
-            // If the operand is of a class, interface, delegate, array, struct, enum, nullable 
+            // If the operand is of a class, interface, delegate, array, struct, enum, nullable
             // or type param types, it's legal to use in a dynamic expression. In short, the type
             // must be one that is convertible to object.
 
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (kind.IsLogical() && leftValidOperand)
             {
                 // We need to make sure left is either implicitly convertible to Boolean or has user defined truth operator.
-                //   left && right is lowered to {op_False|op_Implicit}(left) ? left : And(left, right) 
+                //   left && right is lowered to {op_False|op_Implicit}(left) ? left : And(left, right)
                 //   left || right is lowered to {op_True|!op_Implicit}(left) ? left : Or(left, right)
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (!IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, useSiteDiagnostics: ref useSiteDiagnostics, userDefinedOperator: out userDefinedOperator))
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected static bool IsSimpleBinaryOperator(SyntaxKind kind)
         {
-            // We deliberately exclude &&, ||, ??, etc. 
+            // We deliberately exclude &&, ||, ??, etc.
             switch (kind)
             {
                 case SyntaxKind.AddExpression:
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC OMISSION: of the overload resolution spec shows that overload resolution would give an
             // SPEC OMISSION: ambiguity error for this case; the expression is ambiguous between the int?,
             // SPEC OMISSION: bool? and string versions of equality.  This line was accidentally edited
-            // SPEC OMISSION: out of the C# 3 specification; we should re-insert it. 
+            // SPEC OMISSION: out of the C# 3 specification; we should re-insert it.
 
             bool leftNull = left.IsLiteralNull();
             bool rightNull = right.IsLiteralNull();
@@ -501,12 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note that the spec says "fails to find an applicable operator", not "fails to
             // find a unique best applicable operator." For example:
-            // struct X { 
+            // struct X {
             //   public static bool operator ==(X? x, double? y) {...}
             //   public static bool operator ==(X? x, decimal? y) {...}
             //
             // The comparison "x == null" should produce an ambiguity error rather
-            // that being bound as !x.HasValue. 
+            // that being bound as !x.HasValue.
             //
 
             LookupResultKind resultKind;
@@ -581,10 +581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool foundOperator;
             best = this.BinaryOperatorOverloadResolution(kind, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
-            // However, as an implementation detail, we never "fail to find an applicable 
+            // However, as an implementation detail, we never "fail to find an applicable
             // operator" during overload resolution if we have x == null, etc. We always
             // find at least the reference conversion object == object; the overload resolution
-            // code does not reject that.  Therefore what we should do is only bind 
+            // code does not reject that.  Therefore what we should do is only bind
             // "x == null" as a nullable-to-null comparison if overload resolution chooses
             // the reference conversion.
 
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Kind() == SyntaxKind.LogicalOrExpression || node.Kind() == SyntaxKind.LogicalAndExpression);
 
-            // Do not blow the stack due to a deep recursion on the left. 
+            // Do not blow the stack due to a deep recursion on the left.
 
             BinaryExpressionSyntax binary = node;
             ExpressionSyntax child;
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
 
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
-            // make cascading errors.  
+            // make cascading errors.
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Let's take an easy out here. The vast majority of the time the operands will
-            // both be bool. This is the only situation in which the expression can be a 
+            // both be bool. This is the only situation in which the expression can be a
             // constant expression, so do the folding now if we can.
 
             if ((object)left.Type != null && left.Type.SpecialType == SpecialType.System_Boolean &&
@@ -766,9 +766,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // SPEC OMISSION: We should probably clarify that the enum logical operators count as
             // SPEC OMISSION: integer logical operators. Basically the rule here should actually be:
-            // SPEC OMISSION: if overload resolution selects something other than a user-defined 
+            // SPEC OMISSION: if overload resolution selects something other than a user-defined
             // SPEC OMISSION: operator or the built in not-lifted operator on bool, an error occurs.
-            // 
+            //
 
             if (!best.HasValue)
             {
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // There are two non-error possibilities. Either both operands are implicitly convertible to 
+                // There are two non-error possibilities. Either both operands are implicitly convertible to
                 // bool, or we've got a valid user-defined operator.
                 BinaryOperatorSignature signature = best.Signature;
 
@@ -894,25 +894,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // public static bool operator true(D? d) { ... }
             // public static bool operator false(D? d) { ... }
             //
-            // And use the *lifted* form of the operator, this is disallowed.            
+            // And use the *lifted* form of the operator, this is disallowed.
             //
             // public static D? operator &(D? d1, D d2) { ... }
             // public static bool operator true(D? d) { ... }
             // public static bool operator false(D? d) { ... }
             //
             // Is not allowed because "the return type must be the same as the type of both operands"
-            // which is not at all what the spec says. 
+            // which is not at all what the spec says.
             //
             // We ought not to break backwards compatibility with the native compiler. The spec
-            // is plausibly in error; it is possible that this section of the specification was 
-            // never updated when nullable types and lifted operators were added to the language. 
+            // is plausibly in error; it is possible that this section of the specification was
+            // never updated when nullable types and lifted operators were added to the language.
             // And it seems like the native compiler's behavior of allowing a nullable
             // version but not a lifted version is a bug that should be fixed.
             //
             // Therefore we will do the following in Roslyn:
             //
             // * The return and parameter types of the chosen operator, whether lifted or unlifted,
-            //   must be the same. 
+            //   must be the same.
             // * The return and parameter types must be either the enclosing type, or its corresponding
             //   nullable type.
             // * There must be an operator true/operator false that takes the left hand type of the operator.
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!typesAreSame || !typeMatchesContainer)
             {
-                // CS0217: In order to be applicable as a short circuit operator a user-defined logical 
+                // CS0217: In order to be applicable as a short circuit operator a user-defined logical
                 // operator ('{0}') must have the same return type and parameter types
 
                 Error(diagnostics, ErrorCode.ERR_BadBoolOp, syntax, signature.Method);
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: T must contain declarations of operator true and operator false.
 
             // As mentioned above, we need more than just op true and op false existing; we need
-            // to know that the first operand can be passed to it. 
+            // to know that the first operand can be passed to it.
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteDiagnostics, out trueOperator) ||
@@ -973,26 +973,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // exact same issues apply to ||.
 
             // Note that the mere *existence* of operator true and operator false is sufficient.  They
-            // are already constrained to take either T or T?. Since we know that the applicable 
+            // are already constrained to take either T or T?. Since we know that the applicable
             // T.& takes (T, T), we know that both sides of the && are implicitly convertible
-            // to T, and therefore the left side is implicitly convertible to T or T?.  
+            // to T, and therefore the left side is implicitly convertible to T or T?.
 
             // SPEC: The expression x && y is evaluated as T.false(x) ? x : T.&(x,y) ... except that
             // SPEC: x is only evaluated once.
             //
-            // DELIBERATE SPEC VIOLATION: The native compiler does not actually evaluate x&&y in this 
+            // DELIBERATE SPEC VIOLATION: The native compiler does not actually evaluate x&&y in this
             // manner. Suppose X is of type X. The code above is equivalent to:
             //
             // X temp = x, then evaluate:
             // T.false(temp) ? temp : T.&(temp, y)
             //
             // What the native compiler actually evaluates is:
-            // 
+            //
             // T temp = x, then evaluate
             // T.false(temp) ? temp : T.&(temp, y)
             //
             // That is a small difference but it has an observable effect. For example:
-            // 
+            //
             // class V { public static implicit operator T(V v) { ... } }
             // class X : V { public static implicit operator T?(X x) { ... } }
             // struct T {
@@ -1008,8 +1008,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // which would then be analyzed as:
             //
-            // T.false(X.op_Implicit_To_Nullable_T(temp)) ? 
-            //     V.op_Implicit_To_T(temp) : 
+            // T.false(X.op_Implicit_To_Nullable_T(temp)) ?
+            //     V.op_Implicit_To_T(temp) :
             //     T.&(op_Implicit_To_T(temp), y)
             //
             // But the native compiler actually generates:
@@ -1023,9 +1023,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We choose to match the native compiler behavior here; we might consider fixing
             // the spec to match the compiler.
             //
-            // With this decision we need not keep track of any extra information in the bound 
+            // With this decision we need not keep track of any extra information in the bound
             // binary operator node; we need to know the left hand side converted to T, the right
-            // hand side converted to T, and the method symbol of the chosen T.&(T, T) method. 
+            // hand side converted to T, and the method symbol of the chosen T.&(T, T) method.
             // The rewriting pass has enough information to deduce which T.false is to be called,
             // and can convert the T to T? if necessary.
 
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
+                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0].TypeSymbol, ref useSiteDiagnostics);
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
@@ -1406,10 +1406,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(kind.IsEnum());
             Debug.Assert(!kind.IsLifted());
 
-            // A built-in binary operation on constant enum operands is evaluated into an operation on 
+            // A built-in binary operation on constant enum operands is evaluated into an operation on
             // constants of the underlying type U of the enum type E. Comparison operators are lowered as
-            // simply computing U<U. All other operators are computed as (E)(U op U) or in the case of 
-            // E-E, (U)(U-U).  
+            // simply computing U<U. All other operators are computed as (E)(U op U) or in the case of
+            // E-E, (U)(U-U).
 
             TypeSymbol enumType = GetEnumType(kind, left, right);
             TypeSymbol underlyingType = enumType.GetEnumUnderlyingType();
@@ -1536,8 +1536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Certain binary operations never fail; bool & bool, for example. If we are in one of those
             // cases, simply fold the operation and return.
             //
-            // Although remainder and division always overflow at runtime with arguments int.MinValue/long.MinValue and -1 
-            // (regardless of checked context) the constant folding behavior is different. 
+            // Although remainder and division always overflow at runtime with arguments int.MinValue/long.MinValue and -1
+            // (regardless of checked context) the constant folding behavior is different.
             // Remainder never overflows at compile time while division does.
             newValue = FoldNeverOverflowBinaryOperators(kind, valueLeft, valueRight);
             if (newValue != null)
@@ -1854,8 +1854,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
-        /// The <paramref name="compoundStringLength"/> parameter contains value corresponding to the 
-        /// left node, or zero, which will trigger inference. Upon return, it will 
+        /// The <paramref name="compoundStringLength"/> parameter contains value corresponding to the
+        /// left node, or zero, which will trigger inference. Upon return, it will
         /// be adjusted to correspond future result node.
         /// </summary>
         private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight, ref int compoundStringLength)
@@ -2038,6 +2038,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
+        private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            if (this.Flags.Includes(BinderFlags.AttributeArgument))
+            {
+                diagnostics.Add(new LazyMissingNonNullTypesContextForSuppressionDiagnosticInfo(NonNullTypesContext), node.OperatorToken.GetLocation());
+            }
+            else if (NonNullTypesContext.NonNullTypes == null)
+            {
+                diagnostics.Add(ErrorCode.WRN_MissingNonNullTypesContext, node.OperatorToken.GetLocation());
+            }
+
+            var expr = BindExpression(node.Operand, diagnostics);
+            var type = expr.Type;
+            if (type?.IsValueType == true)
+            {
+                Error(diagnostics, ErrorCode.WRN_SuppressionOperatorNotReferenceType, node);
+            }
+            return new BoundSuppressNullableWarningExpression(node, expr, type);
+        }
+
         // Based on ExpressionBinder::bindPtrIndirection.
         private BoundExpression BindPointerIndirectionExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
@@ -2070,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                pointedAtType = operandType.PointedAtType;
+                pointedAtType = operandType.PointedAtType.TypeSymbol;
 
                 if (pointedAtType.SpecialType == SpecialType.System_Void)
                 {
@@ -2128,9 +2148,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointerType = new PointerTypeSymbol(isManagedType && allowManagedAddressOf
+            TypeSymbol pointedAtType = isManagedType && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
-                : operandType ?? CreateErrorType());
+                : operandType ?? CreateErrorType();
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(pointedAtType));
 
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
@@ -2242,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // is not a fixed size buffer expression, or if the expression is a fixed size buffer
                             // member_access of the form E.I and E is a fixed variable
                             BoundExpression underlyingExpr = ((BoundPointerElementAccess)expr).Expression;
-                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                            if (underlyingExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixedSizeBuffer)
                             {
                                 expr = fieldAccess.ReceiverOpt;
                                 continue;
@@ -2292,8 +2313,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the operand is dynamic then we do not attempt to do overload resolution at compile
             // time; we defer that until runtime. If we did overload resolution then the dynamic
-            // operand would be implicitly convertible to the parameter type of each operator 
-            // signature, and therefore every operator would be an applicable candidate. Instead 
+            // operand would be implicitly convertible to the parameter type of each operator
+            // signature, and therefore every operator would be an applicable candidate. Instead
             // of changing overload resolution to handle dynamic, we just handle it here and let
             // overload resolution implement the specification.
 
@@ -2329,7 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var signature = best.Signature;
 
-            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, false, signature.OperandType, diagnostics);
+            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, signature.OperandType, diagnostics);
             var resultType = signature.ReturnType;
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultMethod = signature.Method;
@@ -2539,6 +2560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
                     return BindValueKind.CompoundAssignment;
                 default:
                     return BindValueKind.RValue;
@@ -2564,16 +2586,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLiteral BindIntegralMinValConstants(PrefixUnaryExpressionSyntax node, BoundExpression operand, DiagnosticBag diagnostics)
         {
-            // SPEC: To permit the smallest possible int and long values to be written as decimal integer 
+            // SPEC: To permit the smallest possible int and long values to be written as decimal integer
             // SPEC: literals, the following two rules exist:
 
-            // SPEC: When a decimal-integer-literal with the value 2147483648 and no integer-type-suffix 
-            // SPEC: appears as the token immediately following a unary minus operator token, the result is a 
-            // SPEC: constant of type int with the value −2147483648. 
+            // SPEC: When a decimal-integer-literal with the value 2147483648 and no integer-type-suffix
+            // SPEC: appears as the token immediately following a unary minus operator token, the result is a
+            // SPEC: constant of type int with the value −2147483648.
 
-            // SPEC: When a decimal-integer-literal with the value 9223372036854775808 and no integer-type-suffix 
-            // SPEC: or the integer-type-suffix L or l appears as the token immediately following a unary minus 
-            // SPEC: operator token, the result is a constant of type long with the value −9223372036854775808. 
+            // SPEC: When a decimal-integer-literal with the value 9223372036854775808 and no integer-type-suffix
+            // SPEC: or the integer-type-suffix L or l appears as the token immediately following a unary minus
+            // SPEC: operator token, the result is a constant of type long with the value −9223372036854775808.
 
             if (node.Kind() != SyntaxKind.UnaryMinusExpression)
             {
@@ -2679,7 +2701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return operand.HasAnyErrors;
-        }
+            }
 
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {
@@ -2714,9 +2736,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
-            TypeSymbol targetType;
             var isTypeDiagnostics = DiagnosticBag.GetInstance();
-            targetType = BindType(node.Right, isTypeDiagnostics, out alias);
+            TypeSymbol targetType = BindType(node.Right, isTypeDiagnostics, out alias).TypeSymbol;
 
             if (targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
                     ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
@@ -2756,7 +2777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is and As operator should have null ConstantValue as they are not constant expressions.
-            // However we perform analysis of is/as expressions at bind time to detect if the expression 
+            // However we perform analysis of is/as expressions at bind time to detect if the expression
             // will always evaluate to a constant to generate warnings (always true/false/null).
             // We also need this analysis result during rewrite to optimize away redundant isinst instructions.
             // We store the conversion from expression's operand type to target type to enable these
@@ -2769,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand.Type.SpecialType == SpecialType.System_Void)
             {
                 // warning for cases where the result is always false:
-                // (a) "null is TYPE" OR operand evaluates to null 
+                // (a) "null is TYPE" OR operand evaluates to null
                 // (b) operand is a MethodGroup
                 // (c) operand is of void type
 
@@ -2855,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    (they are non-constant expressions according to Section 7.19 of the specification),
             // NOTE:    we want to perform constant analysis of is/as expressions during binding to generate warnings
             // NOTE:    (always true/false/null) and during rewriting for optimized codegen.
-            // NOTE: 
+            // NOTE:
             // NOTE:    Because the heuristic presented here is used to change codegen, it must be conservative. It is acceptable
             // NOTE:    for us to fail to report a warning in cases where humans could logically deduce that the operator will
             // NOTE:    always return false. It is not acceptable to inaccurately warn that the operator will always return false
@@ -2871,7 +2892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    future could be a breaking change.
 
             // To begin our heuristic: if the operand is literal null then we automatically return that the
-            // result is false. You might think that we can simply check to see if the conversion is 
+            // result is false. You might think that we can simply check to see if the conversion is
             // ConversionKind.NullConversion, but "null is T" for a type parameter T is actually classified
             // as an implicit reference conversion if T is constrained to reference types. Rather
             // than deal with all those special cases we can simply bail out here.
@@ -2891,7 +2912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversionKind)
             {
                 case ConversionKind.NoConversion:
-                    // Oddly enough, "x is T" can be true even if there is no conversion from x to T! 
+                    // Oddly enough, "x is T" can be true even if there is no conversion from x to T!
                     //
                     // Scenario 1: Type parameter compared to System.Enum.
                     //
@@ -2915,7 +2936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // Scenario 4: Constructed type compared to open type
                     //
-                    // bool M4<T>(C<int> x) { return x is C<T>; } 
+                    // bool M4<T>(C<int> x) { return x is C<T>; }
                     //
                     // There is no conversion from C<int> to C<T>, but nevertheless, T might be int.
                     //
@@ -2924,8 +2945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // bool M5<X>(C<X> x) { return x is C<int>);
                     //
                     // Again, X could be int.
-                    // 
-                    // We could then go on to get more complicated. For example, 
+                    //
+                    // We could then go on to get more complicated. For example,
                     //
                     // bool M6<X>(C<X> x) where X : struct { return x is C<string>; }
                     //
@@ -2946,8 +2967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * Otherwise, at least one of them is of an open type. If the operand is of value type 
-                    //   and the target is a class type other than System.Enum, then we are in scenario 2, 
+                    // * Otherwise, at least one of them is of an open type. If the operand is of value type
+                    //   and the target is a class type other than System.Enum, then we are in scenario 2,
                     //   not scenario 1, and can correctly deduce that the result is false.
 
                     if (operandType.IsValueType && targetType.IsClassType() && targetType.SpecialType != SpecialType.System_Enum)
@@ -3047,9 +3068,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
 
                 case ConversionKind.Identity:
-                    // The result of "x is T" can be statically determined to be true if x is an expression 
+                    // The result of "x is T" can be statically determined to be true if x is an expression
                     // of non-nullable value type T. If x is of reference or nullable value type then
-                    // we cannot know, because again, the expression value could be null or it could be good. 
+                    // we cannot know, because again, the expression value could be null or it could be good.
                     // If it is of pointer type then we have already given an error.
                     return operandCouldBeNull ? null : ConstantValue.True;
 
@@ -3063,7 +3084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   to a reference type
                     //
                     // In the first case we know that the conversion will always succeed and that the
-                    // operand is never null, and therefore "is" will always result in true. 
+                    // operand is never null, and therefore "is" will always result in true.
                     //
                     // In the second two cases we do not know; either the nullable value type could be
                     // null, or the type parameter could be constructed with a reference type, and it
@@ -3073,7 +3094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitNullable:
                     // We have "x is T" in one of the following situations:
                     // 1) x is of type X and T is X?.  The value is always true.
-                    // 2) x is of type X and T is Y? where X is convertible to Y via an implicit numeric conversion. Eg, 
+                    // 2) x is of type X and T is Y? where X is convertible to Y via an implicit numeric conversion. Eg,
                     //    x is of type int and T is decimal?.  The value is always false.
                     // 3) x is of type X? and T is Y? where X is convertible to Y via an implicit numeric conversion.
                     //    The value is always false.
@@ -3102,17 +3123,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             AliasSymbol alias;
-            var targetType = BindType(node.Right, diagnostics, out alias);
+            var targetType = BindType(node.Right, diagnostics, out alias).TypeSymbol;
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             var resultType = targetType;
 
             // Is and As operator should have null ConstantValue as they are not constant expressions.
-            // However we perform analysis of is/as expressions at bind time to detect if the expression 
+            // However we perform analysis of is/as expressions at bind time to detect if the expression
             // will always evaluate to a constant to generate warnings (always true/false/null).
             // We also need this analysis result during rewrite to optimize away redundant isinst instructions.
             // We store the conversion kind from expression's operand type to target type to enable these
-            // optimizations during is/as operator rewrite.            
+            // optimizations during is/as operator rewrite.
 
             switch (operand.Kind)
             {
@@ -3165,7 +3186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
-            // The C# specification states in the section called 
+            // The C# specification states in the section called
             // "Referencing Static Class Types" that it is always
             // illegal to use "as" with a static type. The
             // native compiler actually allows "null as C" for
@@ -3244,7 +3265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    In an operation of the form E as T, E must be an expression and T must be a reference type,
             // SPEC:    a type parameter known to be a reference type, or a nullable type.
             // SPEC:    Furthermore, at least one of the following must be true, or otherwise a compile-time error occurs:
-            // SPEC:    •	An identity (§6.1.1), implicit nullable (§6.1.4), implicit reference (§6.1.6), boxing (§6.1.7), 
+            // SPEC:    •	An identity (§6.1.1), implicit nullable (§6.1.4), implicit reference (§6.1.6), boxing (§6.1.7),
             // SPEC:        explicit nullable (§6.2.3), explicit reference (§6.2.4), or unboxing (§6.2.5) conversion exists
             // SPEC:        from E to T.
             // SPEC:    •	The type of E or T is an open type.
@@ -3337,7 +3358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
 
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                leftConversion, CreateErrorType(), hasErrors: true);
+                leftConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
         }
 
         private BoundExpression BindNullCoalescingOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
@@ -3349,26 +3370,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+                    Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
             }
 
+            // The specification does not permit the left hand side to be a default literal
             if (leftOperand.IsLiteralDefault())
             {
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+                    Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.NoCommonType, CreateErrorType(), hasErrors: true);
             }
 
-            // SPEC ERROR: The specification states:
-            // SPEC ERROR:
-            // SPEC ERROR: "A null coalescing expression of the form a??b requires 'a' to be of 
-            // SPEC ERROR: nullable type or reference type."
-            // SPEC ERROR:
-            // SPEC ERROR: This is an error because it disallows the pointless-but-legal expression
-            // SPEC ERROR: null??whatever. We'll strike that from the specification.
-
-            // SPEC: The type of the expression a ?? b depends on which implicit conversions are available 
+            // SPEC: The type of the expression a ?? b depends on which implicit conversions are available
             // SPEC: between the types of the operands. In order of preference, the type of a ?? b is A0, A, or B,
             // SPEC: where A is the type of a, B is the type of b (provided that b has a type),
             // SPEC: and A0 is the underlying type of A if A is a nullable type, or A otherwise.
@@ -3380,25 +3394,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 optLeftType.GetNullableUnderlyingType() :
                 optLeftType;
 
-            // SPEC ERROR: The spec does not call out that the left-hand side may not be a method group
-            // SPEC ERROR: or anonymous function. We should add a line to the spec to say so.
-
+            // SPEC: The left hand side must be either the null literal or it must have a type. Lambdas and method groups do not have a type,
+            // SPEC: so using one is an error.
             if (leftOperand.Kind == BoundKind.UnboundLambda || leftOperand.Kind == BoundKind.MethodGroup)
             {
                 return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
             }
 
-            // SPEC: Otherwise, if A exists and is not a nullable type or a reference type, a compile-time error occurs.
-
+            // SPEC: Otherwise, if A exists and is a non-nullable value type, a compile-time error occurs. First we check for the pre-C# 8.0
+            // SPEC: condition, to ensure that we don't allow previously illegal code in old language versions.
             if ((object)optLeftType != null && !optLeftType.IsReferenceType && !isLeftNullable)
             {
-                return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
+                // Prior to C# 8.0, the spec said that the left type must be either a reference type or a nullable value type. This was relaxed
+                // with C# 8.0, so if the feature is not enabled then issue a diagnostic and return
+                if (!optLeftType.IsValueType)
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator, diagnostics);
+                }
+                else
+                {
+                    return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
+                }
             }
 
             // SPEC:    If b is a dynamic expression, the result is dynamic. At runtime, a is first
             // SPEC:    evaluated. If a is not null, a is converted to a dynamic type, and this becomes
             // SPEC:    the result. Otherwise, b is evaluated, and the outcome becomes the result.
-            // 
+            //
             // Note that there is no runtime dynamic dispatch since comparison with null is not a dynamic operation.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
@@ -3407,7 +3429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, GetSpecialType(SpecialType.System_Object, diagnostics, node), ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    leftConversion, optRightType);
+                    leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, optRightType);
             }
 
             // SPEC:    Otherwise, if A exists and is a nullable type and an implicit conversion exists from b to A0,
@@ -3424,7 +3446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(node, useSiteDiagnostics);
                     var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType0, diagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftConversion, optLeftType0);
+                        leftConversion, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, optLeftType0);
                 }
             }
 
@@ -3441,7 +3463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var leftConversion = Conversion.Identity;
                     diagnostics.Add(node, useSiteDiagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftConversion, optLeftType);
+                        leftConversion, BoundNullCoalescingOperatorResultKind.LeftType, optLeftType);
                 }
             }
 
@@ -3471,21 +3493,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)optRightType != null)
             {
                 Conversion leftConversion;
+                BoundNullCoalescingOperatorResultKind resultKind;
 
                 if (isLeftNullable)
                 {
                     // This is the SPEC VIOLATION case.
-                    // Note that at runtime we need two conversions on the left operand: 
+                    // Note that at runtime we need two conversions on the left operand:
                     //      1) Explicit nullable conversion from leftOperand to optLeftType0 and
                     //      2) Implicit conversion from optLeftType0 to optRightType.
                     // We just store the second conversion in the bound node and insert the first conversion during rewriting
                     // the null coalescing operator. See method LocalRewriter.GetConvertedLeftForNullCoalescingOperator.
 
                     leftConversion = Conversions.ClassifyImplicitConversionFromType(optLeftType0, optRightType, ref useSiteDiagnostics);
+                    resultKind = BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType;
                 }
                 else
                 {
                     leftConversion = Conversions.ClassifyImplicitConversionFromExpression(leftOperand, optRightType, ref useSiteDiagnostics);
+                    resultKind = BoundNullCoalescingOperatorResultKind.RightType;
                 }
 
                 if (leftConversion.Exists)
@@ -3512,7 +3537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     diagnostics.Add(node, useSiteDiagnostics);
-                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, optRightType);
+                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, resultKind, optRightType);
                 }
             }
 
@@ -3521,9 +3546,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GenerateNullCoalescingBadBinaryOpsError(node, leftOperand, rightOperand, Conversion.NoConversion, diagnostics);
         }
 
+        private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+
+            // If either operand is bad, bail out preventing more cascading errors
+            if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
+            {
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+            }
+
+            // Unlike a standard null coalescing expression, the resulting type of the expression a ??= b
+            // must be A (where A is the type of a), as it is where the result of the assignment will end up. Therefore,
+            // we must ensure that B (where B is the type of b) is implicitly convertible to A.
+            TypeSymbol leftType = leftOperand.Type;
+            Debug.Assert(leftType != null);
+
+            // If A is a non-nullable value type, a compile-time error occurs
+            if (leftType.IsValueType && !leftType.IsNullableType())
+            {
+                return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
+            }
+
+            // If the type of the left is Nullable<A0>, and the right is the default literal, the default will be
+            // converted to the default of Nullable<A0>, null, and not the default of A0. This is likely unintended
+            // on the part of the user, so we warn
+            if (leftType.IsNullableType() && rightOperand.IsLiteralDefault())
+            {
+                Error(diagnostics, ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended, node.Right, leftType.GetNullableUnderlyingType());
+            }
+
+            // If an implicit conversion exists from B to A, we store that conversion. At runtime, a is first evaluated. If
+            // a is not null, b is not evaluated. If a is null, b is evaluated and converted to type A, and is stored in a.
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, leftType, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+            if (rightConversion.Exists)
+            {
+                var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
+                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, leftType);
+            }
+
+            // a and b are incompatible and a compile-time error occurs
+            return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
+        }
+
+        private BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, DiagnosticBag diagnostics)
+        {
+            Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
+            return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+        }
+
         /// <remarks>
         /// From ExpressionBinder::EnsureQMarkTypesCompatible:
-        /// 
+        ///
         /// The v2.0 specification states that the types of the second and third operands T and S of a ternary operator
         /// must be TT and TS such that either (a) TT==TS, or (b), TT->TS or TS->TT but not both.
         ///
@@ -3619,7 +3696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, out _, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if ((object)bestType == null)

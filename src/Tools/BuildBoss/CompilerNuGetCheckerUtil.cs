@@ -20,7 +20,6 @@ namespace BuildBoss
     ///     - The dependencies can change based on subtle changes to the code
     ///     - There is no project which is guaranteed to have a superset of dependencies 
     ///     - There is no syntax for using the union of DLLs in a NuSpec file
-    ///     - There is no way to use a NuSpec file as input to a SWR file
     ///
     /// The least crazy solution that could be decided on was to manage the list of dependencies 
     /// by hand in the NuSpec file and then rigorously verify the solution here.
@@ -45,7 +44,6 @@ namespace BuildBoss
             {
                 var allGood = CheckDesktop(textWriter);
                 allGood &= CheckCoreClr(textWriter);
-                allGood &= CheckPortableFacades(textWriter);
                 return allGood;
             }
             catch (Exception ex)
@@ -62,11 +60,11 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\net46",
-                @"Exes\Vbc\net46",
-                @"Exes\Csi\net46",
-                @"Exes\VBCSCompiler\net46",
-                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net46");
+                @"Exes\Csc\net472",
+                @"Exes\Vbc\net472",
+                @"Exes\Csi\net472",
+                @"Exes\VBCSCompiler\net472",
+                @"Dlls\Microsoft.Build.Tasks.CodeAnalysis\net472");
             if (!allGood)
             {
                 return false;
@@ -82,18 +80,6 @@ namespace BuildBoss
                 "Microsoft.Build.Framework.dll",
                 "Microsoft.Build.Tasks.Core.dll",
                 "Microsoft.Build.Utilities.Core.dll").ToList();
-
-            // The SWR files don't ship the native dia libraries as they are shipped by a different 
-            // team in Visual Studio.
-            var swrRelativeFileNames = FilterRelativeFileNames(
-                dllRelativeNames,
-                "Microsoft.DiaSymReader.Native.amd64.dll",
-                "Microsoft.DiaSymReader.Native.x86.dll").ToList();
-
-            // The Microsoft.CodeAnalysis.Compilers.swr file is used in part to ensure NGEN is run on the set of 
-            // facades / implementation DLLs the compiler depends on. This set of DLLs is the same as what is 
-            // included in our NuGet package. Need to make sure all the necessary managed DLLs are included here.
-            allGood &= VerifySwrFile(textWriter, @"src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swr", swrRelativeFileNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
@@ -116,9 +102,9 @@ namespace BuildBoss
         {
             var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\netcoreapp2.0\publish",
-                @"Exes\Vbc\netcoreapp2.0\publish",
-                @"Exes\VBCSCompiler\netcoreapp2.0\publish");
+                @"Exes\Csc\netcoreapp2.1\publish",
+                @"Exes\Vbc\netcoreapp2.1\publish",
+                @"Exes\VBCSCompiler\netcoreapp2.1\publish");
             if (!allGood)
             {
                 return false;
@@ -136,78 +122,6 @@ namespace BuildBoss
                         FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),
                         @"tools\bincore",
                         dllRelativeNames);
-        }
-
-        private bool CheckPortableFacades(TextWriter textWriter)
-        {
-            var (allGood, dllRelativeNames) = GetDllRelativeNames(
-                textWriter,
-                @"Vsix\Roslyn.Compilers.Extension",
-                @"Vsix\Roslyn.VisualStudio.Setup.Dependencies");
-            if (!allGood)
-            {
-                return false;
-            }
-
-            dllRelativeNames = removeItemsNotNeededToDelpoy(dllRelativeNames).ToList();
-            allGood &= VerifySwrFile(textWriter, @"src\Setup\DevDivVsix\PortableFacades\PortableFacades.swr", dllRelativeNames);
-
-            return allGood;
-
-            // This package is meant to deploy all of the .NET facades necessary for us to execute. This 
-            // will remove all of the binaries that we know to be unnecessary for deployment or already
-            // deployed by Visual Studio.
-            IEnumerable<string> removeItemsNotNeededToDelpoy(List<string> relativeNames)
-            {
-                foreach (var itemRelativeName in dllRelativeNames)
-                {
-                    var item = Path.GetFileName(itemRelativeName);
-
-                    // Items which are deployed by other teams inside of Visual Studio
-                    if (item.StartsWith("Microsoft.Build.", PathComparison) ||
-                        item.StartsWith("Microsoft.VisualStudio.", PathComparison) ||
-                        item.StartsWith("System.Composition.", PathComparison) ||
-                        PathComparer.Equals("stdole.dll", item) ||
-                        PathComparer.Equals("EnvDTE.dll", item) ||
-                        PathComparer.Equals("Microsoft.Composition", item) ||
-                        PathComparer.Equals("System.Threading.Tasks.Dataflow.dll", item) ||
-                        PathComparer.Equals("System.Runtime.InteropServices.RuntimeInformation.dll", item))
-                    {
-                        continue;
-                    }
-
-                    // Items which we deploy in another VSIX
-                    if (item.StartsWith("Microsoft.Build.", PathComparison) ||
-                        item.StartsWith("Microsoft.CodeAnalysis.", PathComparison) ||
-                        item.StartsWith("Microsoft.DiaSymReader.", PathComparison) ||
-                        PathComparer.Equals("System.Collections.Immutable.dll", item) ||
-                        PathComparer.Equals("System.Reflection.Metadata.dll", item) ||
-                        PathComparer.Equals("System.ValueTuple.dll", item) ||
-                        PathComparer.Equals("System.Threading.Tasks.Extensions.dll", item))
-                    {
-                        continue;
-                    }
-
-                    // Items which we have specifically chosen not to deploy because at the moment it causes 
-                    // issues in VS and is not required for us to execute.
-                    //  - https://github.com/dotnet/roslyn/pull/27537
-                    if (PathComparer.Equals("System.Net.Http.dll", item) ||
-                        PathComparer.Equals("System.Diagnostics.DiagnosticSource.dll", item) ||
-                        PathComparer.Equals("System.Text.Encoding.CodePages.dll", item))
-                    {
-                        continue;
-                    }
-
-                    // These don't actually ship, it's just a build artifact to create a deployment layout
-                    if (PathComparer.Equals("Roslyn.Compilers.Extension.dll", item) ||
-                        PathComparer.Equals("Roslyn.VisualStudio.Setup.Dependencies.dll", item))
-                    {
-                        continue;
-                    }
-
-                    yield return itemRelativeName;
-                }
-            }
         }
 
         /// <summary>
@@ -387,60 +301,6 @@ namespace BuildBoss
             {
                 textWriter.WriteLine($"\tDll {pair.Key} not found");
                 allGood = false;
-            }
-
-            return allGood;
-        }
-
-        private bool VerifySwrFile(TextWriter textWriter, string swrRelativeFilePath, List<string> dllFileNames)
-        {
-            var map = dllFileNames
-                .ToDictionary(
-                    keySelector: x => x,
-                    elementSelector: _ => false,
-                    comparer: PathComparer);
-            var swrFilePath = Path.Combine(RepositoryDirectory, swrRelativeFilePath);
-
-            textWriter.WriteLine($"Verifying {Path.GetFileName(swrRelativeFilePath)}");
-            string[] allLines;
-            try
-            {
-                allLines = File.ReadAllLines(swrFilePath);
-            }
-            catch (Exception ex)
-            {
-                textWriter.WriteLine($"\tUnable to read the SWR file: {ex.Message}");
-                return false;
-            }
-
-            var allGood = true;
-            var regex = new Regex(@"^\s*file source=""?([^"" ]*).*""?\s*$", RegexOptions.IgnoreCase);
-            foreach (var line in allLines)
-            {
-                var match = regex.Match(line);
-                if (match.Success)
-                {
-                    var filePath = match.Groups[1].Value.Replace('$', '_').Replace('(', '_').Replace(')', '_');
-                    var fileName = Path.GetFileName(filePath);
-                    if (map.ContainsKey(fileName))
-                    {
-                        map[fileName] = true;
-                    }
-                    else if (fileName.EndsWith(".dll", PathComparison))
-                    {
-                        textWriter.WriteLine($"Unexpected dll {fileName}");
-                        allGood = false;
-                    }
-                }
-            }
-
-            foreach (var pair in map.OrderBy(x => x.Key))
-            {
-                if (!pair.Value)
-                {
-                    textWriter.WriteLine($"\tDll {pair.Key} is missing");
-                    allGood = false;
-                }
             }
 
             return allGood;

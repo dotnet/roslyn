@@ -5,7 +5,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
   <PropertyGroup>
-    <RoslynToolsBuildTasksAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.buildtasks\$(RoslynToolsBuildTasksVersion)\tools\net46\RoslynTools.BuildTasks.dll</RoslynToolsBuildTasksAssembly>
-    <RoslynToolsBuildTasksAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.buildtasks\$(RoslynToolsBuildTasksVersion)\tools\netcoreapp1.0\RoslynTools.BuildTasks.dll</RoslynToolsBuildTasksAssembly>
+    <RoslynToolsBuildTasksAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)roslyntools.buildtasks\$(RoslynToolsBuildTasksVersion)\tools\net472\RoslynTools.BuildTasks.dll</RoslynToolsBuildTasksAssembly>
+    <RoslynToolsBuildTasksAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)roslyntools.buildtasks\$(RoslynToolsBuildTasksVersion)\tools\netcoreapp2.1\RoslynTools.BuildTasks.dll</RoslynToolsBuildTasksAssembly>
   </PropertyGroup>
 </Project>

@@ -38,20 +38,10 @@
     </PropertyGroup>
   </Target>
 
-  <!-- 
-    Append short commit SHA to PackageVersion.
-  -->
-  <Target Name="_InitializePackageVersion" 
-          BeforeTargets="GenerateNuSpec" 
-          DependsOnTargets="InitializeSourceControlInformation"
-          Condition="'$(DotNetFinalVersionKind)' != 'release'">
-    <PropertyGroup>
-      <_ShortSha>$(SourceRevisionId)</_ShortSha>
-      <_ShortSha Condition="$(SourceRevisionId.Length) &gt; 7">$(SourceRevisionId.Substring(0, 8))</_ShortSha>
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CheckRequiredDotNetVersion" AssemblyFile="$(RoslynToolsBuildTasksAssembly)" />
 
-      <PackageVersion Condition="'$(SemanticVersioningV1)' != 'true'">$(Version)+$(_ShortSha)</PackageVersion>
-      <PackageVersion Condition="'$(SemanticVersioningV1)' == 'true'">$(Version)-$(_ShortSha)</PackageVersion>
-    </PropertyGroup>
+  <Target Name="_CheckRequiredDotNetVersion" BeforeTargets="BeforeBuild">
+    <Microsoft.DotNet.Arcade.Sdk.CheckRequiredDotNetVersion RepositoryRoot="$(RepoRoot)" SdkVersion="$(NETCoreSdkVersion)" />
   </Target>
 
 </Project>

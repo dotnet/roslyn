@@ -24,7 +24,6 @@
     <ProjectReference Include="..\..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

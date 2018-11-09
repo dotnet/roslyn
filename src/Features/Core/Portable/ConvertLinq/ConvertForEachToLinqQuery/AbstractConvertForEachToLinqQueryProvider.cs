@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         /// 4) trailing comments to be added to the end
         /// </returns>
         protected abstract ForEachInfo<TForEachStatement, TStatement> CreateForEachInfo(
-            TForEachStatement forEachStatement, SemanticModel semanticModel);
+            TForEachStatement forEachStatement, SemanticModel semanticModel, bool convertLocalDeclarations);
 
         /// <summary>
         /// Tries to build a specific converter that covers e.g. Count, ToList, yield return or other similar cases.
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out var converter))
+            if (!TryBuildConverter(forEachStatement, semanticModel, convertLocalDeclarations: true, cancellationToken, out var queryConverter))
             {
                 return;
             }
@@ -95,19 +95,56 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
                 return;
             }
 
+            // Offer refactoring to convert foreach to LINQ query expression. For example:
+            //
+            // INPUT:
+            //  foreach (var n1 in c1)
+            //      foreach (var n2 in c2)
+            //          if (n1 > n2)
+            //              yield return n1 + n2;
+            //
+            // OUTPUT:
+            //  from n1 in c1
+            //  from n2 in c2
+            //  where n1 > n2
+            //  select n1 + n2
+            //
             context.RegisterRefactoring(
                 new ForEachToLinqQueryCodeAction(
-                    FeaturesResources.Convert_to_query, 
-                    c => ApplyConversion(converter, document, c)));
+                    FeaturesResources.Convert_to_linq, 
+                    c => ApplyConversion(queryConverter, document, convertToQuery: true, c)));
+
+            // Offer refactoring to convert foreach to LINQ invocation expression. For example:
+            //
+            // INPUT:
+            //   foreach (var n1 in c1)
+            //      foreach (var n2 in c2)
+            //          if (n1 > n2)
+            //              yield return n1 + n2;
+            //
+            // OUTPUT:
+            //   c1.SelectMany(n1 => c2.Where(n2 => n1 > n2).Select(n2 => n1 + n2))
+            //
+            // CONSIDER: Currently, we do not handle foreach statements with a local declaration statement for Convert_to_linq refactoring,
+            //           though we do handle them for the Convert_to_query refactoring above.
+            //           In future, we can consider supporting them by creating anonymous objects/tuples wrapping the local declarations.
+            if (TryBuildConverter(forEachStatement, semanticModel, convertLocalDeclarations: false, cancellationToken, out var linqConverter))
+            {
+                context.RegisterRefactoring(
+                    new ForEachToLinqQueryCodeAction(
+                        FeaturesResources.Convert_to_linq_call_form,
+                        c => ApplyConversion(linqConverter, document, convertToQuery: false, c)));
+            }
         }
 
         private Task<Document> ApplyConversion(
-            IConverter<TForEachStatement, TStatement> converter, 
-            Document document, 
+            IConverter<TForEachStatement, TStatement> converter,
+            Document document,
+            bool convertToQuery,
             CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(converter.ForEachInfo.SemanticModel.SyntaxTree.GetRoot(cancellationToken), document.Project.Solution.Workspace);
-            converter.Convert(editor, cancellationToken);
+            converter.Convert(editor, convertToQuery, cancellationToken);
             var newRoot = editor.GetChangedRoot();
             var rootWithLinqUsing = AddLinqUsing(converter, converter.ForEachInfo.SemanticModel, newRoot);
             return Task.FromResult(document.WithSyntaxRoot(rootWithLinqUsing));
@@ -119,10 +156,11 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
         private bool TryBuildConverter(
             TForEachStatement forEachStatement,
             SemanticModel semanticModel,
+            bool convertLocalDeclarations,
             CancellationToken cancellationToken,
             out IConverter<TForEachStatement, TStatement> converter)
         {
-            var forEachInfo = CreateForEachInfo(forEachStatement, semanticModel);
+            var forEachInfo = CreateForEachInfo(forEachStatement, semanticModel, convertLocalDeclarations);
 
             if (forEachInfo.Statements.Length == 1 &&
                 TryBuildSpecificConverter(forEachInfo, semanticModel, forEachInfo.Statements.Single(), cancellationToken, out converter))

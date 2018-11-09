@@ -108,49 +108,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info, ISymbol symbolOpt = null)
-        {
-            if (symbolOpt != null && IsDiagnosticSuppressed(diagnostic.Id, symbolOpt, out info))
-            {
-                return true;
-            }
-
-            return IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, out info);
-        }
-
-        private bool IsDiagnosticSuppressed(string id, ISymbol symbol, out SuppressMessageInfo info)
-        {
-            Debug.Assert(id != null);
-            Debug.Assert(symbol != null);
-
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                // Suppressions associated with namespace symbols only apply to namespace declarations themselves
-                // and any syntax nodes immediately contained therein, not to nodes attached to any other symbols.
-                // Diagnostics those nodes will be filtered by location, not by associated symbol.
-                info = default(SuppressMessageInfo);
-                return false;
-            }
-
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                var associated = ((IMethodSymbol)symbol).AssociatedSymbol;
-                if (associated != null &&
-                    (IsDiagnosticLocallySuppressed(id, associated, out info) || IsDiagnosticGloballySuppressed(id, associated, out info)))
-                {
-                    return true;
-                }
-            }
-
-            if (IsDiagnosticLocallySuppressed(id, symbol, out info) || IsDiagnosticGloballySuppressed(id, symbol, out info))
-            {
-                return true;
-            }
-
-            // Check for suppression on parent symbol
-            var parent = symbol.ContainingSymbol;
-            return parent != null && IsDiagnosticSuppressed(id, parent, out info);
-        }
+        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, out SuppressMessageInfo info)
+            => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, out info);
 
         private bool IsDiagnosticSuppressed(string id, Location location, out SuppressMessageInfo info)
         {

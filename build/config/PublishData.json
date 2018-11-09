@@ -1,11 +1,11 @@
 {
     "branches": {
         "master-vs-deps": {
-            "nugetKind": "PerBuildPreRelease",
+            "nugetKind": ["Shipping", "NonShipping"],
             "version": "2.11.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev16" ]
+            "channels": [ "dev16.0", "dev16.0p2" ]
         },
         "dev15.7.x-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
@@ -26,7 +26,14 @@
             "version": "2.10.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.9p1"]
+            "channels": [ "dev15.9"]
+        },
+        "dev16.0.x-vs-deps": {
+            "nugetKind": ["Shipping", "NonShipping"],
+            "version": "2.11.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev16.0p1" ]
         },
         "features/NullableReferenceTypes": {
             "nugetKind": "PerBuildPreRelease",

@@ -27,10 +27,6 @@
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
-    <PackageReference Include="xunit" Version="$(xunitVersion)" />
-    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
-    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>
   <ItemGroup>

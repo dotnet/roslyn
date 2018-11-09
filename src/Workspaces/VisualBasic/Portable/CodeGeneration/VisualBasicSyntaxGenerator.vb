@@ -54,6 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
+        Friend Overrides Function AddParentheses(expression As SyntaxNode) As SyntaxNode
+            Return Parenthesize(expression)
+        End Function
+
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
             Return DirectCast(expression, ExpressionSyntax).Parenthesize()
         End Function

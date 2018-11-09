@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
             foreach (var analyzer in analyzers)
             {
-                builder.Add(analyzer, new AnalyzerExecutionContext());
+                builder.Add(analyzer, new AnalyzerExecutionContext(analyzer));
             }
 
             return builder.ToImmutable();
@@ -74,24 +76,54 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
+            ISymbol symbol,
+            DiagnosticAnalyzer analyzer,
+            ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
+            return await GetSymbolAnalysisScopeCoreAsync(symbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+        }
+
+        private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeCoreAsync(
+            ISymbol symbol,
+            ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
+            AnalyzerExecutor analyzerExecutor,
+            AnalyzerExecutionContext analyzerExecutionContext)
+        {
+            try
+            {
+                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, symbolStartActions, analyzerExecutor).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Task to compute the scope was cancelled.
+                // Clear the symbol scope for analyzer, so we can attempt a retry.
+                analyzerExecutionContext.ClearSymbolScopeTask(symbol);
+
+                analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
+                return await GetSymbolAnalysisScopeCoreAsync(symbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            }
+        }
+
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
-            DiagnosticAnalyzer analyzer,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
         {
             try
             {
-                var task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzer, analyzerExecutor);
+                var task = analyzerExecutionContext.GetSessionAnalysisScopeTask(analyzerExecutor);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -101,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExecutionContext.ClearSessionScopeTask();
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetSessionAnalysisScopeCoreAsync(analyzer, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+                return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
             }
         }
 
@@ -114,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
@@ -123,6 +155,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return sessionScope.GetAnalyzerActions(analyzer);
         }
 
+        /// <summary>
+        /// Get the per-symbol analyzer actions to be executed by the given analyzer.
+        /// These are the actions registered during the various RegisterSymbolStartAction method invocations for the given symbol on different analysis contexts.
+        /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        {
+            var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            if (analyzerActions.SymbolStartActionsCount > 0)
+            {
+                var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.SymbolStartActions);
+                if (filteredSymbolStartActions.Length > 0)
+                {
+                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
+                    return symbolScope.GetAnalyzerActions(analyzer);
+                }
+            }
+
+            return null;
+
+            ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
+            {
+                ArrayBuilder<SymbolStartAnalyzerAction> filteredActionsBuilderOpt = null;
+                for (int i = 0; i < symbolStartActions.Length; i++)
+                {
+                    var symbolStartAction = symbolStartActions[i];
+                    if (symbolStartAction.Kind != symbol.Kind)
+                    {
+                        if (filteredActionsBuilderOpt == null)
+                        {
+                            filteredActionsBuilderOpt = ArrayBuilder<SymbolStartAnalyzerAction>.GetInstance();
+                            filteredActionsBuilderOpt.AddRange(symbolStartActions, i);
+                        }
+                    }
+                    else if (filteredActionsBuilderOpt != null)
+                    {
+                        filteredActionsBuilderOpt.Add(symbolStartAction);
+                    }
+                }
+
+                return filteredActionsBuilderOpt != null ? filteredActionsBuilderOpt.ToImmutableAndFree() : symbolStartActions;
+            }
+        }
         /// <summary>
         /// Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="AnalysisContext.EnableConcurrentExecution"/>.
         /// </summary>
@@ -248,6 +323,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
+        }
+
+        public bool TryProcessCompletedMemberAndGetPendingSymbolEndActionsForContainer(
+            ISymbol containingSymbol,
+            ISymbol processedMemberSymbol,
+            DiagnosticAnalyzer analyzer,
+            out (ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions, SymbolDeclaredCompilationEvent symbolDeclaredEvent) containerEndActionsAndEvent)
+        {
+            return GetAnalyzerExecutionContext(analyzer).TryProcessCompletedMemberAndGetPendingSymbolEndActionsForContainer(containingSymbol, processedMemberSymbol, out containerEndActionsAndEvent);
+        }
+
+        public bool TryStartExecuteSymbolEndActions(ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions, DiagnosticAnalyzer analyzer, SymbolDeclaredCompilationEvent symbolDeclaredEvent)
+        {
+            return GetAnalyzerExecutionContext(analyzer).TryStartExecuteSymbolEndActions(symbolEndActions, symbolDeclaredEvent);
+        }
+
+        public void MarkSymbolEndAnalysisPending(
+            ISymbol symbol,
+            DiagnosticAnalyzer analyzer,
+            ImmutableArray<SymbolEndAnalyzerAction> symbolEndActions,
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent)
+        {
+            GetAnalyzerExecutionContext(analyzer).MarkSymbolEndAnalysisPending(symbol, symbolEndActions, symbolDeclaredEvent);
+        }
+
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            GetAnalyzerExecutionContext(analyzer).MarkSymbolEndAnalysisComplete(symbol);
+        }
+
+        [Conditional("DEBUG")]
+        public void VerifyAllSymbolEndActionsExecuted()
+        {
+            foreach (var analyzerExecutionContext in _analyzerExecutionContextMap.Values)
+            {
+                analyzerExecutionContext.VerifyAllSymbolEndActionsExecuted();
+            }
         }
     }
 }

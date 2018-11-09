@@ -253,8 +253,34 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
                 case BoundKind.DiscardExpression:
                     return CreateDiscardExpressionOperation((BoundDiscardExpression)boundNode);
+                case BoundKind.NullCoalescingAssignmentOperator:
+                    return CreateBoundNullCoalescingAssignmentOperatorOperation((BoundNullCoalescingAssignmentOperator)boundNode);
+                case BoundKind.FromEndIndexExpression:
+                    return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
+                case BoundKind.RangeExpression:
+                    return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
 
-                default:
+                case BoundKind.Attribute:
+                case BoundKind.ArgList:
+                case BoundKind.ArgListOperator:
+                case BoundKind.ConvertedStackAllocExpression:
+                case BoundKind.FixedLocalCollectionInitializer:
+                case BoundKind.GlobalStatementInitializer:
+                case BoundKind.HostObjectMemberReference:
+                case BoundKind.MakeRefOperator:
+                case BoundKind.MethodGroup:
+                case BoundKind.NamespaceExpression:
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PreviousSubmissionReference:
+                case BoundKind.RefTypeOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.Sequence:
+                case BoundKind.StackAllocArrayCreation:
+                case BoundKind.SuppressNullableWarningExpression:
+                case BoundKind.TypeExpression:
+                case BoundKind.TypeOrValueExpression:
+
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -269,6 +295,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
 
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind); 
             }
         }
 
@@ -374,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundLocalOperation(BoundLocal boundLocal)
         {
             ILocalSymbol local = boundLocal.LocalSymbol;
-            bool isDeclaration = boundLocal.IsDeclaration;
+            bool isDeclaration = boundLocal.DeclarationKind != BoundLocalDeclarationKind.None;
             SyntaxNode syntax = boundLocal.Syntax;
             ITypeSymbol type = boundLocal.Type;
             Optional<object> constantValue = ConvertToOptional(boundLocal.ConstantValue);
@@ -581,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Operations
             if (boundDynamicInvocation.Expression.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundDynamicInvocation.Expression;
-                expression = new Lazy<IOperation>(() => CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt,
+                expression = new Lazy<IOperation>(() => CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, TypeMap.AsTypeSymbols(methodGroup.TypeArgumentsOpt),
                     methodGroup.Name, methodGroup.Syntax, methodGroup.Type, methodGroup.ConstantValue, methodGroup.WasCompilerGenerated));
             }
             else
@@ -757,7 +786,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
         {
-            return CreateBoundDynamicMemberAccessOperation(boundDynamicMemberAccess.Receiver, boundDynamicMemberAccess.TypeArgumentsOpt, boundDynamicMemberAccess.Name,
+            return CreateBoundDynamicMemberAccessOperation(boundDynamicMemberAccess.Receiver, TypeMap.AsTypeSymbols(boundDynamicMemberAccess.TypeArgumentsOpt), boundDynamicMemberAccess.Name,
                 boundDynamicMemberAccess.Syntax, boundDynamicMemberAccess.Type, boundDynamicMemberAccess.ConstantValue, boundDynamicMemberAccess.WasCompilerGenerated);
         }
 
@@ -1284,12 +1313,24 @@ namespace Microsoft.CodeAnalysis.Operations
             Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
 
             if (valueConversion.Exists && !valueConversion.IsIdentity &&
-                boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+                boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 valueConversion = Conversion.Identity;
             }
 
             return new LazyCoalesceExpression(expression, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundNullCoalescingAssignmentOperatorOperation(BoundNullCoalescingAssignmentOperator boundNode)
+        {
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundNode.LeftOperand));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundNode.RightOperand));
+            SyntaxNode syntax = boundNode.Syntax;
+            ITypeSymbol type = boundNode.Type;
+            Optional<object> constantValue = ConvertToOptional(boundNode.ConstantValue);
+            bool isImplicit = boundNode.WasCompilerGenerated;
+
+            return new LazyCoalesceAssignmentOperation(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAwaitOperation CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)
@@ -1588,14 +1629,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
-                info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType,
+                info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.TypeSymbol,
                                                     enumeratorInfoOpt.GetEnumeratorMethod,
                                                     (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                                                     enumeratorInfoOpt.MoveNextMethod,
                                                     enumeratorInfoOpt.NeedsDisposeMethod,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposeMethod && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
-                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
+                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType.TypeSymbol,
                                                                                                                             compilation.GetSpecialType(SpecialType.System_IDisposable),
                                                                                                                             ref useSiteDiagnostics).IsImplicit :
                                                                                      false,
@@ -1737,7 +1778,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool legacyMode = _semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2) == null;
             ILocalSymbol lockTakenSymbol =
                 legacyMode ? null : new SynthesizedLocal(_semanticModel.GetEnclosingSymbol(boundLockStatement.Syntax.SpanStart) as MethodSymbol,
-                                                         (TypeSymbol)_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                         TypeSymbolWithAnnotations.Create((TypeSymbol)_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)),
                                                          SynthesizedLocalKind.LockTaken,
                                                          syntaxOpt: boundLockStatement.Argument.Syntax);
             SyntaxNode syntax = boundLockStatement.Syntax;
@@ -2052,6 +2093,31 @@ namespace Microsoft.CodeAnalysis.Operations
                                         boundNode.Type,
                                         ConvertToOptional(boundNode.ConstantValue),
                                         isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateFromEndIndexExpressionOperation(BoundFromEndIndexExpression boundIndex)
+        {
+            return new LazyFromEndIndexOperation(
+                isLifted: boundIndex.Type.IsNullableType(),
+                isImplicit: boundIndex.WasCompilerGenerated,
+                _semanticModel,
+                boundIndex.Syntax,
+                boundIndex.Type,
+                operand: new Lazy<IOperation>(() => Create(boundIndex.Operand)),
+                symbol: boundIndex.MethodOpt);
+        }
+
+        private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
+        {
+            return new LazyRangeOperation(
+                isLifted: boundRange.Type.IsNullableType(),
+                isImplicit: boundRange.WasCompilerGenerated,
+                _semanticModel,
+                boundRange.Syntax,
+                boundRange.Type,
+                leftOperand: new Lazy<IOperation>(() => Create(boundRange.LeftOperand)),
+                rightOperand: new Lazy<IOperation>(() => Create(boundRange.RightOperand)),
+                symbol: boundRange.MethodOpt);
         }
     }
 }

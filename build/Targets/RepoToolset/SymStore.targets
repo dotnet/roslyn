@@ -42,7 +42,7 @@ Update this file only if the change to RepoToolset gets approved and merged.
       <_SymStoreOutputDir>$(ArtifactsSymStoreDirectory)$(MSBuildProjectName)\$(TargetFramework)\</_SymStoreOutputDir>
       <_SymStorePdbPath>$(_SymStoreOutputDir)$(TargetName).pdb</_SymStorePdbPath>
       <_SymStoreAssemblyPath>$(_SymStoreOutputDir)$(TargetName)$(TargetExt)</_SymStoreAssemblyPath>
-      
+
       <PublishOutputToSymStore Condition="'$(PublishOutputToSymStore)' == '' and Exists('$(TargetPath)') and ('$(DebugType)' == 'embedded' or Exists('$(_TargetPdbPath)'))">true</PublishOutputToSymStore>
     </PropertyGroup>
   </Target>
@@ -51,6 +51,9 @@ Update this file only if the change to RepoToolset gets approved and merged.
     Convert Portable and Embedded PDBs. 
     We publish converted PDBs to Symbol Store so that WinDBG can find them when debugging crash dumps.
     Convert source link to srcsvr so that both WinDBG and VS can open the source files.
+
+    We add SRC_INDEX=public srcsvr variable in order to preserve the source server stream when 
+    it's published to the public symbol server (msdl.microsoft.com).
   -->
   <Target Name="_DeployPortableSymbolsToSymStore"
           AfterTargets="_InnerDeployToSymStore"
@@ -60,7 +63,7 @@ Update this file only if the change to RepoToolset gets approved and merged.
 
     <PropertyGroup>
       <_PdbConverterPath>$(NuGetPackageRoot)microsoft.diasymreader.pdb2pdb\$(MicrosoftDiaSymReaderPdb2PdbVersion)\tools\Pdb2Pdb.exe</_PdbConverterPath>
-      <_PdbConverterCommandLineArgs>"$(TargetPath)" /out "$(_SymStorePdbPath)" /verbose</_PdbConverterCommandLineArgs>
+      <_PdbConverterCommandLineArgs>"$(TargetPath)" /out "$(_SymStorePdbPath)" /verbose /srcsvrvar SRC_INDEX=public</_PdbConverterCommandLineArgs>
     </PropertyGroup>
 
     <Error Text="Attempt to publish Portable PDB to SymStore without conversion: UsingToolPdbConverter property is false in project $(MSBuildProjectName)"
@@ -101,7 +104,7 @@ Update this file only if the change to RepoToolset gets approved and merged.
 
   <Target Name="_DeployAssembliesToSymStore"
           AfterTargets="_InnerDeployToSymStore"
-          Condition="'$(PublishOutputToSymStore)' == 'true'"
+          Condition="'$(PublishOutputToSymStore)' == 'true' and '$(UsingToolSymbolUploader)' != 'true'"
           Inputs="$(TargetPath)"
           Outputs="$(_SymStoreAssemblyPath)">
 

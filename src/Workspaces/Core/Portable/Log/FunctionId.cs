@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TPLTask_TaskStarted,
         TPLTask_TaskCompleted,
 
-        QuickInfo_ModelComputation_ComputeModelInBackground,
+        Get_QuickInfo_Async,
 
         Completion_ModelComputer_DoInBackground,
         Completion_ModelComputation_FilterModelInBackground,
@@ -429,6 +429,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeCleanup_SortImports,
         CodeCleanup_Format,
         CodeCleanupABTest_AssignedToOnByDefault,
-        CodeCleanupABTest_AssignedToOffByDefault
+        CodeCleanupABTest_AssignedToOffByDefault,
+        Workspace_Events,
+
+        Refactoring_ExtractMethod_UnknownMatrixItem,
     }
 }

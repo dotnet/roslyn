@@ -2321,7 +2321,7 @@ class C
                 // 2) Has parameter attributes from delegate declaration syntax
                 var invokeMethod = delegateType.GetMethod("Invoke");
                 Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
-                Assert.Equal(typeParameters[0], invokeMethod.ReturnType);
+                Assert.Equal(typeParameters[0], invokeMethod.ReturnType.TypeSymbol);
                 var parameters = invokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
                 Assert.Equal("p1", parameters[0].Name);
@@ -4675,41 +4675,41 @@ public class C6 {}
 
                 var attrs = classC1.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
+                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classW));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC2.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classW), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC3.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classW));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC4.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classYOfW, default(ImmutableArray<CustomModifier>), rank: 2);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
+                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(TypeSymbolWithAnnotations.Create(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classYOfW), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC5.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
+                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(TypeSymbolWithAnnotations.Create(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
                 NamedTypeSymbol substNestedF = classYOfInt.GetTypeMember("F");
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedF, default(ImmutableArray<CustomModifier>), rank: 3);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(substNestedF), rank: 3);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC6.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedZ, default(ImmutableArray<CustomModifier>));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(TypeSymbolWithAnnotations.Create(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(substNestedZ));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
             };
 
@@ -4718,7 +4718,7 @@ public class C6 {}
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
             var source =
@@ -8107,7 +8107,7 @@ class Program
         }
 
         [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void Repro728865()
         {
             var source = @"
@@ -8911,6 +8911,44 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
     // [DiagnosticAnalyzer(LanguageNames.CSharp)]
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
                 );
+        }
+
+        [Fact, WorkItem(30833, "https://github.com/dotnet/roslyn/issues/30833")]
+        public void AttributeWithTaskDelegateParameter()
+        {
+            string code = @"
+using System;
+using System.Threading.Tasks;
+
+namespace a
+{
+    class Class1
+    {
+		[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+		class CommandAttribute : Attribute
+		{
+			public delegate Task FxCommand();
+
+			public CommandAttribute(FxCommand Fx)
+			{
+				this.Fx = Fx;
+			}
+
+			public FxCommand Fx { get; set; }
+		}
+		
+		[Command(UserInfo)]
+		public static async Task UserInfo()
+		{
+			await Task.CompletedTask;
+		}
+	}
+}
+";
+            CreateCompilationWithMscorlib46(code).VerifyDiagnostics(
+                // (22,4): error CS0181: Attribute constructor parameter 'Fx' has type 'Class1.CommandAttribute.FxCommand', which is not a valid attribute parameter type
+                // 		[Command(UserInfo)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
         }
 
         #endregion

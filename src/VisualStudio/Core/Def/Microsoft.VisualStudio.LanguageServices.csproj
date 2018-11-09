@@ -7,32 +7,27 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net46</TargetFramework>
-    <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
-    <ImportVSSDKTargets>true</ImportVSSDKTargets>
+    <TargetFramework>net472</TargetFramework>
     <CreateVsixContainer>false</CreateVsixContainer>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for Visual Studio.
+    </PackageDescription>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <!-- We need to mark our NuGet.VisualStudio package reference as EmbedInteropTypes.  However,
-       as this package comes from project.json there is no way to do that in the json file.
-       To deal with that, we write this target which finds that added package, removes it from
-       the references list, then adds it back in again with the 'EmbedInteropTypes' flag properly
-       set. -->
-  <Target Name="MarkNuGetVisualStudioPackageWithEmbedInteropType" AfterTargets="ResolvePackageDependenciesForBuild">
-    <ItemGroup>
-      <_NuGetVisualStudioPackageReference Include="@(Reference)" Condition="'%(Filename)' == 'NuGet.VisualStudio'" />
-    </ItemGroup>
-    <ItemGroup Condition="'@(_NuGetVisualStudioPackageReference)' != ''">
-      <Reference Remove="@(_NuGetVisualStudioPackageReference)" />
-      <Reference Include="@(_NuGetVisualStudioPackageReference)">
-        <EmbedInteropTypes>True</EmbedInteropTypes>
-      </Reference>
-    </ItemGroup>
-  </Target>
   <ItemGroup Label="Build Items">
+    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
+      <Link>InternalUtilities\FileKey.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
@@ -77,12 +72,12 @@
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
+    <!-- PrivateAssets due to https://github.com/dotnet/roslyn/issues/29292 -->
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
@@ -120,8 +115,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" Key="$(TypeScriptKey)" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.Roslyn" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" />
@@ -129,7 +122,11 @@
     <InternalsVisibleTo Include="CodeAnalysis" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="StanCore" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.7" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.8" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.7" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.8" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
   </ItemGroup>
@@ -155,19 +152,17 @@
     <Reference Include="WindowsFormsIntegration" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" Version="$(MicrosoftVisualStudioDebuggerUIInterfacesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="$(MicrosoftVisualStudioShellInterop110Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop150DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime" Version="$(MicrosoftVisualStudioShellInterop157DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" Version="$(MicrosoftVisualStudioShellImmutable100Version)" />
@@ -180,20 +175,20 @@
     <PackageReference Include="Microsoft.VisualStudio.Progression.Common" Version="$(MicrosoftVisualStudioProgressionCommonVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" Version="$(MicrosoftVisualStudioProgressionInterfacesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.10.0" Version="$(MicrosoftVisualStudioTextManagerInterop100Version)" />
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0" Version="$(MicrosoftVisualStudioTextManagerInterop120Version)" />
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
-    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
     <PackageReference Include="VSLangProj2" Version="$(VSLangProj2Version)" />
@@ -202,7 +197,10 @@
     <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" Version="$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
+
+    <!-- Need VSSDK to generate pkgdef -->
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="$(MicrosoftVSSDKBuildToolsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">

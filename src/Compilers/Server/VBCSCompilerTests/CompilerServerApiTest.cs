@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     public class CompilerServerApiTest : TestBase
     {
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
-            1,
+            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
+            BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
@@ -94,6 +95,7 @@ class Hello
             return new BuildRequest(
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
+                BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
         }
 
@@ -518,6 +520,26 @@ class Hello
 
                     Assert.True(threw);
                 }
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectServerHashReturnsIncorrectHashResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
             }
         }
     }

@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var declarationBinder = usingsBinder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
-                        var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved);
+                        var imported = declarationBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
                         if (imported.Kind == SymbolKind.Namespace)
                         {
                             if (usingDirective.StaticKeyword != default(SyntaxToken))
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     qualifiedName = SyntaxFactory.QualifiedName(left: qualifiedName, right: SyntaxFactory.IdentifierName(identifiers[j]));
                 }
 
-                var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, diagnostics);
+                var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, diagnostics).NamespaceOrTypeSymbol;
                 if (uniqueUsings.Add(imported))
                 {
                     boundUsings.Add(new NamespaceOrTypeAndUsingDirective(imported, null));
@@ -574,6 +574,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.CheckConstraints(semanticDiagnostics);
+            }
+
+            var corLibrary = _compilation.SourceAssembly.CorLibrary;
+            var conversions = new TypeConversions(corLibrary);
+            foreach (var @using in Usings)
+            {
+                // Check if `using static` directives meet constraints.
+                if (@using.NamespaceOrType.IsType)
+                {
+                    var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
+                    var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
+                    typeSymbol.CheckAllConstraints(conversions, location, semanticDiagnostics);
+                }
             }
 
             // Force resolution of extern aliases.

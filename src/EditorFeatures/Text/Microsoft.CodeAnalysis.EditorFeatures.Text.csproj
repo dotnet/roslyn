@@ -6,7 +6,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Text</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for working with Visual Studio text buffers.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -20,7 +26,6 @@
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
   </ItemGroup>
   <ItemGroup>
     <!-- InternalsVisibleTo go here -->
@@ -38,7 +43,11 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.7" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.15.8" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.7" Key="$(RemoteLanguageServiceKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.15.8" Key="$(RemoteLanguageServiceKey)" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
     <!-- The rest are for test purposes only. -->

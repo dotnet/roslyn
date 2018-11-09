@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
+            string displayTextSuffix,
             CompletionItemRules rules,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default,
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (showsWarningIcon)
             {
-                tags = tags.Add(CompletionTags.Warning);
+                tags = tags.Add(WellKnownTags.Warning);
             }
 
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return CompletionItem.Create(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,

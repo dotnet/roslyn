@@ -2,9 +2,14 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="new">Add member name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
-        <target state="new">Add parameter to '{0}' (and overrides/implementations)</target>
+        <target state="translated">Добавить параметр в "{0}" (а также переопределения или реализации)</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -22,19 +27,34 @@
         <target state="translated">Действия не могут быть пустыми.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_query">
-        <source>Convert to query</source>
-        <target state="new">Convert to query</target>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Quality">
+        <source>Code Quality</source>
+        <target state="new">Code Quality</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="new">Convert to LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
         <source>Add to '{0}'</source>
-        <target state="new">Add to '{0}'</target>
+        <target state="translated">Добавить в "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
         <target state="new">Convert to class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="new">Convert to LINQ (call form)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -47,19 +67,129 @@
         <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="new">Fix formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
-        <target state="new">Fix typo '{0}'</target>
+        <target state="translated">Исправьте опечатку "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
-        <target state="new">Formatting document</target>
+        <target state="translated">Форматирование документа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="new">Indexing can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="new">Introduce constant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="new">Introduce field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="new">Introduce local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="new">Introduce query variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="new">Private member '{0}' is unused.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
+        <target state="translated">Изменение исходного файла {0} не позволит продолжить работу сеанса отладки из-за внутренней ошибки: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="new">Invert conditional</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
-        <target state="new">Related method signatures found in metadata will not be updated.</target>
+        <target state="translated">Связанные сигнатуры методов, найденные в метаданных, не будут обновлены.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unread_private_members">
+        <source>Remove unread private members</source>
+        <target state="new">Remove unread private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_member">
+        <source>Remove unused member</source>
+        <target state="new">Remove unused member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_private_members">
+        <source>Remove unused private members</source>
+        <target state="new">Remove unused private members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_1">
+        <source>Replace '{0}' with '{1}' </source>
+        <target state="new">Replace '{0}' with '{1}' </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="new">Use block body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="new">Use expression body for lambda expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="new">Use index operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="new">Use interpolated verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="new">{0} can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -2027,22 +2157,22 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Parentheses_can_be_removed">
         <source>Parentheses can be removed</source>
-        <target state="new">Parentheses can be removed</target>
+        <target state="translated">Круглые скобки можно удалить</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
         <source>Remove unnecessary parentheses</source>
-        <target state="new">Remove unnecessary parentheses</target>
+        <target state="translated">Удалить ненужные круглые скобки</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
-        <target state="new">Add parentheses for clarity</target>
+        <target state="translated">Добавить круглые скобки для ясности</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_should_be_added_for_clarity">
         <source>Parentheses should be added for clarity</source>
-        <target state="new">Parentheses should be added for clarity</target>
+        <target state="translated">Необходимо добавить круглые скобки для ясности</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2077,7 +2207,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Преобразовать в условное выражение</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

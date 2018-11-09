@@ -6,7 +6,14 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for creating C# editing experiences.
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -58,8 +65,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
-    <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" />
+    <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="all" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
 </Project>

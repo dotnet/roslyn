@@ -6,9 +6,10 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.CSharp.UnitTests</RootNamespace>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -28,7 +29,6 @@
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -64,18 +64,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <!-- Force a reference to Microsoft.VisualStudio.Text.Internal. This NuGet package includes an empty ref folder so nobody accidentally uses APIs from it,
-         but includes the lib folder so it's copied as a dependency of Microsoft.VisualStudio.Platform.VSEditor. Unfortunately we still have test code that
-         does depend on internal APIs, so we need to a force a reference here. This hack is tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/567115 -->
-    <Reference Include="$(NuGetPackageRoot)\microsoft.visualstudio.text.internal\$(MicrosoftVisualStudioTextInternalVersion)\lib\net46\Microsoft.VisualStudio.Text.Internal.dll" />
-    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
