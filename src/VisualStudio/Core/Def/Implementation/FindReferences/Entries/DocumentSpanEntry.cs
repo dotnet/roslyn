@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
@@ -16,10 +14,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using DocumentHighlighting = Microsoft.CodeAnalysis.DocumentHighlighting;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -91,7 +87,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
-                    LazyToolTip.AttachTo(content, Presenter.ThreadingContext, CreateDisposableToolTip);
+                    // this lazy tooltip causes whole solution to be kept in memory until find all reference result gets cleared.
+                    // solution is never supposed to be kept alive for long time, meaning there is bunch of conditional weaktable or weak reference
+                    // keyed by solution/project/document or corresponding states. this will cause all those to be kept alive in memory as well.
+                    // probably we need to dig in to see how expensvie it is to support this
+                    var controlService = Document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                    controlService.AttachToolTipToControl(content, CreateDisposableToolTip);
 
                     return true;
                 }
@@ -109,45 +110,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 //   2. our results may not be in sync with what's actually in the editor.
                 var textBuffer = CreateNewBuffer();
 
-                // Create the actual tooltip around the region of that text buffer we want to show.
-                var toolTip = new ToolTip
-                {
-                    Content = CreateToolTipContent(textBuffer),
-                    Background = (Brush)Application.Current.Resources[EnvironmentColors.ToolWindowBackgroundBrushKey]
-                };
-
-                // Create a preview workspace for this text buffer and open it's corresponding 
-                // document.  That way we'll get nice things like classification as well as the
-                // reference highlight span.
-                var newDocument = Document.WithText(textBuffer.AsTextContainer().CurrentText);
-                var workspace = new PreviewWorkspace(newDocument.Project.Solution);
-                workspace.OpenDocument(newDocument.Id);
-
-                return new DisposableToolTip(toolTip, workspace);
-            }
-
-            private ContentControl CreateToolTipContent(ITextBuffer textBuffer)
-            {
-                var regionSpan = this.GetRegionSpanForReference();
-                var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(regionSpan);
-
-                var contentType = Presenter.ContentTypeRegistryService.GetContentType(
-                    IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
-
-                var roleSet = Presenter.TextEditorFactoryService.CreateTextViewRoleSet(
-                    TextViewRoles.PreviewRole,
-                    PredefinedTextViewRoles.Analyzable,
-                    PredefinedTextViewRoles.Document,
-                    PredefinedTextViewRoles.Editable);
-
-                return ProjectionBufferContent.Create(
-                    Presenter.ThreadingContext,
-                    ImmutableArray.Create(snapshotSpan),
-                    Presenter.ProjectionBufferFactoryService,
-                    Presenter.EditorOptionsFactoryService,
-                    Presenter.TextEditorFactoryService,
-                    contentType,
-                    roleSet);
+                var controlService = Document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                return controlService.CreateDisposableToolTip(
+                    Document,
+                    textBuffer,
+                    GetRegionSpanForReference(),
+                    EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
             private ITextBuffer CreateNewBuffer()

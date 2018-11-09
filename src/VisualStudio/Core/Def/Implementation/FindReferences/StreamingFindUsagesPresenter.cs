@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -12,9 +13,6 @@ using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -31,16 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly IServiceProvider _serviceProvider;
 
         public readonly ITextBufferFactoryService TextBufferFactoryService;
-        public readonly ITextEditorFactoryService TextEditorFactoryService;
-        public readonly IContentTypeRegistryService ContentTypeRegistryService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly IEditorFormatMapService FormatMapService;
         public readonly IClassificationFormatMap ClassificationFormatMap;
-        public readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
-        public readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
 
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
-        private readonly VisualStudioWorkspace _workspace;
+        private readonly Workspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new HashSet<AbstractTableDataSourceFindUsagesContext>();
@@ -52,26 +46,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             VisualStudioWorkspace workspace,
             Shell.SVsServiceProvider serviceProvider,
             ITextBufferFactoryService textBufferFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
-            IClassificationFormatMapService classificationFormatMapService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService)
+            IClassificationFormatMapService classificationFormatMapService)
             : base(threadingContext)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
             TextBufferFactoryService = textBufferFactoryService;
-            ContentTypeRegistryService = contentTypeRegistryService;
-
-            TextEditorFactoryService = textEditorFactoryService;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
-            ProjectionBufferFactoryService = projectionBufferFactoryService;
-            EditorOptionsFactoryService = editorOptionsFactoryService;
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }
