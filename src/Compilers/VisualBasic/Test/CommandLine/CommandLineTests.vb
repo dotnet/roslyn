@@ -3234,6 +3234,28 @@ print Goodbye, World"
             AssertEx.Equal(ImmutableArray.Create(sdkDir.Path), parser.ReferencePaths)
         End Sub
 
+        <Fact>
+        <WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")>
+        Public Sub NoSdkPathReferenceSystemDll()
+            Dim source = "
+Module M
+End Module
+"
+            Dim dir = Temp.CreateDirectory()
+
+            Dim file = dir.CreateFile("a.vb")
+            file.WriteAllText(source)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/nosdkpath", "/t:library", "a.vb"})
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Dim output = outWriter.ToString().Trim()
+            Assert.Equal(1, exitCode)
+            Assert.Contains("vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'", output)
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
         Public Sub PathMapPdbDeterminism()
