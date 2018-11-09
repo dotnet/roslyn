@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private static Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addSyntaxLocals = (b, id, locals) => b.AddSyntaxLocals(id, locals);
             private static Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addSemanticLocals = (b, id, locals) => b.AddSemanticLocals(id, locals);
             private static Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addNonLocals = (b, id, locals) => b.AddNonLocals(id, locals);
-            private static Action<Builder, ProjectId, ImmutableArray<DiagnosticData>> s_addOthers = (b, id, locals) => b.AddOthers(id, locals);
+            private static Action<Builder, ProjectId, ImmutableArray<DiagnosticData>> s_addOthers = (b, _, locals) => b.AddOthers(locals);
 
             private async Task<bool> TryDeserializeDocumentAsync(DiagnosticDataSerializer serializer, Document document, Builder builder, CancellationToken cancellationToken)
             {
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     Add(ref _nonLocals, documentId, diagnostics);
                 }
 
-                public void AddOthers(ProjectId unused, ImmutableArray<DiagnosticData> diagnostics)
+                public void AddOthers(ImmutableArray<DiagnosticData> diagnostics)
                 {
                     _others = diagnostics;
                 }
